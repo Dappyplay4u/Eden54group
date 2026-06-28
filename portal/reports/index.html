@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reports Overview · Eden 54 Portal</title>
+<link rel="icon" type="image/jpeg" href="/logo/eden 54 logo.jpeg">
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/portal/portal.css">
+<style>
+.dept-card { background:var(--card); border:1px solid var(--border); border-radius:8px; margin-bottom:20px; overflow:hidden; }
+.dept-header { display:flex; align-items:center; justify-content:space-between; padding:16px 22px; border-bottom:1px solid var(--border); }
+.dept-header-left { display:flex; align-items:center; gap:12px; }
+.dept-icon { font-size:1.3rem; }
+.dept-title { font-size:0.95rem; font-weight:400; }
+.dept-sub { font-size:0.72rem; color:var(--muted); margin-top:2px; }
+.dept-body { padding:18px 22px; }
+.no-sub { display:flex; align-items:center; gap:8px; color:var(--muted); font-size:0.83rem; padding:6px 0; }
+.no-sub::before { content:''; width:8px; height:8px; border-radius:50%; background:#fca5a5; flex-shrink:0; }
+.sub-ok::before { background:#86efac; }
+
+.rev-row { display:flex; align-items:center; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--border); font-size:0.84rem; }
+.rev-row:last-child { border-bottom:none; }
+.rev-total { display:flex; justify-content:space-between; padding:10px 0 0; font-weight:400; font-size:0.9rem; border-top:2px solid var(--border); margin-top:4px; }
+
+.bar-items { display:flex; flex-wrap:wrap; gap:6px; }
+.item-chip { font-size:0.72rem; padding:3px 10px; border-radius:12px; background:#f3f4f6; color:var(--text); }
+.item-chip.low { background:#fef3c7; color:#92400e; }
+
+.match-row { display:flex; gap:10px; font-size:0.82rem; padding:6px 0; border-bottom:1px solid var(--border); }
+.match-row:last-child { border-bottom:none; }
+
+/* grand total bar */
+.grand-bar { background:var(--deep); border-radius:8px; padding:18px 24px; display:flex; align-items:center; justify-content:space-between; margin-bottom:24px; }
+.grand-bar-label { font-size:0.68rem; letter-spacing:0.18em; text-transform:uppercase; color:rgba(245,242,236,0.45); margin-bottom:4px; }
+.grand-bar-val { font-size:1.5rem; font-weight:400; color:var(--gold); }
+.grand-bar-meta { font-size:0.78rem; color:rgba(245,242,236,0.4); }
+
+/* breakdown chips in grand total */
+.gt-chips { display:flex; gap:16px; flex-wrap:wrap; }
+.gt-chip { font-size:0.78rem; color:rgba(245,242,236,0.6); }
+.gt-chip strong { color:rgba(245,242,236,0.9); font-weight:400; }
+
+.pill-status { display:inline-flex; align-items:center; gap:5px; font-size:0.68rem; padding:3px 10px; border-radius:12px; }
+.pill-ok   { background:#dcfce7; color:#166534; }
+.pill-warn { background:#fef9c3; color:#854d0e; }
+.pill-none { background:#f3f4f6; color:#6b7280; }
+
+@media print {
+  body { background:#fff !important; }
+  .sidebar,.topbar,.hamburger,.sb-overlay,.no-print { display:none !important; }
+  .main { margin-left:0 !important; }
+  .content { padding:0 !important; }
+  .dept-card { box-shadow:none !important; page-break-inside:avoid; }
+  .print-header { display:block !important; }
+}
+.print-header { display:none; text-align:center; margin-bottom:20px; }
+</style>
+</head>
+<body>
+<div class="sb-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+<aside class="sidebar" id="sidebar">
+  <div class="sb-brand"><div class="sb-brand-name">Eden 54</div><div class="sb-brand-sub">Staff Portal</div></div>
+  <nav class="sb-nav" id="sbNav"></nav>
+  <div class="sb-foot">
+    <div id="sidebarUser"></div>
+    <a class="sb-item" onclick="switchProfile()" style="cursor:pointer"><i class="sb-icon">🔄</i> Switch Profile</a>
+  </div>
+</aside>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <button class="hamburger" onclick="toggleSidebar()"><div></div><div></div><div></div></button>
+      <h1>Reports Overview</h1>
+    </div>
+    <div class="topbar-date" id="topDate"></div>
+  </div>
+  <div class="content">
+    <div id="alertBox" class="alert"></div>
+
+    <!-- Date picker + print -->
+    <div class="no-print" style="display:flex;align-items:flex-end;gap:12px;margin-bottom:20px;flex-wrap:wrap">
+      <div class="form-group" style="margin:0">
+        <label class="form-label">Date</label>
+        <input type="date" id="reportDate" class="form-control" onchange="loadAll()">
+      </div>
+      <button class="btn btn-outline btn-sm" onclick="window.print()">Print Report</button>
+    </div>
+
+    <!-- Print header -->
+    <div class="print-header">
+      <img src="/logo/eden 54 logo.jpeg" style="width:44px;height:44px;border-radius:50%;margin-bottom:8px">
+      <h2 style="font-size:1.1rem;font-weight:500">Eden 54 Group — Daily Reports</h2>
+      <p id="printDate" style="font-size:0.82rem;color:#555;margin-top:4px"></p>
+    </div>
+
+    <!-- Grand Total -->
+    <div class="grand-bar no-print" id="grandBar" style="display:none">
+      <div>
+        <div class="grand-bar-label">Total Revenue — All Departments</div>
+        <div class="grand-bar-val" id="grandTotal">₦0.00</div>
+      </div>
+      <div class="gt-chips" id="grandChips"></div>
+    </div>
+
+    <!-- Departments -->
+    <div id="salesCard"></div>
+    <div id="barbingCard"></div>
+    <div id="poolCard"></div>
+    <div id="barCard"></div>
+    <div id="kitchenCard"></div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="/portal/firebase-init.js"></script>
+<script>
+const currentStaff = getStaff();
+requireAccess(currentStaff, 'reports');
+populateSidebar(currentStaff);
+buildNav(currentStaff, 'reports');
+document.getElementById('topDate').textContent =
+  new Date().toLocaleDateString('en-NG',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+document.getElementById('reportDate').value = todayStr();
+
+/* ── Helpers ── */
+function N(n){ return fmtNaira(n||0); }
+function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function pillStatus(ok, label) {
+  return `<span class="pill-status ${ok?'pill-ok':'pill-none'}">${ok?'✓':'—'} ${label}</span>`;
+}
+
+function deptCard(id, icon, title, subInfo, bodyHTML, statusBadge='') {
+  document.getElementById(id).innerHTML = `
+  <div class="dept-card">
+    <div class="dept-header">
+      <div class="dept-header-left">
+        <span class="dept-icon">${icon}</span>
+        <div><div class="dept-title">${title}</div><div class="dept-sub">${subInfo}</div></div>
+      </div>
+      ${statusBadge}
+    </div>
+    <div class="dept-body">${bodyHTML}</div>
+  </div>`;
+}
+
+/* ── Load All ── */
+async function loadAll() {
+  const date = document.getElementById('reportDate').value;
+  document.getElementById('printDate').textContent = 'Date: ' + date;
+  document.getElementById('grandBar').style.display = 'none';
+
+  const [salesData, barbData, poolData, barData, kitData] = await Promise.all([
+    fetchSales(date), fetchBarbing(date), fetchPool(date),
+    fetchBar(date), fetchKitchen(date)
+  ]);
+
+  renderSales(date, salesData);
+  renderBarbing(date, barbData);
+  renderPool(date, poolData);
+  renderBar(date, barData);
+  renderKitchen(date, kitData);
+  renderGrandTotal(salesData, barbData, poolData);
+}
+
+/* ── SALES ── */
+async function fetchSales(date) {
+  const snap = await db.collection('sales').where('date','==',date).get();
+  return snap.docs.map(d=>d.data());
+}
+function renderSales(date, rows) {
+  if (!rows.length) {
+    deptCard('salesCard','💰','Daily Sales','Cash · Transfer · POS',
+      `<div class="no-sub">No sales submissions for ${date}</div>`);
+    return;
+  }
+  const grandCash = rows.reduce((s,r)=>s+(r.cashSales||0),0);
+  const grandTrans= rows.reduce((s,r)=>s+(r.transferSales||0),0);
+  const grandPOS  = rows.reduce((s,r)=>s+(r.posSales||0),0);
+  const grandTot  = rows.reduce((s,r)=>s+(r.totalSales||0),0);
+  const tableRows = rows.map(r=>`
+    <div class="rev-row">
+      <div><strong style="font-weight:400">${esc(r.staffName)}</strong><span style="font-size:0.72rem;color:var(--muted);margin-left:8px">${esc(r.department)}</span></div>
+      <div style="text-align:right;font-size:0.78rem;color:var(--muted)">
+        Cash ${N(r.cashSales)} · Trans ${N(r.transferSales)} · POS ${N(r.posSales)}
+        <span style="display:block;font-size:0.88rem;color:var(--text);font-weight:400">${N(r.totalSales)}</span>
+      </div>
+    </div>`).join('');
+  const total = `<div class="rev-total"><span>Grand Total</span><span class="text-gold">${N(grandTot)}</span></div>
+    <div style="font-size:0.72rem;color:var(--muted);margin-top:6px">Cash ${N(grandCash)} · Transfer ${N(grandTrans)} · POS ${N(grandPOS)}</div>`;
+  deptCard('salesCard','💰','Daily Sales',`${rows.length} submission${rows.length!==1?'s':''}`,
+    tableRows+total, pillStatus(true,rows.length+' filed'));
+}
+
+/* ── BARBING ── */
+async function fetchBarbing(date) {
+  const snap = await db.collection('barbing_reports').where('date','==',date).get();
+  return snap.docs.map(d=>d.data());
+}
+function renderBarbing(date, rows) {
+  if (!rows.length) {
+    deptCard('barbingCard','💈','Barbing Salon','Services · Revenue',
+      `<div class="no-sub">No salon reports for ${date}</div>`);
+    return;
+  }
+  const grandRev   = rows.reduce((s,r)=>s+(r.totalRevenue||0),0);
+  const grandSvcs  = rows.reduce((s,r)=>s+(r.clientsServed||0),0);
+  const tableRows  = rows.map(r=>{
+    const svcList = (r.services||[]).map(s=>`${s.type} ${N(s.amount)}`).join(' · ');
+    return `<div class="rev-row">
+      <div>
+        <strong style="font-weight:400">${esc(r.staffName)}</strong>
+        <span style="font-size:0.72rem;color:var(--muted);display:block;margin-top:2px">${svcList||'No services listed'}</span>
+        ${r.notes?`<span style="font-size:0.72rem;color:var(--muted)">Note: ${esc(r.notes)}</span>`:''}
+      </div>
+      <div style="text-align:right">
+        <span style="font-size:0.75rem;color:var(--muted)">${r.clientsServed||0} clients</span>
+        <span style="display:block;font-weight:400;color:var(--gold)">${N(r.totalRevenue)}</span>
+      </div>
+    </div>`;
+  }).join('');
+  const total = `<div class="rev-total"><span>Total — ${grandSvcs} services</span><span class="text-gold">${N(grandRev)}</span></div>`;
+  deptCard('barbingCard','💈','Barbing Salon',`${rows.length} barber${rows.length!==1?'s':''}`,
+    tableRows+total, pillStatus(true,rows.length+' filed'));
+}
+
+/* ── POOL ── */
+async function fetchPool(date) {
+  const snap = await db.collection('pool_competitions').where('date','==',date).get();
+  return snap.docs.map(d=>d.data());
+}
+function renderPool(date, rows) {
+  if (!rows.length) {
+    deptCard('poolCard','🏊','Pool / Snooker','Competitions · Revenue',
+      `<div class="no-sub">No pool report for ${date}</div>`);
+    return;
+  }
+  const grandCash = rows.reduce((s,r)=>s+(r.cashCollected||0),0);
+  const grandPrize= rows.reduce((s,r)=>s+(r.prizePaid||0),0);
+  const grandNet  = rows.reduce((s,r)=>s+(r.netRevenue||0),0);
+  const tableRows = rows.map(r=>{
+    const matchList = (r.matches||[]).map(m=>
+      `<div class="match-row"><span style="color:var(--muted)">${esc(m.player1||'')} vs ${esc(m.player2||'')}</span><span style="margin-left:auto;font-weight:400">${N(m.stake||0)}</span></div>`
+    ).join('');
+    return `
+      <div class="rev-row" style="flex-direction:column;align-items:flex-start;gap:6px">
+        <div style="display:flex;width:100%;justify-content:space-between">
+          <span><strong style="font-weight:400">${esc(r.type||'Competition')}</strong> · ${r.players||0} players</span>
+          <span style="font-size:0.75rem;color:var(--muted)">by ${esc(r.staffName)}</span>
+        </div>
+        ${matchList}
+        <div style="display:flex;gap:20px;font-size:0.78rem;margin-top:4px">
+          <span>Cash in <strong class="text-ok">${N(r.cashCollected)}</strong></span>
+          <span>Prize <strong style="color:var(--err)">${N(r.prizePaid)}</strong></span>
+          <span>Net <strong class="text-gold">${N(r.netRevenue)}</strong></span>
+        </div>
+        ${r.notes?`<div style="font-size:0.72rem;color:var(--muted)">Note: ${esc(r.notes)}</div>`:''}
+      </div>`;
+  }).join('');
+  const total = `<div class="rev-total">
+    <span>Net Revenue</span>
+    <div style="text-align:right"><span class="text-gold" style="font-size:1rem">${N(grandNet)}</span>
+    <span style="display:block;font-size:0.72rem;color:var(--muted)">Cash ${N(grandCash)} · Prize paid ${N(grandPrize)}</span></div>
+  </div>`;
+  deptCard('poolCard','🏊','Pool / Snooker',`${rows.length} session${rows.length!==1?'s':''}`,
+    tableRows+total, pillStatus(true,rows.length+' filed'));
+}
+
+/* ── BAR STOCK ── */
+async function fetchBar(date) {
+  const snap = await db.collection('bar_stock').where('date','==',date).get();
+  return snap.docs.map(d=>d.data());
+}
+function renderBar(date, rows) {
+  if (!rows.length) {
+    deptCard('barCard','🍺','Bar Stock','Inventory check',
+      `<div class="no-sub">No bar report for ${date}</div>`);
+    return;
+  }
+  const body = rows.map(r => {
+    const allItems = (r.items||[]);
+    const lowItems = (r.lowItems||[]);
+    const chips = allItems.map(it=>
+      `<span class="item-chip${it.lowAlert?' low':''}">${esc(it.name)}: ${it.closing}${it.unit||''}</span>`
+    ).join('');
+    return `
+      <div style="margin-bottom:${rows.length>1?'14px':'0'}">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <span style="font-size:0.82rem;font-weight:400">${esc(r.staffName)}</span>
+          ${lowItems.length ? `<span class="pill-status pill-warn">${lowItems.length} low stock</span>` : `<span class="pill-status pill-ok">All OK</span>`}
+        </div>
+        <div class="bar-items">${chips}</div>
+        ${r.notes?`<p style="font-size:0.78rem;color:var(--muted);margin-top:8px">Note: ${esc(r.notes)}</p>`:''}
+      </div>`;
+  }).join('<div class="divider"></div>');
+  deptCard('barCard','🍺','Bar Stock',`${rows.length} report${rows.length!==1?'s':''}`,
+    body, pillStatus(true,rows.length+' filed'));
+}
+
+/* ── KITCHEN ── */
+async function fetchKitchen(date) {
+  const snap = await db.collection('kitchen_inventory').where('date','==',date).get();
+  return snap.docs.map(d=>d.data());
+}
+function renderKitchen(date, rows) {
+  if (!rows.length) {
+    deptCard('kitchenCard','🍽️','Kitchen','Inventory · Meals',
+      `<div class="no-sub">No kitchen report for ${date}</div>`);
+    return;
+  }
+  const body = rows.map(r => {
+    const lowItems = (r.lowItems||[]);
+    const chips = (r.items||[]).map(it=>
+      `<span class="item-chip${it.lowAlert?' low':''}">${esc(it.name)}: ${it.closing}${it.unit||''}</span>`
+    ).join('');
+    return `
+      <div style="margin-bottom:${rows.length>1?'14px':'0'}">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <div>
+            <span style="font-size:0.82rem;font-weight:400">${esc(r.staffName)}</span>
+            <span style="font-size:0.78rem;color:var(--muted);margin-left:10px">${r.meals||0} meals prepared</span>
+          </div>
+          ${lowItems.length ? `<span class="pill-status pill-warn">${lowItems.length} low stock</span>` : `<span class="pill-status pill-ok">All OK</span>`}
+        </div>
+        <div class="bar-items">${chips}</div>
+        ${r.notes?`<p style="font-size:0.78rem;color:var(--muted);margin-top:8px">Note: ${esc(r.notes)}</p>`:''}
+      </div>`;
+  }).join('<div class="divider"></div>');
+  deptCard('kitchenCard','🍽️','Kitchen',`${rows.length} report${rows.length!==1?'s':''}`,
+    body, pillStatus(true,rows.length+' filed'));
+}
+
+/* ── GRAND TOTAL ── */
+function renderGrandTotal(sales, barb, pool) {
+  const salesTot = sales.reduce((s,r)=>s+(r.totalSales||0),0);
+  const barbTot  = barb.reduce((s,r)=>s+(r.totalRevenue||0),0);
+  const poolTot  = pool.reduce((s,r)=>s+(r.netRevenue||0),0);
+  const grand    = salesTot + barbTot + poolTot;
+  if (!grand) return;
+  document.getElementById('grandTotal').textContent = N(grand);
+  document.getElementById('grandChips').innerHTML = [
+    salesTot && `<div class="gt-chip">Sales <strong>${N(salesTot)}</strong></div>`,
+    barbTot  && `<div class="gt-chip">Salon <strong>${N(barbTot)}</strong></div>`,
+    poolTot  && `<div class="gt-chip">Pool <strong>${N(poolTot)}</strong></div>`,
+  ].filter(Boolean).join('');
+  document.getElementById('grandBar').style.display = 'flex';
+}
+
+loadAll();
+</script>
+</body>
+</html>

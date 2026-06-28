@@ -109,12 +109,14 @@ function buildNav(staff, active) {
 
   // HR + Admin — manager only
   if (isManager) {
+    html += sec('Overview');
+    html += a('/portal/reports/',    '📋', 'Reports',       'reports');
     html += sec('HR');
-    html += a('/portal/attendance/', '👥', 'Attendance',   'attendance');
-    html += a('/portal/payroll/',    '💵', 'Payroll',      'payroll');
+    html += a('/portal/attendance/', '👥', 'Attendance',    'attendance');
+    html += a('/portal/payroll/',    '💵', 'Payroll',       'payroll');
     if (isSuperAdmin) html += a('/portal/activity/', '🕵️', 'Staff Activity', 'activity');
     html += sec('Admin');
-    html += a('/portal/staff/',      '👤', 'Manage Staff', 'staff');
+    html += a('/portal/staff/',      '👤', 'Manage Staff',  'staff');
   }
 
   const nav = document.getElementById('sbNav');
@@ -138,6 +140,7 @@ function requireAccess(staff, page) {
     staff:      isManager,
     attendance: isManager,
     payroll:    isManager,
+    reports:    isManager,
     activity:   isSuperAdmin,
     bar:        isManager || dept === 'bar',
     kitchen:    isManager || dept === 'kitchen',
