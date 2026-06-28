@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Daily Sales · Eden 54 Portal</title>
+<link rel="icon" type="image/jpeg" href="/logo/eden 54 logo.jpeg">
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/portal/portal.css">
+</head>
+<body>
+<div class="sb-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+<aside class="sidebar" id="sidebar">
+  <div class="sb-brand"><div class="sb-brand-name">Eden 54</div><div class="sb-brand-sub">Staff Portal</div></div>
+  <nav class="sb-nav">
+    <div class="sb-section">Main</div>
+    <a href="/portal/dashboard/" class="sb-item"><i class="sb-icon">📊</i> Dashboard</a>
+    <div class="sb-section">Daily Reports</div>
+    <a href="/portal/sales/" class="sb-item active"><i class="sb-icon">💰</i> Daily Sales</a>
+    <a href="/portal/bar/" class="sb-item"><i class="sb-icon">🍺</i> Bar Stock</a>
+    <a href="/portal/kitchen/" class="sb-item"><i class="sb-icon">🍽️</i> Kitchen</a>
+    <a href="/portal/barbing/" class="sb-item"><i class="sb-icon">💈</i> Barbing</a>
+    <a href="/portal/pool/" class="sb-item"><i class="sb-icon">🏊</i> Pool</a>
+    <div class="sb-section">HR</div>
+    <a href="/portal/attendance/" class="sb-item"><i class="sb-icon">👥</i> Attendance</a>
+    <a href="/portal/payroll/" class="sb-item"><i class="sb-icon">💵</i> Payroll</a>
+    <div class="sb-section">Admin</div>
+    <a href="/portal/staff/" class="sb-item"><i class="sb-icon">👤</i> Staff</a>
+  </nav>
+  <div class="sb-foot"><div id="sidebarUser"></div><a class="sb-item" onclick="switchProfile()" style="cursor:pointer"><i class="sb-icon">🔄</i> Switch Profile</a></div>
+</aside>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <button class="hamburger" onclick="toggleSidebar()"><div></div><div></div><div></div></button>
+      <h1>Daily Sales Report</h1>
+    </div>
+    <div class="topbar-date" id="topDate"></div>
+  </div>
+  <div class="content">
+    <div id="alertBox" class="alert"></div>
+    <div class="g2">
+      <div class="card">
+        <div class="section-head"><h2>Submit Sales</h2></div>
+        <div class="fg2" style="margin-bottom:14px">
+          <div class="form-group">
+            <label class="form-label">Date</label>
+            <input type="date" id="saleDate" class="form-control">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Department</label>
+            <select id="saleDept" class="form-control">
+              <option value="">Select…</option>
+              <option>Restaurant &amp; Lounge</option>
+              <option>Bar</option>
+              <option>Apartment</option>
+              <option>Barbing Salon</option>
+              <option>Pool</option>
+              <option>Car Rental</option>
+              <option>Games</option>
+            </select>
+          </div>
+        </div>
+        <div class="divider"></div>
+        <div class="fg3" style="margin-bottom:14px">
+          <div class="form-group">
+            <label class="form-label">Cash (₦)</label>
+            <input type="number" id="cashSales" class="form-control" placeholder="0" min="0" oninput="calcTotal()">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Transfer (₦)</label>
+            <input type="number" id="transferSales" class="form-control" placeholder="0" min="0" oninput="calcTotal()">
+          </div>
+          <div class="form-group">
+            <label class="form-label">POS (₦)</label>
+            <input type="number" id="posSales" class="form-control" placeholder="0" min="0" oninput="calcTotal()">
+          </div>
+        </div>
+        <div class="card" style="background:#f5f9f5;border-color:#C9A96E;padding:14px;margin-bottom:16px">
+          <div class="card-label">Total</div>
+          <div class="card-value gold" id="totalDisplay">₦0.00</div>
+        </div>
+        <div class="form-group" style="margin-bottom:16px">
+          <label class="form-label">Notes</label>
+          <textarea id="saleNotes" class="form-control" rows="2" placeholder="Any notes…"></textarea>
+        </div>
+        <button class="btn btn-gold" id="submitBtn" onclick="submitSales()" style="width:100%">Submit Report</button>
+      </div>
+
+      <div class="card">
+        <div class="section-head"><h2>Today's Submissions</h2></div>
+        <div id="todaySales" class="text-muted" style="font-size:0.85rem">Loading…</div>
+        <div class="divider"></div>
+        <div class="section-head" style="margin-top:0"><h2>My Recent History</h2></div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Date</th><th>Dept</th><th>Total</th></tr></thead>
+            <tbody id="historyTable"><tr><td colspan="3" style="text-align:center;padding:16px;color:#6a6b62">Loading…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="/portal/firebase-init.js"></script>
+<script>
+const staff = getStaff();
+populateSidebar(staff);
+const today = todayStr();
+document.getElementById('saleDate').value = today;
+document.getElementById('topDate').textContent = new Date().toLocaleDateString('en-NG',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+
+function calcTotal() {
+  const t = (+document.getElementById('cashSales').value||0)+(+document.getElementById('transferSales').value||0)+(+document.getElementById('posSales').value||0);
+  document.getElementById('totalDisplay').textContent = fmtNaira(t);
+}
+
+async function submitSales() {
+  const date = document.getElementById('saleDate').value;
+  const dept = document.getElementById('saleDept').value;
+  if (!date || !dept) { showAlert('alertBox','Please select a date and department.','alert-error'); return; }
+  const cash  = +document.getElementById('cashSales').value || 0;
+  const trans = +document.getElementById('transferSales').value || 0;
+  const pos   = +document.getElementById('posSales').value || 0;
+  const notes = document.getElementById('saleNotes').value.trim();
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true; btn.textContent = 'Submitting…';
+  try {
+    await db.collection('sales').add({
+      date, department: dept, staffId: staff.id, staffName: staff.name,
+      cashSales: cash, transferSales: trans, posSales: pos, totalSales: cash + trans + pos,
+      notes, submittedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    showAlert('alertBox','Sales report submitted!','alert-success');
+    ['cashSales','transferSales','posSales','saleNotes'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('totalDisplay').textContent = '₦0.00';
+    loadToday(); loadHistory();
+  } catch(e) { showAlert('alertBox','Error submitting. Try again.','alert-error'); }
+  btn.disabled = false; btn.textContent = 'Submit Report';
+}
+
+async function loadToday() {
+  const snap = await db.collection('sales').where('date','==',today).get();
+  const el = document.getElementById('todaySales');
+  if (snap.empty) { el.textContent = 'No submissions yet today.'; return; }
+  let html = '', grand = 0;
+  snap.forEach(d => {
+    const s = d.data(); grand += s.totalSales || 0;
+    html += `<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #e4e4df;font-size:0.84rem"><span><strong>${s.staffName}</strong> · ${s.department}</span><span class="text-gold fw4">${fmtNaira(s.totalSales)}</span></div>`;
+  });
+  html += `<div style="display:flex;justify-content:space-between;padding:9px 0;font-weight:400;font-size:0.88rem"><span>Total</span><span class="text-gold">${fmtNaira(grand)}</span></div>`;
+  el.innerHTML = html;
+}
+
+async function loadHistory() {
+  const snap = await db.collection('sales').where('staffId','==',staff.id).orderBy('submittedAt','desc').limit(15).get();
+  const tbody = document.getElementById('historyTable');
+  tbody.innerHTML = snap.empty
+    ? '<tr><td colspan="3" style="text-align:center;padding:16px;color:#6a6b62">No history yet.</td></tr>'
+    : snap.docs.map(d => { const s=d.data(); return `<tr><td>${s.date}</td><td>${s.department}</td><td class="text-gold fw4">${fmtNaira(s.totalSales)}</td></tr>`; }).join('');
+}
+
+loadToday(); loadHistory();
+</script>
+</body>
+</html>

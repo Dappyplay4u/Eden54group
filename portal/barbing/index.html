@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Barbing Salon · Eden 54 Portal</title>
+<link rel="icon" type="image/jpeg" href="/logo/eden 54 logo.jpeg">
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/portal/portal.css">
+</head>
+<body>
+<div class="sb-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+<aside class="sidebar" id="sidebar">
+  <div class="sb-brand"><div class="sb-brand-name">Eden 54</div><div class="sb-brand-sub">Staff Portal</div></div>
+  <nav class="sb-nav">
+    <div class="sb-section">Main</div>
+    <a href="/portal/dashboard/" class="sb-item"><i class="sb-icon">📊</i> Dashboard</a>
+    <div class="sb-section">Daily Reports</div>
+    <a href="/portal/sales/" class="sb-item"><i class="sb-icon">💰</i> Daily Sales</a>
+    <a href="/portal/bar/" class="sb-item"><i class="sb-icon">🍺</i> Bar Stock</a>
+    <a href="/portal/kitchen/" class="sb-item"><i class="sb-icon">🍽️</i> Kitchen</a>
+    <a href="/portal/barbing/" class="sb-item active"><i class="sb-icon">💈</i> Barbing</a>
+    <a href="/portal/pool/" class="sb-item"><i class="sb-icon">🏊</i> Pool</a>
+    <div class="sb-section">HR</div>
+    <a href="/portal/attendance/" class="sb-item"><i class="sb-icon">👥</i> Attendance</a>
+    <a href="/portal/payroll/" class="sb-item"><i class="sb-icon">💵</i> Payroll</a>
+    <div class="sb-section">Admin</div>
+    <a href="/portal/staff/" class="sb-item"><i class="sb-icon">👤</i> Staff</a>
+  </nav>
+  <div class="sb-foot"><div id="sidebarUser"></div><a class="sb-item" onclick="switchProfile()" style="cursor:pointer"><i class="sb-icon">🔄</i> Switch Profile</a></div>
+</aside>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <button class="hamburger" onclick="toggleSidebar()"><div></div><div></div><div></div></button>
+      <h1>Barbing Salon Daily Report</h1>
+    </div>
+    <div class="topbar-date" id="topDate"></div>
+  </div>
+  <div class="content">
+    <div id="alertBox" class="alert"></div>
+    <div class="g2">
+      <div class="card">
+        <div class="section-head"><h2>Submit Report</h2></div>
+        <div class="fg2" style="margin-bottom:14px">
+          <div class="form-group">
+            <label class="form-label">Date</label>
+            <input type="date" id="barbDate" class="form-control">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Reporting For</label>
+            <select id="barbStaff" class="form-control">
+              <option value="">Select barber…</option>
+            </select>
+          </div>
+        </div>
+        <div class="divider"></div>
+        <p style="font-size:0.75rem;color:#6a6b62;margin-bottom:12px;letter-spacing:0.05em">SERVICES TODAY</p>
+        <div id="serviceRows"></div>
+        <button onclick="addService()" class="btn btn-outline btn-sm" style="margin-bottom:16px">+ Add Service</button>
+        <div class="divider"></div>
+        <div class="card" style="background:#f5f9f5;border-color:#C9A96E;padding:14px;margin-bottom:14px">
+          <div class="card-label">Total Revenue</div>
+          <div class="card-value gold" id="barbTotal">₦0.00</div>
+          <div class="card-sub"><span id="barbCount">0</span> services</div>
+        </div>
+        <div class="fg2" style="margin-bottom:14px">
+          <div class="form-group">
+            <label class="form-label">Cash (₦)</label>
+            <input type="number" id="barbCash" class="form-control" placeholder="0" min="0">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Transfer (₦)</label>
+            <input type="number" id="barbTransfer" class="form-control" placeholder="0" min="0">
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom:16px">
+          <label class="form-label">Notes</label>
+          <textarea id="barbNotes" class="form-control" rows="2" placeholder="Products used, special services…"></textarea>
+        </div>
+        <button class="btn btn-gold" id="submitBtn" onclick="submitBarbing()" style="width:100%">Submit Report</button>
+      </div>
+
+      <div class="card">
+        <div class="section-head"><h2>Today's Summary</h2></div>
+        <div id="todayBarb" class="text-muted" style="font-size:0.85rem">Loading…</div>
+        <div class="divider"></div>
+        <div class="section-head" style="margin-top:0"><h2>Recent Reports</h2></div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Date</th><th>Barber</th><th>Services</th><th>Total</th></tr></thead>
+            <tbody id="histTable"><tr><td colspan="4" style="text-align:center;padding:16px;color:#6a6b62">Loading…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="/portal/firebase-init.js"></script>
+<script>
+const SERVICES = ['Haircut','Shave','Haircut + Shave','Beard Trim','Low Cut','Shape Up','Colouring','Scalp Treatment','Other'];
+let svcCount = 0;
+const currentStaff = getStaff();
+populateSidebar(currentStaff);
+document.getElementById('barbDate').value = todayStr();
+document.getElementById('topDate').textContent = new Date().toLocaleDateString('en-NG',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+
+async function init() {
+  const snap = await db.collection('staff').where('department','==','salon').where('active','==',true).get();
+  const sel = document.getElementById('barbStaff');
+  snap.forEach(d => {
+    const opt = document.createElement('option');
+    opt.value = d.id; opt.textContent = d.data().name;
+    if (d.id === currentStaff.id) opt.selected = true;
+    sel.appendChild(opt);
+  });
+  addService(); addService();
+  loadToday(); loadHistory();
+}
+
+function addService() {
+  svcCount++;
+  const id = 'svc_' + svcCount;
+  const div = document.createElement('div');
+  div.id = id;
+  div.style.cssText = 'display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:end;margin-bottom:10px';
+  div.innerHTML = `
+    <div class="form-group"><label class="form-label">Service</label>
+      <select class="form-control svc-type" onchange="calcBarb()">
+        ${SERVICES.map(s=>`<option>${s}</option>`).join('')}
+      </select></div>
+    <div class="form-group"><label class="form-label">Amount (₦)</label>
+      <input type="number" class="form-control svc-amt" min="0" placeholder="0" oninput="calcBarb()"></div>
+    <button onclick="document.getElementById('${id}').remove();calcBarb()" class="btn btn-outline btn-sm" style="margin-bottom:1px">✕</button>`;
+  document.getElementById('serviceRows').appendChild(div);
+}
+
+function calcBarb() {
+  let total = 0, count = 0;
+  document.querySelectorAll('.svc-amt').forEach(a => { const v=+a.value||0; total+=v; if(v>0) count++; });
+  document.getElementById('barbTotal').textContent = fmtNaira(total);
+  document.getElementById('barbCount').textContent = count;
+}
+
+async function submitBarbing() {
+  const date = document.getElementById('barbDate').value;
+  const sel  = document.getElementById('barbStaff');
+  const staffId   = sel.value;
+  const staffName = sel.options[sel.selectedIndex]?.text || currentStaff.name;
+  if (!staffId) { showAlert('alertBox','Please select a barber.','alert-error'); return; }
+  const services = [];
+  document.getElementById('serviceRows').querySelectorAll('div[id^="svc_"]').forEach(row => {
+    const type = row.querySelector('.svc-type').value;
+    const amt  = +row.querySelector('.svc-amt').value || 0;
+    if (amt > 0) services.push({ type, amount: amt });
+  });
+  const totalRevenue = services.reduce((s,x)=>s+x.amount, 0);
+  const btn = document.getElementById('submitBtn'); btn.disabled=true; btn.textContent='Submitting…';
+  try {
+    await db.collection('barbing_reports').add({
+      date, staffId, staffName, services, totalRevenue,
+      cash: +document.getElementById('barbCash').value||0,
+      transfer: +document.getElementById('barbTransfer').value||0,
+      clientsServed: services.length,
+      notes: document.getElementById('barbNotes').value.trim(),
+      submittedById: currentStaff.id,
+      submittedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    showAlert('alertBox','Report submitted!','alert-success');
+    loadToday(); loadHistory();
+  } catch(e) { showAlert('alertBox','Error submitting.','alert-error'); }
+  btn.disabled=false; btn.textContent='Submit Report';
+}
+
+async function loadToday() {
+  const snap = await db.collection('barbing_reports').where('date','==',todayStr()).get();
+  const el = document.getElementById('todayBarb');
+  if (snap.empty) { el.textContent = 'No reports today yet.'; return; }
+  let html='', grand=0;
+  snap.forEach(d => { const r=d.data(); grand+=r.totalRevenue||0;
+    html+=`<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #e4e4df;font-size:0.84rem"><span><strong>${r.staffName}</strong> · ${r.clientsServed} services</span><span class="text-gold fw4">${fmtNaira(r.totalRevenue)}</span></div>`;
+  });
+  html+=`<div style="display:flex;justify-content:space-between;padding:9px 0;font-weight:400;font-size:0.88rem"><span>Total</span><span class="text-gold">${fmtNaira(grand)}</span></div>`;
+  el.innerHTML = html;
+}
+
+async function loadHistory() {
+  const snap = await db.collection('barbing_reports').orderBy('submittedAt','desc').limit(20).get();
+  const tbody = document.getElementById('histTable');
+  tbody.innerHTML = snap.empty
+    ? '<tr><td colspan="4" style="text-align:center;padding:16px;color:#6a6b62">No reports yet.</td></tr>'
+    : snap.docs.map(d=>{ const r=d.data(); return `<tr><td>${r.date}</td><td class="fw4">${r.staffName}</td><td>${r.clientsServed}</td><td class="text-gold fw4">${fmtNaira(r.totalRevenue)}</td></tr>`; }).join('');
+}
+init();
+</script>
+</body>
+</html>

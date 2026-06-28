@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Attendance · Eden 54 Portal</title>
+<link rel="icon" type="image/jpeg" href="/logo/eden 54 logo.jpeg">
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/portal/portal.css">
+</head>
+<body>
+<div class="sb-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+<aside class="sidebar" id="sidebar">
+  <div class="sb-brand"><div class="sb-brand-name">Eden 54</div><div class="sb-brand-sub">Staff Portal</div></div>
+  <nav class="sb-nav">
+    <div class="sb-section">Main</div>
+    <a href="/portal/dashboard/" class="sb-item"><i class="sb-icon">📊</i> Dashboard</a>
+    <div class="sb-section">Daily Reports</div>
+    <a href="/portal/sales/" class="sb-item"><i class="sb-icon">💰</i> Daily Sales</a>
+    <a href="/portal/bar/" class="sb-item"><i class="sb-icon">🍺</i> Bar Stock</a>
+    <a href="/portal/kitchen/" class="sb-item"><i class="sb-icon">🍽️</i> Kitchen</a>
+    <a href="/portal/barbing/" class="sb-item"><i class="sb-icon">💈</i> Barbing</a>
+    <a href="/portal/pool/" class="sb-item"><i class="sb-icon">🏊</i> Pool</a>
+    <div class="sb-section">HR</div>
+    <a href="/portal/attendance/" class="sb-item active"><i class="sb-icon">👥</i> Attendance</a>
+    <a href="/portal/payroll/" class="sb-item"><i class="sb-icon">💵</i> Payroll</a>
+    <div class="sb-section">Admin</div>
+    <a href="/portal/staff/" class="sb-item"><i class="sb-icon">👤</i> Staff</a>
+  </nav>
+  <div class="sb-foot"><div id="sidebarUser"></div><a class="sb-item" onclick="switchProfile()" style="cursor:pointer"><i class="sb-icon">🔄</i> Switch Profile</a></div>
+</aside>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <button class="hamburger" onclick="toggleSidebar()"><div></div><div></div><div></div></button>
+      <h1>Attendance</h1>
+    </div>
+    <div class="topbar-date" id="topDate"></div>
+  </div>
+  <div class="content">
+    <div id="alertBox" class="alert"></div>
+    <div class="g2">
+      <div class="card">
+        <div class="section-head">
+          <h2>Mark Attendance</h2>
+          <div style="display:flex;gap:8px;align-items:center">
+            <input type="date" id="attDate" class="form-control" style="width:150px">
+            <button class="btn btn-outline btn-sm" onclick="loadAttForm()">Load</button>
+          </div>
+        </div>
+        <div id="attForm"><p class="text-muted" style="font-size:0.85rem">Select a date and click Load.</p></div>
+        <div id="attSaveWrap" style="display:none;margin-top:18px">
+          <button class="btn btn-gold" onclick="saveAttendance()" style="width:100%">Save Attendance</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-head"><h2>Monthly Summary</h2></div>
+        <div class="form-group" style="margin-bottom:16px">
+          <label class="form-label">Month</label>
+          <input type="month" id="monthFilter" class="form-control" onchange="loadMonthlySummary()">
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Staff</th><th>Present</th><th>Absent</th><th>Late</th><th>Leave</th></tr></thead>
+            <tbody id="monthTable"><tr><td colspan="5" style="text-align:center;padding:16px;color:#6a6b62">Select a month.</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="card mt24">
+      <div class="section-head"><h2>Recent Records</h2></div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Date</th><th>Present</th><th>Absent</th><th>Late</th><th>Leave</th><th>Marked By</th></tr></thead>
+          <tbody id="histTable"><tr><td colspan="6" style="text-align:center;padding:16px;color:#6a6b62">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="/portal/firebase-init.js"></script>
+<script>
+const currentStaff = getStaff();
+populateSidebar(currentStaff);
+document.getElementById('attDate').value = todayStr();
+document.getElementById('monthFilter').value = todayStr().slice(0,7);
+document.getElementById('topDate').textContent = new Date().toLocaleDateString('en-NG',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+
+let allStaff = [];
+
+async function init() {
+  const snap = await db.collection('staff').where('active','==',true).orderBy('name').get();
+  snap.forEach(d => allStaff.push({ id: d.id, ...d.data() }));
+  loadHistory(); loadMonthlySummary();
+}
+
+async function loadAttForm() {
+  const date = document.getElementById('attDate').value;
+  if (!date) return;
+  const snap = await db.collection('attendance').doc(date).get();
+  const existing = snap.exists ? snap.data().records || [] : [];
+  const existMap = {};
+  existing.forEach(r => existMap[r.staffId] = r.status);
+  const form = document.getElementById('attForm');
+  if (!allStaff.length) { form.innerHTML = '<p class="text-muted">No staff found. Add staff first.</p>'; return; }
+  form.innerHTML = allStaff.map(s => {
+    const cur = existMap[s.id] || 'Present';
+    const rb = (val, label, color) => `<label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:0.8rem;white-space:nowrap"><input type="radio" name="att_${s.id}" value="${val}" ${cur===val?'checked':''} style="accent-color:${color}"> ${label}</label>`;
+    return `<div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid #f0f0ec;gap:10px;flex-wrap:wrap">
+      <span style="font-size:0.85rem;min-width:120px"><strong>${s.name}</strong><br><span class="text-muted" style="font-size:0.7rem">${s.department}</span></span>
+      <div style="display:flex;gap:12px;flex-wrap:wrap">
+        ${rb('Present','Present','#16a34a')}${rb('Absent','Absent','#dc2626')}${rb('Late','Late','#d97706')}${rb('Leave','Leave','#6366f1')}
+      </div>
+    </div>`;
+  }).join('');
+  document.getElementById('attSaveWrap').style.display = 'block';
+}
+
+async function saveAttendance() {
+  const date = document.getElementById('attDate').value;
+  const records = allStaff.map(s => {
+    const checked = document.querySelector(`input[name="att_${s.id}"]:checked`);
+    return { staffId: s.id, staffName: s.name, department: s.department, status: checked?.value || 'Present' };
+  });
+  try {
+    await db.collection('attendance').doc(date).set({
+      date, records, markedBy: currentStaff.name,
+      markedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    showAlert('alertBox','Attendance saved!','alert-success');
+    loadHistory(); loadMonthlySummary();
+  } catch(e) { showAlert('alertBox','Error saving.','alert-error'); }
+}
+
+async function loadHistory() {
+  const snap = await db.collection('attendance').orderBy('markedAt','desc').limit(14).get();
+  const tbody = document.getElementById('histTable');
+  tbody.innerHTML = snap.empty
+    ? '<tr><td colspan="6" style="text-align:center;padding:16px;color:#6a6b62">No records yet.</td></tr>'
+    : snap.docs.map(d => {
+        const a = d.data(), r = a.records || [];
+        const cnt = st => r.filter(x => x.status === st).length;
+        return `<tr><td class="fw4">${a.date}</td><td><span class="badge badge-ok">${cnt('Present')}</span></td><td><span class="badge badge-err">${cnt('Absent')}</span></td><td><span class="badge badge-warn">${cnt('Late')}</span></td><td><span class="badge badge-purple">${cnt('Leave')}</span></td><td>${a.markedBy||'—'}</td></tr>`;
+      }).join('');
+}
+
+async function loadMonthlySummary() {
+  const month = document.getElementById('monthFilter').value;
+  if (!month || !allStaff.length) return;
+  const snap = await db.collection('attendance').where('date','>=',month+'-01').where('date','<=',month+'-31').get();
+  const counts = {};
+  allStaff.forEach(s => counts[s.id] = { name: s.name, Present:0, Absent:0, Late:0, Leave:0 });
+  snap.forEach(d => (d.data().records||[]).forEach(r => { if (counts[r.staffId]) counts[r.staffId][r.status] = (counts[r.staffId][r.status]||0)+1; }));
+  const tbody = document.getElementById('monthTable');
+  const rows = Object.values(counts);
+  tbody.innerHTML = rows.length
+    ? rows.map(r => `<tr><td class="fw4">${r.name}</td><td><span class="badge badge-ok">${r.Present}</span></td><td><span class="badge badge-err">${r.Absent}</span></td><td><span class="badge badge-warn">${r.Late}</span></td><td><span class="badge badge-purple">${r.Leave}</span></td></tr>`).join('')
+    : '<tr><td colspan="5" style="text-align:center;padding:16px;color:#6a6b62">No data.</td></tr>';
+}
+
+init();
+</script>
+</body>
+</html>

@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Staff · Eden 54 Portal</title>
+<link rel="icon" type="image/jpeg" href="/logo/eden 54 logo.jpeg">
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/portal/portal.css">
+<style>
+.photo-upload { display:flex; align-items:center; gap:16px; margin-bottom:16px; }
+.photo-preview {
+  width:72px; height:72px; border-radius:50%; background:#e4e4df;
+  display:flex; align-items:center; justify-content:center;
+  overflow:hidden; font-size:1.2rem; color:#6a6b62; font-weight:400;
+  border:2px solid var(--border); flex-shrink:0;
+}
+.photo-preview img { width:100%; height:100%; object-fit:cover; }
+.photo-upload-btn { display:flex; flex-direction:column; gap:6px; }
+.photo-upload-btn label {
+  display:inline-block; padding:7px 16px; background:transparent; border:1px solid var(--border);
+  border-radius:4px; font-family:'Jost',sans-serif; font-size:0.72rem; letter-spacing:0.12em;
+  text-transform:uppercase; cursor:pointer; color:var(--muted); transition:border-color 0.2s, color 0.2s;
+}
+.photo-upload-btn label:hover { border-color:var(--gold); color:var(--gold); }
+.photo-upload-btn input[type=file] { display:none; }
+.photo-upload-btn span { font-size:0.7rem; color:var(--muted); }
+.staff-avatar { width:36px; height:36px; border-radius:50%; object-fit:cover; border:1px solid var(--border); }
+.staff-initials { width:36px; height:36px; border-radius:50%; background:var(--gold); color:var(--deep); display:inline-flex; align-items:center; justify-content:center; font-size:0.72rem; font-weight:500; }
+.progress-bar { height:4px; background:var(--border); border-radius:2px; margin-top:6px; overflow:hidden; display:none; }
+.progress-fill { height:100%; background:var(--gold); transition:width 0.3s; width:0%; }
+</style>
+</head>
+<body>
+<div class="sb-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+<aside class="sidebar" id="sidebar">
+  <div class="sb-brand"><div class="sb-brand-name">Eden 54</div><div class="sb-brand-sub">Staff Portal</div></div>
+  <nav class="sb-nav">
+    <div class="sb-section">Main</div>
+    <a href="/portal/dashboard/" class="sb-item"><i class="sb-icon">📊</i> Dashboard</a>
+    <div class="sb-section">Daily Reports</div>
+    <a href="/portal/sales/" class="sb-item"><i class="sb-icon">💰</i> Daily Sales</a>
+    <a href="/portal/bar/" class="sb-item"><i class="sb-icon">🍺</i> Bar Stock</a>
+    <a href="/portal/kitchen/" class="sb-item"><i class="sb-icon">🍽️</i> Kitchen</a>
+    <a href="/portal/barbing/" class="sb-item"><i class="sb-icon">💈</i> Barbing</a>
+    <a href="/portal/pool/" class="sb-item"><i class="sb-icon">🏊</i> Pool</a>
+    <div class="sb-section">HR</div>
+    <a href="/portal/attendance/" class="sb-item"><i class="sb-icon">👥</i> Attendance</a>
+    <a href="/portal/payroll/" class="sb-item"><i class="sb-icon">💵</i> Payroll</a>
+    <div class="sb-section">Admin</div>
+    <a href="/portal/staff/" class="sb-item active"><i class="sb-icon">👤</i> Staff</a>
+  </nav>
+  <div class="sb-foot"><div id="sidebarUser"></div><a class="sb-item" onclick="switchProfile()" style="cursor:pointer"><i class="sb-icon">🔄</i> Switch Profile</a></div>
+</aside>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <button class="hamburger" onclick="toggleSidebar()"><div></div><div></div><div></div></button>
+      <h1>Staff Management</h1>
+    </div>
+    <div class="topbar-date" id="topDate"></div>
+  </div>
+  <div class="content">
+    <div id="alertBox" class="alert"></div>
+    <div class="g2">
+
+      <!-- Add staff -->
+      <div class="card">
+        <div class="section-head"><h2>Add Staff Member</h2></div>
+
+        <!-- Photo upload -->
+        <div class="photo-upload">
+          <div class="photo-preview" id="addPreview">
+            <span id="addInitials">?</span>
+          </div>
+          <div class="photo-upload-btn">
+            <label for="sPhoto">Upload Photo
+              <input type="file" id="sPhoto" accept="image/*" onchange="previewPhoto(this,'addPreview','addInitials')">
+            </label>
+            <span>JPG, PNG · max 5MB</span>
+            <div class="progress-bar" id="addProgress"><div class="progress-fill" id="addFill"></div></div>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom:14px">
+          <label class="form-label">Full Name</label>
+          <input type="text" id="sName" class="form-control" placeholder="Full name" oninput="updateInitials(this.value,'addInitials')">
+        </div>
+        <div class="fg2" style="margin-bottom:14px">
+          <div class="form-group">
+            <label class="form-label">Role</label>
+            <select id="sRole" class="form-control">
+              <option value="staff">Staff</option>
+              <option value="manager">Manager</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Department</label>
+            <select id="sDept" class="form-control">
+              <option value="salon">Barbing Salon</option>
+              <option value="lounge">Restaurant &amp; Lounge</option>
+              <option value="bar">Bar</option>
+              <option value="kitchen">Kitchen</option>
+              <option value="apartment">Apartment</option>
+              <option value="pool">Pool</option>
+              <option value="management">Management</option>
+            </select>
+          </div>
+        </div>
+        <div class="fg2" style="margin-bottom:16px">
+          <div class="form-group">
+            <label class="form-label">Basic Salary (₦)</label>
+            <input type="number" id="sSalary" class="form-control" placeholder="0" min="0">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Phone</label>
+            <input type="tel" id="sPhone" class="form-control" placeholder="+234…">
+          </div>
+        </div>
+        <button class="btn btn-gold" id="addBtn" onclick="addStaff()" style="width:100%">Add Staff Member</button>
+      </div>
+
+      <!-- Staff list -->
+      <div class="card">
+        <div class="section-head"><h2>All Staff</h2></div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th></th><th>Name</th><th>Dept</th><th>Role</th><th>Status</th><th></th></tr></thead>
+            <tbody id="staffTable"><tr><td colspan="6" style="text-align:center;padding:16px;color:#6a6b62">Loading…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Edit modal -->
+<div class="modal-bg" id="editModal">
+  <div class="modal" style="max-width:520px">
+    <h3>Edit — <span id="editName"></span></h3>
+    <input type="hidden" id="editId">
+    <input type="hidden" id="editCurrentPhoto">
+
+    <div class="photo-upload" style="margin-bottom:18px">
+      <div class="photo-preview" id="editPreview"><span id="editInitials">?</span></div>
+      <div class="photo-upload-btn">
+        <label for="ePhoto">Change Photo
+          <input type="file" id="ePhoto" accept="image/*" onchange="previewPhoto(this,'editPreview','editInitials')">
+        </label>
+        <span>Leave blank to keep current</span>
+        <div class="progress-bar" id="editProgress"><div class="progress-fill" id="editFill"></div></div>
+      </div>
+    </div>
+
+    <div class="fg2" style="margin-bottom:14px">
+      <div class="form-group">
+        <label class="form-label">Role</label>
+        <select id="editRole" class="form-control"><option value="staff">Staff</option><option value="manager">Manager</option></select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Department</label>
+        <select id="editDept" class="form-control">
+          <option value="salon">Barbing Salon</option>
+          <option value="lounge">Restaurant &amp; Lounge</option>
+          <option value="bar">Bar</option>
+          <option value="kitchen">Kitchen</option>
+          <option value="apartment">Apartment</option>
+          <option value="pool">Pool</option>
+          <option value="management">Management</option>
+        </select>
+      </div>
+    </div>
+    <div class="fg2" style="margin-bottom:14px">
+      <div class="form-group">
+        <label class="form-label">Basic Salary (₦)</label>
+        <input type="number" id="editSalary" class="form-control" min="0">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Phone</label>
+        <input type="tel" id="editPhone" class="form-control">
+      </div>
+    </div>
+    <div class="form-group" style="margin-bottom:18px">
+      <label class="form-label">Status</label>
+      <select id="editActive" class="form-control"><option value="true">Active</option><option value="false">Inactive</option></select>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end">
+      <button class="btn btn-outline" onclick="document.getElementById('editModal').classList.remove('show')">Cancel</button>
+      <button class="btn btn-gold" id="saveEditBtn" onclick="saveEdit()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+<script src="/portal/firebase-init.js"></script>
+<script>
+const staff = getStaff();
+populateSidebar(staff);
+document.getElementById('topDate').textContent = new Date().toLocaleDateString('en-NG',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+
+function updateInitials(name, targetId) {
+  const el = document.getElementById(targetId);
+  if (el && el.tagName === 'SPAN') el.textContent = avatarInitials(name) || '?';
+}
+
+function previewPhoto(input, previewId, initialsId) {
+  const file = input.files[0];
+  if (!file) return;
+  if (file.size > 5 * 1024 * 1024) { showAlert('alertBox','Photo must be under 5MB.','alert-error'); input.value=''; return; }
+  const reader = new FileReader();
+  reader.onload = e => {
+    const preview = document.getElementById(previewId);
+    preview.innerHTML = `<img src="${e.target.result}" alt="preview">`;
+  };
+  reader.readAsDataURL(file);
+}
+
+async function uploadPhoto(file, staffId, progressBarId, fillId) {
+  return new Promise((resolve, reject) => {
+    const bar = document.getElementById(progressBarId);
+    const fill = document.getElementById(fillId);
+    bar.style.display = 'block';
+    const ref = storage.ref(`staff-photos/${staffId}.jpg`);
+    const task = ref.put(file);
+    task.on('state_changed',
+      snap => { fill.style.width = Math.round((snap.bytesTransferred / snap.totalBytes) * 100) + '%'; },
+      err  => { bar.style.display='none'; reject(err); },
+      async () => { bar.style.display='none'; resolve(await task.snapshot.ref.getDownloadURL()); }
+    );
+  });
+}
+
+async function addStaff() {
+  const name = document.getElementById('sName').value.trim();
+  if (!name) { showAlert('alertBox','Name is required.','alert-error'); return; }
+  const btn = document.getElementById('addBtn');
+  btn.disabled = true; btn.textContent = 'Adding…';
+  try {
+    const docRef = await db.collection('staff').add({
+      name, role: document.getElementById('sRole').value,
+      department: document.getElementById('sDept').value,
+      basicSalary: +document.getElementById('sSalary').value || 0,
+      phone: document.getElementById('sPhone').value.trim(),
+      photoURL: '', active: true,
+      addedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    const file = document.getElementById('sPhoto').files[0];
+    if (file) {
+      const url = await uploadPhoto(file, docRef.id, 'addProgress', 'addFill');
+      await docRef.update({ photoURL: url });
+    }
+    showAlert('alertBox', name + ' added!', 'alert-success');
+    document.getElementById('sName').value = '';
+    document.getElementById('sSalary').value = '';
+    document.getElementById('sPhone').value = '';
+    document.getElementById('sPhoto').value = '';
+    document.getElementById('addPreview').innerHTML = '<span id="addInitials">?</span>';
+    loadStaff();
+  } catch(e) { showAlert('alertBox','Error adding staff: ' + e.message,'alert-error'); }
+  btn.disabled = false; btn.textContent = 'Add Staff Member';
+}
+
+async function loadStaff() {
+  const snap = await db.collection('staff').orderBy('name').get();
+  const tbody = document.getElementById('staffTable');
+  if (snap.empty) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;color:#6a6b62">No staff yet. Add your first team member.</td></tr>'; return; }
+  tbody.innerHTML = snap.docs.map(d => {
+    const s = d.data();
+    const avatar = s.photoURL
+      ? `<img class="staff-avatar" src="${s.photoURL}" alt="${s.name}">`
+      : `<span class="staff-initials">${avatarInitials(s.name)}</span>`;
+    return `<tr>
+      <td style="width:44px">${avatar}</td>
+      <td class="fw4">${s.name}</td>
+      <td>${s.department}</td>
+      <td><span class="badge badge-${s.role==='manager'?'purple':'info'}">${s.role||'staff'}</span></td>
+      <td><span class="badge badge-${s.active!==false?'ok':'err'}">${s.active!==false?'Active':'Inactive'}</span></td>
+      <td><button class="btn btn-outline btn-sm" onclick="openEdit('${d.id}')">Edit</button></td>
+    </tr>`;
+  }).join('');
+}
+
+let editingData = {};
+async function openEdit(id) {
+  const snap = await db.collection('staff').doc(id).get();
+  const s = snap.data();
+  editingData = { id, ...s };
+  document.getElementById('editId').value = id;
+  document.getElementById('editName').textContent = s.name;
+  document.getElementById('editCurrentPhoto').value = s.photoURL || '';
+  document.getElementById('editRole').value   = s.role || 'staff';
+  document.getElementById('editDept').value   = s.department;
+  document.getElementById('editSalary').value = s.basicSalary || 0;
+  document.getElementById('editPhone').value  = s.phone || '';
+  document.getElementById('editActive').value = String(s.active !== false);
+  document.getElementById('ePhoto').value = '';
+  const prev = document.getElementById('editPreview');
+  prev.innerHTML = s.photoURL
+    ? `<img src="${s.photoURL}" alt="${s.name}">`
+    : `<span id="editInitials">${avatarInitials(s.name)}</span>`;
+  document.getElementById('editModal').classList.add('show');
+}
+
+async function saveEdit() {
+  const id   = document.getElementById('editId').value;
+  const btn  = document.getElementById('saveEditBtn');
+  btn.disabled = true; btn.textContent = 'Saving…';
+  try {
+    const updates = {
+      role:        document.getElementById('editRole').value,
+      department:  document.getElementById('editDept').value,
+      basicSalary: +document.getElementById('editSalary').value || 0,
+      phone:       document.getElementById('editPhone').value.trim(),
+      active:      document.getElementById('editActive').value === 'true'
+    };
+    const file = document.getElementById('ePhoto').files[0];
+    if (file) {
+      updates.photoURL = await uploadPhoto(file, id, 'editProgress', 'editFill');
+    }
+    await db.collection('staff').doc(id).update(updates);
+    document.getElementById('editModal').classList.remove('show');
+    showAlert('alertBox','Staff updated.','alert-success');
+    loadStaff();
+  } catch(e) { showAlert('alertBox','Error: ' + e.message,'alert-error'); }
+  btn.disabled = false; btn.textContent = 'Save Changes';
+}
+
+loadStaff();
+</script>
+</body>
+</html>

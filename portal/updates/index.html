@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Updates · Eden 54 Portal</title>
+<link rel="icon" type="image/jpeg" href="/logo/eden 54 logo.jpeg">
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/portal/portal.css">
+<style>
+.post-box { margin-bottom: 24px; }
+.post-textarea { resize: vertical; min-height: 90px; }
+.photo-strip { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; min-height: 0; }
+.photo-thumb-wrap { position: relative; width: 80px; height: 80px; }
+.photo-thumb-wrap img { width: 80px; height: 80px; border-radius: 6px; object-fit: cover; border: 1px solid var(--border); }
+.photo-del { position: absolute; top: -7px; right: -7px; background: #dc2626; color: #fff; border: none; border-radius: 50%; width: 20px; height: 20px; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; line-height: 1; }
+.add-photo-box {
+  width: 80px; height: 80px; border: 2px dashed var(--border); border-radius: 6px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  cursor: pointer; font-size: 1.3rem; color: var(--muted); transition: all 0.2s; gap: 4px;
+}
+.add-photo-box span { font-size: 0.62rem; letter-spacing: 0.08em; text-transform: uppercase; }
+.add-photo-box:hover { border-color: var(--gold); color: var(--gold); }
+.upload-bar { height: 4px; background: var(--border); border-radius: 2px; margin-top: 8px; overflow: hidden; display: none; }
+.upload-fill { height: 100%; background: var(--gold); transition: width 0.2s; width: 0%; }
+
+.feed-item { border-bottom: 1px solid var(--border); padding: 20px 0; }
+.feed-item:last-child { border-bottom: none; }
+.feed-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+.feed-avatar-img { width: 38px; height: 38px; border-radius: 50%; object-fit: cover; border: 1px solid var(--border); }
+.feed-initials { width: 38px; height: 38px; border-radius: 50%; background: var(--gold); color: var(--deep); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 500; flex-shrink: 0; }
+.feed-meta strong { display: block; font-size: 0.9rem; font-weight: 400; }
+.feed-meta span { font-size: 0.73rem; color: var(--muted); }
+.feed-text { font-size: 0.9rem; line-height: 1.65; margin-bottom: 12px; white-space: pre-wrap; }
+.feed-photos { display: grid; gap: 4px; }
+.feed-photos.count-1 { grid-template-columns: 1fr; max-width: 320px; }
+.feed-photos.count-2 { grid-template-columns: 1fr 1fr; max-width: 360px; }
+.feed-photos.count-3 { grid-template-columns: 1fr 1fr 1fr; max-width: 400px; }
+.feed-photos.count-4plus { grid-template-columns: repeat(4,1fr); max-width: 440px; }
+.feed-photo { border-radius: 6px; overflow: hidden; cursor: pointer; }
+.feed-photo img { width: 100%; height: 160px; object-fit: cover; display: block; transition: opacity 0.2s; }
+.feed-photo:hover img { opacity: 0.9; }
+.feed-actions { display: flex; align-items: center; justify-content: space-between; margin-top: 8px; }
+.feed-dept { font-size: 0.68rem; padding: 2px 8px; border-radius: 12px; background: var(--bg); color: var(--muted); border: 1px solid var(--border); }
+
+/* lightbox */
+.lightbox { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 300; align-items: center; justify-content: center; }
+.lightbox.show { display: flex; }
+.lightbox img { max-width: 92vw; max-height: 90vh; border-radius: 8px; }
+.lightbox-close { position: absolute; top: 16px; right: 20px; color: #fff; font-size: 2rem; cursor: pointer; background: none; border: none; }
+</style>
+</head>
+<body>
+<div class="sb-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+<aside class="sidebar" id="sidebar">
+  <div class="sb-brand"><div class="sb-brand-name">Eden 54</div><div class="sb-brand-sub">Staff Portal</div></div>
+  <nav class="sb-nav">
+    <div class="sb-section">Main</div>
+    <a href="/portal/home/" class="sb-item"><i class="sb-icon">🏠</i> My Home</a>
+    <a href="/portal/updates/" class="sb-item active"><i class="sb-icon">📸</i> Updates</a>
+    <div class="sb-section">Reports</div>
+    <a href="/portal/sales/" class="sb-item"><i class="sb-icon">💰</i> Daily Sales</a>
+    <a href="/portal/bar/" class="sb-item"><i class="sb-icon">🍺</i> Bar Stock</a>
+    <a href="/portal/kitchen/" class="sb-item"><i class="sb-icon">🍽️</i> Kitchen</a>
+    <a href="/portal/barbing/" class="sb-item"><i class="sb-icon">💈</i> Barbing</a>
+    <a href="/portal/pool/" class="sb-item"><i class="sb-icon">🏊</i> Pool</a>
+    <div class="sb-section">HR</div>
+    <a href="/portal/attendance/" class="sb-item"><i class="sb-icon">👥</i> Attendance</a>
+    <a href="/portal/payroll/" class="sb-item"><i class="sb-icon">💵</i> Payroll</a>
+    <div class="sb-section">Admin</div>
+    <a href="/portal/dashboard/" class="sb-item"><i class="sb-icon">📊</i> Dashboard</a>
+    <a href="/portal/staff/" class="sb-item"><i class="sb-icon">👤</i> Staff</a>
+  </nav>
+  <div class="sb-foot"><div id="sidebarUser"></div><a class="sb-item" onclick="switchProfile()" style="cursor:pointer"><i class="sb-icon">🔄</i> Switch Profile</a></div>
+</aside>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <button class="hamburger" onclick="toggleSidebar()"><div></div><div></div><div></div></button>
+      <h1>Updates &amp; Work Log</h1>
+    </div>
+    <div class="topbar-date" id="topDate"></div>
+  </div>
+  <div class="content">
+    <div id="alertBox" class="alert"></div>
+
+    <!-- Post box -->
+    <div class="card post-box">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+        <div id="myAvatar" style="width:40px;height:40px;border-radius:50%;background:var(--gold);color:var(--deep);display:flex;align-items:center;justify-content:center;font-size:0.8rem;font-weight:500;flex-shrink:0"></div>
+        <div>
+          <div style="font-size:0.88rem;font-weight:400" id="myName"></div>
+          <div style="font-size:0.72rem;color:var(--muted)" id="myDept"></div>
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-bottom:12px">
+        <textarea id="updateText" class="form-control post-textarea" placeholder="Share a work update, progress note, or anything the team should know…"></textarea>
+      </div>
+
+      <!-- Photo preview strip -->
+      <div class="photo-strip" id="photoStrip">
+        <div class="add-photo-box" onclick="document.getElementById('photoInput').click()">
+          <span style="font-size:1.5rem">📷</span>
+          <span>Add Photo</span>
+        </div>
+      </div>
+      <input type="file" id="photoInput" accept="image/*" multiple style="display:none" onchange="handlePhotos(this)">
+
+      <div class="upload-bar" id="uploadBar"><div class="upload-fill" id="uploadFill"></div></div>
+
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:14px">
+        <span style="font-size:0.72rem;color:var(--muted)" id="photoCount">No photos selected</span>
+        <button class="btn btn-gold" id="postBtn" onclick="postUpdate()">Post Update</button>
+      </div>
+    </div>
+
+    <!-- Feed -->
+    <div class="card">
+      <div class="section-head">
+        <h2>Team Updates</h2>
+        <select id="filterDept" class="form-control" style="width:160px;font-size:0.8rem" onchange="loadFeed()">
+          <option value="">All Departments</option>
+          <option>salon</option><option>lounge</option><option>bar</option>
+          <option>kitchen</option><option>apartment</option><option>pool</option><option>management</option>
+        </select>
+      </div>
+      <div id="feedEl"><p class="text-muted" style="font-size:0.85rem;text-align:center;padding:20px">Loading…</p></div>
+      <div id="loadMoreWrap" style="text-align:center;padding-top:14px;display:none">
+        <button class="btn btn-outline" onclick="loadMore()">Load More</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Lightbox -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <button class="lightbox-close" onclick="closeLightbox()">×</button>
+  <img id="lightboxImg" src="" alt="">
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+<script src="/portal/firebase-init.js"></script>
+<script>
+const staff = getStaff();
+populateSidebar(staff);
+document.getElementById('topDate').textContent = new Date().toLocaleDateString('en-NG',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+document.getElementById('myName').textContent = staff.name;
+document.getElementById('myDept').textContent = staff.department;
+
+// Avatar: try to load from Firestore, fallback to initials
+document.getElementById('myAvatar').textContent = avatarInitials(staff.name);
+db.collection('staff').doc(staff.id).get().then(snap => {
+  if (snap.exists && snap.data().photoURL) {
+    const img = document.createElement('img');
+    img.src = snap.data().photoURL; img.alt = staff.name;
+    img.style.cssText = 'width:40px;height:40px;border-radius:50%;object-fit:cover';
+    document.getElementById('myAvatar').innerHTML = ''; document.getElementById('myAvatar').appendChild(img);
+  }
+});
+
+// Photo handling
+let selectedFiles = [];
+
+function handlePhotos(input) {
+  const files = Array.from(input.files);
+  if (selectedFiles.length + files.length > 6) { showAlert('alertBox','Maximum 6 photos per update.','alert-error'); return; }
+  files.forEach(f => {
+    if (f.size > 8 * 1024 * 1024) { showAlert('alertBox', f.name + ' exceeds 8MB limit.','alert-error'); return; }
+    selectedFiles.push(f);
+    const reader = new FileReader();
+    const idx = selectedFiles.length - 1;
+    reader.onload = e => addPhotoThumb(e.target.result, idx);
+    reader.readAsDataURL(f);
+  });
+  input.value = '';
+}
+
+function addPhotoThumb(src, idx) {
+  const strip = document.getElementById('photoStrip');
+  const wrap = document.createElement('div');
+  wrap.className = 'photo-thumb-wrap'; wrap.id = 'thumb_' + idx;
+  wrap.innerHTML = `<img src="${src}" alt=""><button class="photo-del" onclick="removePhoto(${idx})">×</button>`;
+  strip.insertBefore(wrap, strip.lastElementChild);
+  updatePhotoCount();
+}
+
+function removePhoto(idx) {
+  selectedFiles[idx] = null;
+  const el = document.getElementById('thumb_' + idx);
+  if (el) el.remove();
+  updatePhotoCount();
+}
+
+function updatePhotoCount() {
+  const count = selectedFiles.filter(Boolean).length;
+  document.getElementById('photoCount').textContent = count > 0 ? count + ' photo' + (count > 1 ? 's' : '') + ' selected' : 'No photos selected';
+}
+
+async function postUpdate() {
+  const text = document.getElementById('updateText').value.trim();
+  const files = selectedFiles.filter(Boolean);
+  if (!text && !files.length) { showAlert('alertBox','Add some text or a photo.','alert-error'); return; }
+
+  const btn = document.getElementById('postBtn');
+  btn.disabled = true; btn.textContent = 'Posting…';
+  const bar = document.getElementById('uploadBar'); bar.style.display = 'block';
+  const fill = document.getElementById('uploadFill');
+
+  try {
+    const photoURLs = [];
+    for (let i = 0; i < files.length; i++) {
+      fill.style.width = Math.round((i / files.length) * 80) + '%';
+      const ref = storage.ref(`updates/${staff.id}/${Date.now()}_${i}.jpg`);
+      const snap = await ref.put(files[i]);
+      photoURLs.push(await snap.ref.getDownloadURL());
+    }
+    fill.style.width = '100%';
+
+    // get staff photo for feed avatar
+    let authorPhoto = '';
+    const sSnap = await db.collection('staff').doc(staff.id).get();
+    if (sSnap.exists) authorPhoto = sSnap.data().photoURL || '';
+
+    await db.collection('updates').add({
+      staffId: staff.id, staffName: staff.name, department: staff.department,
+      authorPhoto, text, photos: photoURLs,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    document.getElementById('updateText').value = '';
+    selectedFiles = [];
+    document.getElementById('photoStrip').innerHTML = `<div class="add-photo-box" onclick="document.getElementById('photoInput').click()"><span style="font-size:1.5rem">📷</span><span>Add Photo</span></div>`;
+    updatePhotoCount();
+    showAlert('alertBox','Update posted!','alert-success');
+    loadFeed();
+  } catch(e) { showAlert('alertBox','Error posting update: '+e.message,'alert-error'); }
+
+  bar.style.display = 'none'; fill.style.width = '0%';
+  btn.disabled = false; btn.textContent = 'Post Update';
+}
+
+let lastDoc = null;
+
+async function loadFeed(reset = true) {
+  if (reset) { lastDoc = null; document.getElementById('feedEl').innerHTML = '<p class="text-muted" style="font-size:0.85rem;text-align:center;padding:16px">Loading…</p>'; }
+  const dept = document.getElementById('filterDept').value;
+  let query = db.collection('updates').orderBy('createdAt','desc').limit(12);
+  if (dept) query = query.where('department','==',dept);
+  if (lastDoc) query = query.startAfter(lastDoc);
+  const snap = await query.get();
+  if (snap.empty && reset) { document.getElementById('feedEl').innerHTML = '<p class="text-muted" style="font-size:0.85rem;text-align:center;padding:24px">No updates yet. Post the first one!</p>'; document.getElementById('loadMoreWrap').style.display='none'; return; }
+  lastDoc = snap.docs[snap.docs.length - 1];
+  document.getElementById('loadMoreWrap').style.display = snap.size === 12 ? 'block' : 'none';
+
+  const html = snap.docs.map(d => {
+    const u = d.data();
+    const ts = u.createdAt ? u.createdAt.toDate().toLocaleString('en-NG',{dateStyle:'short',timeStyle:'short'}) : '';
+    const avatarEl = u.authorPhoto
+      ? `<img class="feed-avatar-img" src="${u.authorPhoto}" alt="${u.staffName}">`
+      : `<div class="feed-initials">${avatarInitials(u.staffName)}</div>`;
+    const countClass = !u.photos?.length ? '' : u.photos.length === 1 ? 'count-1' : u.photos.length === 2 ? 'count-2' : u.photos.length === 3 ? 'count-3' : 'count-4plus';
+    const photosEl = (u.photos||[]).length
+      ? `<div class="feed-photos ${countClass}">${u.photos.map(p=>`<div class="feed-photo" onclick="openLightbox('${p}')"><img src="${p}" alt=""></div>`).join('')}</div>`
+      : '';
+    return `<div class="feed-item">
+      <div class="feed-header">
+        ${avatarEl}
+        <div class="feed-meta"><strong>${u.staffName}</strong><span>${ts}</span></div>
+        <span class="feed-dept">${u.department}</span>
+      </div>
+      ${u.text ? `<div class="feed-text">${escHtml(u.text)}</div>` : ''}
+      ${photosEl}
+    </div>`;
+  }).join('');
+
+  if (reset) document.getElementById('feedEl').innerHTML = html;
+  else document.getElementById('feedEl').innerHTML += html;
+}
+
+function loadMore() { loadFeed(false); }
+
+function escHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+}
+
+function openLightbox(src) {
+  document.getElementById('lightboxImg').src = src;
+  document.getElementById('lightbox').classList.add('show');
+}
+function closeLightbox() { document.getElementById('lightbox').classList.remove('show'); }
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
+
+loadFeed();
+</script>
+</body>
+</html>

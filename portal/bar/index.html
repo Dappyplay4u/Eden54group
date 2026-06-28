@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bar Stock · Eden 54 Portal</title>
+<link rel="icon" type="image/jpeg" href="/logo/eden 54 logo.jpeg">
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/portal/portal.css">
+</head>
+<body>
+<div class="sb-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+<aside class="sidebar" id="sidebar">
+  <div class="sb-brand"><div class="sb-brand-name">Eden 54</div><div class="sb-brand-sub">Staff Portal</div></div>
+  <nav class="sb-nav">
+    <div class="sb-section">Main</div>
+    <a href="/portal/dashboard/" class="sb-item mgr-only" style="display:none"><i class="sb-icon">📊</i> Dashboard</a>
+    <div class="sb-section">Daily Reports</div>
+    <a href="/portal/sales/" class="sb-item"><i class="sb-icon">💰</i> Daily Sales</a>
+    <a href="/portal/bar/" class="sb-item active"><i class="sb-icon">🍺</i> Bar Stock</a>
+    <a href="/portal/kitchen/" class="sb-item"><i class="sb-icon">🍽️</i> Kitchen</a>
+    <a href="/portal/barbing/" class="sb-item"><i class="sb-icon">💈</i> Barbing</a>
+    <a href="/portal/pool/" class="sb-item"><i class="sb-icon">🏊</i> Pool</a>
+    <div class="sb-section">HR</div>
+    <a href="/portal/attendance/" class="sb-item"><i class="sb-icon">👥</i> Attendance</a>
+    <a href="/portal/payroll/" class="sb-item"><i class="sb-icon">💵</i> Payroll</a>
+    <div class="sb-section">Admin</div>
+    <a href="/portal/staff/" class="sb-item"><i class="sb-icon">👤</i> Staff</a>
+  </nav>
+  <div class="sb-foot"><div id="sidebarUser"></div><a class="sb-item" onclick="switchProfile()" style="cursor:pointer"><i class="sb-icon">🔄</i> Switch Profile</a></div>
+</aside>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <button class="hamburger" onclick="toggleSidebar()"><div></div><div></div><div></div></button>
+      <h1>Bar Stock Report</h1>
+    </div>
+    <div class="topbar-date" id="topDate"></div>
+  </div>
+  <div class="content">
+    <div id="alertBox" class="alert"></div>
+    <div class="card">
+      <div class="section-head">
+        <h2>Daily Bar Stock Count</h2>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input type="date" id="barDate" class="form-control" style="width:160px">
+          <button class="btn btn-gold" id="submitBtn" onclick="submitBar()">Save Report</button>
+        </div>
+      </div>
+
+      <div class="tbl-wrap stock-table">
+        <table>
+          <thead><tr><th>Item</th><th>Category</th><th>Opening Stock</th><th>Received</th><th>Closing Stock</th><th>Sold (auto)</th><th>Low Alert</th></tr></thead>
+          <tbody id="barItems"></tbody>
+        </table>
+      </div>
+
+      <div class="divider"></div>
+      <div class="form-group">
+        <label class="form-label">Notes</label>
+        <textarea id="barNotes" class="form-control" rows="2" placeholder="Any stock issues, damage, shortage…"></textarea>
+      </div>
+    </div>
+
+    <div class="card mt24">
+      <div class="section-head"><h2>Recent Reports</h2></div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Date</th><th>Items</th><th>Low Stock</th><th>Filed By</th></tr></thead>
+          <tbody id="histTable"><tr><td colspan="4" style="text-align:center;padding:16px;color:#6a6b62">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="/portal/firebase-init.js"></script>
+<script>
+const BAR_ITEMS = [
+  { name: 'Heineken (33cl)',      cat: 'Beer',     low: 24 },
+  { name: 'Star Lager (60cl)',    cat: 'Beer',     low: 24 },
+  { name: 'Guinness Stout',       cat: 'Beer',     low: 12 },
+  { name: 'Trophy Lager',         cat: 'Beer',     low: 24 },
+  { name: 'Budweiser',            cat: 'Beer',     low: 12 },
+  { name: 'Smirnoff Ice',         cat: 'Premix',   low: 12 },
+  { name: 'Bullet (5cl)',         cat: 'Spirits',  low: 24 },
+  { name: 'Hennessy VS (75cl)',   cat: 'Spirits',  low: 2  },
+  { name: 'Johnnie Walker Black', cat: 'Spirits',  low: 2  },
+  { name: 'Ciroc Vodka',         cat: 'Spirits',  low: 2  },
+  { name: 'Chapman Mixer',        cat: 'Mixers',   low: 6  },
+  { name: 'Coca Cola (35cl)',     cat: 'Soft',     low: 24 },
+  { name: 'Fanta (35cl)',         cat: 'Soft',     low: 12 },
+  { name: 'Sprite (35cl)',        cat: 'Soft',     low: 12 },
+  { name: 'Eva Water (50cl)',     cat: 'Water',    low: 24 },
+  { name: 'Eva Water (1.5L)',     cat: 'Water',    low: 12 },
+  { name: 'Ice (bag)',            cat: 'Supplies', low: 5  },
+];
+
+document.getElementById('topDate').textContent = new Date().toLocaleDateString('en-NG',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+document.getElementById('barDate').value = todayStr();
+
+const staff = getStaff();
+populateSidebar(staff);
+buildTable(); loadHistory();
+
+function buildTable() {
+  const tbody = document.getElementById('barItems');
+  tbody.innerHTML = BAR_ITEMS.map((item, i) => `
+    <tr>
+      <td class="fw4">${item.name}</td>
+      <td><span class="badge badge-info">${item.cat}</span></td>
+      <td><input type="number" min="0" id="open_${i}" placeholder="0" value="0"></td>
+      <td><input type="number" min="0" id="recv_${i}" placeholder="0" value="0" oninput="calcRow(${i})"></td>
+      <td class="closing"><input type="number" min="0" id="close_${i}" placeholder="0" value="0" oninput="calcRow(${i})"></td>
+      <td id="sold_${i}" style="text-align:center;font-weight:400">0</td>
+      <td id="low_${i}"></td>
+    </tr>`
+  ).join('');
+}
+
+function calcRow(i) {
+  const open  = +document.getElementById(`open_${i}`).value  || 0;
+  const recv  = +document.getElementById(`recv_${i}`).value  || 0;
+  const close = +document.getElementById(`close_${i}`).value || 0;
+  const sold  = Math.max(0, open + recv - close);
+  document.getElementById(`sold_${i}`).textContent = sold;
+  const low = BAR_ITEMS[i].low;
+  document.getElementById(`low_${i}`).innerHTML = close <= low
+    ? `<span class="badge badge-warn">Low</span>`
+    : `<span class="badge badge-ok">OK</span>`;
+}
+
+async function submitBar() {
+  const date  = document.getElementById('barDate').value;
+  const notes = document.getElementById('barNotes').value.trim();
+  const user  = staff;
+  const items = BAR_ITEMS.map((item, i) => ({
+    name: item.name, category: item.cat,
+    opening: +document.getElementById(`open_${i}`).value  || 0,
+    received:+document.getElementById(`recv_${i}`).value  || 0,
+    closing: +document.getElementById(`close_${i}`).value || 0,
+    sold: Math.max(0, (+document.getElementById(`open_${i}`).value||0) + (+document.getElementById(`recv_${i}`).value||0) - (+document.getElementById(`close_${i}`).value||0)),
+    lowAlert: (+document.getElementById(`close_${i}`).value||0) <= item.low
+  }));
+  const lowItems = items.filter(x => x.lowAlert).map(x => x.name);
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true; btn.textContent = 'Saving…';
+  try {
+    await db.collection('bar_stock').add({
+      date, items, notes, lowItems, staffId: user.id, staffName: user.name,
+      submittedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    showAlert('alertBox','Bar stock report saved!','alert-success');
+    loadHistory();
+  } catch(e) { showAlert('alertBox','Error saving report.','alert-error'); }
+  btn.disabled = false; btn.textContent = 'Save Report';
+}
+
+async function loadHistory() {
+  const snap = await db.collection('bar_stock').orderBy('submittedAt','desc').limit(14).get();
+  const tbody = document.getElementById('histTable');
+  if (snap.empty) { tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:16px;color:#6a6b62">No reports yet.</td></tr>'; return; }
+  tbody.innerHTML = snap.docs.map(d => {
+    const r = d.data();
+    return `<tr>
+      <td class="fw4">${r.date}</td>
+      <td>${(r.items||[]).length} items</td>
+      <td>${(r.lowItems||[]).length > 0 ? `<span class="badge badge-warn">${r.lowItems.length} low</span>` : '<span class="badge badge-ok">All OK</span>'}</td>
+      <td>${r.staffName}</td>
+    </tr>`;
+  }).join('');
+}
+</script>
+</body>
+</html>

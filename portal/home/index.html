@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Dashboard · Eden 54 Portal</title>
+<link rel="icon" type="image/jpeg" href="/logo/eden 54 logo.jpeg">
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/portal/portal.css">
+<style>
+.clock-card {
+  background: var(--deep); border-radius: 10px; padding: 28px;
+  display: flex; align-items: center; justify-content: space-between; gap: 20px;
+  margin-bottom: 24px; flex-wrap: wrap;
+}
+.clock-info { color: rgba(245,242,236,0.85); }
+.clock-info .greeting { font-size: 0.72rem; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(245,242,236,0.35); margin-bottom: 6px; }
+.clock-info .staff-name { font-size: 1.4rem; font-weight: 400; color: #f5f2ec; }
+.clock-info .clock-status { font-size: 0.82rem; color: var(--gold); margin-top: 6px; }
+.clock-info .clock-time { font-size: 0.78rem; color: rgba(245,242,236,0.4); margin-top: 3px; }
+.clock-btn-wrap { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.btn-clock-in  { background: #16a34a; color: #fff; padding: 14px 32px; font-size: 0.82rem; letter-spacing: 0.14em; }
+.btn-clock-out { background: #dc2626; color: #fff; padding: 14px 32px; font-size: 0.82rem; letter-spacing: 0.14em; }
+.clock-timer { font-size: 1.6rem; font-weight: 300; color: var(--gold); letter-spacing: 0.05em; font-variant-numeric: tabular-nums; }
+
+.quick-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px,1fr)); gap: 12px; margin-bottom: 24px; }
+.quick-card {
+  background: var(--card); border: 1px solid var(--border); border-radius: 8px;
+  padding: 18px 14px; text-align: center; cursor: pointer; text-decoration: none;
+  transition: border-color 0.2s, transform 0.15s; display: block; color: var(--text);
+}
+.quick-card:hover { border-color: var(--gold); transform: translateY(-2px); }
+.quick-icon { font-size: 1.4rem; margin-bottom: 8px; }
+.quick-label { font-size: 0.78rem; font-weight: 400; }
+
+.update-form { margin-bottom: 0; }
+.photo-strip { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+.photo-thumb { width: 70px; height: 70px; border-radius: 6px; object-fit: cover; border: 1px solid var(--border); position: relative; }
+.photo-del { position: absolute; top: -6px; right: -6px; background: #dc2626; color: #fff; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.photo-add-box { width: 70px; height: 70px; border: 2px dashed var(--border); border-radius: 6px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.4rem; color: var(--muted); transition: border-color 0.2s; }
+.photo-add-box:hover { border-color: var(--gold); color: var(--gold); }
+.update-progress { height: 3px; background: var(--border); border-radius: 2px; margin-top: 8px; overflow: hidden; display: none; }
+.update-progress .fill { height: 100%; background: var(--gold); transition: width 0.2s; }
+
+.feed-item { border-bottom: 1px solid var(--border); padding: 16px 0; }
+.feed-item:last-child { border-bottom: none; }
+.feed-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.feed-avatar { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; border: 1px solid var(--border); }
+.feed-initials { width: 34px; height: 34px; border-radius: 50%; background: var(--gold); color: var(--deep); display: flex; align-items: center; justify-content: center; font-size: 0.72rem; font-weight: 500; flex-shrink: 0; }
+.feed-meta { flex: 1; }
+.feed-meta strong { display: block; font-size: 0.85rem; font-weight: 400; }
+.feed-meta span { font-size: 0.72rem; color: var(--muted); }
+.feed-text { font-size: 0.88rem; line-height: 1.6; margin-bottom: 10px; }
+.feed-photos { display: flex; gap: 6px; flex-wrap: wrap; }
+.feed-photos img { width: 90px; height: 90px; border-radius: 6px; object-fit: cover; cursor: pointer; border: 1px solid var(--border); }
+
+/* lightbox */
+.lightbox { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 300; align-items: center; justify-content: center; }
+.lightbox.show { display: flex; }
+.lightbox img { max-width: 90vw; max-height: 90vh; border-radius: 6px; }
+.lightbox-close { position: absolute; top: 18px; right: 22px; color: #fff; font-size: 1.8rem; cursor: pointer; background: none; border: none; line-height: 1; }
+</style>
+</head>
+<body>
+<div class="sb-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+<aside class="sidebar" id="sidebar">
+  <div class="sb-brand"><div class="sb-brand-name">Eden 54</div><div class="sb-brand-sub">Staff Portal</div></div>
+  <nav class="sb-nav">
+    <div class="sb-section">Main</div>
+    <a href="/portal/home/" class="sb-item active"><i class="sb-icon">🏠</i> My Home</a>
+    <a href="/portal/updates/" class="sb-item"><i class="sb-icon">📸</i> Updates</a>
+    <div class="sb-section">Reports</div>
+    <a href="/portal/sales/" class="sb-item"><i class="sb-icon">💰</i> Daily Sales</a>
+    <a href="/portal/bar/" class="sb-item"><i class="sb-icon">🍺</i> Bar Stock</a>
+    <a href="/portal/kitchen/" class="sb-item"><i class="sb-icon">🍽️</i> Kitchen</a>
+    <a href="/portal/barbing/" class="sb-item"><i class="sb-icon">💈</i> Barbing</a>
+    <a href="/portal/pool/" class="sb-item"><i class="sb-icon">🏊</i> Pool</a>
+    <div class="sb-section">HR</div>
+    <a href="/portal/attendance/" class="sb-item"><i class="sb-icon">👥</i> Attendance</a>
+    <a href="/portal/payroll/" class="sb-item"><i class="sb-icon">💵</i> Payroll</a>
+    <div class="sb-section">Admin</div>
+    <a href="/portal/dashboard/" class="sb-item"><i class="sb-icon">📊</i> Dashboard</a>
+    <a href="/portal/staff/" class="sb-item"><i class="sb-icon">👤</i> Staff</a>
+  </nav>
+  <div class="sb-foot"><div id="sidebarUser"></div><a class="sb-item" onclick="switchProfile()" style="cursor:pointer"><i class="sb-icon">🔄</i> Switch Profile</a></div>
+</aside>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <button class="hamburger" onclick="toggleSidebar()"><div></div><div></div><div></div></button>
+      <h1>My Home</h1>
+    </div>
+    <div class="topbar-date" id="topDate"></div>
+  </div>
+  <div class="content">
+    <div id="alertBox" class="alert"></div>
+
+    <!-- Clock In/Out card -->
+    <div class="clock-card">
+      <div class="clock-info">
+        <div class="greeting">Welcome back</div>
+        <div class="staff-name" id="clockName">—</div>
+        <div class="clock-status" id="clockStatus">Checking status…</div>
+        <div class="clock-time" id="clockTime"></div>
+      </div>
+      <div class="clock-btn-wrap">
+        <div class="clock-timer" id="clockTimer"></div>
+        <button class="btn btn-clock-in" id="clockInBtn" onclick="clockIn()" style="display:none">Clock In</button>
+        <button class="btn btn-clock-out" id="clockOutBtn" onclick="clockOut()" style="display:none">Clock Out</button>
+      </div>
+    </div>
+
+    <!-- Quick actions -->
+    <div class="quick-grid">
+      <a href="/portal/updates/" class="quick-card"><div class="quick-icon">📸</div><div class="quick-label">Post Update</div></a>
+      <a href="/portal/sales/" class="quick-card"><div class="quick-icon">💰</div><div class="quick-label">Daily Sales</div></a>
+      <a href="/portal/barbing/" class="quick-card"><div class="quick-icon">💈</div><div class="quick-label">Barbing Report</div></a>
+      <a href="/portal/bar/" class="quick-card"><div class="quick-icon">🍺</div><div class="quick-label">Bar Stock</div></a>
+      <a href="/portal/kitchen/" class="quick-card"><div class="quick-icon">🍽️</div><div class="quick-label">Kitchen</div></a>
+      <a href="/portal/pool/" class="quick-card"><div class="quick-icon">🏊</div><div class="quick-label">Pool</div></a>
+    </div>
+
+    <!-- Today's summary -->
+    <div class="g2" style="margin-bottom:24px">
+      <div class="card">
+        <div class="card-label">My Reports Today</div>
+        <div class="card-value" id="myReports">0</div>
+        <div class="card-sub">Submissions</div>
+      </div>
+      <div class="card">
+        <div class="card-label">Work Duration</div>
+        <div class="card-value" id="workDuration">—</div>
+        <div class="card-sub">Today so far</div>
+      </div>
+    </div>
+
+    <!-- Recent updates feed -->
+    <div class="card">
+      <div class="section-head">
+        <h2>Recent Team Updates</h2>
+        <a href="/portal/updates/" class="btn btn-gold btn-sm">+ Post Update</a>
+      </div>
+      <div id="feedEl"><p class="text-muted" style="font-size:0.85rem">Loading updates…</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- Lightbox -->
+<div class="lightbox" id="lightbox" onclick="document.getElementById('lightbox').classList.remove('show')">
+  <button class="lightbox-close">×</button>
+  <img id="lightboxImg" src="" alt="">
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+<script src="/portal/firebase-init.js"></script>
+<script>
+const staff = getStaff();
+populateSidebar(staff);
+document.getElementById('clockName').textContent = staff.name;
+document.getElementById('topDate').textContent = new Date().toLocaleDateString('en-NG',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+
+const today = todayStr();
+const clockDocId = today + '_' + staff.id;
+let clockInTime = null, timerInterval = null;
+
+async function loadClockStatus() {
+  const snap = await db.collection('clockings').doc(clockDocId).get();
+  if (!snap.exists) {
+    // Not clocked in yet
+    document.getElementById('clockStatus').textContent = 'Not clocked in yet today';
+    document.getElementById('clockInBtn').style.display = 'inline-flex';
+    document.getElementById('clockTime').textContent = '';
+  } else {
+    const d = snap.data();
+    clockInTime = d.clockIn ? d.clockIn.toDate() : null;
+    if (d.clockOut) {
+      // Done for the day
+      const dur = duration(d.clockIn.toDate(), d.clockOut.toDate());
+      document.getElementById('clockStatus').textContent = 'Clocked out · ' + dur + ' worked';
+      document.getElementById('clockTime').textContent = 'In: ' + fmt(d.clockIn.toDate()) + ' · Out: ' + fmt(d.clockOut.toDate());
+      document.getElementById('workDuration').textContent = dur;
+    } else {
+      // Still clocked in
+      document.getElementById('clockStatus').textContent = 'Clocked in';
+      document.getElementById('clockTime').textContent = 'Since ' + fmt(d.clockIn.toDate());
+      document.getElementById('clockOutBtn').style.display = 'inline-flex';
+      startTimer(d.clockIn.toDate());
+    }
+  }
+}
+
+async function clockIn() {
+  const btn = document.getElementById('clockInBtn');
+  btn.disabled = true; btn.textContent = 'Clocking in…';
+  const now = firebase.firestore.Timestamp.now();
+  await db.collection('clockings').doc(clockDocId).set({
+    date: today, staffId: staff.id, staffName: staff.name, department: staff.department,
+    clockIn: now, clockOut: null
+  });
+  clockInTime = now.toDate();
+  document.getElementById('clockStatus').textContent = 'Clocked in';
+  document.getElementById('clockTime').textContent = 'Since ' + fmt(clockInTime);
+  btn.style.display = 'none';
+  document.getElementById('clockOutBtn').style.display = 'inline-flex';
+  startTimer(clockInTime);
+  showAlert('alertBox','Clocked in at ' + fmt(clockInTime),'alert-success');
+}
+
+async function clockOut() {
+  const btn = document.getElementById('clockOutBtn');
+  btn.disabled = true; btn.textContent = 'Clocking out…';
+  const now = firebase.firestore.Timestamp.now();
+  await db.collection('clockings').doc(clockDocId).update({ clockOut: now });
+  clearInterval(timerInterval);
+  document.getElementById('clockTimer').textContent = '';
+  const dur = duration(clockInTime, now.toDate());
+  document.getElementById('clockStatus').textContent = 'Clocked out · ' + dur + ' worked';
+  document.getElementById('clockTime').textContent = 'In: ' + fmt(clockInTime) + ' · Out: ' + fmt(now.toDate());
+  document.getElementById('workDuration').textContent = dur;
+  btn.style.display = 'none';
+  showAlert('alertBox','Clocked out. ' + dur + ' worked today.','alert-success');
+}
+
+function startTimer(since) {
+  function tick() {
+    const diff = Date.now() - since.getTime();
+    const h = Math.floor(diff/3600000), m = Math.floor((diff%3600000)/60000), s = Math.floor((diff%60000)/1000);
+    document.getElementById('clockTimer').textContent = pad(h)+':'+pad(m)+':'+pad(s);
+    document.getElementById('workDuration').textContent = pad(h)+'h '+pad(m)+'m';
+  }
+  tick(); timerInterval = setInterval(tick, 1000);
+}
+
+function fmt(d) { return d.toLocaleTimeString('en-NG',{hour:'2-digit',minute:'2-digit'}); }
+function pad(n) { return String(n).padStart(2,'0'); }
+function duration(start, end) {
+  const diff = end - start;
+  const h = Math.floor(diff/3600000), m = Math.floor((diff%3600000)/60000);
+  return h + 'h ' + pad(m) + 'm';
+}
+
+async function loadMyReports() {
+  const snap = await db.collection('sales').where('date','==',today).where('staffId','==',staff.id).get();
+  document.getElementById('myReports').textContent = snap.size;
+}
+
+async function loadFeed() {
+  const snap = await db.collection('updates').orderBy('createdAt','desc').limit(10).get();
+  const el = document.getElementById('feedEl');
+  if (snap.empty) { el.innerHTML = '<p class="text-muted" style="font-size:0.85rem">No updates yet. Be the first to post!</p>'; return; }
+  el.innerHTML = snap.docs.map(d => {
+    const u = d.data();
+    const ts = u.createdAt ? u.createdAt.toDate().toLocaleString('en-NG',{dateStyle:'medium',timeStyle:'short'}) : '';
+    const avatarEl = u.photoURL
+      ? `<img class="feed-avatar" src="${u.photoURL}" alt="${u.staffName}">`
+      : `<div class="feed-initials">${avatarInitials(u.staffName)}</div>`;
+    const photosEl = (u.photos||[]).length
+      ? `<div class="feed-photos">${u.photos.map(p=>`<img src="${p}" onclick="openLightbox('${p}')" alt="update photo">`).join('')}</div>`
+      : '';
+    return `<div class="feed-item">
+      <div class="feed-header">${avatarEl}<div class="feed-meta"><strong>${u.staffName}</strong><span>${u.department} · ${ts}</span></div></div>
+      ${u.text ? `<div class="feed-text">${u.text}</div>` : ''}
+      ${photosEl}
+    </div>`;
+  }).join('');
+}
+
+function openLightbox(src) {
+  document.getElementById('lightboxImg').src = src;
+  document.getElementById('lightbox').classList.add('show');
+}
+
+loadClockStatus();
+loadMyReports();
+loadFeed();
+</script>
+</body>
+</html>

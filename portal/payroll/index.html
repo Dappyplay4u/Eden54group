@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Payroll · Eden 54 Portal</title>
+<link rel="icon" type="image/jpeg" href="/logo/eden 54 logo.jpeg">
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/portal/portal.css">
+</head>
+<body>
+<div class="sb-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+<aside class="sidebar" id="sidebar">
+  <div class="sb-brand"><div class="sb-brand-name">Eden 54</div><div class="sb-brand-sub">Staff Portal</div></div>
+  <nav class="sb-nav">
+    <div class="sb-section">Main</div>
+    <a href="/portal/dashboard/" class="sb-item"><i class="sb-icon">📊</i> Dashboard</a>
+    <div class="sb-section">Daily Reports</div>
+    <a href="/portal/sales/" class="sb-item"><i class="sb-icon">💰</i> Daily Sales</a>
+    <a href="/portal/bar/" class="sb-item"><i class="sb-icon">🍺</i> Bar Stock</a>
+    <a href="/portal/kitchen/" class="sb-item"><i class="sb-icon">🍽️</i> Kitchen</a>
+    <a href="/portal/barbing/" class="sb-item"><i class="sb-icon">💈</i> Barbing</a>
+    <a href="/portal/pool/" class="sb-item"><i class="sb-icon">🏊</i> Pool</a>
+    <div class="sb-section">HR</div>
+    <a href="/portal/attendance/" class="sb-item"><i class="sb-icon">👥</i> Attendance</a>
+    <a href="/portal/payroll/" class="sb-item active"><i class="sb-icon">💵</i> Payroll</a>
+    <div class="sb-section">Admin</div>
+    <a href="/portal/staff/" class="sb-item"><i class="sb-icon">👤</i> Staff</a>
+  </nav>
+  <div class="sb-foot"><div id="sidebarUser"></div><a class="sb-item" onclick="switchProfile()" style="cursor:pointer"><i class="sb-icon">🔄</i> Switch Profile</a></div>
+</aside>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <button class="hamburger" onclick="toggleSidebar()"><div></div><div></div><div></div></button>
+      <h1>Payroll</h1>
+    </div>
+    <div class="topbar-date" id="topDate"></div>
+  </div>
+  <div class="content">
+    <div id="alertBox" class="alert"></div>
+
+    <div class="card" style="margin-bottom:24px">
+      <div class="section-head">
+        <h2>Monthly Payroll</h2>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input type="month" id="payMonth" class="form-control" style="width:170px">
+          <button class="btn btn-outline btn-sm" onclick="loadPayroll()">Load</button>
+          <button class="btn btn-gold btn-sm" id="saveBtn" onclick="savePayroll()" style="display:none">Save</button>
+        </div>
+      </div>
+      <div id="payrollTable"><p class="text-muted" style="font-size:0.85rem">Select a month and click Load.</p></div>
+      <div id="payrollFoot" style="display:none">
+        <div class="divider"></div>
+        <div style="display:flex;justify-content:flex-end;gap:24px;padding:6px 0">
+          <span class="text-muted" style="font-size:0.85rem">Total Payroll:</span>
+          <span class="fw4 text-gold" id="grandTotal">₦0.00</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-head"><h2>History</h2></div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Month</th><th>Staff</th><th>Total Paid</th><th>Status</th><th>By</th></tr></thead>
+          <tbody id="histTable"><tr><td colspan="5" style="text-align:center;padding:16px;color:#6a6b62">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="editModal">
+  <div class="modal">
+    <h3>Edit Pay — <span id="modalName"></span></h3>
+    <input type="hidden" id="modalId">
+    <div class="fg2" style="margin-bottom:14px">
+      <div class="form-group"><label class="form-label">Basic (₦)</label><input type="number" id="mBasic" class="form-control" min="0" oninput="calcNet()"></div>
+      <div class="form-group"><label class="form-label">Allowances (₦)</label><input type="number" id="mAllow" class="form-control" min="0" oninput="calcNet()"></div>
+    </div>
+    <div class="fg2" style="margin-bottom:14px">
+      <div class="form-group"><label class="form-label">Deductions (₦)</label><input type="number" id="mDeduct" class="form-control" min="0" oninput="calcNet()"></div>
+      <div class="form-group"><label class="form-label">Bonus (₦)</label><input type="number" id="mBonus" class="form-control" min="0" oninput="calcNet()"></div>
+    </div>
+    <div class="card" style="background:#f5f9f5;border-color:#C9A96E;padding:12px;margin-bottom:16px">
+      <div class="card-label">Net Pay</div><div class="card-value gold" id="mNet">₦0.00</div>
+    </div>
+    <div class="form-group" style="margin-bottom:16px">
+      <label class="form-label">Status</label>
+      <select id="mStatus" class="form-control"><option value="Pending">Pending</option><option value="Paid">Paid</option></select>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end">
+      <button class="btn btn-outline" onclick="document.getElementById('editModal').classList.remove('show')">Cancel</button>
+      <button class="btn btn-gold" onclick="applyEdit()">Save</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="/portal/firebase-init.js"></script>
+<script>
+const currentStaff = getStaff();
+populateSidebar(currentStaff);
+document.getElementById('payMonth').value = todayStr().slice(0,7);
+document.getElementById('topDate').textContent = new Date().toLocaleDateString('en-NG',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+
+let payrollRows = {}, editingId = null;
+
+async function loadPayroll() {
+  const month = document.getElementById('payMonth').value;
+  payrollRows = {};
+  const existing = await db.collection('payroll').doc(month).get();
+  if (existing.exists) {
+    (existing.data().staff || []).forEach(s => payrollRows[s.staffId] = s);
+  } else {
+    const snap = await db.collection('staff').where('active','==',true).orderBy('name').get();
+    snap.forEach(d => {
+      const s = d.data();
+      payrollRows[d.id] = { staffId: d.id, staffName: s.name, department: s.department,
+        basic: s.basicSalary||0, allowances:0, deductions:0, bonus:0, net: s.basicSalary||0, status:'Pending' };
+    });
+  }
+  renderTable(); document.getElementById('saveBtn').style.display='inline-flex'; document.getElementById('payrollFoot').style.display='block';
+}
+
+function renderTable() {
+  const rows = Object.values(payrollRows);
+  const grand = rows.reduce((s,r) => s+(r.net||0), 0);
+  document.getElementById('grandTotal').textContent = fmtNaira(grand);
+  document.getElementById('payrollTable').innerHTML = `<div class="tbl-wrap"><table>
+    <thead><tr><th>Staff</th><th>Dept</th><th>Basic</th><th>Allowances</th><th>Deductions</th><th>Bonus</th><th>Net Pay</th><th>Status</th><th></th></tr></thead>
+    <tbody>${rows.map(r => `<tr>
+      <td class="fw4">${r.staffName}</td><td>${r.department}</td>
+      <td>${fmtNaira(r.basic)}</td><td>${fmtNaira(r.allowances)}</td>
+      <td>${fmtNaira(r.deductions)}</td><td>${fmtNaira(r.bonus)}</td>
+      <td class="fw4 text-gold">${fmtNaira(r.net)}</td>
+      <td><span class="badge badge-${r.status==='Paid'?'ok':'warn'}">${r.status}</span></td>
+      <td><button class="btn btn-outline btn-sm" onclick="openEdit('${r.staffId}')">Edit</button></td>
+    </tr>`).join('')}</tbody>
+  </table></div>`;
+}
+
+function openEdit(id) {
+  editingId = id; const r = payrollRows[id];
+  document.getElementById('modalName').textContent = r.staffName;
+  document.getElementById('modalId').value = id;
+  document.getElementById('mBasic').value = r.basic||0;
+  document.getElementById('mAllow').value = r.allowances||0;
+  document.getElementById('mDeduct').value = r.deductions||0;
+  document.getElementById('mBonus').value = r.bonus||0;
+  document.getElementById('mStatus').value = r.status||'Pending';
+  calcNet(); document.getElementById('editModal').classList.add('show');
+}
+function calcNet() {
+  const n = (+document.getElementById('mBasic').value||0)+(+document.getElementById('mAllow').value||0)-(+document.getElementById('mDeduct').value||0)+(+document.getElementById('mBonus').value||0);
+  document.getElementById('mNet').textContent = fmtNaira(n);
+}
+function applyEdit() {
+  const r = payrollRows[editingId];
+  r.basic = +document.getElementById('mBasic').value||0; r.allowances = +document.getElementById('mAllow').value||0;
+  r.deductions = +document.getElementById('mDeduct').value||0; r.bonus = +document.getElementById('mBonus').value||0;
+  r.net = r.basic + r.allowances - r.deductions + r.bonus; r.status = document.getElementById('mStatus').value;
+  document.getElementById('editModal').classList.remove('show'); renderTable();
+}
+
+async function savePayroll() {
+  const month = document.getElementById('payMonth').value;
+  const rows = Object.values(payrollRows);
+  const btn = document.getElementById('saveBtn');
+  btn.disabled = true; btn.textContent = 'Saving…';
+  try {
+    await db.collection('payroll').doc(month).set({
+      month, staff: rows, totalPaid: rows.reduce((s,r)=>s+(r.net||0),0),
+      processedBy: currentStaff.name, savedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    showAlert('alertBox','Payroll saved for '+month+'!','alert-success'); loadHistory();
+  } catch(e) { showAlert('alertBox','Error saving.','alert-error'); }
+  btn.disabled = false; btn.textContent = 'Save';
+}
+
+async function loadHistory() {
+  const snap = await db.collection('payroll').orderBy('savedAt','desc').limit(12).get();
+  const tbody = document.getElementById('histTable');
+  tbody.innerHTML = snap.empty
+    ? '<tr><td colspan="5" style="text-align:center;padding:16px;color:#6a6b62">No payroll records.</td></tr>'
+    : snap.docs.map(d => { const p=d.data(); const allPaid=(p.staff||[]).every(s=>s.status==='Paid');
+        return `<tr><td class="fw4">${p.month}</td><td>${(p.staff||[]).length}</td><td class="text-gold fw4">${fmtNaira(p.totalPaid)}</td><td><span class="badge badge-${allPaid?'ok':'warn'}">${allPaid?'All Paid':'Partial'}</span></td><td>${p.processedBy}</td></tr>`;
+      }).join('');
+}
+loadHistory();
+</script>
+</body>
+</html>

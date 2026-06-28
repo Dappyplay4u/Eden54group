@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard · Eden 54 Portal</title>
+<link rel="icon" type="image/jpeg" href="/logo/eden 54 logo.jpeg">
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/portal/portal.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+<div class="sb-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+<aside class="sidebar" id="sidebar">
+  <div class="sb-brand"><div class="sb-brand-name">Eden 54</div><div class="sb-brand-sub">Staff Portal</div></div>
+  <nav class="sb-nav">
+    <div class="sb-section">Main</div>
+    <a href="/portal/dashboard/" class="sb-item active"><i class="sb-icon">📊</i> Dashboard</a>
+    <div class="sb-section">Daily Reports</div>
+    <a href="/portal/sales/" class="sb-item"><i class="sb-icon">💰</i> Daily Sales</a>
+    <a href="/portal/bar/" class="sb-item"><i class="sb-icon">🍺</i> Bar Stock</a>
+    <a href="/portal/kitchen/" class="sb-item"><i class="sb-icon">🍽️</i> Kitchen</a>
+    <a href="/portal/barbing/" class="sb-item"><i class="sb-icon">💈</i> Barbing</a>
+    <a href="/portal/pool/" class="sb-item"><i class="sb-icon">🏊</i> Pool</a>
+    <div class="sb-section">HR</div>
+    <a href="/portal/attendance/" class="sb-item"><i class="sb-icon">👥</i> Attendance</a>
+    <a href="/portal/payroll/" class="sb-item"><i class="sb-icon">💵</i> Payroll</a>
+    <div class="sb-section">Admin</div>
+    <a href="/portal/staff/" class="sb-item"><i class="sb-icon">👤</i> Staff</a>
+  </nav>
+  <div class="sb-foot">
+    <div id="sidebarUser"></div>
+    <a class="sb-item" onclick="switchProfile()" style="cursor:pointer"><i class="sb-icon">🔄</i> Switch Profile</a>
+  </div>
+</aside>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <button class="hamburger" onclick="toggleSidebar()"><div></div><div></div><div></div></button>
+      <h1>Dashboard</h1>
+    </div>
+    <div class="topbar-date" id="topDate"></div>
+  </div>
+  <div class="content">
+    <div id="alertBox" class="alert"></div>
+
+    <div class="stats-grid">
+      <div class="card">
+        <div class="card-label">Today's Sales</div>
+        <div class="card-value gold" id="statSales">₦0</div>
+        <div class="card-sub">All departments</div>
+      </div>
+      <div class="card">
+        <div class="card-label">Staff Present</div>
+        <div class="card-value" id="statPresent">—</div>
+        <div class="card-sub">Today</div>
+      </div>
+      <div class="card">
+        <div class="card-label">This Month Sales</div>
+        <div class="card-value gold" id="statMonth">₦0</div>
+        <div class="card-sub">Running total</div>
+      </div>
+      <div class="card">
+        <div class="card-label">Reports Today</div>
+        <div class="card-value" id="statSubs">0</div>
+        <div class="card-sub">Submissions</div>
+      </div>
+    </div>
+
+    <div class="g2" style="margin-bottom:24px;">
+      <div class="card">
+        <div class="card-title">Sales — Last 7 Days (₦)</div>
+        <canvas id="chartWeek" height="180"></canvas>
+      </div>
+      <div class="card">
+        <div class="card-title">Today by Department</div>
+        <canvas id="chartDept" height="180"></canvas>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:24px">
+      <div class="section-head">
+        <h2>Recent Sales</h2>
+        <a href="/portal/sales/" class="btn btn-outline btn-sm">+ New Report</a>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Date</th><th>Staff</th><th>Department</th><th>Cash</th><th>Transfer</th><th>POS</th><th>Total</th></tr></thead>
+          <tbody id="salesTable"><tr><td colspan="7" class="text-muted" style="text-align:center;padding:24px">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-head">
+        <h2>Today's Attendance</h2>
+        <a href="/portal/attendance/" class="btn btn-outline btn-sm">Mark Attendance</a>
+      </div>
+      <div id="attSummary" class="text-muted" style="font-size:0.85rem;padding:8px 0">Loading…</div>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+<script src="/portal/firebase-init.js"></script>
+<script>
+document.getElementById('topDate').textContent = new Date().toLocaleDateString('en-NG',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+const staff = getStaff();
+if (staff) populateSidebar(staff);
+
+async function load() {
+  const today = todayStr();
+  const salesSnap = await db.collection('sales').where('date','==',today).get();
+  let todayTotal = 0, deptMap = {};
+  salesSnap.forEach(d => {
+    const s = d.data(); todayTotal += s.totalSales || 0;
+    deptMap[s.department] = (deptMap[s.department] || 0) + (s.totalSales || 0);
+  });
+  document.getElementById('statSales').textContent = fmtNaira(todayTotal);
+  document.getElementById('statSubs').textContent = salesSnap.size;
+
+  const monthStart = today.slice(0,7) + '-01';
+  const monthSnap = await db.collection('sales').where('date','>=',monthStart).where('date','<=',today).get();
+  let monthTotal = 0; monthSnap.forEach(d => monthTotal += d.data().totalSales || 0);
+  document.getElementById('statMonth').textContent = fmtNaira(monthTotal);
+
+  const attSnap = await db.collection('attendance').doc(today).get();
+  if (attSnap.exists) {
+    const recs = attSnap.data().records || [];
+    const present = recs.filter(r => r.status === 'Present').length;
+    document.getElementById('statPresent').textContent = present + ' / ' + recs.length;
+    document.getElementById('attSummary').innerHTML = recs.map(r =>
+      `<span style="display:inline-block;margin:4px 8px 4px 0">
+        <span class="badge badge-${r.status==='Present'?'ok':r.status==='Absent'?'err':'warn'}">${r.status}</span> ${r.staffName}
+      </span>`).join('');
+  } else {
+    document.getElementById('statPresent').textContent = 'Not marked';
+    document.getElementById('attSummary').textContent = 'Attendance not yet marked for today.';
+  }
+
+  const recentSnap = await db.collection('sales').orderBy('submittedAt','desc').limit(20).get();
+  const tbody = document.getElementById('salesTable');
+  tbody.innerHTML = recentSnap.empty
+    ? '<tr><td colspan="7" style="text-align:center;padding:24px;color:#6a6b62">No sales recorded yet.</td></tr>'
+    : recentSnap.docs.map(d => {
+        const s = d.data();
+        return `<tr><td>${s.date}</td><td class="fw4">${s.staffName}</td><td><span class="badge badge-info">${s.department}</span></td><td>${fmtNaira(s.cashSales)}</td><td>${fmtNaira(s.transferSales)}</td><td>${fmtNaira(s.posSales)}</td><td class="fw4 text-gold">${fmtNaira(s.totalSales)}</td></tr>`;
+      }).join('');
+
+  const days = [], sales7 = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(); d.setDate(d.getDate() - i);
+    const ds = d.toISOString().split('T')[0];
+    days.push(ds.slice(5));
+    const snap = await db.collection('sales').where('date','==',ds).get();
+    let t = 0; snap.forEach(x => t += x.data().totalSales || 0);
+    sales7.push(t);
+  }
+  new Chart(document.getElementById('chartWeek'), {
+    type: 'line',
+    data: { labels: days, datasets: [{ data: sales7, borderColor:'#C9A96E', backgroundColor:'rgba(201,169,110,0.1)', tension:0.4, fill:true }]},
+    options: { plugins:{legend:{display:false}}, scales:{y:{ticks:{callback: v => '₦'+v.toLocaleString()}}}}
+  });
+  const depts = Object.keys(deptMap);
+  const COLORS = ['#C9A96E','#4ade80','#60a5fa','#f87171','#a78bfa','#fb923c','#34d399'];
+  new Chart(document.getElementById('chartDept'), {
+    type: 'doughnut',
+    data: { labels: depts.length ? depts : ['No data'], datasets:[{data: depts.length ? depts.map(k=>deptMap[k]) : [1], backgroundColor:COLORS}]},
+    options: { plugins:{legend:{position:'bottom'}}}
+  });
+}
+load();
+</script>
+</body>
+</html>

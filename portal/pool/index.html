@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pool · Eden 54 Portal</title>
+<link rel="icon" type="image/jpeg" href="/logo/eden 54 logo.jpeg">
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/portal/portal.css">
+</head>
+<body>
+<div class="sb-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+<aside class="sidebar" id="sidebar">
+  <div class="sb-brand"><div class="sb-brand-name">Eden 54</div><div class="sb-brand-sub">Staff Portal</div></div>
+  <nav class="sb-nav">
+    <div class="sb-section">Main</div>
+    <a href="/portal/dashboard/" class="sb-item"><i class="sb-icon">📊</i> Dashboard</a>
+    <div class="sb-section">Daily Reports</div>
+    <a href="/portal/sales/" class="sb-item"><i class="sb-icon">💰</i> Daily Sales</a>
+    <a href="/portal/bar/" class="sb-item"><i class="sb-icon">🍺</i> Bar Stock</a>
+    <a href="/portal/kitchen/" class="sb-item"><i class="sb-icon">🍽️</i> Kitchen</a>
+    <a href="/portal/barbing/" class="sb-item"><i class="sb-icon">💈</i> Barbing</a>
+    <a href="/portal/pool/" class="sb-item active"><i class="sb-icon">🏊</i> Pool</a>
+    <div class="sb-section">HR</div>
+    <a href="/portal/attendance/" class="sb-item"><i class="sb-icon">👥</i> Attendance</a>
+    <a href="/portal/payroll/" class="sb-item"><i class="sb-icon">💵</i> Payroll</a>
+    <div class="sb-section">Admin</div>
+    <a href="/portal/staff/" class="sb-item"><i class="sb-icon">👤</i> Staff</a>
+  </nav>
+  <div class="sb-foot"><div id="sidebarUser"></div><a class="sb-item" onclick="switchProfile()" style="cursor:pointer"><i class="sb-icon">🔄</i> Switch Profile</a></div>
+</aside>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <button class="hamburger" onclick="toggleSidebar()"><div></div><div></div><div></div></button>
+      <h1>Pool Competition</h1>
+    </div>
+    <div class="topbar-date" id="topDate"></div>
+  </div>
+  <div class="content">
+    <div id="alertBox" class="alert"></div>
+    <div class="g2">
+      <div class="card">
+        <div class="section-head"><h2>Log Session</h2></div>
+        <div class="fg2" style="margin-bottom:14px">
+          <div class="form-group">
+            <label class="form-label">Date</label>
+            <input type="date" id="poolDate" class="form-control">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Session Type</label>
+            <select id="poolType" class="form-control">
+              <option>Open Play</option><option>Tournament</option>
+              <option>Private Event</option><option>Staff Training</option>
+            </select>
+          </div>
+        </div>
+        <div class="fg2" style="margin-bottom:14px">
+          <div class="form-group">
+            <label class="form-label">Players</label>
+            <input type="number" id="poolPlayers" class="form-control" placeholder="0" min="0">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Tables Used</label>
+            <input type="number" id="poolTables" class="form-control" placeholder="0" min="0">
+          </div>
+        </div>
+        <div class="fg2" style="margin-bottom:14px">
+          <div class="form-group">
+            <label class="form-label">Entry Fees (₦)</label>
+            <input type="number" id="poolCash" class="form-control" placeholder="0" min="0" oninput="calcPool()">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Prize Paid Out (₦)</label>
+            <input type="number" id="poolPrize" class="form-control" placeholder="0" min="0" oninput="calcPool()">
+          </div>
+        </div>
+        <div class="card" style="background:#f5f9f5;border-color:#C9A96E;padding:14px;margin-bottom:14px">
+          <div class="card-label">Net Revenue</div>
+          <div class="card-value gold" id="poolNet">₦0.00</div>
+        </div>
+        <p style="font-size:0.75rem;color:#6a6b62;margin-bottom:10px;letter-spacing:0.05em">MATCH RESULTS (optional)</p>
+        <div id="matchRows"></div>
+        <button onclick="addMatch()" class="btn btn-outline btn-sm" style="margin-bottom:16px">+ Add Match</button>
+        <div class="form-group" style="margin-bottom:16px">
+          <label class="form-label">Notes</label>
+          <textarea id="poolNotes" class="form-control" rows="2" placeholder="Incidents, equipment, feedback…"></textarea>
+        </div>
+        <button class="btn btn-gold" id="submitBtn" onclick="submitPool()" style="width:100%">Log Session</button>
+      </div>
+
+      <div class="card">
+        <div class="section-head"><h2>Session History</h2></div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Date</th><th>Type</th><th>Players</th><th>Revenue</th><th>Prize</th><th>Net</th></tr></thead>
+            <tbody id="histTable"><tr><td colspan="6" style="text-align:center;padding:16px;color:#6a6b62">Loading…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="/portal/firebase-init.js"></script>
+<script>
+let matchCount = 0;
+const currentStaff = getStaff();
+populateSidebar(currentStaff);
+document.getElementById('poolDate').value = todayStr();
+document.getElementById('topDate').textContent = new Date().toLocaleDateString('en-NG',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+
+function calcPool() {
+  const cash=+document.getElementById('poolCash').value||0, prize=+document.getElementById('poolPrize').value||0;
+  document.getElementById('poolNet').textContent = fmtNaira(cash - prize);
+}
+
+function addMatch() {
+  matchCount++;
+  const id = 'match_' + matchCount;
+  const div = document.createElement('div');
+  div.id = id;
+  div.style.cssText = 'display:grid;grid-template-columns:1fr auto 1fr auto;gap:6px;align-items:center;margin-bottom:8px';
+  div.innerHTML = `
+    <input class="form-control mp1" placeholder="Player 1" style="font-size:0.82rem">
+    <span style="text-align:center;font-size:0.75rem;color:#6a6b62">vs</span>
+    <input class="form-control mp2" placeholder="Player 2" style="font-size:0.82rem">
+    <button onclick="document.getElementById('${id}').remove()" class="btn btn-outline btn-sm">✕</button>
+    <select class="form-control mw" style="grid-column:1/4;font-size:0.82rem;margin-top:4px">
+      <option value="">Winner…</option><option value="p1">Player 1 won</option><option value="p2">Player 2 won</option>
+    </select><div></div>`;
+  document.getElementById('matchRows').appendChild(div);
+}
+
+async function submitPool() {
+  const date=document.getElementById('poolDate').value, type=document.getElementById('poolType').value;
+  const players=+document.getElementById('poolPlayers').value||0, tables=+document.getElementById('poolTables').value||0;
+  const cash=+document.getElementById('poolCash').value||0, prize=+document.getElementById('poolPrize').value||0;
+  const notes=document.getElementById('poolNotes').value.trim();
+  const matches=[];
+  document.getElementById('matchRows').querySelectorAll('div[id^="match_"]').forEach(row => {
+    const p1=row.querySelector('.mp1')?.value.trim(), p2=row.querySelector('.mp2')?.value.trim(), wv=row.querySelector('.mw')?.value;
+    if (p1&&p2) matches.push({player1:p1, player2:p2, winner: wv==='p1'?p1:wv==='p2'?p2:'TBD'});
+  });
+  const btn=document.getElementById('submitBtn'); btn.disabled=true; btn.textContent='Saving…';
+  try {
+    await db.collection('pool_competitions').add({
+      date, type, players, tables, cashCollected:cash, prizePaid:prize, netRevenue:cash-prize,
+      matches, notes, staffId:currentStaff.id, staffName:currentStaff.name,
+      submittedAt:firebase.firestore.FieldValue.serverTimestamp()
+    });
+    showAlert('alertBox','Session logged!','alert-success'); loadHistory();
+  } catch(e) { showAlert('alertBox','Error saving.','alert-error'); }
+  btn.disabled=false; btn.textContent='Log Session';
+}
+
+async function loadHistory() {
+  const snap=await db.collection('pool_competitions').orderBy('submittedAt','desc').limit(20).get();
+  const tbody=document.getElementById('histTable');
+  tbody.innerHTML = snap.empty
+    ? '<tr><td colspan="6" style="text-align:center;padding:16px;color:#6a6b62">No sessions yet.</td></tr>'
+    : snap.docs.map(d=>{ const r=d.data(); return `<tr><td>${r.date}</td><td><span class="badge badge-info">${r.type}</span></td><td>${r.players}</td><td>${fmtNaira(r.cashCollected)}</td><td>${fmtNaira(r.prizePaid)}</td><td class="text-gold fw4">${fmtNaira(r.netRevenue)}</td></tr>`; }).join('');
+}
+loadHistory();
+</script>
+</body>
+</html>

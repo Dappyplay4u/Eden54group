@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kitchen · Eden 54 Portal</title>
+<link rel="icon" type="image/jpeg" href="/logo/eden 54 logo.jpeg">
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/portal/portal.css">
+</head>
+<body>
+<div class="sb-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+<aside class="sidebar" id="sidebar">
+  <div class="sb-brand"><div class="sb-brand-name">Eden 54</div><div class="sb-brand-sub">Staff Portal</div></div>
+  <nav class="sb-nav">
+    <div class="sb-section">Main</div>
+    <a href="/portal/dashboard/" class="sb-item"><i class="sb-icon">📊</i> Dashboard</a>
+    <div class="sb-section">Daily Reports</div>
+    <a href="/portal/sales/" class="sb-item"><i class="sb-icon">💰</i> Daily Sales</a>
+    <a href="/portal/bar/" class="sb-item"><i class="sb-icon">🍺</i> Bar Stock</a>
+    <a href="/portal/kitchen/" class="sb-item active"><i class="sb-icon">🍽️</i> Kitchen</a>
+    <a href="/portal/barbing/" class="sb-item"><i class="sb-icon">💈</i> Barbing</a>
+    <a href="/portal/pool/" class="sb-item"><i class="sb-icon">🏊</i> Pool</a>
+    <div class="sb-section">HR</div>
+    <a href="/portal/attendance/" class="sb-item"><i class="sb-icon">👥</i> Attendance</a>
+    <a href="/portal/payroll/" class="sb-item"><i class="sb-icon">💵</i> Payroll</a>
+    <div class="sb-section">Admin</div>
+    <a href="/portal/staff/" class="sb-item"><i class="sb-icon">👤</i> Staff</a>
+  </nav>
+  <div class="sb-foot"><div id="sidebarUser"></div><a class="sb-item" onclick="switchProfile()" style="cursor:pointer"><i class="sb-icon">🔄</i> Switch Profile</a></div>
+</aside>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <button class="hamburger" onclick="toggleSidebar()"><div></div><div></div><div></div></button>
+      <h1>Kitchen Inventory</h1>
+    </div>
+    <div class="topbar-date" id="topDate"></div>
+  </div>
+  <div class="content">
+    <div id="alertBox" class="alert"></div>
+    <div class="card">
+      <div class="section-head">
+        <h2>Daily Kitchen Stock</h2>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input type="date" id="kitDate" class="form-control" style="width:160px">
+          <button class="btn btn-gold" id="submitBtn" onclick="submitKitchen()">Save Report</button>
+        </div>
+      </div>
+      <div class="tbl-wrap stock-table">
+        <table>
+          <thead><tr><th>Item</th><th>Unit</th><th>Category</th><th>Opening</th><th>Purchased</th><th>Closing</th><th>Used</th><th>Status</th></tr></thead>
+          <tbody id="kitItems"></tbody>
+        </table>
+      </div>
+      <div class="divider"></div>
+      <div class="fg2">
+        <div class="form-group">
+          <label class="form-label">Meals Prepared Today</label>
+          <input type="number" id="mealsCount" class="form-control" placeholder="0" min="0">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Notes</label>
+          <input type="text" id="kitNotes" class="form-control" placeholder="Waste, shortage, special orders…">
+        </div>
+      </div>
+    </div>
+    <div class="card mt24">
+      <div class="section-head"><h2>Recent Reports</h2></div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Date</th><th>Meals</th><th>Low Items</th><th>Filed By</th></tr></thead>
+          <tbody id="histTable"><tr><td colspan="4" style="text-align:center;padding:16px;color:#6a6b62">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="/portal/firebase-init.js"></script>
+<script>
+const KIT_ITEMS = [
+  {name:'Rice',unit:'kg',cat:'Grains',low:5},{name:'Pasta',unit:'kg',cat:'Grains',low:2},
+  {name:'Bread Loaf',unit:'pcs',cat:'Baked',low:3},{name:'Chicken',unit:'kg',cat:'Protein',low:5},
+  {name:'Fish (frozen)',unit:'kg',cat:'Protein',low:3},{name:'Beef',unit:'kg',cat:'Protein',low:3},
+  {name:'Eggs',unit:'crate',cat:'Protein',low:1},{name:'Tomatoes',unit:'kg',cat:'Veg',low:3},
+  {name:'Pepper (fresh)',unit:'kg',cat:'Veg',low:2},{name:'Onions',unit:'kg',cat:'Veg',low:2},
+  {name:'Plantain',unit:'pcs',cat:'Veg',low:10},{name:'Vegetable Oil',unit:'L',cat:'Oil',low:2},
+  {name:'Palm Oil',unit:'L',cat:'Oil',low:2},{name:'Salt',unit:'kg',cat:'Condiment',low:1},
+  {name:'Seasoning Cubes',unit:'pcs',cat:'Condiment',low:10},{name:'Gas',unit:'kg',cat:'Fuel',low:5},
+];
+
+const staff = getStaff();
+populateSidebar(staff);
+document.getElementById('kitDate').value = todayStr();
+document.getElementById('topDate').textContent = new Date().toLocaleDateString('en-NG',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+
+document.getElementById('kitItems').innerHTML = KIT_ITEMS.map((item,i) => `
+  <tr>
+    <td class="fw4">${item.name}</td><td>${item.unit}</td>
+    <td><span class="badge badge-info">${item.cat}</span></td>
+    <td><input type="number" min="0" step="0.1" id="ko_${i}" value="0" placeholder="0"></td>
+    <td><input type="number" min="0" step="0.1" id="kp_${i}" value="0" placeholder="0" oninput="calcKit(${i})"></td>
+    <td class="closing"><input type="number" min="0" step="0.1" id="kc_${i}" value="0" placeholder="0" oninput="calcKit(${i})"></td>
+    <td id="ku_${i}" style="text-align:center">0</td>
+    <td id="ks_${i}"></td>
+  </tr>`).join('');
+
+function calcKit(i) {
+  const o=+document.getElementById(`ko_${i}`).value||0, p=+document.getElementById(`kp_${i}`).value||0, c=+document.getElementById(`kc_${i}`).value||0;
+  document.getElementById(`ku_${i}`).textContent = Math.max(0,o+p-c).toFixed(1);
+  document.getElementById(`ks_${i}`).innerHTML = c<=KIT_ITEMS[i].low ? `<span class="badge badge-warn">Low</span>` : `<span class="badge badge-ok">OK</span>`;
+}
+
+async function submitKitchen() {
+  const date=document.getElementById('kitDate').value, notes=document.getElementById('kitNotes').value.trim(), meals=+document.getElementById('mealsCount').value||0;
+  const items = KIT_ITEMS.map((item,i) => ({
+    name:item.name, unit:item.unit, category:item.cat,
+    opening:+document.getElementById(`ko_${i}`).value||0, purchased:+document.getElementById(`kp_${i}`).value||0, closing:+document.getElementById(`kc_${i}`).value||0,
+    used:Math.max(0,(+document.getElementById(`ko_${i}`).value||0)+(+document.getElementById(`kp_${i}`).value||0)-(+document.getElementById(`kc_${i}`).value||0)),
+    lowAlert:(+document.getElementById(`kc_${i}`).value||0)<=item.low
+  }));
+  const lowItems=items.filter(x=>x.lowAlert).map(x=>x.name);
+  const btn=document.getElementById('submitBtn'); btn.disabled=true; btn.textContent='Saving…';
+  try {
+    await db.collection('kitchen_inventory').add({ date, items, notes, meals, lowItems, staffId:staff.id, staffName:staff.name, submittedAt:firebase.firestore.FieldValue.serverTimestamp() });
+    showAlert('alertBox','Kitchen report saved!','alert-success'); loadHistory();
+  } catch(e) { showAlert('alertBox','Error saving.','alert-error'); }
+  btn.disabled=false; btn.textContent='Save Report';
+}
+
+async function loadHistory() {
+  const snap=await db.collection('kitchen_inventory').orderBy('submittedAt','desc').limit(14).get();
+  const tbody=document.getElementById('histTable');
+  tbody.innerHTML = snap.empty ? '<tr><td colspan="4" style="text-align:center;padding:16px;color:#6a6b62">No reports yet.</td></tr>'
+    : snap.docs.map(d=>{ const r=d.data(); return `<tr><td class="fw4">${r.date}</td><td>${r.meals||0} meals</td><td>${(r.lowItems||[]).length>0?`<span class="badge badge-warn">${r.lowItems.length} low</span>`:'<span class="badge badge-ok">All OK</span>'}</td><td>${r.staffName}</td></tr>`; }).join('');
+}
+loadHistory();
+</script>
+</body>
+</html>
