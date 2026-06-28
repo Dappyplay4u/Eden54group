@@ -86,7 +86,13 @@ body{font-family:'Jost',sans-serif;font-weight:300;background:#0f2318;min-height
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
 <script src="/portal/firebase-init.js"></script>
 <script>
-// If staff already selected redirect them
+// ?switch in the URL always forces the picker to show — clears current session
+if (new URLSearchParams(window.location.search).has('switch')) {
+  localStorage.removeItem('eden54_staff');
+  history.replaceState(null, '', '/portal/');
+}
+
+// If staff already selected, redirect straight to their page
 const saved = localStorage.getItem('eden54_staff');
 if (saved) {
   try {
