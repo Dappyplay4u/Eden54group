@@ -103,6 +103,7 @@
 <script src="/portal/firebase-init.js"></script>
 <script>
 const currentStaff = getStaff();
+if (currentStaff.role !== 'manager') { window.location.href = '/portal/home/'; }
 populateSidebar(currentStaff);
 document.getElementById('payMonth').value = todayStr().slice(0,7);
 document.getElementById('topDate').textContent = new Date().toLocaleDateString('en-NG',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
