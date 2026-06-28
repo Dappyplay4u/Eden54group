@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Eden 54 | Careers</title>
+<link rel="icon" type="image/jpeg" href="/logo/eden 54 logo.jpeg">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@200;300;400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --deep: #0f2318;
+    --gold: #C9A96E;
+    --text: #F5F2EC;
+    --muted: rgba(245,242,236,0.55);
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; scroll-padding-top: 90px; }
+  body { background: var(--deep); color: var(--text); font-family: 'Jost', sans-serif; font-weight: 300; }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 48px;
+    background: rgba(15,35,24,0.97);
+    border-bottom: 1px solid rgba(201,169,110,0.1);
+  }
+  .nav-logo { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+  .nav-logo img { height: 44px; border-radius: 50%; }
+  .nav-logo span { font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; color: var(--gold); letter-spacing: 0.12em; }
+  nav ul { list-style: none; display: flex; align-items: center; gap: 36px; }
+  nav ul a { text-decoration: none; color: var(--text); font-size: 0.78rem; letter-spacing: 0.18em; text-transform: uppercase; opacity: 0.8; transition: opacity 0.2s; }
+  nav ul a:hover, nav ul a.active { opacity: 1; color: var(--gold); }
+  .btn-gold { border: 1px solid var(--gold); color: var(--gold); padding: 10px 22px; font-size: 0.72rem; letter-spacing: 0.2em; text-transform: uppercase; text-decoration: none; transition: background 0.3s, color 0.3s; }
+  .btn-gold:hover { background: var(--gold); color: var(--deep); }
+
+  /* ── HERO ── */
+  .hero {
+    position: relative; height: 60vh; display: flex; align-items: center; justify-content: center;
+    text-align: center; overflow: hidden;
+    background: linear-gradient(135deg, #0a1a10 0%, #0f2318 50%, #1a3525 100%);
+  }
+  .hero::before {
+    content: ''; position: absolute; inset: 0;
+    background: radial-gradient(ellipse at center, rgba(201,169,110,0.08) 0%, transparent 70%);
+  }
+  .hero-content { position: relative; z-index: 1; }
+  .eyebrow { font-size: 0.72rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--gold); margin-bottom: 16px; }
+  .hero h1 { font-family: 'Cormorant Garamond', serif; font-size: clamp(2.5rem, 5vw, 4.5rem); font-weight: 300; line-height: 1.1; }
+  .hero h1 em { font-style: italic; color: var(--gold); }
+  .hero p { margin-top: 20px; font-size: 1rem; opacity: 0.7; max-width: 500px; line-height: 1.7; }
+  .divider { width: 40px; height: 1px; background: var(--gold); margin: 20px auto; }
+
+  /* ── SECTION BASE ── */
+  section { padding: 100px 60px; max-width: 1200px; margin: 0 auto; }
+  .section-eyebrow { font-size: 0.72rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--gold); margin-bottom: 12px; }
+  .section-title { font-family: 'Cormorant Garamond', serif; font-size: clamp(2rem, 4vw, 3rem); font-weight: 300; margin-bottom: 16px; }
+  .section-title em { font-style: italic; color: var(--gold); }
+  .section-divider { width: 40px; height: 1px; background: var(--gold); margin-bottom: 60px; }
+
+  /* ── WHY JOIN US ── */
+  .why-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; margin-top: 60px;
+  }
+  .why-card {
+    padding: 40px 32px;
+    border: 1px solid rgba(201,169,110,0.15);
+    background: rgba(255,255,255,0.02);
+  }
+  .why-icon { font-size: 2rem; margin-bottom: 16px; }
+  .why-card h3 { font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; font-weight: 400; margin-bottom: 10px; color: var(--gold); }
+  .why-card p { font-size: 0.9rem; opacity: 0.7; line-height: 1.7; }
+
+  /* ── ROLES ── */
+  #roles { border-top: 1px solid rgba(201,169,110,0.1); }
+  .roles-grid { display: flex; flex-direction: column; gap: 32px; margin-top: 60px; }
+
+  .role-card {
+    border: 1px solid rgba(201,169,110,0.2);
+    background: rgba(255,255,255,0.02);
+    padding: 48px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 40px;
+    align-items: start;
+    transition: border-color 0.3s, background 0.3s;
+  }
+  .role-card:hover { border-color: rgba(201,169,110,0.5); background: rgba(201,169,110,0.04); }
+
+  .role-badge {
+    display: inline-block; font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--gold); border: 1px solid rgba(201,169,110,0.4);
+    padding: 4px 12px; margin-bottom: 16px;
+  }
+  .role-title { font-family: 'Cormorant Garamond', serif; font-size: 1.8rem; font-weight: 400; margin-bottom: 8px; }
+  .role-meta { display: flex; gap: 24px; margin-bottom: 20px; }
+  .role-meta span { font-size: 0.78rem; opacity: 0.6; letter-spacing: 0.05em; }
+  .role-meta span::before { content: '· '; }
+  .role-meta span:first-child::before { content: ''; }
+  .role-desc { font-size: 0.92rem; line-height: 1.8; opacity: 0.75; margin-bottom: 24px; max-width: 680px; }
+
+  .role-details { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; }
+  .role-detail-block h4 {
+    font-size: 0.7rem; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--gold); margin-bottom: 12px;
+  }
+  .role-detail-block ul { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+  .role-detail-block ul li { font-size: 0.85rem; opacity: 0.7; line-height: 1.5; padding-left: 16px; position: relative; }
+  .role-detail-block ul li::before { content: '—'; position: absolute; left: 0; color: var(--gold); opacity: 0.6; }
+
+  .role-apply { display: flex; flex-direction: column; align-items: flex-end; gap: 16px; min-width: 160px; }
+  .btn-apply {
+    display: inline-block; padding: 16px 36px;
+    background: var(--gold); color: var(--deep);
+    font-size: 0.75rem; letter-spacing: 0.2em; text-transform: uppercase;
+    text-decoration: none; font-weight: 400;
+    transition: opacity 0.3s;
+    white-space: nowrap;
+  }
+  .btn-apply:hover { opacity: 0.85; }
+  .role-type-tag {
+    font-size: 0.7rem; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  /* ── MORE ROLES ── */
+  .more-roles {
+    text-align: center; padding: 80px 60px;
+    border-top: 1px solid rgba(201,169,110,0.1);
+  }
+  .more-roles h3 { font-family: 'Cormorant Garamond', serif; font-size: 1.8rem; font-weight: 300; margin-bottom: 12px; }
+  .more-roles p { opacity: 0.6; font-size: 0.9rem; margin-bottom: 32px; }
+
+  /* ── FOOTER ── */
+  footer {
+    background: rgba(0,0,0,0.3); padding: 48px 60px;
+    display: flex; align-items: center; justify-content: space-between;
+    border-top: 1px solid rgba(201,169,110,0.1);
+    flex-wrap: wrap; gap: 20px;
+  }
+  .footer-logo { font-family: 'Cormorant Garamond', serif; font-size: 1.6rem; color: var(--gold); letter-spacing: 0.1em; }
+  .footer-links { display: flex; gap: 32px; }
+  .footer-links a { text-decoration: none; color: var(--muted); font-size: 0.78rem; letter-spacing: 0.1em; transition: color 0.2s; }
+  .footer-links a:hover { color: var(--gold); }
+  .footer-copy { font-size: 0.72rem; opacity: 0.4; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-logo" href="/">
+    <img src="/logo/eden 54 logo.jpeg" alt="Eden 54">
+    <span>Eden 54</span>
+  </a>
+  <ul>
+    <li><a href="/">Home</a></li>
+    <li><a href="/barbing">Barbing Salon</a></li>
+    <li><a href="/games">Games</a></li>
+    <li><a href="/car-rental">Car Rental</a></li>
+    <li><a href="/careers" class="active">Careers</a></li>
+    <li><a href="/#contact" class="btn-gold">Reserve</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-content">
+    <p class="eyebrow">Eden 54 Group · Careers</p>
+    <h1>Build Something<br><em>Extraordinary</em> With Us</h1>
+    <div class="divider"></div>
+    <p>Join a team dedicated to delivering world-class luxury experiences in the heart of Ilesa, Osun State.</p>
+  </div>
+</div>
+
+<!-- WHY JOIN -->
+<section>
+  <p class="section-eyebrow">Why Eden 54</p>
+  <h2 class="section-title">A Place to <em>Grow</em></h2>
+  <div class="section-divider"></div>
+  <div class="why-grid">
+    <div class="why-card">
+      <div class="why-icon">🏆</div>
+      <h3>Excellence First</h3>
+      <p>We hold ourselves to the highest standards in everything we do — from guest experience to team culture.</p>
+    </div>
+    <div class="why-card">
+      <div class="why-icon">🌱</div>
+      <h3>Growth & Development</h3>
+      <p>We invest in our people. Whether you're starting out or stepping up, there's room to grow at Eden 54.</p>
+    </div>
+    <div class="why-card">
+      <div class="why-icon">🤝</div>
+      <h3>Team & Community</h3>
+      <p>Work in an environment built on respect, collaboration, and a shared passion for hospitality.</p>
+    </div>
+  </div>
+</section>
+
+<!-- OPEN ROLES -->
+<section id="roles">
+  <p class="section-eyebrow">Open Positions</p>
+  <h2 class="section-title">Current <em>Openings</em></h2>
+  <div class="section-divider"></div>
+
+  <div class="roles-grid">
+
+    <!-- FACILITY MANAGER -->
+    <div class="role-card">
+      <div class="role-info">
+        <span class="role-badge">Now Hiring</span>
+        <h3 class="role-title">Facility Manager</h3>
+        <div class="role-meta">
+          <span>Ilesa, Osun State</span>
+          <span>Full-time</span>
+          <span>On-site</span>
+        </div>
+        <p class="role-desc">
+          We are looking for an experienced and proactive Facility Manager to oversee the day-to-day operations
+          of the Eden 54 complex — including our luxury apartments, restaurant & lounge, pool area, game house,
+          and barbing salon. You will ensure the facility runs smoothly, safely, and to the highest standard of
+          luxury hospitality.
+        </p>
+        <div class="role-details">
+          <div class="role-detail-block">
+            <h4>Responsibilities</h4>
+            <ul>
+              <li>Oversee maintenance and upkeep of all facilities</li>
+              <li>Manage vendors, contractors, and service providers</li>
+              <li>Ensure health, safety, and cleanliness standards are met</li>
+              <li>Coordinate with department heads on daily operations</li>
+              <li>Handle guest complaints and escalations promptly</li>
+              <li>Monitor budgets and control operational costs</li>
+            </ul>
+          </div>
+          <div class="role-detail-block">
+            <h4>Requirements</h4>
+            <ul>
+              <li>3+ years experience in facility or operations management</li>
+              <li>Experience in hospitality or luxury property preferred</li>
+              <li>Strong leadership and communication skills</li>
+              <li>Ability to multitask and work under pressure</li>
+              <li>HND or B.Sc in Facility Management, Estate Management, or related field</li>
+              <li>Proficient in MS Office and reporting tools</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="role-apply">
+        <a href="https://docs.google.com/forms/d/e/1FAIpQLSfY-D1pm2o-lyIHvP7OJQyyh-SRqGai4ivWUnUMI4Ss4oduUg/viewform?usp=pp_url" target="_blank" class="btn-apply">Apply Now</a>
+        <span class="role-type-tag">Full-time · On-site</span>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- MORE ROLES COMING -->
+<div class="more-roles">
+  <h3>More Roles <em style="font-family:'Cormorant Garamond',serif; color:var(--gold); font-style:italic;">Coming Soon</em></h3>
+  <p>We are growing. Check back regularly for new openings across all departments.</p>
+  <a href="mailto:eden54group@gmail.com" class="btn-gold" style="font-size:0.75rem; letter-spacing:0.2em; padding:14px 36px; display:inline-block;">Send Speculative Application</a>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">Eden 54</div>
+  <div class="footer-links">
+    <a href="/">Home</a>
+    <a href="/barbing">Barbing Salon</a>
+    <a href="/games">Games</a>
+    <a href="/car-rental">Car Rental</a>
+    <a href="/careers">Careers</a>
+  </div>
+  <div class="footer-copy">© 2026 Eden 54 · Ilesa, Osun State</div>
+</footer>
+
+</body>
+</html>
