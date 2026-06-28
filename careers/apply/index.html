@@ -19,15 +19,8 @@
 }
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; }
-body {
-  background: var(--deep);
-  color: var(--text);
-  font-family: 'Jost', sans-serif;
-  font-weight: 300;
-  min-height: 100vh;
-}
+body { background: var(--deep); color: var(--text); font-family: 'Jost', sans-serif; font-weight: 300; min-height: 100vh; }
 
-/* ── NAV ── */
 nav {
   position: fixed; top: 0; left: 0; right: 0; z-index: 100;
   display: flex; align-items: center; justify-content: space-between;
@@ -42,257 +35,132 @@ nav {
 .nav-back:hover { color: var(--gold); }
 .nav-back svg { width: 14px; }
 
-/* ── LAYOUT ── */
-.page-wrap {
-  display: grid;
-  grid-template-columns: 340px 1fr;
-  min-height: 100vh;
-  padding-top: 77px;
-}
+.page-wrap { display: grid; grid-template-columns: 320px 1fr; min-height: 100vh; padding-top: 77px; }
 
-/* ── SIDEBAR ── */
 .sidebar {
-  background: var(--deep2);
-  border-right: 1px solid var(--border);
-  padding: 60px 40px;
-  position: sticky;
-  top: 77px;
-  height: calc(100vh - 77px);
-  overflow-y: auto;
+  background: var(--deep2); border-right: 1px solid var(--border);
+  padding: 60px 36px; position: sticky; top: 77px;
+  height: calc(100vh - 77px); overflow-y: auto;
 }
 .sidebar-role { font-size: 0.68rem; letter-spacing: 0.25em; text-transform: uppercase; color: var(--gold); margin-bottom: 8px; }
-.sidebar-title { font-family: 'Cormorant Garamond', serif; font-size: 2rem; font-weight: 300; line-height: 1.2; margin-bottom: 6px; }
-.sidebar-sub { font-size: 0.8rem; opacity: 0.5; margin-bottom: 40px; }
-.sidebar-divider { width: 32px; height: 1px; background: var(--gold); margin-bottom: 40px; }
+.sidebar-title { font-family: 'Cormorant Garamond', serif; font-size: 1.8rem; font-weight: 300; line-height: 1.2; margin-bottom: 6px; }
+.sidebar-sub { font-size: 0.78rem; opacity: 0.5; margin-bottom: 36px; }
+.sidebar-divider { width: 32px; height: 1px; background: var(--gold); margin-bottom: 36px; }
 
-.steps { display: flex; flex-direction: column; gap: 0; }
-.step-item {
-  display: flex; align-items: flex-start; gap: 16px;
-  padding: 14px 0;
-  border-bottom: 1px solid rgba(201,169,110,0.06);
-  cursor: pointer;
-  transition: opacity 0.2s;
-}
+.steps { display: flex; flex-direction: column; }
+.step-item { display: flex; align-items: flex-start; gap: 14px; padding: 12px 0; border-bottom: 1px solid rgba(201,169,110,0.06); cursor: pointer; }
 .step-item:last-child { border-bottom: none; }
 .step-num {
-  width: 28px; height: 28px; border-radius: 50%;
-  border: 1px solid var(--border);
+  width: 26px; height: 26px; border-radius: 50%; border: 1px solid var(--border);
   display: flex; align-items: center; justify-content: center;
-  font-size: 0.7rem; letter-spacing: 0.05em; flex-shrink: 0;
+  font-size: 0.68rem; flex-shrink: 0; color: var(--muted);
   transition: background 0.3s, border-color 0.3s;
-  color: var(--muted);
 }
 .step-item.active .step-num { background: var(--gold); border-color: var(--gold); color: var(--deep); font-weight: 400; }
-.step-item.done .step-num { background: rgba(201,169,110,0.15); border-color: var(--gold); color: var(--gold); }
-.step-label { flex: 1; }
-.step-label span { display: block; font-size: 0.7rem; letter-spacing: 0.15em; text-transform: uppercase; opacity: 0.45; margin-bottom: 2px; }
-.step-label strong { font-size: 0.85rem; font-weight: 300; opacity: 0.7; }
-.step-item.active .step-label strong { opacity: 1; color: var(--text); }
+.step-item.done .step-num { background: rgba(201,169,110,0.12); border-color: var(--gold); color: var(--gold); }
+.step-label span { display: block; font-size: 0.65rem; letter-spacing: 0.14em; text-transform: uppercase; opacity: 0.4; margin-bottom: 2px; }
+.step-label strong { font-size: 0.82rem; font-weight: 300; opacity: 0.65; }
+.step-item.active .step-label strong { opacity: 1; }
 .step-item.done .step-label strong { color: var(--gold); opacity: 0.8; }
 
-.progress-bar-wrap { margin-top: 40px; }
-.progress-bar-label { font-size: 0.68rem; letter-spacing: 0.15em; text-transform: uppercase; opacity: 0.4; margin-bottom: 10px; display: flex; justify-content: space-between; }
-.progress-track { height: 2px; background: rgba(201,169,110,0.1); }
-.progress-fill { height: 2px; background: var(--gold); transition: width 0.4s ease; }
+.progress-bar-wrap { margin-top: 36px; }
+.progress-bar-label { font-size: 0.66rem; letter-spacing: 0.14em; text-transform: uppercase; opacity: 0.4; margin-bottom: 10px; display: flex; justify-content: space-between; }
+.progress-track { height: 1px; background: rgba(201,169,110,0.1); }
+.progress-fill { height: 1px; background: var(--gold); transition: width 0.4s ease; }
 
-/* ── FORM AREA ── */
-.form-area { padding: 60px 80px; }
+.form-area { padding: 60px 72px; }
 
 .step-panel { display: none; }
 .step-panel.active { display: block; animation: fadeIn 0.3s ease; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
 
 .panel-eyebrow { font-size: 0.68rem; letter-spacing: 0.28em; text-transform: uppercase; color: var(--gold); margin-bottom: 8px; }
-.panel-title { font-family: 'Cormorant Garamond', serif; font-size: 2.2rem; font-weight: 300; margin-bottom: 6px; }
+.panel-title { font-family: 'Cormorant Garamond', serif; font-size: 2.2rem; font-weight: 300; }
 .panel-title em { font-style: italic; color: var(--gold); }
-.panel-divider { width: 32px; height: 1px; background: var(--gold); margin: 16px 0 40px; }
-.panel-desc { font-size: 0.88rem; opacity: 0.6; line-height: 1.7; margin-bottom: 40px; max-width: 560px; }
+.panel-divider { width: 32px; height: 1px; background: var(--gold); margin: 16px 0 36px; }
+.panel-desc { font-size: 0.87rem; opacity: 0.6; line-height: 1.75; margin-bottom: 36px; max-width: 540px; }
 
-/* ── FORM FIELDS ── */
-.field-grid { display: grid; gap: 28px; }
-.field-grid-2 { grid-template-columns: 1fr 1fr; }
-.field-grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+.field-grid { display: grid; gap: 26px; }
+.col-2 { grid-template-columns: 1fr 1fr; }
+.col-3 { grid-template-columns: 1fr 1fr 1fr; }
 
 .field { display: flex; flex-direction: column; gap: 8px; }
-.field label {
-  font-size: 0.7rem; letter-spacing: 0.18em; text-transform: uppercase;
-  color: var(--gold); opacity: 0.9;
+.field label { font-size: 0.68rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gold); opacity: 0.9; }
+.field label .req { opacity: 0.6; margin-left: 2px; }
+.field input, .field textarea, .field select {
+  background: var(--input-bg); border: 1px solid var(--border);
+  color: var(--text); font-family: 'Jost', sans-serif; font-weight: 300; font-size: 0.9rem;
+  padding: 13px 16px; outline: none; width: 100%;
+  transition: border-color 0.2s, background 0.2s; -webkit-appearance: none;
 }
-.field label .req { color: var(--gold); opacity: 0.6; margin-left: 2px; }
-
-.field input,
-.field textarea,
+.field input::placeholder, .field textarea::placeholder { color: var(--muted); }
+.field input:focus, .field textarea:focus, .field select:focus { border-color: rgba(201,169,110,0.55); background: rgba(201,169,110,0.03); }
+.field textarea { resize: vertical; min-height: 108px; line-height: 1.65; }
 .field select {
-  background: var(--input-bg);
-  border: 1px solid var(--border);
-  color: var(--text);
-  font-family: 'Jost', sans-serif;
-  font-weight: 300;
-  font-size: 0.92rem;
-  padding: 14px 18px;
-  outline: none;
-  transition: border-color 0.2s, background 0.2s;
-  width: 100%;
-  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23C9A96E' stroke-width='1.4' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 14px center;
+  padding-right: 40px; cursor: pointer;
 }
-.field input::placeholder,
-.field textarea::placeholder { color: var(--muted); }
-.field input:focus,
-.field textarea:focus,
-.field select:focus { border-color: rgba(201,169,110,0.6); background: rgba(201,169,110,0.04); }
-.field textarea { resize: vertical; min-height: 110px; line-height: 1.6; }
-.field select { cursor: pointer; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23C9A96E' stroke-width='1.4' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 16px center; padding-right: 42px; }
 .field select option { background: #0f2318; }
-
-.field input[type="file"] {
-  padding: 10px 18px;
-  cursor: pointer;
-  color: var(--muted);
-  font-size: 0.82rem;
-}
-.field input[type="file"]::file-selector-button {
-  background: transparent;
-  border: 1px solid var(--border);
-  color: var(--gold);
-  font-family: 'Jost', sans-serif;
-  font-size: 0.72rem;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  padding: 6px 16px;
-  cursor: pointer;
-  margin-right: 14px;
-  transition: background 0.2s;
-}
-.field input[type="file"]::file-selector-button:hover { background: var(--gold-dim); }
-
 .field input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(0.7) sepia(1) saturate(3) hue-rotate(5deg); cursor: pointer; }
 
-/* ── RADIO & CHECKBOX ── */
-.radio-group, .check-group { display: flex; flex-direction: column; gap: 12px; margin-top: 4px; }
-.radio-group.inline, .check-group.inline { flex-direction: row; flex-wrap: wrap; gap: 12px 28px; }
-.check-group.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.radio-group, .check-group { display: flex; flex-direction: column; gap: 11px; margin-top: 4px; }
+.radio-group.row { flex-direction: row; flex-wrap: wrap; gap: 10px 24px; }
+.check-group.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 11px; }
 
-.radio-item, .check-item {
-  display: flex; align-items: center; gap: 12px;
-  cursor: pointer; font-size: 0.88rem; opacity: 0.8;
-  transition: opacity 0.2s;
-}
+.radio-item, .check-item { display: flex; align-items: center; gap: 11px; cursor: pointer; font-size: 0.87rem; opacity: 0.8; transition: opacity 0.2s; }
 .radio-item:hover, .check-item:hover { opacity: 1; }
-.radio-item input[type="radio"],
-.check-item input[type="checkbox"] { display: none; }
-.radio-box, .check-box {
-  width: 18px; height: 18px; flex-shrink: 0;
-  border: 1px solid var(--border);
-  display: flex; align-items: center; justify-content: center;
-  transition: border-color 0.2s, background 0.2s;
-}
+.radio-item input[type="radio"], .check-item input[type="checkbox"] { display: none; }
+.radio-box, .check-box { width: 17px; height: 17px; flex-shrink: 0; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; transition: border-color 0.2s, background 0.2s; }
 .radio-box { border-radius: 50%; }
 .radio-item input:checked ~ .radio-box { border-color: var(--gold); }
-.radio-item input:checked ~ .radio-box::after { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--gold); }
+.radio-item input:checked ~ .radio-box::after { content: ''; width: 7px; height: 7px; border-radius: 50%; background: var(--gold); }
 .check-item input:checked ~ .check-box { border-color: var(--gold); background: var(--gold-dim); }
-.check-item input:checked ~ .check-box::after { content: '✓'; font-size: 11px; color: var(--gold); }
+.check-item input:checked ~ .check-box::after { content: '✓'; font-size: 10px; color: var(--gold); }
 
-.field-hint { font-size: 0.75rem; opacity: 0.45; line-height: 1.5; margin-top: 4px; }
+.section-header { padding: 14px 18px; background: rgba(201,169,110,0.04); border-left: 2px solid var(--gold); margin-bottom: 28px; }
+.section-header h4 { font-family: 'Cormorant Garamond', serif; font-size: 1.05rem; font-weight: 400; }
+.section-header p { font-size: 0.78rem; opacity: 0.45; margin-top: 3px; }
 
-/* ── SECTION HEADER ── */
-.section-header {
-  padding: 16px 20px;
-  background: rgba(201,169,110,0.05);
-  border-left: 2px solid var(--gold);
-  margin-bottom: 32px;
-}
-.section-header h4 { font-family: 'Cormorant Garamond', serif; font-size: 1.1rem; font-weight: 400; }
-.section-header p { font-size: 0.8rem; opacity: 0.5; margin-top: 4px; }
-
-/* ── NAV BUTTONS ── */
-.form-nav {
-  display: flex; align-items: center; justify-content: space-between;
-  margin-top: 56px;
-  padding-top: 32px;
-  border-top: 1px solid var(--border);
-}
-.btn-prev {
-  display: flex; align-items: center; gap: 8px;
-  background: none; border: 1px solid var(--border);
-  color: var(--muted); font-family: 'Jost', sans-serif;
-  font-size: 0.72rem; letter-spacing: 0.2em; text-transform: uppercase;
-  padding: 12px 24px; cursor: pointer;
-  transition: border-color 0.2s, color 0.2s;
-}
-.btn-prev:hover { border-color: var(--gold); color: var(--gold); }
-.btn-next, .btn-submit {
-  display: flex; align-items: center; gap: 10px;
-  background: var(--gold); border: none;
-  color: var(--deep); font-family: 'Jost', sans-serif;
-  font-size: 0.75rem; letter-spacing: 0.2em; text-transform: uppercase;
-  padding: 14px 36px; cursor: pointer;
-  transition: opacity 0.2s;
-  font-weight: 400;
-}
-.btn-next:hover, .btn-submit:hover { opacity: 0.85; }
-.btn-submit { background: var(--gold); }
-
-/* ── SUCCESS STATE ── */
-.success-panel {
-  display: none;
-  text-align: center;
-  padding: 100px 60px;
-  max-width: 600px;
-  margin: 0 auto;
-}
-.success-panel.show { display: block; animation: fadeIn 0.5s ease; }
-.success-icon { font-size: 3rem; margin-bottom: 24px; }
-.success-panel h2 { font-family: 'Cormorant Garamond', serif; font-size: 2.5rem; font-weight: 300; margin-bottom: 12px; }
-.success-panel h2 em { font-style: italic; color: var(--gold); }
-.success-panel p { opacity: 0.6; font-size: 0.92rem; line-height: 1.8; margin-bottom: 32px; }
-.success-divider { width: 32px; height: 1px; background: var(--gold); margin: 20px auto; }
-.btn-home { display: inline-block; padding: 14px 36px; border: 1px solid var(--gold); color: var(--gold); text-decoration: none; font-size: 0.75rem; letter-spacing: 0.2em; text-transform: uppercase; transition: background 0.3s, color 0.3s; }
-.btn-home:hover { background: var(--gold); color: var(--deep); }
-
-/* ── FILE UPLOAD AREA ── */
 .upload-area {
-  border: 1px dashed var(--border);
-  padding: 32px;
-  text-align: center;
-  transition: border-color 0.2s, background 0.2s;
-  cursor: pointer;
-  position: relative;
+  border: 1px dashed var(--border); padding: 28px; text-align: center;
+  transition: border-color 0.2s, background 0.2s; cursor: pointer; position: relative;
 }
-.upload-area:hover { border-color: rgba(201,169,110,0.5); background: rgba(201,169,110,0.03); }
-.upload-area input[type="file"] {
-  position: absolute; inset: 0; opacity: 0; cursor: pointer;
-  border: none; background: none; padding: 0;
-}
-.upload-icon { font-size: 2rem; margin-bottom: 12px; opacity: 0.4; }
-.upload-title { font-size: 0.88rem; margin-bottom: 4px; }
-.upload-hint { font-size: 0.75rem; opacity: 0.4; }
-.upload-filename { font-size: 0.8rem; color: var(--gold); margin-top: 8px; display: none; }
+.upload-area:hover { border-color: rgba(201,169,110,0.45); background: rgba(201,169,110,0.02); }
+.upload-area input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; border: none; background: none; padding: 0; width: 100%; height: 100%; }
+.upload-icon { font-size: 1.8rem; margin-bottom: 10px; opacity: 0.4; }
+.upload-title { font-size: 0.86rem; margin-bottom: 4px; }
+.upload-hint { font-size: 0.73rem; opacity: 0.4; }
+.upload-filename { font-size: 0.78rem; color: var(--gold); margin-top: 8px; display: none; }
 
-/* ── DECLARATION ── */
-.declaration-box {
-  background: rgba(201,169,110,0.04);
-  border: 1px solid var(--border);
-  padding: 28px;
-  margin-bottom: 32px;
-  font-size: 0.88rem;
-  line-height: 1.8;
-  opacity: 0.8;
-}
+.declaration-box { background: rgba(201,169,110,0.03); border: 1px solid var(--border); padding: 24px; margin-bottom: 28px; font-size: 0.86rem; line-height: 1.8; opacity: 0.75; }
 
-/* ── RESPONSIVE ── */
+.form-nav { display: flex; align-items: center; justify-content: space-between; margin-top: 52px; padding-top: 28px; border-top: 1px solid var(--border); }
+.btn-prev { display: flex; align-items: center; gap: 8px; background: none; border: 1px solid var(--border); color: var(--muted); font-family: 'Jost', sans-serif; font-size: 0.7rem; letter-spacing: 0.2em; text-transform: uppercase; padding: 11px 22px; cursor: pointer; transition: border-color 0.2s, color 0.2s; }
+.btn-prev:hover { border-color: var(--gold); color: var(--gold); }
+.btn-next, .btn-submit { display: flex; align-items: center; gap: 9px; background: var(--gold); border: none; color: var(--deep); font-family: 'Jost', sans-serif; font-size: 0.72rem; letter-spacing: 0.2em; text-transform: uppercase; padding: 13px 34px; cursor: pointer; transition: opacity 0.2s; font-weight: 400; }
+.btn-next:hover, .btn-submit:hover { opacity: 0.85; }
+.btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* Submitting overlay */
+.submitting-overlay { display: none; position: fixed; inset: 0; background: rgba(15,35,24,0.92); z-index: 999; align-items: center; justify-content: center; flex-direction: column; gap: 20px; }
+.submitting-overlay.show { display: flex; }
+.spinner { width: 40px; height: 40px; border: 1px solid rgba(201,169,110,0.2); border-top-color: var(--gold); border-radius: 50%; animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.submitting-overlay p { font-size: 0.8rem; letter-spacing: 0.2em; text-transform: uppercase; opacity: 0.6; }
+
 @media (max-width: 900px) {
   .page-wrap { grid-template-columns: 1fr; }
-  .sidebar { position: static; height: auto; padding: 40px 28px; }
-  .form-area { padding: 40px 28px; }
-  .field-grid-2, .field-grid-3 { grid-template-columns: 1fr; }
-  .check-group.grid { grid-template-columns: 1fr; }
-  nav { padding: 16px 24px; }
+  .sidebar { position: static; height: auto; padding: 36px 24px; }
+  .form-area { padding: 36px 24px; }
+  .col-2, .col-3 { grid-template-columns: 1fr; }
+  .check-group.grid2 { grid-template-columns: 1fr; }
+  nav { padding: 14px 20px; }
 }
 </style>
 </head>
 <body>
 
-<!-- NAV -->
 <nav>
   <a class="nav-logo" href="/">
     <img src="/logo/eden 54 logo.jpeg" alt="Eden 54">
@@ -304,15 +172,17 @@ nav {
   </a>
 </nav>
 
-<div class="page-wrap">
+<div class="submitting-overlay" id="submittingOverlay">
+  <div class="spinner"></div>
+  <p>Submitting your application…</p>
+</div>
 
-  <!-- SIDEBAR -->
+<div class="page-wrap">
   <aside class="sidebar">
     <p class="sidebar-role">Application Form</p>
     <h2 class="sidebar-title">Facility Manager</h2>
     <p class="sidebar-sub">Ilesa, Osun State · Full-time</p>
     <div class="sidebar-divider"></div>
-
     <div class="steps" id="stepList">
       <div class="step-item active" onclick="goToStep(1)">
         <div class="step-num">1</div>
@@ -347,484 +217,347 @@ nav {
         <div class="step-label"><span>Section 8</span><strong>Declaration</strong></div>
       </div>
     </div>
-
     <div class="progress-bar-wrap">
       <div class="progress-bar-label">
-        <span>Progress</span>
-        <span id="progressLabel">1 of 8</span>
+        <span>Progress</span><span id="progressLabel">1 of 8</span>
       </div>
       <div class="progress-track">
-        <div class="progress-fill" id="progressFill" style="width: 12.5%"></div>
+        <div class="progress-fill" id="progressFill" style="width:12.5%"></div>
       </div>
     </div>
   </aside>
 
-  <!-- FORM AREA -->
   <main class="form-area">
-    <form id="applicationForm" action="https://formsubmit.co/eden54group@gmail.com" method="POST" enctype="multipart/form-data">
 
-      <!-- Hidden FormSubmit config -->
-      <input type="hidden" name="_subject" value="New Application: Facility Manager — Eden 54">
+    <!-- FILE FORM — sends CV/Cover Letter to email -->
+    <form id="fileForm" action="https://formsubmit.co/eden54group@gmail.com" method="POST" enctype="multipart/form-data" style="display:none;">
+      <input type="hidden" name="_subject" value="Application Documents: Facility Manager — Eden 54">
       <input type="hidden" name="_captcha" value="false">
-      <input type="hidden" name="_next" value="https://eden54group.com/careers/apply/thank-you/">
       <input type="hidden" name="_template" value="table">
       <input type="hidden" name="Position" value="Facility Manager">
-
-      <!-- ── STEP 1: PERSONAL ── -->
-      <div class="step-panel active" id="panel-1">
-        <p class="panel-eyebrow">Section 1 of 8</p>
-        <h1 class="panel-title">Personal <em>Information</em></h1>
-        <div class="panel-divider"></div>
-        <p class="panel-desc">Tell us a bit about yourself. All fields marked with * are required.</p>
-
-        <div class="field-grid">
-          <div class="field">
-            <label>Full Name <span class="req">*</span></label>
-            <input type="text" name="Full Name" placeholder="e.g. Adebayo Okafor" required>
-          </div>
-          <div class="field-grid field-grid-2">
-            <div class="field">
-              <label>Phone Number (WhatsApp Preferred) <span class="req">*</span></label>
-              <input type="tel" name="Phone Number (WhatsApp)" placeholder="+234 800 000 0000" required>
-            </div>
-            <div class="field">
-              <label>Email Address <span class="req">*</span></label>
-              <input type="email" name="Email Address" placeholder="your@email.com" required>
-            </div>
-          </div>
-          <div class="field">
-            <label>Residential Address <span class="req">*</span></label>
-            <textarea name="Residential Address" placeholder="Your full home address" required></textarea>
-          </div>
-          <div class="field">
-            <label>Current Location <span class="req">*</span></label>
-            <input type="text" name="Current Location" placeholder="City, State" required>
-          </div>
-          <div class="field">
-            <label>Are you willing to work in Ilesa, Osun State? <span class="req">*</span></label>
-            <div class="radio-group inline">
-              <label class="radio-item">
-                <input type="radio" name="Willing to Work in Ilesa" value="Yes" required>
-                <span class="radio-box"></span> Yes
-              </label>
-              <label class="radio-item">
-                <input type="radio" name="Willing to Work in Ilesa" value="No">
-                <span class="radio-box"></span> No
-              </label>
-              <label class="radio-item">
-                <input type="radio" name="Willing to Work in Ilesa" value="Maybe">
-                <span class="radio-box"></span> Maybe
-              </label>
-            </div>
-          </div>
-        </div>
-
-        <div class="form-nav">
-          <div></div>
-          <button type="button" class="btn-next" onclick="nextStep()">
-            Continue
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M5 2l5 5-5 5"/></svg>
-          </button>
-        </div>
-      </div>
-
-      <!-- ── STEP 2: EXPERIENCE ── -->
-      <div class="step-panel" id="panel-2">
-        <p class="panel-eyebrow">Section 2 of 8</p>
-        <h1 class="panel-title">Professional <em>Experience</em></h1>
-        <div class="panel-divider"></div>
-
-        <div class="field-grid">
-          <div class="field">
-            <label>Do you have previous experience in Facility Management, Property Management, Hospitality, Hotel Operations, or a related field?</label>
-            <div class="radio-group inline">
-              <label class="radio-item">
-                <input type="radio" name="Has Relevant Experience" value="Yes">
-                <span class="radio-box"></span> Yes
-              </label>
-              <label class="radio-item">
-                <input type="radio" name="Has Relevant Experience" value="No">
-                <span class="radio-box"></span> No
-              </label>
-            </div>
-          </div>
-          <div class="field">
-            <label>How many years of relevant experience do you have?</label>
-            <div class="radio-group">
-              <label class="radio-item">
-                <input type="radio" name="Years of Experience" value="Less than 1 year">
-                <span class="radio-box"></span> Less than 1 year
-              </label>
-              <label class="radio-item">
-                <input type="radio" name="Years of Experience" value="1–3 years">
-                <span class="radio-box"></span> 1–3 years
-              </label>
-              <label class="radio-item">
-                <input type="radio" name="Years of Experience" value="4–6 years">
-                <span class="radio-box"></span> 4–6 years
-              </label>
-              <label class="radio-item">
-                <input type="radio" name="Years of Experience" value="7+ years">
-                <span class="radio-box"></span> 7+ years
-              </label>
-            </div>
-          </div>
-          <div class="field-grid field-grid-2">
-            <div class="field">
-              <label>Current or Most Recent Employer</label>
-              <input type="text" name="Most Recent Employer" placeholder="Company name">
-            </div>
-            <div class="field">
-              <label>Current or Most Recent Job Title</label>
-              <input type="text" name="Most Recent Job Title" placeholder="Your job title">
-            </div>
-          </div>
-          <div class="field">
-            <label>Please describe your experience managing facilities, properties, hotels, serviced apartments, or hospitality businesses</label>
-            <textarea name="Experience Description" placeholder="Tell us about your experience in your own words..." style="min-height:140px;"></textarea>
-          </div>
-        </div>
-
-        <div class="form-nav">
-          <button type="button" class="btn-prev" onclick="prevStep()">
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M9 2L4 7l5 5"/></svg>
-            Back
-          </button>
-          <button type="button" class="btn-next" onclick="nextStep()">
-            Continue
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M5 2l5 5-5 5"/></svg>
-          </button>
-        </div>
-      </div>
-
-      <!-- ── STEP 3: SKILLS ── -->
-      <div class="step-panel" id="panel-3">
-        <p class="panel-eyebrow">Section 3 of 8</p>
-        <h1 class="panel-title">Technical & <em>Operational Skills</em></h1>
-        <div class="panel-divider"></div>
-
-        <div class="field-grid">
-          <div class="field">
-            <label>Which of the following areas do you have experience managing?</label>
-            <div class="check-group grid" style="margin-top:12px;">
-              <label class="check-item"><input type="checkbox" name="Skills" value="Building Maintenance"><span class="check-box"></span> Building Maintenance</label>
-              <label class="check-item"><input type="checkbox" name="Skills" value="Guest Relations"><span class="check-box"></span> Guest Relations</label>
-              <label class="check-item"><input type="checkbox" name="Skills" value="Housekeeping Supervision"><span class="check-box"></span> Housekeeping Supervision</label>
-              <label class="check-item"><input type="checkbox" name="Skills" value="Vendor Management"><span class="check-box"></span> Vendor Management</label>
-              <label class="check-item"><input type="checkbox" name="Skills" value="Inventory Management"><span class="check-box"></span> Inventory Management</label>
-              <label class="check-item"><input type="checkbox" name="Skills" value="Security Operations"><span class="check-box"></span> Security Operations</label>
-              <label class="check-item"><input type="checkbox" name="Skills" value="Bar/Lounge Operations"><span class="check-box"></span> Bar/Lounge Operations</label>
-              <label class="check-item"><input type="checkbox" name="Skills" value="Team Leadership"><span class="check-box"></span> Team Leadership</label>
-              <label class="check-item"><input type="checkbox" name="Skills" value="Budget Management"><span class="check-box"></span> Budget Management</label>
-              <label class="check-item"><input type="checkbox" name="Skills" value="Health & Safety Compliance"><span class="check-box"></span> Health & Safety Compliance</label>
-            </div>
-          </div>
-          <div class="field">
-            <label>How would you handle an urgent maintenance issue affecting a guest apartment?</label>
-            <textarea name="Urgent Maintenance Response" placeholder="Describe your step-by-step approach..." style="min-height:120px;"></textarea>
-          </div>
-          <div class="field">
-            <label>Have you supervised staff before?</label>
-            <div class="radio-group inline">
-              <label class="radio-item">
-                <input type="radio" name="Supervised Staff" value="Yes">
-                <span class="radio-box"></span> Yes
-              </label>
-              <label class="radio-item">
-                <input type="radio" name="Supervised Staff" value="No">
-                <span class="radio-box"></span> No
-              </label>
-            </div>
-          </div>
-          <div class="field">
-            <label>If yes, how many team members have you supervised?</label>
-            <div class="radio-group inline">
-              <label class="radio-item"><input type="radio" name="Team Size Supervised" value="1–5"><span class="radio-box"></span> 1–5</label>
-              <label class="radio-item"><input type="radio" name="Team Size Supervised" value="6–10"><span class="radio-box"></span> 6–10</label>
-              <label class="radio-item"><input type="radio" name="Team Size Supervised" value="11–20"><span class="radio-box"></span> 11–20</label>
-              <label class="radio-item"><input type="radio" name="Team Size Supervised" value="More than 20"><span class="radio-box"></span> More than 20</label>
-            </div>
-          </div>
-          <div class="field">
-            <label>Describe a situation where you successfully resolved a customer or guest complaint</label>
-            <textarea name="Guest Complaint Resolution" placeholder="Describe the situation and how you handled it..." style="min-height:120px;"></textarea>
-          </div>
-          <div class="field">
-            <label>What systems or software have you used for scheduling, inventory management, reporting, or property management?</label>
-            <textarea name="Systems and Software Used" placeholder="e.g. Microsoft Excel, property management software, scheduling tools..." style="min-height:100px;"></textarea>
-          </div>
-        </div>
-
-        <div class="form-nav">
-          <button type="button" class="btn-prev" onclick="prevStep()">
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M9 2L4 7l5 5"/></svg>
-            Back
-          </button>
-          <button type="button" class="btn-next" onclick="nextStep()">
-            Continue
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M5 2l5 5-5 5"/></svg>
-          </button>
-        </div>
-      </div>
-
-      <!-- ── STEP 4: SCENARIOS ── -->
-      <div class="step-panel" id="panel-4">
-        <p class="panel-eyebrow">Section 4 of 8</p>
-        <h1 class="panel-title">Scenario <em>Questions</em></h1>
-        <div class="panel-divider"></div>
-        <p class="panel-desc">These questions help us understand how you think and respond under pressure. There are no wrong answers — be honest and specific.</p>
-
-        <div class="field-grid">
-          <div class="field">
-            <label>A guest complains about a faulty air conditioner late at night. How would you handle the situation?</label>
-            <textarea name="Scenario: Faulty AC" placeholder="Walk us through your response..." style="min-height:130px;"></textarea>
-          </div>
-          <div class="field">
-            <label>You discover that cleaning supplies are running low while expecting new guest arrivals. What steps would you take?</label>
-            <textarea name="Scenario: Low Cleaning Supplies" placeholder="Walk us through your response..." style="min-height:130px;"></textarea>
-          </div>
-          <div class="field">
-            <label>How would you ensure both the apartment complex and bar/game house maintain high standards of cleanliness and safety?</label>
-            <textarea name="Scenario: Standards Maintenance" placeholder="Walk us through your approach..." style="min-height:130px;"></textarea>
-          </div>
-        </div>
-
-        <div class="form-nav">
-          <button type="button" class="btn-prev" onclick="prevStep()">
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M9 2L4 7l5 5"/></svg>
-            Back
-          </button>
-          <button type="button" class="btn-next" onclick="nextStep()">
-            Continue
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M5 2l5 5-5 5"/></svg>
-          </button>
-        </div>
-      </div>
-
-      <!-- ── STEP 5: AVAILABILITY ── -->
-      <div class="step-panel" id="panel-5">
-        <p class="panel-eyebrow">Section 5 of 8</p>
-        <h1 class="panel-title"><em>Availability</em></h1>
-        <div class="panel-divider"></div>
-
-        <div class="field-grid">
-          <div class="field">
-            <label>Are you available to handle occasional after-hours emergencies?</label>
-            <div class="radio-group inline">
-              <label class="radio-item">
-                <input type="radio" name="Available After Hours" value="Yes">
-                <span class="radio-box"></span> Yes
-              </label>
-              <label class="radio-item">
-                <input type="radio" name="Available After Hours" value="No">
-                <span class="radio-box"></span> No
-              </label>
-            </div>
-          </div>
-          <div class="field">
-            <label>When can you start? <span class="req">*</span></label>
-            <input type="date" name="Available Start Date" required>
-          </div>
-          <div class="field">
-            <label>Are you seeking:</label>
-            <div class="radio-group inline">
-              <label class="radio-item">
-                <input type="radio" name="Employment Type" value="Full Time">
-                <span class="radio-box"></span> Full Time
-              </label>
-              <label class="radio-item">
-                <input type="radio" name="Employment Type" value="Contract Employment">
-                <span class="radio-box"></span> Contract Employment
-              </label>
-            </div>
-          </div>
-        </div>
-
-        <div class="form-nav">
-          <button type="button" class="btn-prev" onclick="prevStep()">
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M9 2L4 7l5 5"/></svg>
-            Back
-          </button>
-          <button type="button" class="btn-next" onclick="nextStep()">
-            Continue
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M5 2l5 5-5 5"/></svg>
-          </button>
-        </div>
-      </div>
-
-      <!-- ── STEP 6: REFERENCES ── -->
-      <div class="step-panel" id="panel-6">
-        <p class="panel-eyebrow">Section 6 of 8</p>
-        <h1 class="panel-title">Professional <em>References</em></h1>
-        <div class="panel-divider"></div>
-
-        <div class="section-header">
-          <h4>Reference 1</h4>
-          <p>Someone who can speak to your professional work</p>
-        </div>
-        <div class="field-grid">
-          <div class="field-grid field-grid-3">
-            <div class="field">
-              <label>Full Name</label>
-              <input type="text" name="Reference 1 Name" placeholder="Reference name">
-            </div>
-            <div class="field">
-              <label>Position / Relationship</label>
-              <input type="text" name="Reference 1 Position" placeholder="e.g. Former Manager">
-            </div>
-            <div class="field">
-              <label>Phone Number</label>
-              <input type="tel" name="Reference 1 Phone" placeholder="+234 800 000 0000">
-            </div>
-          </div>
-        </div>
-
-        <div class="section-header" style="margin-top:40px;">
-          <h4>Reference 2</h4>
-          <p>A second professional reference (optional)</p>
-        </div>
-        <div class="field-grid">
-          <div class="field-grid field-grid-3">
-            <div class="field">
-              <label>Full Name</label>
-              <input type="text" name="Reference 2 Name" placeholder="Reference name">
-            </div>
-            <div class="field">
-              <label>Position / Relationship</label>
-              <input type="text" name="Reference 2 Position" placeholder="e.g. Former Supervisor">
-            </div>
-            <div class="field">
-              <label>Phone Number</label>
-              <input type="tel" name="Reference 2 Phone" placeholder="+234 800 000 0000">
-            </div>
-          </div>
-        </div>
-
-        <div class="form-nav">
-          <button type="button" class="btn-prev" onclick="prevStep()">
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M9 2L4 7l5 5"/></svg>
-            Back
-          </button>
-          <button type="button" class="btn-next" onclick="nextStep()">
-            Continue
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M5 2l5 5-5 5"/></svg>
-          </button>
-        </div>
-      </div>
-
-      <!-- ── STEP 7: DOCUMENTS ── -->
-      <div class="step-panel" id="panel-7">
-        <p class="panel-eyebrow">Section 7 of 8</p>
-        <h1 class="panel-title">Document <em>Upload</em></h1>
-        <div class="panel-divider"></div>
-        <p class="panel-desc">Please upload your documents. Accepted formats: PDF, DOC, DOCX. Max 5MB each.</p>
-
-        <div class="field-grid">
-          <div class="field">
-            <label>Resume / CV <span class="req">*</span></label>
-            <div class="upload-area" id="cvUploadArea">
-              <input type="file" name="Resume/CV" accept=".pdf,.doc,.docx" required id="cvFile" onchange="showFilename(this, 'cvName')">
-              <div class="upload-icon">📄</div>
-              <div class="upload-title">Click to upload your CV</div>
-              <div class="upload-hint">PDF, DOC, DOCX · Max 5MB</div>
-              <div class="upload-filename" id="cvName"></div>
-            </div>
-          </div>
-          <div class="field">
-            <label>Cover Letter <span class="req">*</span></label>
-            <div class="upload-area" id="clUploadArea">
-              <input type="file" name="Cover Letter" accept=".pdf,.doc,.docx" required id="clFile" onchange="showFilename(this, 'clName')">
-              <div class="upload-icon">✉️</div>
-              <div class="upload-title">Click to upload your Cover Letter</div>
-              <div class="upload-hint">PDF, DOC, DOCX · Max 5MB</div>
-              <div class="upload-filename" id="clName"></div>
-            </div>
-          </div>
-        </div>
-
-        <div class="form-nav">
-          <button type="button" class="btn-prev" onclick="prevStep()">
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M9 2L4 7l5 5"/></svg>
-            Back
-          </button>
-          <button type="button" class="btn-next" onclick="nextStep()">
-            Continue
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M5 2l5 5-5 5"/></svg>
-          </button>
-        </div>
-      </div>
-
-      <!-- ── STEP 8: DECLARATION ── -->
-      <div class="step-panel" id="panel-8">
-        <p class="panel-eyebrow">Section 8 of 8</p>
-        <h1 class="panel-title"><em>Declaration</em></h1>
-        <div class="panel-divider"></div>
-
-        <div class="declaration-box">
-          By submitting this application, you confirm that all information provided is accurate and complete to the best of your knowledge. You understand that any false or misleading information may result in the withdrawal of any offer of employment or dismissal if already employed.
-        </div>
-
-        <div class="field-grid">
-          <div class="field">
-            <label>I certify that the information provided is accurate and complete <span class="req">*</span></label>
-            <div class="radio-group inline">
-              <label class="radio-item">
-                <input type="radio" name="Declaration" value="Yes, I certify" required>
-                <span class="radio-box"></span> Yes, I certify
-              </label>
-              <label class="radio-item">
-                <input type="radio" name="Declaration" value="No">
-                <span class="radio-box"></span> No
-              </label>
-            </div>
-          </div>
-          <div class="field-grid field-grid-2">
-            <div class="field">
-              <label>Full Name (Electronic Signature) <span class="req">*</span></label>
-              <input type="text" name="Electronic Signature" placeholder="Type your full name" required>
-            </div>
-            <div class="field">
-              <label>Date <span class="req">*</span></label>
-              <input type="date" name="Signature Date" required>
-            </div>
-          </div>
-        </div>
-
-        <div class="form-nav">
-          <button type="button" class="btn-prev" onclick="prevStep()">
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M9 2L4 7l5 5"/></svg>
-            Back
-          </button>
-          <button type="submit" class="btn-submit">
-            Submit Application
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M5 2l5 5-5 5"/></svg>
-          </button>
-        </div>
-      </div>
-
+      <input type="file" name="Resume_CV" id="hiddenCV">
+      <input type="file" name="Cover_Letter" id="hiddenCL">
+      <input type="text" name="Applicant_Name" id="hiddenName">
+      <input type="text" name="Applicant_Email" id="hiddenEmail">
+      <input type="text" name="Applicant_Phone" id="hiddenPhone">
     </form>
+
+    <!-- STEP 1 -->
+    <div class="step-panel active" id="panel-1">
+      <p class="panel-eyebrow">Section 1 of 8</p>
+      <h1 class="panel-title">Personal <em>Information</em></h1>
+      <div class="panel-divider"></div>
+      <div class="field-grid">
+        <div class="field">
+          <label>Full Name <span class="req">*</span></label>
+          <input type="text" id="f_name" placeholder="e.g. Adebayo Okafor" required>
+        </div>
+        <div class="field-grid col-2">
+          <div class="field">
+            <label>Phone Number (WhatsApp Preferred) <span class="req">*</span></label>
+            <input type="tel" id="f_phone" placeholder="+234 800 000 0000" required>
+          </div>
+          <div class="field">
+            <label>Email Address <span class="req">*</span></label>
+            <input type="email" id="f_email" placeholder="your@email.com" required>
+          </div>
+        </div>
+        <div class="field">
+          <label>Residential Address <span class="req">*</span></label>
+          <textarea id="f_address" placeholder="Your full home address" required></textarea>
+        </div>
+        <div class="field">
+          <label>Current Location <span class="req">*</span></label>
+          <input type="text" id="f_location" placeholder="City, State" required>
+        </div>
+        <div class="field">
+          <label>Are you willing to work in Ilesa, Osun State? <span class="req">*</span></label>
+          <div class="radio-group row">
+            <label class="radio-item"><input type="radio" name="r_ilesa" value="Yes" required><span class="radio-box"></span> Yes</label>
+            <label class="radio-item"><input type="radio" name="r_ilesa" value="No"><span class="radio-box"></span> No</label>
+            <label class="radio-item"><input type="radio" name="r_ilesa" value="Maybe"><span class="radio-box"></span> Maybe</label>
+          </div>
+        </div>
+      </div>
+      <div class="form-nav">
+        <div></div>
+        <button type="button" class="btn-next" onclick="nextStep()">Continue <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M5 2l5 5-5 5"/></svg></button>
+      </div>
+    </div>
+
+    <!-- STEP 2 -->
+    <div class="step-panel" id="panel-2">
+      <p class="panel-eyebrow">Section 2 of 8</p>
+      <h1 class="panel-title">Professional <em>Experience</em></h1>
+      <div class="panel-divider"></div>
+      <div class="field-grid">
+        <div class="field">
+          <label>Do you have previous experience in Facility Management, Property Management, Hospitality, Hotel Operations, or a related field?</label>
+          <div class="radio-group row">
+            <label class="radio-item"><input type="radio" name="r_exp" value="Yes"><span class="radio-box"></span> Yes</label>
+            <label class="radio-item"><input type="radio" name="r_exp" value="No"><span class="radio-box"></span> No</label>
+          </div>
+        </div>
+        <div class="field">
+          <label>How many years of relevant experience do you have?</label>
+          <div class="radio-group">
+            <label class="radio-item"><input type="radio" name="r_years" value="Less than 1 year"><span class="radio-box"></span> Less than 1 year</label>
+            <label class="radio-item"><input type="radio" name="r_years" value="1-3years"><span class="radio-box"></span> 1–3 years</label>
+            <label class="radio-item"><input type="radio" name="r_years" value="4-6years"><span class="radio-box"></span> 4–6 years</label>
+            <label class="radio-item"><input type="radio" name="r_years" value="7+years"><span class="radio-box"></span> 7+ years</label>
+          </div>
+        </div>
+        <div class="field-grid col-2">
+          <div class="field">
+            <label>Current or Most Recent Employer</label>
+            <input type="text" id="f_employer" placeholder="Company name">
+          </div>
+          <div class="field">
+            <label>Current or Most Recent Job Title</label>
+            <input type="text" id="f_jobtitle" placeholder="Your job title">
+          </div>
+        </div>
+        <div class="field">
+          <label>Please describe your experience managing facilities, properties, hotels, serviced apartments, or hospitality businesses</label>
+          <textarea id="f_expdesc" placeholder="Tell us about your experience..." style="min-height:130px;"></textarea>
+        </div>
+      </div>
+      <div class="form-nav">
+        <button type="button" class="btn-prev" onclick="prevStep()"><svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M9 2L4 7l5 5"/></svg> Back</button>
+        <button type="button" class="btn-next" onclick="nextStep()">Continue <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M5 2l5 5-5 5"/></svg></button>
+      </div>
+    </div>
+
+    <!-- STEP 3 -->
+    <div class="step-panel" id="panel-3">
+      <p class="panel-eyebrow">Section 3 of 8</p>
+      <h1 class="panel-title">Technical & <em>Operational Skills</em></h1>
+      <div class="panel-divider"></div>
+      <div class="field-grid">
+        <div class="field">
+          <label>Which of the following areas do you have experience managing?</label>
+          <div class="check-group grid2" style="margin-top:10px;">
+            <label class="check-item"><input type="checkbox" name="skills" value="Building Maintenance"><span class="check-box"></span> Building Maintenance</label>
+            <label class="check-item"><input type="checkbox" name="skills" value="Guest Relations"><span class="check-box"></span> Guest Relations</label>
+            <label class="check-item"><input type="checkbox" name="skills" value="Housekeeping Supervision"><span class="check-box"></span> Housekeeping Supervision</label>
+            <label class="check-item"><input type="checkbox" name="skills" value="Vendor Management"><span class="check-box"></span> Vendor Management</label>
+            <label class="check-item"><input type="checkbox" name="skills" value="Inventory Management"><span class="check-box"></span> Inventory Management</label>
+            <label class="check-item"><input type="checkbox" name="skills" value="Security Operations"><span class="check-box"></span> Security Operations</label>
+            <label class="check-item"><input type="checkbox" name="skills" value="Bar/Lounge Operations"><span class="check-box"></span> Bar/Lounge Operations</label>
+            <label class="check-item"><input type="checkbox" name="skills" value="Team Leadership"><span class="check-box"></span> Team Leadership</label>
+            <label class="check-item"><input type="checkbox" name="skills" value="Budget Management"><span class="check-box"></span> Budget Management</label>
+            <label class="check-item"><input type="checkbox" name="skills" value="Health & Safety Compliance"><span class="check-box"></span> Health & Safety Compliance</label>
+          </div>
+        </div>
+        <div class="field">
+          <label>How would you handle an urgent maintenance issue affecting a guest apartment?</label>
+          <textarea id="f_maintenance" placeholder="Describe your step-by-step approach..." style="min-height:110px;"></textarea>
+        </div>
+        <div class="field">
+          <label>Have you supervised staff before?</label>
+          <div class="radio-group row">
+            <label class="radio-item"><input type="radio" name="r_supervised" value="Yes"><span class="radio-box"></span> Yes</label>
+            <label class="radio-item"><input type="radio" name="r_supervised" value="No"><span class="radio-box"></span> No</label>
+          </div>
+        </div>
+        <div class="field">
+          <label>If yes, how many team members have you supervised?</label>
+          <div class="radio-group row">
+            <label class="radio-item"><input type="radio" name="r_teamsize" value="1-5"><span class="radio-box"></span> 1–5</label>
+            <label class="radio-item"><input type="radio" name="r_teamsize" value="6-10"><span class="radio-box"></span> 6–10</label>
+            <label class="radio-item"><input type="radio" name="r_teamsize" value="11-20"><span class="radio-box"></span> 11–20</label>
+            <label class="radio-item"><input type="radio" name="r_teamsize" value="More than 20"><span class="radio-box"></span> More than 20</label>
+          </div>
+        </div>
+        <div class="field">
+          <label>Describe a situation where you successfully resolved a customer or guest complaint</label>
+          <textarea id="f_complaint" placeholder="Describe the situation and how you handled it..." style="min-height:110px;"></textarea>
+        </div>
+        <div class="field">
+          <label>What systems or software have you used for scheduling, inventory management, reporting, or property management?</label>
+          <textarea id="f_software" placeholder="e.g. Microsoft Excel, scheduling tools, property management software..." style="min-height:90px;"></textarea>
+        </div>
+      </div>
+      <div class="form-nav">
+        <button type="button" class="btn-prev" onclick="prevStep()"><svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M9 2L4 7l5 5"/></svg> Back</button>
+        <button type="button" class="btn-next" onclick="nextStep()">Continue <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M5 2l5 5-5 5"/></svg></button>
+      </div>
+    </div>
+
+    <!-- STEP 4 -->
+    <div class="step-panel" id="panel-4">
+      <p class="panel-eyebrow">Section 4 of 8</p>
+      <h1 class="panel-title">Scenario <em>Questions</em></h1>
+      <div class="panel-divider"></div>
+      <p class="panel-desc">There are no wrong answers — be honest and specific about how you would respond.</p>
+      <div class="field-grid">
+        <div class="field">
+          <label>A guest complains about a faulty air conditioner late at night. How would you handle the situation?</label>
+          <textarea id="f_scenario1" placeholder="Walk us through your response..." style="min-height:120px;"></textarea>
+        </div>
+        <div class="field">
+          <label>You discover that cleaning supplies are running low while expecting new guest arrivals. What steps would you take?</label>
+          <textarea id="f_scenario2" placeholder="Walk us through your response..." style="min-height:120px;"></textarea>
+        </div>
+        <div class="field">
+          <label>How would you ensure both the apartment complex and bar/game house maintain high standards of cleanliness and safety?</label>
+          <textarea id="f_scenario3" placeholder="Walk us through your approach..." style="min-height:120px;"></textarea>
+        </div>
+      </div>
+      <div class="form-nav">
+        <button type="button" class="btn-prev" onclick="prevStep()"><svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M9 2L4 7l5 5"/></svg> Back</button>
+        <button type="button" class="btn-next" onclick="nextStep()">Continue <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M5 2l5 5-5 5"/></svg></button>
+      </div>
+    </div>
+
+    <!-- STEP 5 -->
+    <div class="step-panel" id="panel-5">
+      <p class="panel-eyebrow">Section 5 of 8</p>
+      <h1 class="panel-title"><em>Availability</em></h1>
+      <div class="panel-divider"></div>
+      <div class="field-grid">
+        <div class="field">
+          <label>Are you available to handle occasional after-hours emergencies?</label>
+          <div class="radio-group row">
+            <label class="radio-item"><input type="radio" name="r_afterhours" value="Yes"><span class="radio-box"></span> Yes</label>
+            <label class="radio-item"><input type="radio" name="r_afterhours" value="No"><span class="radio-box"></span> No</label>
+          </div>
+        </div>
+        <div class="field">
+          <label>When can you start? <span class="req">*</span></label>
+          <input type="date" id="f_startdate" required>
+        </div>
+        <div class="field">
+          <label>Are you seeking:</label>
+          <div class="radio-group row">
+            <label class="radio-item"><input type="radio" name="r_emptype" value="Full Time"><span class="radio-box"></span> Full Time</label>
+            <label class="radio-item"><input type="radio" name="r_emptype" value="Contract Employment"><span class="radio-box"></span> Contract Employment</label>
+          </div>
+        </div>
+      </div>
+      <div class="form-nav">
+        <button type="button" class="btn-prev" onclick="prevStep()"><svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M9 2L4 7l5 5"/></svg> Back</button>
+        <button type="button" class="btn-next" onclick="nextStep()">Continue <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M5 2l5 5-5 5"/></svg></button>
+      </div>
+    </div>
+
+    <!-- STEP 6 -->
+    <div class="step-panel" id="panel-6">
+      <p class="panel-eyebrow">Section 6 of 8</p>
+      <h1 class="panel-title">Professional <em>References</em></h1>
+      <div class="panel-divider"></div>
+      <div class="section-header"><h4>Reference 1</h4><p>Someone who can speak to your professional work</p></div>
+      <div class="field-grid col-3">
+        <div class="field"><label>Full Name</label><input type="text" id="f_ref1name" placeholder="Reference name"></div>
+        <div class="field"><label>Position / Relationship</label><input type="text" id="f_ref1pos" placeholder="e.g. Former Manager"></div>
+        <div class="field"><label>Phone Number</label><input type="tel" id="f_ref1phone" placeholder="+234 800 000 0000"></div>
+      </div>
+      <div class="section-header" style="margin-top:36px;"><h4>Reference 2</h4><p>A second professional reference (optional)</p></div>
+      <div class="field-grid col-3">
+        <div class="field"><label>Full Name</label><input type="text" id="f_ref2name" placeholder="Reference name"></div>
+        <div class="field"><label>Position / Relationship</label><input type="text" id="f_ref2pos" placeholder="e.g. Former Supervisor"></div>
+        <div class="field"><label>Phone Number</label><input type="tel" id="f_ref2phone" placeholder="+234 800 000 0000"></div>
+      </div>
+      <div class="form-nav">
+        <button type="button" class="btn-prev" onclick="prevStep()"><svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M9 2L4 7l5 5"/></svg> Back</button>
+        <button type="button" class="btn-next" onclick="nextStep()">Continue <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M5 2l5 5-5 5"/></svg></button>
+      </div>
+    </div>
+
+    <!-- STEP 7 -->
+    <div class="step-panel" id="panel-7">
+      <p class="panel-eyebrow">Section 7 of 8</p>
+      <h1 class="panel-title">Document <em>Upload</em></h1>
+      <div class="panel-divider"></div>
+      <p class="panel-desc">Upload your documents. These will be emailed directly to our team. PDF, DOC, DOCX accepted — max 5MB each.</p>
+      <div class="field-grid">
+        <div class="field">
+          <label>Resume / CV <span class="req">*</span></label>
+          <div class="upload-area">
+            <input type="file" id="f_cv" accept=".pdf,.doc,.docx" onchange="showFile(this,'cvName')">
+            <div class="upload-icon">📄</div>
+            <div class="upload-title">Click to upload your CV</div>
+            <div class="upload-hint">PDF, DOC, DOCX · Max 5MB</div>
+            <div class="upload-filename" id="cvName"></div>
+          </div>
+        </div>
+        <div class="field">
+          <label>Cover Letter <span class="req">*</span></label>
+          <div class="upload-area">
+            <input type="file" id="f_cl" accept=".pdf,.doc,.docx" onchange="showFile(this,'clName')">
+            <div class="upload-icon">✉️</div>
+            <div class="upload-title">Click to upload your Cover Letter</div>
+            <div class="upload-hint">PDF, DOC, DOCX · Max 5MB</div>
+            <div class="upload-filename" id="clName"></div>
+          </div>
+        </div>
+      </div>
+      <div class="form-nav">
+        <button type="button" class="btn-prev" onclick="prevStep()"><svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M9 2L4 7l5 5"/></svg> Back</button>
+        <button type="button" class="btn-next" onclick="nextStep()">Continue <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M5 2l5 5-5 5"/></svg></button>
+      </div>
+    </div>
+
+    <!-- STEP 8 -->
+    <div class="step-panel" id="panel-8">
+      <p class="panel-eyebrow">Section 8 of 8</p>
+      <h1 class="panel-title"><em>Declaration</em></h1>
+      <div class="panel-divider"></div>
+      <div class="declaration-box">
+        By submitting this application, you confirm that all information provided is accurate and complete to the best of your knowledge. You understand that any false or misleading information may result in the withdrawal of any offer of employment or dismissal if already employed.
+      </div>
+      <div class="field-grid">
+        <div class="field">
+          <label>I certify that the information provided is accurate and complete <span class="req">*</span></label>
+          <div class="radio-group row">
+            <label class="radio-item"><input type="radio" name="r_declare" value="Yes" required><span class="radio-box"></span> Yes, I certify</label>
+            <label class="radio-item"><input type="radio" name="r_declare" value="No"><span class="radio-box"></span> No</label>
+          </div>
+        </div>
+        <div class="field-grid col-2">
+          <div class="field">
+            <label>Full Name (Electronic Signature) <span class="req">*</span></label>
+            <input type="text" id="f_signature" placeholder="Type your full name" required>
+          </div>
+          <div class="field">
+            <label>Date <span class="req">*</span></label>
+            <input type="date" id="f_sigdate" required>
+          </div>
+        </div>
+      </div>
+      <div class="form-nav">
+        <button type="button" class="btn-prev" onclick="prevStep()"><svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M9 2L4 7l5 5"/></svg> Back</button>
+        <button type="button" class="btn-submit" id="submitBtn" onclick="submitApplication()">
+          Submit Application
+          <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M5 2l5 5-5 5"/></svg>
+        </button>
+      </div>
+    </div>
+
   </main>
 </div>
 
 <script>
+const GOOGLE_FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSfY-D1pm2o-lyIHvP7OJQyyh-SRqGai4ivWUnUMI4Ss4oduUg/formResponse';
+
 let current = 1;
 const total = 8;
+
+function val(id) { const el = document.getElementById(id); return el ? el.value.trim() : ''; }
+function radio(name) { const el = document.querySelector(`[name="${name}"]:checked`); return el ? el.value : ''; }
+function checkboxes(name) { return [...document.querySelectorAll(`[name="${name}"]:checked`)].map(e => e.value); }
 
 function goToStep(n) {
   if (n < 1 || n > total) return;
   document.getElementById('panel-' + current).classList.remove('active');
   document.getElementById('panel-' + n).classList.add('active');
-
-  const items = document.querySelectorAll('.step-item');
-  items.forEach((item, i) => {
-    item.classList.remove('active', 'done');
-    if (i + 1 < n) item.classList.add('done');
-    if (i + 1 === n) item.classList.add('active');
+  document.querySelectorAll('.step-item').forEach((el, i) => {
+    el.classList.remove('active', 'done');
+    if (i + 1 < n) el.classList.add('done');
+    if (i + 1 === n) el.classList.add('active');
   });
-
   document.getElementById('progressLabel').textContent = n + ' of ' + total;
   document.getElementById('progressFill').style.width = (n / total * 100) + '%';
-
   current = n;
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
@@ -832,17 +565,106 @@ function goToStep(n) {
 function nextStep() { goToStep(current + 1); }
 function prevStep() { goToStep(current - 1); }
 
-function showFilename(input, labelId) {
-  const label = document.getElementById(labelId);
+function showFile(input, labelId) {
+  const el = document.getElementById(labelId);
   if (input.files && input.files[0]) {
-    label.textContent = '✓ ' + input.files[0].name;
-    label.style.display = 'block';
+    el.textContent = '✓ ' + input.files[0].name;
+    el.style.display = 'block';
   }
 }
 
-// Set today's date as default for signature date
-document.querySelector('[name="Signature Date"]').valueAsDate = new Date();
-</script>
+async function submitApplication() {
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true;
+  document.getElementById('submittingOverlay').classList.add('show');
 
+  // ── 1. POST to Google Forms (populates your Sheets) ──
+  const gf = new FormData();
+
+  // Section 1
+  gf.append('entry.2016311523', val('f_name'));
+  gf.append('entry.166592175',  val('f_phone'));
+  gf.append('entry.629063732',  val('f_email'));
+  gf.append('entry.357117079',  val('f_address'));
+  gf.append('entry.1632394866', val('f_location'));
+  gf.append('entry.1366581774', radio('r_ilesa'));
+
+  // Section 2
+  gf.append('entry.1193035566', radio('r_exp'));
+  gf.append('entry.2044191235', radio('r_years'));
+  gf.append('entry.1768414962', val('f_employer'));
+  gf.append('entry.1560408167', val('f_jobtitle'));
+  gf.append('entry.587949557',  val('f_expdesc'));
+
+  // Section 3 — checkboxes (each value is a separate append)
+  checkboxes('skills').forEach(v => gf.append('entry.1730779111', v));
+  gf.append('entry.1006863335', val('f_maintenance'));
+  gf.append('entry.1705013373', radio('r_supervised'));
+  gf.append('entry.1724431617', radio('r_teamsize'));
+  gf.append('entry.366360385',  val('f_complaint'));
+  gf.append('entry.464965410',  val('f_software'));
+
+  // Section 4
+  gf.append('entry.615318989',  val('f_scenario1'));
+  gf.append('entry.2131641317', val('f_scenario2'));
+  gf.append('entry.825116434',  val('f_scenario3'));
+
+  // Section 5
+  gf.append('entry.222007250',  radio('r_afterhours'));
+  gf.append('entry.1444825694', val('f_startdate'));
+  gf.append('entry.888108709',  radio('r_emptype'));
+
+  // Section 6
+  gf.append('entry.1958201413', val('f_ref1name'));
+  gf.append('entry.1794571346', val('f_ref1pos'));
+  gf.append('entry.469817321',  val('f_ref1phone'));
+  gf.append('entry.1232979880', val('f_ref2name'));
+  gf.append('entry.692085958',  val('f_ref2pos'));
+  gf.append('entry.5535810',    val('f_ref2phone'));
+
+  // Section 8
+  gf.append('entry.1176065653', radio('r_declare'));
+  gf.append('entry.91779221',   val('f_signature'));
+  gf.append('entry.353152075',  val('f_sigdate'));
+
+  try {
+    await fetch(GOOGLE_FORM_URL, { method: 'POST', mode: 'no-cors', body: gf });
+  } catch (_) { /* no-cors always throws — this is expected */ }
+
+  // ── 2. Send files to email via FormSubmit ──
+  const cvFile = document.getElementById('f_cv').files[0];
+  const clFile = document.getElementById('f_cl').files[0];
+
+  if (cvFile || clFile) {
+    const fileForm = document.getElementById('fileForm');
+    document.getElementById('hiddenName').value  = val('f_name');
+    document.getElementById('hiddenEmail').value = val('f_email');
+    document.getElementById('hiddenPhone').value = val('f_phone');
+
+    // Transfer files using DataTransfer
+    if (cvFile) {
+      const dt = new DataTransfer(); dt.items.add(cvFile);
+      document.getElementById('hiddenCV').files = dt.files;
+    }
+    if (clFile) {
+      const dt = new DataTransfer(); dt.items.add(clFile);
+      document.getElementById('hiddenCL').files = dt.files;
+    }
+
+    const fd = new FormData(fileForm);
+    try {
+      await fetch('https://formsubmit.co/eden54group@gmail.com', {
+        method: 'POST', body: fd
+      });
+    } catch (_) {}
+  }
+
+  // ── 3. Redirect to thank-you page ──
+  window.location.href = '/careers/apply/thank-you/';
+}
+
+// Default today's date for signature
+document.getElementById('f_sigdate').valueAsDate = new Date();
+</script>
 </body>
 </html>
