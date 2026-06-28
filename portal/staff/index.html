@@ -196,8 +196,9 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
 <script src="/portal/firebase-init.js"></script>
 <script>
-const staff = getStaff();
-populateSidebar(staff);
+// Staff page is manager-only — no profile required to access
+const staff = (() => { try { return JSON.parse(localStorage.getItem('eden54_staff')); } catch(e) { return null; } })();
+if (staff) populateSidebar(staff);
 document.getElementById('topDate').textContent = new Date().toLocaleDateString('en-NG',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
 
 function updateInitials(name, targetId) {

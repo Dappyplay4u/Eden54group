@@ -50,10 +50,19 @@ body{font-family:'Jost',sans-serif;font-weight:300;background:#0f2318;min-height
 
   <div id="loadingEl" class="loading">Loading staff…</div>
 
+  <div id="errorBox" style="display:none;background:rgba(220,38,38,0.12);border:1px solid rgba(220,38,38,0.3);border-radius:8px;padding:18px 20px;margin-bottom:20px;text-align:center">
+    <div style="color:#fca5a5;font-size:0.88rem;margin-bottom:12px">Unable to connect to database.</div>
+    <div style="color:rgba(245,242,236,0.45);font-size:0.78rem;margin-bottom:14px">Firestore rules may be blocking access. Go to Firebase Console → Firestore → Rules and set them to allow all reads/writes.</div>
+    <button onclick="window.location.reload()" style="padding:8px 20px;background:rgba(201,169,110,0.2);border:1px solid rgba(201,169,110,0.4);color:#C9A96E;border-radius:4px;cursor:pointer;font-family:'Jost',sans-serif;font-size:0.78rem">Retry</button>
+  </div>
+
   <div class="divider"></div>
-  <div class="manage-link">
-    <a href="/portal/staff/">Manage Staff ·</a>
-    <a href="/portal/dashboard/" style="margin-left:10px">· Manager Dashboard</a>
+  <div style="text-align:center">
+    <p style="font-size:0.72rem;letter-spacing:0.12em;text-transform:uppercase;color:rgba(245,242,236,0.2);margin-bottom:14px">Manager Access</p>
+    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+      <a href="/portal/staff/" style="display:inline-block;padding:10px 24px;border:1px solid rgba(201,169,110,0.35);border-radius:4px;font-family:'Jost',sans-serif;font-size:0.75rem;letter-spacing:0.15em;text-transform:uppercase;color:#C9A96E;text-decoration:none;transition:background 0.2s" onmouseover="this.style.background='rgba(201,169,110,0.1)'" onmouseout="this.style.background='transparent'">Manage Staff</a>
+      <a href="/portal/dashboard/" style="display:inline-block;padding:10px 24px;border:1px solid rgba(201,169,110,0.35);border-radius:4px;font-family:'Jost',sans-serif;font-size:0.75rem;letter-spacing:0.15em;text-transform:uppercase;color:#C9A96E;text-decoration:none;transition:background 0.2s" onmouseover="this.style.background='rgba(201,169,110,0.1)'" onmouseout="this.style.background='transparent'">Dashboard</a>
+    </div>
   </div>
 </div>
 
@@ -98,7 +107,8 @@ async function loadStaff() {
       document.getElementById('otherGrid').innerHTML = others.map(s => cardHTML(s)).join('');
     }
   } catch(e) {
-    document.getElementById('loadingEl').textContent = 'Unable to load staff. Check your connection.';
+    document.getElementById('loadingEl').style.display = 'none';
+    document.getElementById('errorBox').style.display = 'block';
   }
 }
 
