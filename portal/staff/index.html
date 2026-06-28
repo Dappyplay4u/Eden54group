@@ -276,7 +276,7 @@ async function loadStaff() {
       <td style="width:44px">${avatar}</td>
       <td class="fw4">${s.name}</td>
       <td>${s.department}</td>
-      <td><span class="badge badge-${s.role==='superadmin'?'warn':s.role==='manager'?'purple':'info'}">${s.role==='superadmin'?'Super Admin':s.role||'staff'}</span></td>
+      <td><span class="badge badge-${s.role==='superadmin'?'gold':s.role==='manager'?'purple':'info'}">${s.role==='superadmin'?'Super Admin':s.role||'staff'}</span></td>
       <td><span class="badge badge-${s.active!==false?'ok':'err'}">${s.active!==false?'Active':'Inactive'}</span></td>
       <td><button class="btn btn-outline btn-sm" onclick="openEdit('${d.id}')">Edit</button></td>
     </tr>`;

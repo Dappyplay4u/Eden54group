@@ -115,6 +115,7 @@ tbody tr:hover { background: #fafaf8; }
 .badge-err  { background: #fee2e2; color: #991b1b; }
 .badge-info { background: #dbeafe; color: #1e40af; }
 .badge-purple { background: #f3e8ff; color: #7e22ce; }
+.badge-gold   { background: rgba(201,169,110,0.15); color: #92620a; border: 1px solid rgba(201,169,110,0.35); }
 
 /* ── ALERTS ── */
 .alert { padding: 11px 15px; border-radius: 4px; font-size: 0.83rem; margin-bottom: 14px; display: none; }
