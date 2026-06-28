@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Apply | Eden 54</title>
+<link rel="icon" type="image/jpeg" href="/logo/eden 54 logo.jpeg">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@200;300;400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --deep: #0f2318; --deep2: #0a1a10; --gold: #C9A96E;
+  --gold-dim: rgba(201,169,110,0.15); --text: #F5F2EC;
+  --muted: rgba(245,242,236,0.5); --border: rgba(201,169,110,0.2);
+  --input-bg: rgba(255,255,255,0.04);
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--deep); color: var(--text); font-family: 'Jost', sans-serif; font-weight: 300; min-height: 100vh; }
+
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 18px 48px; background: rgba(15,35,24,0.98);
+  border-bottom: 1px solid var(--border);
+}
+.nav-logo { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+.nav-logo img { height: 40px; border-radius: 50%; }
+.nav-logo span { font-family: 'Cormorant Garamond', serif; font-size: 1.3rem; color: var(--gold); letter-spacing: 0.12em; }
+.nav-back { text-decoration: none; color: var(--muted); font-size: 0.75rem; letter-spacing: 0.18em; text-transform: uppercase; display: flex; align-items: center; gap: 8px; transition: color 0.2s; }
+.nav-back:hover { color: var(--gold); }
+
+.page-wrap { display: grid; grid-template-columns: 300px 1fr; min-height: 100vh; padding-top: 77px; }
+
+.sidebar {
+  background: var(--deep2); border-right: 1px solid var(--border);
+  padding: 56px 36px; position: sticky; top: 77px;
+  height: calc(100vh - 77px); overflow-y: auto;
+}
+.sidebar-role { font-size: 0.68rem; letter-spacing: 0.25em; text-transform: uppercase; color: var(--gold); margin-bottom: 8px; }
+.sidebar-title { font-family: 'Cormorant Garamond', serif; font-size: 1.7rem; font-weight: 300; line-height: 1.2; margin-bottom: 6px; }
+.sidebar-sub { font-size: 0.78rem; opacity: 0.5; margin-bottom: 36px; }
+.sidebar-divider { width: 32px; height: 1px; background: var(--gold); margin-bottom: 36px; }
+
+.steps { display: flex; flex-direction: column; }
+.step-item { display: flex; align-items: flex-start; gap: 14px; padding: 12px 0; border-bottom: 1px solid rgba(201,169,110,0.06); cursor: pointer; }
+.step-item:last-child { border-bottom: none; }
+.step-num { width: 26px; height: 26px; border-radius: 50%; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 0.68rem; flex-shrink: 0; color: var(--muted); transition: background 0.3s, border-color 0.3s; }
+.step-item.active .step-num { background: var(--gold); border-color: var(--gold); color: var(--deep); font-weight: 400; }
+.step-item.done .step-num { background: rgba(201,169,110,0.12); border-color: var(--gold); color: var(--gold); }
+.step-label span { display: block; font-size: 0.65rem; letter-spacing: 0.14em; text-transform: uppercase; opacity: 0.4; margin-bottom: 2px; }
+.step-label strong { font-size: 0.82rem; font-weight: 300; opacity: 0.65; }
+.step-item.active .step-label strong { opacity: 1; }
+.step-item.done .step-label strong { color: var(--gold); opacity: 0.8; }
+
+.progress-bar-wrap { margin-top: 36px; }
+.progress-bar-label { font-size: 0.66rem; letter-spacing: 0.14em; text-transform: uppercase; opacity: 0.4; margin-bottom: 10px; display: flex; justify-content: space-between; }
+.progress-track { height: 1px; background: rgba(201,169,110,0.1); }
+.progress-fill { height: 1px; background: var(--gold); transition: width 0.4s ease; }
+
+.form-area { padding: 56px 72px; }
+
+.step-panel { display: none; }
+.step-panel.active { display: block; animation: fadeIn 0.3s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+.panel-eyebrow { font-size: 0.68rem; letter-spacing: 0.28em; text-transform: uppercase; color: var(--gold); margin-bottom: 8px; }
+.panel-title { font-family: 'Cormorant Garamond', serif; font-size: 2.1rem; font-weight: 300; }
+.panel-title em { font-style: italic; color: var(--gold); }
+.panel-divider { width: 32px; height: 1px; background: var(--gold); margin: 14px 0 32px; }
+.panel-desc { font-size: 0.87rem; opacity: 0.6; line-height: 1.75; margin-bottom: 32px; max-width: 540px; }
+
+.field-grid { display: grid; gap: 24px; }
+.col-2 { grid-template-columns: 1fr 1fr; }
+
+.field { display: flex; flex-direction: column; gap: 8px; }
+.field label { font-size: 0.68rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gold); opacity: 0.9; }
+.field label .req { opacity: 0.6; margin-left: 2px; }
+.field input, .field textarea, .field select {
+  background: var(--input-bg); border: 1px solid var(--border);
+  color: var(--text); font-family: 'Jost', sans-serif; font-weight: 300; font-size: 0.9rem;
+  padding: 13px 16px; outline: none; width: 100%; -webkit-appearance: none;
+  transition: border-color 0.2s, background 0.2s;
+}
+.field input::placeholder, .field textarea::placeholder { color: var(--muted); }
+.field input:focus, .field textarea:focus, .field select:focus { border-color: rgba(201,169,110,0.55); background: rgba(201,169,110,0.03); }
+.field textarea { resize: vertical; min-height: 110px; line-height: 1.65; }
+.field select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23C9A96E' stroke-width='1.4' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 40px; cursor: pointer; }
+.field select option { background: #0f2318; }
+.field input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(0.7) sepia(1) saturate(3) hue-rotate(5deg); cursor: pointer; }
+
+.radio-group { display: flex; flex-direction: column; gap: 10px; margin-top: 4px; }
+.radio-group.row { flex-direction: row; flex-wrap: wrap; gap: 10px 24px; }
+.radio-item { display: flex; align-items: center; gap: 11px; cursor: pointer; font-size: 0.87rem; opacity: 0.8; transition: opacity 0.2s; }
+.radio-item:hover { opacity: 1; }
+.radio-item input[type="radio"] { display: none; }
+.radio-box { width: 17px; height: 17px; flex-shrink: 0; border: 1px solid var(--border); border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: border-color 0.2s; }
+.radio-item input:checked ~ .radio-box { border-color: var(--gold); }
+.radio-item input:checked ~ .radio-box::after { content: ''; width: 7px; height: 7px; border-radius: 50%; background: var(--gold); }
+
+.upload-area { border: 1px dashed var(--border); padding: 28px; text-align: center; transition: border-color 0.2s, background 0.2s; cursor: pointer; position: relative; }
+.upload-area:hover { border-color: rgba(201,169,110,0.45); background: rgba(201,169,110,0.02); }
+.upload-area input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; border: none; background: none; padding: 0; width: 100%; height: 100%; }
+.upload-icon { font-size: 1.8rem; margin-bottom: 10px; opacity: 0.4; }
+.upload-title { font-size: 0.86rem; margin-bottom: 4px; }
+.upload-hint { font-size: 0.73rem; opacity: 0.4; }
+.upload-filename { font-size: 0.78rem; color: var(--gold); margin-top: 8px; display: none; }
+
+.declaration-box { background: rgba(201,169,110,0.03); border: 1px solid var(--border); padding: 22px; margin-bottom: 24px; font-size: 0.86rem; line-height: 1.8; opacity: 0.75; }
+
+.form-nav { display: flex; align-items: center; justify-content: space-between; margin-top: 48px; padding-top: 26px; border-top: 1px solid var(--border); }
+.btn-prev { display: flex; align-items: center; gap: 8px; background: none; border: 1px solid var(--border); color: var(--muted); font-family: 'Jost', sans-serif; font-size: 0.7rem; letter-spacing: 0.2em; text-transform: uppercase; padding: 11px 22px; cursor: pointer; transition: border-color 0.2s, color 0.2s; }
+.btn-prev:hover { border-color: var(--gold); color: var(--gold); }
+.btn-next, .btn-submit { display: flex; align-items: center; gap: 9px; background: var(--gold); border: none; color: var(--deep); font-family: 'Jost', sans-serif; font-size: 0.72rem; letter-spacing: 0.2em; text-transform: uppercase; padding: 13px 32px; cursor: pointer; transition: opacity 0.2s; font-weight: 400; }
+.btn-next:hover, .btn-submit:hover { opacity: 0.85; }
+.btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.submitting-overlay { display: none; position: fixed; inset: 0; background: rgba(15,35,24,0.92); z-index: 999; align-items: center; justify-content: center; flex-direction: column; gap: 20px; }
+.submitting-overlay.show { display: flex; }
+.spinner { width: 40px; height: 40px; border: 1px solid rgba(201,169,110,0.2); border-top-color: var(--gold); border-radius: 50%; animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.submitting-overlay p { font-size: 0.8rem; letter-spacing: 0.2em; text-transform: uppercase; opacity: 0.6; }
+
+@media (max-width: 900px) {
+  .page-wrap { grid-template-columns: 1fr; }
+  .sidebar { position: static; height: auto; padding: 32px 20px; }
+  .form-area { padding: 32px 20px; }
+  .col-2 { grid-template-columns: 1fr; }
+  nav { padding: 14px 20px; }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-logo" href="/">
+    <img src="/logo/eden 54 logo.jpeg" alt="Eden 54">
+    <span>Eden 54</span>
+  </a>
+  <a href="/careers" class="nav-back">
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M9 2L4 7l5 5"/></svg>
+    Back to Careers
+  </a>
+</nav>
+
+<div class="submitting-overlay" id="submittingOverlay">
+  <div class="spinner"></div>
+  <p>Submitting your application…</p>
+</div>
+
+<div class="page-wrap">
+  <aside class="sidebar">
+    <p class="sidebar-role">Application Form</p>
+    <h2 class="sidebar-title" id="sidebarRole">Loading…</h2>
+    <p class="sidebar-sub">Ilesa, Osun State · Full-time</p>
+    <div class="sidebar-divider"></div>
+    <div class="steps">
+      <div class="step-item active" onclick="goToStep(1)">
+        <div class="step-num">1</div>
+        <div class="step-label"><span>Section 1</span><strong>Personal Information</strong></div>
+      </div>
+      <div class="step-item" onclick="goToStep(2)">
+        <div class="step-num">2</div>
+        <div class="step-label"><span>Section 2</span><strong>Your Experience</strong></div>
+      </div>
+      <div class="step-item" onclick="goToStep(3)">
+        <div class="step-num">3</div>
+        <div class="step-label"><span>Section 3</span><strong>Availability</strong></div>
+      </div>
+      <div class="step-item" onclick="goToStep(4)">
+        <div class="step-num">4</div>
+        <div class="step-label"><span>Section 4</span><strong>Document Upload</strong></div>
+      </div>
+      <div class="step-item" onclick="goToStep(5)">
+        <div class="step-num">5</div>
+        <div class="step-label"><span>Section 5</span><strong>Declaration</strong></div>
+      </div>
+    </div>
+    <div class="progress-bar-wrap">
+      <div class="progress-bar-label">
+        <span>Progress</span><span id="progressLabel">1 of 5</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="progressFill" style="width:20%"></div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="form-area">
+
+    <!-- STEP 1: PERSONAL -->
+    <div class="step-panel active" id="panel-1">
+      <p class="panel-eyebrow">Section 1 of 5</p>
+      <h1 class="panel-title">Personal <em>Information</em></h1>
+      <div class="panel-divider"></div>
+      <div class="field-grid">
+        <div class="field-grid col-2">
+          <div class="field"><label>First Name <span class="req">*</span></label><input type="text" id="f_firstname" placeholder="First name" required></div>
+          <div class="field"><label>Last Name <span class="req">*</span></label><input type="text" id="f_lastname" placeholder="Last name" required></div>
+        </div>
+        <div class="field-grid col-2">
+          <div class="field"><label>Phone Number (WhatsApp Preferred) <span class="req">*</span></label><input type="tel" id="f_phone" placeholder="+234 800 000 0000" required></div>
+          <div class="field"><label>Email Address <span class="req">*</span></label><input type="email" id="f_email" placeholder="your@email.com" required></div>
+        </div>
+        <div class="field"><label>Residential Address <span class="req">*</span></label><textarea id="f_address" placeholder="Your full home address" required></textarea></div>
+        <div class="field"><label>Current Location <span class="req">*</span></label><input type="text" id="f_location" placeholder="City, State" required></div>
+        <div class="field">
+          <label>Are you willing to work in Ilesa, Osun State? <span class="req">*</span></label>
+          <div class="radio-group row">
+            <label class="radio-item"><input type="radio" name="r_ilesa" value="Yes" required><span class="radio-box"></span> Yes</label>
+            <label class="radio-item"><input type="radio" name="r_ilesa" value="No"><span class="radio-box"></span> No</label>
+            <label class="radio-item"><input type="radio" name="r_ilesa" value="Maybe"><span class="radio-box"></span> Maybe</label>
+          </div>
+        </div>
+      </div>
+      <div class="form-nav">
+        <div></div>
+        <button type="button" class="btn-next" onclick="nextStep()">Continue <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M5 2l5 5-5 5"/></svg></button>
+      </div>
+    </div>
+
+    <!-- STEP 2: EXPERIENCE -->
+    <div class="step-panel" id="panel-2">
+      <p class="panel-eyebrow">Section 2 of 5</p>
+      <h1 class="panel-title">Your <em>Experience</em></h1>
+      <div class="panel-divider"></div>
+      <div class="field-grid">
+        <div class="field">
+          <label>How many years of relevant experience do you have?</label>
+          <div class="radio-group row">
+            <label class="radio-item"><input type="radio" name="r_years" value="Less than 1 year"><span class="radio-box"></span> Less than 1 year</label>
+            <label class="radio-item"><input type="radio" name="r_years" value="1–3 years"><span class="radio-box"></span> 1–3 years</label>
+            <label class="radio-item"><input type="radio" name="r_years" value="4–6 years"><span class="radio-box"></span> 4–6 years</label>
+            <label class="radio-item"><input type="radio" name="r_years" value="7+ years"><span class="radio-box"></span> 7+ years</label>
+          </div>
+        </div>
+        <div class="field-grid col-2">
+          <div class="field"><label>Current or Most Recent Employer</label><input type="text" id="f_employer" placeholder="Company name"></div>
+          <div class="field"><label>Current or Most Recent Job Title</label><input type="text" id="f_jobtitle" placeholder="Your job title"></div>
+        </div>
+        <div class="field">
+          <label>Describe your relevant experience for this role <span class="req">*</span></label>
+          <textarea id="f_expdesc" placeholder="Tell us about your background and why you are a great fit for this role..." style="min-height:130px;" required></textarea>
+        </div>
+        <div class="field">
+          <label>Why do you want to work at Eden 54?</label>
+          <textarea id="f_why" placeholder="What excites you about joining the Eden 54 team?" style="min-height:100px;"></textarea>
+        </div>
+      </div>
+      <div class="form-nav">
+        <button type="button" class="btn-prev" onclick="prevStep()"><svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M9 2L4 7l5 5"/></svg> Back</button>
+        <button type="button" class="btn-next" onclick="nextStep()">Continue <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M5 2l5 5-5 5"/></svg></button>
+      </div>
+    </div>
+
+    <!-- STEP 3: AVAILABILITY -->
+    <div class="step-panel" id="panel-3">
+      <p class="panel-eyebrow">Section 3 of 5</p>
+      <h1 class="panel-title"><em>Availability</em></h1>
+      <div class="panel-divider"></div>
+      <div class="field-grid">
+        <div class="field">
+          <label>When can you start? <span class="req">*</span></label>
+          <input type="date" id="f_startdate" required>
+        </div>
+        <div class="field">
+          <label>Are you seeking:</label>
+          <div class="radio-group row">
+            <label class="radio-item"><input type="radio" name="r_emptype" value="Full Time"><span class="radio-box"></span> Full Time</label>
+            <label class="radio-item"><input type="radio" name="r_emptype" value="Part Time"><span class="radio-box"></span> Part Time</label>
+            <label class="radio-item"><input type="radio" name="r_emptype" value="Contract"><span class="radio-box"></span> Contract</label>
+          </div>
+        </div>
+        <div class="field">
+          <label>Are you available to work weekends and public holidays?</label>
+          <div class="radio-group row">
+            <label class="radio-item"><input type="radio" name="r_weekends" value="Yes"><span class="radio-box"></span> Yes</label>
+            <label class="radio-item"><input type="radio" name="r_weekends" value="No"><span class="radio-box"></span> No</label>
+            <label class="radio-item"><input type="radio" name="r_weekends" value="Occasionally"><span class="radio-box"></span> Occasionally</label>
+          </div>
+        </div>
+        <div class="field">
+          <label>Any additional information about your availability</label>
+          <textarea id="f_availability" placeholder="e.g. notice period, preferred shift times, any constraints…" style="min-height:90px;"></textarea>
+        </div>
+      </div>
+      <div class="form-nav">
+        <button type="button" class="btn-prev" onclick="prevStep()"><svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M9 2L4 7l5 5"/></svg> Back</button>
+        <button type="button" class="btn-next" onclick="nextStep()">Continue <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M5 2l5 5-5 5"/></svg></button>
+      </div>
+    </div>
+
+    <!-- STEP 4: DOCUMENTS -->
+    <div class="step-panel" id="panel-4">
+      <p class="panel-eyebrow">Section 4 of 5</p>
+      <h1 class="panel-title">Document <em>Upload</em></h1>
+      <div class="panel-divider"></div>
+      <p class="panel-desc">Upload your documents. PDF, DOC, DOCX accepted — max 5MB each.</p>
+      <div class="field-grid">
+        <div class="field">
+          <label>Resume / CV</label>
+          <div class="upload-area">
+            <input type="file" id="f_cv" accept=".pdf,.doc,.docx" onchange="showFile(this,'cvName')">
+            <div class="upload-icon">📄</div>
+            <div class="upload-title">Click to upload your CV</div>
+            <div class="upload-hint">PDF, DOC, DOCX · Max 5MB</div>
+            <div class="upload-filename" id="cvName"></div>
+          </div>
+        </div>
+        <div class="field">
+          <label>Cover Letter <span style="opacity:0.4;font-size:0.65rem;">(Optional)</span></label>
+          <div class="upload-area">
+            <input type="file" id="f_cl" accept=".pdf,.doc,.docx" onchange="showFile(this,'clName')">
+            <div class="upload-icon">✉️</div>
+            <div class="upload-title">Click to upload your Cover Letter</div>
+            <div class="upload-hint">PDF, DOC, DOCX · Max 5MB</div>
+            <div class="upload-filename" id="clName"></div>
+          </div>
+        </div>
+      </div>
+      <div class="form-nav">
+        <button type="button" class="btn-prev" onclick="prevStep()"><svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M9 2L4 7l5 5"/></svg> Back</button>
+        <button type="button" class="btn-next" onclick="nextStep()">Continue <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M5 2l5 5-5 5"/></svg></button>
+      </div>
+    </div>
+
+    <!-- STEP 5: DECLARATION -->
+    <div class="step-panel" id="panel-5">
+      <p class="panel-eyebrow">Section 5 of 5</p>
+      <h1 class="panel-title"><em>Declaration</em></h1>
+      <div class="panel-divider"></div>
+      <div class="declaration-box">
+        By submitting this application, you confirm that all information provided is accurate and complete to the best of your knowledge. You understand that any false or misleading information may result in the withdrawal of any offer of employment.
+      </div>
+      <div class="field-grid">
+        <div class="field">
+          <label>I certify that the information provided is accurate <span class="req">*</span></label>
+          <div class="radio-group row">
+            <label class="radio-item"><input type="radio" name="r_declare" value="Yes, I certify" required><span class="radio-box"></span> Yes, I certify</label>
+            <label class="radio-item"><input type="radio" name="r_declare" value="No"><span class="radio-box"></span> No</label>
+          </div>
+        </div>
+        <div class="field-grid col-2">
+          <div class="field"><label>Full Name (Electronic Signature) <span class="req">*</span></label><input type="text" id="f_signature" placeholder="Type your full name" required></div>
+          <div class="field"><label>Date <span class="req">*</span></label><input type="date" id="f_sigdate" required></div>
+        </div>
+      </div>
+      <div class="form-nav">
+        <button type="button" class="btn-prev" onclick="prevStep()"><svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M9 2L4 7l5 5"/></svg> Back</button>
+        <button type="button" class="btn-submit" id="submitBtn" onclick="submitApplication()">
+          Submit Application
+          <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M5 2l5 5-5 5"/></svg>
+        </button>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+// Read role from URL param
+const params = new URLSearchParams(window.location.search);
+const roleName = params.get('role') || 'General Application';
+document.getElementById('sidebarRole').textContent = roleName;
+document.title = 'Apply — ' + roleName + ' | Eden 54';
+
+let current = 1;
+const total = 5;
+
+function val(id) { const el = document.getElementById(id); return el ? el.value.trim() : ''; }
+function radio(name) { const el = document.querySelector(`[name="${name}"]:checked`); return el ? el.value : ''; }
+
+function goToStep(n) {
+  if (n < 1 || n > total) return;
+  document.getElementById('panel-' + current).classList.remove('active');
+  document.getElementById('panel-' + n).classList.add('active');
+  document.querySelectorAll('.step-item').forEach((el, i) => {
+    el.classList.remove('active', 'done');
+    if (i + 1 < n) el.classList.add('done');
+    if (i + 1 === n) el.classList.add('active');
+  });
+  document.getElementById('progressLabel').textContent = n + ' of ' + total;
+  document.getElementById('progressFill').style.width = (n / total * 100) + '%';
+  current = n;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function nextStep() { goToStep(current + 1); }
+function prevStep() { goToStep(current - 1); }
+
+function showFile(input, labelId) {
+  const el = document.getElementById(labelId);
+  if (input.files && input.files[0]) {
+    el.textContent = '✓ ' + input.files[0].name;
+    el.style.display = 'block';
+  }
+}
+
+async function submitApplication() {
+  document.getElementById('submitBtn').disabled = true;
+  document.getElementById('submittingOverlay').classList.add('show');
+
+  const cvFile = document.getElementById('f_cv').files[0];
+  const clFile = document.getElementById('f_cl').files[0];
+
+  const fd = new FormData();
+  fd.append('_subject',               'New Application: ' + roleName + ' — Eden 54');
+  fd.append('_captcha',               'false');
+  fd.append('_template',              'table');
+  fd.append('01 Position Applied For', roleName);
+  fd.append('02 First Name',           val('f_firstname'));
+  fd.append('03 Last Name',            val('f_lastname'));
+  fd.append('04 Phone (WhatsApp)',     val('f_phone'));
+  fd.append('05 Email',                val('f_email'));
+  fd.append('06 Residential Address',  val('f_address'));
+  fd.append('07 Current Location',     val('f_location'));
+  fd.append('08 Willing to Work Ilesa',radio('r_ilesa'));
+  fd.append('09 Years of Experience',  radio('r_years'));
+  fd.append('10 Most Recent Employer', val('f_employer'));
+  fd.append('11 Most Recent Job Title',val('f_jobtitle'));
+  fd.append('12 Relevant Experience',  val('f_expdesc'));
+  fd.append('13 Why Eden 54',          val('f_why'));
+  fd.append('14 Start Date',           val('f_startdate'));
+  fd.append('15 Employment Type',      radio('r_emptype'));
+  fd.append('16 Weekend Availability', radio('r_weekends'));
+  fd.append('17 Availability Notes',   val('f_availability'));
+  fd.append('18 Declaration',          radio('r_declare'));
+  fd.append('19 Electronic Signature', val('f_signature'));
+  fd.append('20 Signature Date',       val('f_sigdate'));
+  if (cvFile) fd.append('Resume_CV',    cvFile, cvFile.name);
+  if (clFile) fd.append('Cover_Letter', clFile, clFile.name);
+
+  try {
+    await fetch('https://formsubmit.co/eden54group@gmail.com', { method: 'POST', body: fd });
+  } catch (_) {}
+
+  window.location.href = '/careers/apply/thank-you/';
+}
+
+document.getElementById('f_sigdate').valueAsDate = new Date();
+</script>
+</body>
+</html>
