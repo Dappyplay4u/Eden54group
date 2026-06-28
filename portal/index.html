@@ -14,21 +14,25 @@ body{font-family:'Jost',sans-serif;font-weight:300;background:#0f2318;min-height
 .header h1{font-size:1.6rem;color:#C9A96E;letter-spacing:0.1em;font-weight:400;}
 .header p{font-size:0.72rem;letter-spacing:0.22em;text-transform:uppercase;color:rgba(245,242,236,0.35);margin-top:5px;}
 .header .sub{font-size:0.9rem;color:rgba(245,242,236,0.55);margin-top:14px;font-weight:300;}
-.staff-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px;margin-bottom:36px;}
+
+.staff-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:14px;margin-bottom:28px;}
 .staff-card{background:rgba(255,255,255,0.05);border:1px solid rgba(201,169,110,0.15);border-radius:10px;padding:22px 16px;text-align:center;cursor:pointer;transition:background 0.2s,border-color 0.2s,transform 0.15s;}
 .staff-card:hover{background:rgba(201,169,110,0.1);border-color:rgba(201,169,110,0.5);transform:translateY(-2px);}
-.staff-card.manager-card{border-color:rgba(201,169,110,0.35);background:rgba(201,169,110,0.04);}
-.avatar{width:52px;height:52px;border-radius:50%;background:#C9A96E;color:#0f2318;display:flex;align-items:center;justify-content:center;font-size:1.1rem;font-weight:500;margin:0 auto 12px;letter-spacing:0.05em;}
+.staff-card.mgr{border-color:rgba(201,169,110,0.4);background:rgba(201,169,110,0.05);}
+.avatar{width:56px;height:56px;border-radius:50%;background:#C9A96E;color:#0f2318;display:flex;align-items:center;justify-content:center;font-size:1.1rem;font-weight:500;margin:0 auto 12px;letter-spacing:0.05em;overflow:hidden;}
+.avatar img{width:100%;height:100%;object-fit:cover;}
 .staff-name{font-size:0.88rem;color:rgba(245,242,236,0.9);font-weight:400;margin-bottom:4px;}
-.staff-dept{font-size:0.68rem;letter-spacing:0.12em;text-transform:uppercase;color:rgba(245,242,236,0.3);}
-.section-label{font-size:0.6rem;letter-spacing:0.25em;text-transform:uppercase;color:rgba(201,169,110,0.5);margin-bottom:12px;}
-.divider{height:1px;background:rgba(201,169,110,0.1);margin:28px 0;}
+.staff-dept{font-size:0.65rem;letter-spacing:0.12em;text-transform:uppercase;color:rgba(245,242,236,0.3);}
+.section-label{font-size:0.6rem;letter-spacing:0.25em;text-transform:uppercase;color:rgba(201,169,110,0.45);margin-bottom:12px;}
+.divider{height:1px;background:rgba(201,169,110,0.1);margin:24px 0;}
 .loading{text-align:center;color:rgba(245,242,236,0.3);font-size:0.85rem;padding:40px;}
 
-/* Manager action row — only visible for managers returning to this page */
-.mgr-bar{display:none;justify-content:center;gap:12px;flex-wrap:wrap;margin-bottom:28px;}
-.mgr-btn{padding:11px 26px;border:1px solid rgba(201,169,110,0.45);border-radius:4px;font-family:'Jost',sans-serif;font-size:0.75rem;letter-spacing:0.15em;text-transform:uppercase;color:#C9A96E;text-decoration:none;transition:background 0.2s;background:transparent;}
-.mgr-btn:hover{background:rgba(201,169,110,0.1);}
+/* Manager bar — always visible */
+.mgr-bar{border-top:1px solid rgba(201,169,110,0.12);padding-top:24px;margin-top:8px;text-align:center;}
+.mgr-bar-label{font-size:0.6rem;letter-spacing:0.25em;text-transform:uppercase;color:rgba(201,169,110,0.35);margin-bottom:14px;}
+.mgr-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+.mgr-btn{padding:10px 24px;border:1px solid rgba(201,169,110,0.3);border-radius:4px;font-family:'Jost',sans-serif;font-size:0.72rem;letter-spacing:0.15em;text-transform:uppercase;color:rgba(201,169,110,0.65);text-decoration:none;transition:all 0.2s;background:transparent;}
+.mgr-btn:hover{border-color:rgba(201,169,110,0.7);color:#C9A96E;background:rgba(201,169,110,0.08);}
 
 @media(max-width:480px){.staff-grid{grid-template-columns:repeat(2,1fr);}.header h1{font-size:1.3rem;}}
 </style>
@@ -39,15 +43,10 @@ body{font-family:'Jost',sans-serif;font-weight:300;background:#0f2318;min-height
     <img src="/logo/eden 54 logo.jpeg" alt="Eden 54">
     <h1>Eden 54</h1>
     <p>Staff Portal</p>
-    <div class="sub" id="headerSub">Select your profile to continue</div>
+    <div class="sub">Select your profile to continue</div>
   </div>
 
-  <!-- Only shown when a manager profile is in localStorage -->
-  <div class="mgr-bar" id="mgrBar">
-    <a href="/portal/dashboard/" class="mgr-btn">Dashboard</a>
-    <a href="/portal/staff/" class="mgr-btn">Manage Staff</a>
-  </div>
-
+  <!-- Staff sections -->
   <div id="salonSection" style="display:none">
     <div class="section-label">Barbing Salon</div>
     <div class="staff-grid" id="salonGrid"></div>
@@ -57,17 +56,28 @@ body{font-family:'Jost',sans-serif;font-weight:300;background:#0f2318;min-height
     <div class="section-label">Apartment &amp; Lounge</div>
     <div class="staff-grid" id="otherGrid"></div>
   </div>
+  <div class="divider" id="div2" style="display:none"></div>
   <div id="managerSection" style="display:none">
     <div class="section-label">Management</div>
     <div class="staff-grid" id="managerGrid"></div>
   </div>
 
   <div id="loadingEl" class="loading">Loading staff…</div>
+  <div id="emptyEl" style="display:none;text-align:center;color:rgba(245,242,236,0.3);font-size:0.85rem;padding:24px 0">
+    No staff added yet — use "Manage Staff" below to add your team.
+  </div>
+  <div id="errorBox" style="display:none;background:rgba(220,38,38,0.1);border:1px solid rgba(220,38,38,0.2);border-radius:8px;padding:16px 18px;text-align:center;margin-bottom:8px">
+    <div style="color:#fca5a5;font-size:0.83rem;margin-bottom:8px">Unable to connect. Firestore rules may not be published yet.</div>
+    <button onclick="window.location.reload()" style="padding:7px 18px;background:rgba(201,169,110,0.15);border:1px solid rgba(201,169,110,0.3);color:#C9A96E;border-radius:4px;cursor:pointer;font-family:'Jost',sans-serif;font-size:0.75rem">Retry</button>
+  </div>
 
-  <div id="errorBox" style="display:none;background:rgba(220,38,38,0.1);border:1px solid rgba(220,38,38,0.25);border-radius:8px;padding:18px 20px;text-align:center">
-    <div style="color:#fca5a5;font-size:0.85rem;margin-bottom:10px">Unable to connect to database.</div>
-    <div style="color:rgba(245,242,236,0.4);font-size:0.75rem;margin-bottom:14px">Go to Firebase Console → Firestore Database → Rules and set them to allow all reads/writes, then click Publish.</div>
-    <button onclick="window.location.reload()" style="padding:8px 20px;background:rgba(201,169,110,0.15);border:1px solid rgba(201,169,110,0.3);color:#C9A96E;border-radius:4px;cursor:pointer;font-family:'Jost',sans-serif;font-size:0.78rem">Retry</button>
+  <!-- Manager access — always visible so manager can set up the portal -->
+  <div class="mgr-bar">
+    <div class="mgr-bar-label">Manager Access</div>
+    <div class="mgr-btns">
+      <a href="/portal/staff/" class="mgr-btn">Manage Staff</a>
+      <a href="/portal/dashboard/" class="mgr-btn">Dashboard</a>
+    </div>
   </div>
 </div>
 
@@ -76,41 +86,30 @@ body{font-family:'Jost',sans-serif;font-weight:300;background:#0f2318;min-height
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
 <script src="/portal/firebase-init.js"></script>
 <script>
-// Check if someone is already "logged in"
+// If staff already selected redirect them
 const saved = localStorage.getItem('eden54_staff');
 if (saved) {
   try {
     const s = JSON.parse(saved);
-    if (s.role === 'manager') {
-      // Manager returning: show their action bar and greet them
-      document.getElementById('mgrBar').style.display = 'flex';
-      document.getElementById('headerSub').textContent = 'Welcome back, ' + s.name;
-    } else {
-      // Regular staff already selected: go straight to their home
-      window.location.href = '/portal/home/';
-    }
+    window.location.href = s.role === 'manager' ? '/portal/dashboard/' : '/portal/home/';
   } catch(e) { localStorage.removeItem('eden54_staff'); }
 }
 
 async function loadStaff() {
   try {
-    const snap = await db.collection('staff').where('active','!=',false).orderBy('active').get();
+    // Simple query — no inequality filter to avoid index issues
+    const snap = await db.collection('staff').orderBy('name').get();
     document.getElementById('loadingEl').style.display = 'none';
 
     if (snap.empty) {
-      // No staff yet — only managers should see the setup prompt
-      const cur = (() => { try { return JSON.parse(localStorage.getItem('eden54_staff')); } catch(e){ return null; } })();
-      if (cur?.role === 'manager') {
-        document.getElementById('loadingEl').style.display = 'block';
-        document.getElementById('loadingEl').textContent = 'No staff added yet. Click "Manage Staff" above to add your team.';
-      }
+      document.getElementById('emptyEl').style.display = 'block';
       return;
     }
 
     const salon = [], others = [], managers = [];
     snap.forEach(d => {
       const s = { id: d.id, ...d.data() };
-      if (s.active === false) return; // skip inactive
+      if (s.active === false) return; // skip inactive (filter client-side)
       if (s.role === 'manager') managers.push(s);
       else if (s.department === 'salon') salon.push(s);
       else others.push(s);
@@ -125,37 +124,39 @@ async function loadStaff() {
       document.getElementById('otherSection').style.display = 'block';
       document.getElementById('otherGrid').innerHTML = others.map(s => cardHTML(s)).join('');
     }
-    // Managers get their own row at the bottom, separated
     if (managers.length) {
+      if (salon.length || others.length) document.getElementById('div2').style.display = 'block';
       document.getElementById('managerSection').style.display = 'block';
       document.getElementById('managerGrid').innerHTML = managers.map(s => cardHTML(s, true)).join('');
     }
+
+    if (!salon.length && !others.length && !managers.length) {
+      document.getElementById('emptyEl').style.display = 'block';
+    }
+
   } catch(e) {
     document.getElementById('loadingEl').style.display = 'none';
     document.getElementById('errorBox').style.display = 'block';
+    console.error(e);
   }
 }
 
 function cardHTML(s, isManager = false) {
-  const safeData = encodeURIComponent(JSON.stringify({ id: s.id, name: s.name, department: s.department, role: s.role || 'staff' }));
+  const data = encodeURIComponent(JSON.stringify({ id: s.id, name: s.name, department: s.department, role: s.role || 'staff' }));
   const avatarHTML = s.photoURL
-    ? `<div class="avatar" style="background:transparent;padding:0;overflow:hidden"><img src="${s.photoURL}" alt="${s.name}" style="width:100%;height:100%;object-fit:cover;border-radius:50%"></div>`
+    ? `<div class="avatar"><img src="${s.photoURL}" alt="${s.name}"></div>`
     : `<div class="avatar">${avatarInitials(s.name)}</div>`;
-  return `<div class="staff-card${isManager?' manager-card':''}" onclick="selectStaff('${safeData}')">
+  return `<div class="staff-card${isManager ? ' mgr' : ''}" onclick="selectStaff('${data}')">
     ${avatarHTML}
     <div class="staff-name">${s.name}</div>
-    <div class="staff-dept" style="${isManager?'color:rgba(201,169,110,0.5)':''}">${isManager ? 'Manager' : s.department}</div>
+    <div class="staff-dept" style="${isManager ? 'color:rgba(201,169,110,0.5)' : ''}">${isManager ? 'Manager' : s.department}</div>
   </div>`;
 }
 
-function selectStaff(encodedData) {
-  const data = JSON.parse(decodeURIComponent(encodedData));
+function selectStaff(encoded) {
+  const data = JSON.parse(decodeURIComponent(encoded));
   setStaff(data);
-  if (data.role === 'manager') {
-    window.location.href = '/portal/dashboard/';
-  } else {
-    window.location.href = '/portal/home/';
-  }
+  window.location.href = data.role === 'manager' ? '/portal/dashboard/' : '/portal/home/';
 }
 
 loadStaff();
