@@ -161,16 +161,22 @@ async function load() {
   }
   new Chart(document.getElementById('chartWeek'), {
     type: 'line',
-    data: { labels: days, datasets: [{ data: sales7, borderColor:'#C9A96E', backgroundColor:'rgba(201,169,110,0.1)', tension:0.4, fill:true }]},
-    options: { plugins:{legend:{display:false}}, scales:{y:{ticks:{callback: v => '₦'+v.toLocaleString()}}}}
+    data: { labels: days, datasets: [{ data: sales7, borderColor:'#C9A96E', backgroundColor:'rgba(201,169,110,0.1)', tension:0.4, fill:true, pointRadius:4, pointBackgroundColor:'#C9A96E' }]},
+    options: { plugins:{legend:{display:false}}, scales:{y:{min:0, ticks:{callback: v => '₦'+v.toLocaleString()}}}}
   });
   const depts = Object.keys(deptMap);
   const COLORS = ['#C9A96E','#4ade80','#60a5fa','#f87171','#a78bfa','#fb923c','#34d399'];
-  new Chart(document.getElementById('chartDept'), {
-    type: 'doughnut',
-    data: { labels: depts.length ? depts : ['No data'], datasets:[{data: depts.length ? depts.map(k=>deptMap[k]) : [1], backgroundColor:COLORS}]},
-    options: { plugins:{legend:{position:'bottom'}}}
-  });
+  if (depts.length) {
+    new Chart(document.getElementById('chartDept'), {
+      type: 'doughnut',
+      data: { labels: depts, datasets:[{data: depts.map(k=>deptMap[k]), backgroundColor:COLORS}]},
+      options: { plugins:{legend:{position:'bottom'}}}
+    });
+  } else {
+    document.getElementById('chartDept').parentElement.innerHTML +=
+      '<p style="text-align:center;color:#6a6b62;font-size:0.82rem;padding:40px 0">No sales recorded today</p>';
+    document.getElementById('chartDept').style.display = 'none';
+  }
 }
 load();
 </script>
