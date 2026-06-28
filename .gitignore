@@ -1,0 +1,13 @@
+# Claude Code local settings
+.claude/
+
+# Windows
+Thumbs.db
+desktop.ini
+
+# Mac
+.DS_Store
+
+# Editor
+.vscode/
+*.code-workspace
