@@ -706,17 +706,47 @@ async function submitApplication() {
   document.getElementById('h_signature').value  = val('f_signature');
   document.getElementById('h_sigdate').value    = val('f_sigdate');
 
-  // Transfer files
-  if (cvFile) {
-    const dt = new DataTransfer(); dt.items.add(cvFile);
-    document.getElementById('hiddenCV').files = dt.files;
-  }
-  if (clFile) {
-    const dt = new DataTransfer(); dt.items.add(clFile);
-    document.getElementById('hiddenCL').files = dt.files;
-  }
+  // Build FormData directly — reliable across all browsers
+  const fd = new FormData();
+  fd.append('_subject',  'New Application: Facility Manager — Eden 54');
+  fd.append('_captcha',  'false');
+  fd.append('_template', 'table');
+  fd.append('01 Position',               'Facility Manager');
+  fd.append('02 Full Name',              val('f_name'));
+  fd.append('03 Phone (WhatsApp)',       val('f_phone'));
+  fd.append('04 Email',                  val('f_email'));
+  fd.append('05 Residential Address',    val('f_address'));
+  fd.append('06 Current Location',       val('f_location'));
+  fd.append('07 Willing to Work Ilesa',  radio('r_ilesa'));
+  fd.append('08 Has Relevant Experience',radio('r_exp'));
+  fd.append('09 Years of Experience',    radio('r_years'));
+  fd.append('10 Most Recent Employer',   val('f_employer'));
+  fd.append('11 Most Recent Job Title',  val('f_jobtitle'));
+  fd.append('12 Experience Description', val('f_expdesc'));
+  fd.append('13 Skills',                 checkboxes('skills').join(', '));
+  fd.append('14 Urgent Maintenance',     val('f_maintenance'));
+  fd.append('15 Supervised Staff',       radio('r_supervised'));
+  fd.append('16 Team Size Supervised',   radio('r_teamsize'));
+  fd.append('17 Guest Complaint',        val('f_complaint'));
+  fd.append('18 Systems & Software',     val('f_software'));
+  fd.append('19 Scenario: Faulty AC',    val('f_scenario1'));
+  fd.append('20 Scenario: Low Supplies', val('f_scenario2'));
+  fd.append('21 Scenario: Standards',    val('f_scenario3'));
+  fd.append('22 After-Hours Available',  radio('r_afterhours'));
+  fd.append('23 Start Date',             val('f_startdate'));
+  fd.append('24 Employment Type',        radio('r_emptype'));
+  fd.append('25 Reference 1 Name',       val('f_ref1name'));
+  fd.append('26 Reference 1 Position',   val('f_ref1pos'));
+  fd.append('27 Reference 1 Phone',      val('f_ref1phone'));
+  fd.append('28 Reference 2 Name',       val('f_ref2name'));
+  fd.append('29 Reference 2 Position',   val('f_ref2pos'));
+  fd.append('30 Reference 2 Phone',      val('f_ref2phone'));
+  fd.append('31 Declaration',            radio('r_declare'));
+  fd.append('32 Electronic Signature',   val('f_signature'));
+  fd.append('33 Signature Date',         val('f_sigdate'));
+  if (cvFile) fd.append('Resume_CV',     cvFile, cvFile.name);
+  if (clFile) fd.append('Cover_Letter',  clFile, clFile.name);
 
-  const fd = new FormData(document.getElementById('fileForm'));
   try {
     await fetch('https://formsubmit.co/eden54group@gmail.com', { method: 'POST', body: fd });
   } catch (_) {}
