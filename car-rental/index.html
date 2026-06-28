@@ -1,10 +1,10 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Eden 54 | Car Rental</title>
-<link rel="icon" type="image/jpeg" href="logo/eden 54 logo.jpeg">
+<link rel="icon" type="image/jpeg" href="/logo/eden 54 logo.jpeg">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@200;300;400&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -17,7 +17,7 @@
   html { scroll-behavior: smooth; }
   body { background: var(--deep); color: var(--text); font-family: 'Jost', sans-serif; font-weight: 300; }
 
-  /* ── NAV ── */
+  /* â”€â”€ NAV â”€â”€ */
   nav {
     position: fixed; top: 0; left: 0; right: 0; z-index: 100;
     display: flex; align-items: center; justify-content: space-between;
@@ -38,7 +38,7 @@
   }
   .btn-gold:hover { background: var(--gold); color: var(--deep); }
 
-  /* ── HERO ── */
+  /* â”€â”€ HERO â”€â”€ */
   .hero {
     position: relative; height: 100vh; display: flex; align-items: flex-end;
     padding-bottom: 100px;
@@ -57,14 +57,14 @@
   .hero-content h1 em { font-style: italic; color: var(--gold); }
   .hero-content p { font-size: 1rem; opacity: 0.75; max-width: 480px; line-height: 1.7; margin-bottom: 36px; }
 
-  /* ── SECTION BASE ── */
+  /* â”€â”€ SECTION BASE â”€â”€ */
   section { padding: 100px 80px; }
   .section-eyebrow { font-size: 0.7rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--gold); margin-bottom: 14px; }
   .section-title { font-family: 'Cormorant Garamond', serif; font-size: clamp(2.2rem, 4vw, 3.5rem); font-weight: 300; margin-bottom: 20px; }
   .section-title em { font-style: italic; color: var(--gold); }
   .divider { width: 48px; height: 1px; background: var(--gold); margin: 20px 0 40px; opacity: 0.5; }
 
-  /* ── HOW IT WORKS ── */
+  /* â”€â”€ HOW IT WORKS â”€â”€ */
   #how { background: rgba(255,255,255,0.02); }
   .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 2px; background: rgba(201,169,110,0.08); margin-top: 48px; }
   .step { background: var(--deep); padding: 44px 32px; }
@@ -72,7 +72,7 @@
   .step-title { font-family: 'Cormorant Garamond', serif; font-size: 1.2rem; margin-bottom: 10px; }
   .step-desc { font-size: 0.8rem; color: var(--muted); line-height: 1.7; }
 
-  /* ── DESTINATIONS ── */
+  /* â”€â”€ DESTINATIONS â”€â”€ */
   #destinations { }
   .dest-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 32px; margin-top: 48px; }
   .dest-card { position: relative; overflow: hidden; }
@@ -82,7 +82,7 @@
   .dest-name { font-family: 'Cormorant Garamond', serif; font-size: 1.6rem; margin-bottom: 4px; }
   .dest-distance { font-size: 0.72rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gold); }
 
-  /* ── FLEET ── */
+  /* â”€â”€ FLEET â”€â”€ */
   #fleet { background: rgba(255,255,255,0.02); border-top: 1px solid rgba(201,169,110,0.12); }
   .fleet-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 24px; margin-top: 48px; }
   .fleet-card { border: 1px solid rgba(201,169,110,0.18); padding: 36px 28px; text-align: center; transition: border-color 0.3s; }
@@ -92,7 +92,7 @@
   .fleet-desc { font-size: 0.78rem; color: var(--muted); line-height: 1.6; margin-bottom: 16px; }
   .fleet-seats { font-size: 0.7rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gold); }
 
-  /* ── CAR GALLERY ── */
+  /* â”€â”€ CAR GALLERY â”€â”€ */
   #car-gallery { border-top: 1px solid rgba(201,169,110,0.12); }
   .car-gallery-grid {
     display: grid;
@@ -141,7 +141,7 @@
   .car-gallery-item:hover .car-gallery-zoom { opacity: 1; }
   .car-gallery-zoom svg { width: 14px; height: 14px; stroke: var(--gold); }
 
-  /* ── CAR LIGHTBOX ── */
+  /* â”€â”€ CAR LIGHTBOX â”€â”€ */
   .car-lightbox {
     display: none; position: fixed; inset: 0; z-index: 1000;
     background: rgba(5,15,10,0.95); align-items: center; justify-content: center;
@@ -170,7 +170,7 @@
   .car-lb-prev { left: -60px; }
   .car-lb-next { right: -60px; }
 
-  /* ── PRICING ── */
+  /* â”€â”€ PRICING â”€â”€ */
   #pricing { border-top: 1px solid rgba(201,169,110,0.12); }
   .pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 24px; margin-top: 48px; }
   .pricing-card { border: 1px solid rgba(201,169,110,0.18); padding: 36px 28px; text-align: center; }
@@ -178,7 +178,7 @@
   .pricing-amount { font-family: 'Cormorant Garamond', serif; font-size: 2rem; margin-bottom: 8px; }
   .pricing-note { font-size: 0.72rem; color: var(--muted); }
 
-  /* ── BOOKING CTA ── */
+  /* â”€â”€ BOOKING CTA â”€â”€ */
   #book {
     background: linear-gradient(135deg, rgba(201,169,110,0.08) 0%, rgba(15,35,24,0.6) 100%);
     border-top: 1px solid rgba(201,169,110,0.15);
@@ -187,7 +187,7 @@
   #book h2 { font-family: 'Cormorant Garamond', serif; font-size: clamp(2rem, 4vw, 3.2rem); font-weight: 300; margin-bottom: 16px; }
   #book p { color: var(--muted); max-width: 500px; margin: 0 auto 36px; line-height: 1.7; }
 
-  /* ── FOOTER ── */
+  /* â”€â”€ FOOTER â”€â”€ */
   footer { padding: 40px 80px; border-top: 1px solid rgba(201,169,110,0.12); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; }
   .footer-logo { font-family: 'Cormorant Garamond', serif; font-size: 1.2rem; color: var(--gold); letter-spacing: 0.15em; }
   .footer-links { display: flex; gap: 28px; }
@@ -209,7 +209,7 @@
 <!-- NAV -->
 <nav>
   <a class="nav-logo" href="/">
-    <img src="logo/eden 54 logo.jpeg" alt="Eden 54">
+    <img src="/logo/eden 54 logo.jpeg" alt="Eden 54">
     <span>Eden 54</span>
   </a>
   <ul class="nav-links">
@@ -226,9 +226,9 @@
 <section class="hero">
   <div class="hero-bg"></div>
   <div class="hero-content">
-    <p class="eyebrow">Eden 54 · Chauffeured Car Service</p>
+    <p class="eyebrow">Eden 54 Â· Chauffeured Car Service</p>
     <h1>We Drive You<br>in <em>Style</em></h1>
-    <p>Every car comes with a dedicated driver. Just tell us where you want to go — we'll get you there and back safely, comfortably, and on time.</p>
+    <p>Every car comes with a dedicated driver. Just tell us where you want to go â€” we'll get you there and back safely, comfortably, and on time.</p>
     <a href="#destinations" class="btn-gold">View Destinations</a>
   </div>
 </section>
@@ -242,7 +242,7 @@
     <div class="step">
       <div class="step-num">01</div>
       <div class="step-title">Tell Us Where to Go</div>
-      <div class="step-desc">Choose from our popular destinations or name any location. Our drivers know Osun State well — custom routes are no problem.</div>
+      <div class="step-desc">Choose from our popular destinations or name any location. Our drivers know Osun State well â€” custom routes are no problem.</div>
     </div>
     <div class="step">
       <div class="step-num">02</div>
@@ -252,7 +252,7 @@
     <div class="step">
       <div class="step-num">03</div>
       <div class="step-title">Your Driver Comes to You</div>
-      <div class="step-desc">Your dedicated driver arrives at Eden 54 at your agreed time. Sit back, relax, and enjoy the journey — no navigation needed.</div>
+      <div class="step-desc">Your dedicated driver arrives at Eden 54 at your agreed time. Sit back, relax, and enjoy the journey â€” no navigation needed.</div>
     </div>
     <div class="step">
       <div class="step-num">04</div>
@@ -279,14 +279,14 @@
       <img src="explore/Osun-grove.jpg" alt="Osun Sacred Grove">
       <div class="dest-overlay">
         <div class="dest-name">Osun Sacred Grove</div>
-        <div class="dest-distance">Osogbo · UNESCO World Heritage Site</div>
+        <div class="dest-distance">Osogbo Â· UNESCO World Heritage Site</div>
       </div>
     </div>
     <div class="dest-card">
-      <img src="venue/Eden54 front view.jpg" alt="Custom Route">
+      <img src="/venue/Eden54 front view.jpg" alt="Custom Route">
       <div class="dest-overlay">
         <div class="dest-name">Custom Destination</div>
-        <div class="dest-distance">Tell us where — we'll make it happen</div>
+        <div class="dest-distance">Tell us where â€” we'll make it happen</div>
       </div>
     </div>
   </div>
@@ -294,27 +294,27 @@
 
 <!-- FLEET -->
 <section id="fleet">
-  <p class="section-eyebrow">Our Vehicles · All with Dedicated Drivers</p>
+  <p class="section-eyebrow">Our Vehicles Â· All with Dedicated Drivers</p>
   <h2 class="section-title">The <em>Fleet</em></h2>
   <div class="divider"></div>
   <div class="fleet-grid">
     <div class="fleet-card">
-      <div class="fleet-icon">🚗</div>
+      <div class="fleet-icon">ðŸš—</div>
       <div class="fleet-type">Saloon Car</div>
       <div class="fleet-desc">Clean, air-conditioned, and driven by a dedicated driver. Perfect for solo travellers, couples, or a quick trip around Ilesa.</div>
-      <div class="fleet-seats">Up to 3 passengers · Driver included</div>
+      <div class="fleet-seats">Up to 3 passengers Â· Driver included</div>
     </div>
     <div class="fleet-card">
-      <div class="fleet-icon">🚙</div>
+      <div class="fleet-icon">ðŸš™</div>
       <div class="fleet-type">SUV</div>
-      <div class="fleet-desc">Spacious and smooth for families or small groups heading out on longer journeys across Osun State — your driver handles the road.</div>
-      <div class="fleet-seats">Up to 5 passengers · Driver included</div>
+      <div class="fleet-desc">Spacious and smooth for families or small groups heading out on longer journeys across Osun State â€” your driver handles the road.</div>
+      <div class="fleet-seats">Up to 5 passengers Â· Driver included</div>
     </div>
     <div class="fleet-card">
-      <div class="fleet-icon">🚐</div>
+      <div class="fleet-icon">ðŸš</div>
       <div class="fleet-type">Mini Bus</div>
       <div class="fleet-desc">Ideal for larger groups, corporate outings, and event transfers. One driver, everyone travels together comfortably.</div>
-      <div class="fleet-seats">Up to [X] passengers · Driver included</div>
+      <div class="fleet-seats">Up to [X] passengers Â· Driver included</div>
     </div>
   </div>
 </section>
@@ -326,8 +326,8 @@
   <div class="divider"></div>
   <div class="car-gallery-grid">
 
-    <!-- Car 1 — featured (spans 2 columns) -->
-    <div class="car-gallery-item" data-label="Saloon Car" data-sub="Up to 3 passengers" data-src="cars/car1.jpg">
+    <!-- Car 1 â€” featured (spans 2 columns) -->
+    <div class="car-gallery-item" data-label="Saloon Car" data-sub="Up to 3 passengers" data-src="/cars/car1.jpg">
       <!-- Replace src with actual car photo: cars/car1.jpg -->
       <div class="car-gallery-placeholder">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M5 17H3a2 2 0 01-2-2v-4l3-6h14l3 6v4a2 2 0 01-2 2h-2"/><circle cx="7.5" cy="17.5" r="2.5"/><circle cx="16.5" cy="17.5" r="2.5"/></svg>
@@ -343,7 +343,7 @@
     </div>
 
     <!-- Car 2 -->
-    <div class="car-gallery-item" data-label="SUV" data-sub="Up to 5 passengers" data-src="cars/car2.jpg">
+    <div class="car-gallery-item" data-label="SUV" data-sub="Up to 5 passengers" data-src="/cars/car2.jpg">
       <div class="car-gallery-placeholder">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M5 17H3a2 2 0 01-2-2v-4l3-6h14l3 6v4a2 2 0 01-2 2h-2"/><circle cx="7.5" cy="17.5" r="2.5"/><circle cx="16.5" cy="17.5" r="2.5"/></svg>
         <span>Add Car Photo</span>
@@ -358,7 +358,7 @@
     </div>
 
     <!-- Car 3 -->
-    <div class="car-gallery-item" data-label="Mini Bus" data-sub="Group travel" data-src="cars/car3.jpg">
+    <div class="car-gallery-item" data-label="Mini Bus" data-sub="Group travel" data-src="/cars/car3.jpg">
       <div class="car-gallery-placeholder">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M5 17H3a2 2 0 01-2-2v-4l3-6h14l3 6v4a2 2 0 01-2 2h-2"/><circle cx="7.5" cy="17.5" r="2.5"/><circle cx="16.5" cy="17.5" r="2.5"/></svg>
         <span>Add Car Photo</span>
@@ -373,7 +373,7 @@
     </div>
 
     <!-- Car 4 -->
-    <div class="car-gallery-item" data-label="Interior" data-sub="Premium cabin" data-src="cars/car4.jpg">
+    <div class="car-gallery-item" data-label="Interior" data-sub="Premium cabin" data-src="/cars/car4.jpg">
       <div class="car-gallery-placeholder">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M5 17H3a2 2 0 01-2-2v-4l3-6h14l3 6v4a2 2 0 01-2 2h-2"/><circle cx="7.5" cy="17.5" r="2.5"/><circle cx="16.5" cy="17.5" r="2.5"/></svg>
         <span>Add Interior Photo</span>
@@ -388,7 +388,7 @@
     </div>
 
     <!-- Car 5 -->
-    <div class="car-gallery-item" data-label="On the Road" data-sub="Osun State routes" data-src="cars/car5.jpg">
+    <div class="car-gallery-item" data-label="On the Road" data-sub="Osun State routes" data-src="/cars/car5.jpg">
       <div class="car-gallery-placeholder">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M5 17H3a2 2 0 01-2-2v-4l3-6h14l3 6v4a2 2 0 01-2 2h-2"/><circle cx="7.5" cy="17.5" r="2.5"/><circle cx="16.5" cy="17.5" r="2.5"/></svg>
         <span>Add Photo</span>
@@ -403,7 +403,7 @@
     </div>
 
     <!-- Car 6 -->
-    <div class="car-gallery-item" data-label="Airport Transfer" data-sub="Pickup & drop-off" data-src="cars/car6.jpg">
+    <div class="car-gallery-item" data-label="Airport Transfer" data-sub="Pickup & drop-off" data-src="/cars/car6.jpg">
       <div class="car-gallery-placeholder">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M5 17H3a2 2 0 01-2-2v-4l3-6h14l3 6v4a2 2 0 01-2 2h-2"/><circle cx="7.5" cy="17.5" r="2.5"/><circle cx="16.5" cy="17.5" r="2.5"/></svg>
         <span>Add Photo</span>
@@ -423,9 +423,9 @@
 <!-- CAR LIGHTBOX -->
 <div class="car-lightbox" id="carLightbox">
   <div class="car-lightbox-inner">
-    <button class="car-lightbox-close" id="carLbClose">✕</button>
-    <button class="car-lightbox-nav car-lb-prev" id="carLbPrev">‹</button>
-    <button class="car-lightbox-nav car-lb-next" id="carLbNext">›</button>
+    <button class="car-lightbox-close" id="carLbClose">âœ•</button>
+    <button class="car-lightbox-nav car-lb-prev" id="carLbPrev">â€¹</button>
+    <button class="car-lightbox-nav car-lb-next" id="carLbNext">â€º</button>
     <img src="" alt="" id="carLbImg">
     <div class="car-lightbox-caption">
       <div class="car-lightbox-caption-name" id="carLbLabel"></div>
@@ -442,23 +442,23 @@
   <div class="pricing-grid">
     <div class="pricing-card">
       <div class="pricing-route">Erin-Ijesha Waterfall</div>
-      <div class="pricing-amount">₦[price]</div>
-      <div class="pricing-note">Return trip · dedicated driver</div>
+      <div class="pricing-amount">â‚¦[price]</div>
+      <div class="pricing-note">Return trip Â· dedicated driver</div>
     </div>
     <div class="pricing-card">
       <div class="pricing-route">Osun Sacred Grove</div>
-      <div class="pricing-amount">₦[price]</div>
-      <div class="pricing-note">Return trip · dedicated driver</div>
+      <div class="pricing-amount">â‚¦[price]</div>
+      <div class="pricing-note">Return trip Â· dedicated driver</div>
     </div>
     <div class="pricing-card">
       <div class="pricing-route">Airport Transfer</div>
-      <div class="pricing-amount">₦[price]</div>
-      <div class="pricing-note">One way · dedicated driver</div>
+      <div class="pricing-amount">â‚¦[price]</div>
+      <div class="pricing-note">One way Â· dedicated driver</div>
     </div>
     <div class="pricing-card">
       <div class="pricing-route">Full Day Hire</div>
-      <div class="pricing-amount">₦[price]</div>
-      <div class="pricing-note">8 hours · dedicated driver</div>
+      <div class="pricing-amount">â‚¦[price]</div>
+      <div class="pricing-note">8 hours Â· dedicated driver</div>
     </div>
   </div>
 </section>
@@ -467,7 +467,7 @@
 <section id="book">
   <p class="section-eyebrow">Book a Ride</p>
   <h2>Where Are We<br>Taking You <em>Today?</em></h2>
-  <p>Every booking includes a dedicated driver. Just tell us your destination and preferred time — we handle everything from there. Available to Eden 54 guests; booking at least 24 hours in advance is recommended.</p>
+  <p>Every booking includes a dedicated driver. Just tell us your destination and preferred time â€” we handle everything from there. Available to Eden 54 guests; booking at least 24 hours in advance is recommended.</p>
   <a href="/#contact" class="btn-gold">Book Now</a>
 </section>
 
@@ -479,7 +479,7 @@
     <a href="/barbing">Barbing Salon</a>
     <a href="/games">Games</a>
   </div>
-  <div class="footer-copy">© 2026 Eden 54 · Ilesa, Osun State</div>
+  <div class="footer-copy">Â© 2026 Eden 54 Â· Ilesa, Osun State</div>
 </footer>
 
 <script>
@@ -536,3 +536,4 @@
 </script>
 </body>
 </html>
+
