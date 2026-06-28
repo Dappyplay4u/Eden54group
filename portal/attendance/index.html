@@ -6,6 +6,15 @@
 <link rel="icon" type="image/jpeg" href="/logo/eden 54 logo.jpeg">
 <link href="https://fonts.googleapis.com/css2?family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/portal/portal.css">
+<style>
+.att-row{display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1px solid var(--border);gap:10px;flex-wrap:wrap;}
+.att-row:last-child{border-bottom:none;}
+.att-name{min-width:130px;}
+.att-name strong{font-size:0.85rem;font-weight:400;display:block;}
+.att-name small{font-size:0.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;}
+.att-radios{display:flex;gap:14px;flex-wrap:wrap;}
+.att-radios label{display:flex;align-items:center;gap:5px;cursor:pointer;font-size:0.8rem;white-space:nowrap;user-select:none;}
+</style>
 </head>
 <body>
 <div class="sb-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
@@ -24,7 +33,7 @@
     <a href="/portal/attendance/" class="sb-item active"><i class="sb-icon">👥</i> Attendance</a>
     <a href="/portal/payroll/" class="sb-item"><i class="sb-icon">💵</i> Payroll</a>
     <div class="sb-section">Admin</div>
-    <a href="/portal/staff/" class="sb-item"><i class="sb-icon">👤</i> Staff</a>
+    <a href="/portal/staff/" class="sb-item"><i class="sb-icon">👤</i> Manage Staff</a>
   </nav>
   <div class="sb-foot"><div id="sidebarUser"></div><a class="sb-item" onclick="switchProfile()" style="cursor:pointer"><i class="sb-icon">🔄</i> Switch Profile</a></div>
 </aside>
@@ -39,21 +48,25 @@
   </div>
   <div class="content">
     <div id="alertBox" class="alert"></div>
+
     <div class="g2">
+      <!-- Mark Attendance -->
       <div class="card">
         <div class="section-head">
           <h2>Mark Attendance</h2>
           <div style="display:flex;gap:8px;align-items:center">
-            <input type="date" id="attDate" class="form-control" style="width:150px">
-            <button class="btn btn-outline btn-sm" onclick="loadAttForm()">Load</button>
+            <input type="date" id="attDate" class="form-control" style="width:148px" onchange="loadAttForm()">
           </div>
         </div>
-        <div id="attForm"><p class="text-muted" style="font-size:0.85rem">Select a date and click Load.</p></div>
+        <div id="attForm">
+          <p class="text-muted" style="font-size:0.85rem;padding:8px 0">Loading staff list…</p>
+        </div>
         <div id="attSaveWrap" style="display:none;margin-top:18px">
           <button class="btn btn-gold" onclick="saveAttendance()" style="width:100%">Save Attendance</button>
         </div>
       </div>
 
+      <!-- Monthly Summary -->
       <div class="card">
         <div class="section-head"><h2>Monthly Summary</h2></div>
         <div class="form-group" style="margin-bottom:16px">
@@ -69,7 +82,8 @@
       </div>
     </div>
 
-    <div class="card mt24">
+    <!-- Recent Records -->
+    <div class="card" style="margin-top:24px">
       <div class="section-head"><h2>Recent Records</h2></div>
       <div class="tbl-wrap">
         <table>
@@ -87,42 +101,73 @@
 <script>
 const currentStaff = getStaff();
 populateSidebar(currentStaff);
-document.getElementById('attDate').value = todayStr();
-document.getElementById('monthFilter').value = todayStr().slice(0,7);
-document.getElementById('topDate').textContent = new Date().toLocaleDateString('en-NG',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+document.getElementById('topDate').textContent =
+  new Date().toLocaleDateString('en-NG',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+document.getElementById('attDate').value      = todayStr();
+document.getElementById('monthFilter').value  = todayStr().slice(0, 7);
 
 let allStaff = [];
 
 async function init() {
-  const snap = await db.collection('staff').where('active','==',true).orderBy('name').get();
-  snap.forEach(d => allStaff.push({ id: d.id, ...d.data() }));
-  loadHistory(); loadMonthlySummary();
+  try {
+    // Simple orderBy('name') only — no composite index needed
+    const snap = await db.collection('staff').orderBy('name').get();
+    snap.forEach(d => {
+      const s = { id: d.id, ...d.data() };
+      if (s.active !== false) allStaff.push(s); // filter inactive client-side
+    });
+    await loadAttForm();   // auto-load today
+    loadHistory();
+    loadMonthlySummary();
+  } catch(e) {
+    document.getElementById('attForm').innerHTML =
+      `<p style="color:#fca5a5;font-size:0.85rem">Could not load staff: ${e.message}</p>`;
+  }
 }
 
 async function loadAttForm() {
   const date = document.getElementById('attDate').value;
   if (!date) return;
-  const snap = await db.collection('attendance').doc(date).get();
-  const existing = snap.exists ? snap.data().records || [] : [];
-  const existMap = {};
-  existing.forEach(r => existMap[r.staffId] = r.status);
   const form = document.getElementById('attForm');
-  if (!allStaff.length) { form.innerHTML = '<p class="text-muted">No staff found. Add staff first.</p>'; return; }
+
+  if (!allStaff.length) {
+    form.innerHTML = `<p class="text-muted" style="font-size:0.85rem">No staff found.
+      <a href="/portal/staff/" style="color:var(--gold);text-decoration:underline">Go to Manage Staff</a>
+      to add your team first.</p>`;
+    document.getElementById('attSaveWrap').style.display = 'none';
+    return;
+  }
+
+  // Load any existing record for this date
+  let existMap = {};
+  try {
+    const snap = await db.collection('attendance').doc(date).get();
+    if (snap.exists) (snap.data().records || []).forEach(r => existMap[r.staffId] = r.status);
+  } catch(e) {}
+
   form.innerHTML = allStaff.map(s => {
     const cur = existMap[s.id] || 'Present';
-    const rb = (val, label, color) => `<label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:0.8rem;white-space:nowrap"><input type="radio" name="att_${s.id}" value="${val}" ${cur===val?'checked':''} style="accent-color:${color}"> ${label}</label>`;
-    return `<div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid #f0f0ec;gap:10px;flex-wrap:wrap">
-      <span style="font-size:0.85rem;min-width:120px"><strong>${s.name}</strong><br><span class="text-muted" style="font-size:0.7rem">${s.department}</span></span>
-      <div style="display:flex;gap:12px;flex-wrap:wrap">
-        ${rb('Present','Present','#16a34a')}${rb('Absent','Absent','#dc2626')}${rb('Late','Late','#d97706')}${rb('Leave','Leave','#6366f1')}
+    const radio = (val, label, color) =>
+      `<label><input type="radio" name="att_${s.id}" value="${val}" ${cur===val?'checked':''} style="accent-color:${color}"> ${label}</label>`;
+    return `<div class="att-row">
+      <div class="att-name"><strong>${s.name}</strong><small>${s.department}</small></div>
+      <div class="att-radios">
+        ${radio('Present','Present','#16a34a')}
+        ${radio('Absent','Absent','#dc2626')}
+        ${radio('Late','Late','#d97706')}
+        ${radio('Leave','Leave','#6366f1')}
       </div>
     </div>`;
   }).join('');
+
   document.getElementById('attSaveWrap').style.display = 'block';
 }
 
 async function saveAttendance() {
   const date = document.getElementById('attDate').value;
+  if (!date || !allStaff.length) return;
+  const btn = document.querySelector('#attSaveWrap .btn');
+  btn.disabled = true; btn.textContent = 'Saving…';
   const records = allStaff.map(s => {
     const checked = document.querySelector(`input[name="att_${s.id}"]:checked`);
     return { staffId: s.id, staffName: s.name, department: s.department, status: checked?.value || 'Present' };
@@ -132,35 +177,78 @@ async function saveAttendance() {
       date, records, markedBy: currentStaff.name,
       markedAt: firebase.firestore.FieldValue.serverTimestamp()
     });
-    showAlert('alertBox','Attendance saved!','alert-success');
-    loadHistory(); loadMonthlySummary();
-  } catch(e) { showAlert('alertBox','Error saving.','alert-error'); }
+    showAlert('alertBox', 'Attendance saved for ' + date + '!', 'alert-success');
+    loadHistory();
+    loadMonthlySummary();
+  } catch(e) {
+    showAlert('alertBox', 'Error saving: ' + e.message, 'alert-error');
+  }
+  btn.disabled = false; btn.textContent = 'Save Attendance';
 }
 
 async function loadHistory() {
-  const snap = await db.collection('attendance').orderBy('markedAt','desc').limit(14).get();
   const tbody = document.getElementById('histTable');
-  tbody.innerHTML = snap.empty
-    ? '<tr><td colspan="6" style="text-align:center;padding:16px;color:#6a6b62">No records yet.</td></tr>'
-    : snap.docs.map(d => {
-        const a = d.data(), r = a.records || [];
-        const cnt = st => r.filter(x => x.status === st).length;
-        return `<tr><td class="fw4">${a.date}</td><td><span class="badge badge-ok">${cnt('Present')}</span></td><td><span class="badge badge-err">${cnt('Absent')}</span></td><td><span class="badge badge-warn">${cnt('Late')}</span></td><td><span class="badge badge-purple">${cnt('Leave')}</span></td><td>${a.markedBy||'—'}</td></tr>`;
-      }).join('');
+  try {
+    // Avoid orderBy on markedAt (needs index) — fetch and sort client-side
+    const snap = await db.collection('attendance').get();
+    if (snap.empty) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:16px;color:#6a6b62">No records yet.</td></tr>';
+      return;
+    }
+    const docs = snap.docs
+      .map(d => d.data())
+      .filter(d => d.date)
+      .sort((a, b) => b.date.localeCompare(a.date))
+      .slice(0, 14);
+    tbody.innerHTML = docs.map(a => {
+      const r = a.records || [];
+      const cnt = st => r.filter(x => x.status === st).length;
+      return `<tr>
+        <td class="fw4">${a.date}</td>
+        <td><span class="badge badge-ok">${cnt('Present')}</span></td>
+        <td><span class="badge badge-err">${cnt('Absent')}</span></td>
+        <td><span class="badge badge-warn">${cnt('Late')}</span></td>
+        <td><span class="badge badge-purple">${cnt('Leave')}</span></td>
+        <td>${a.markedBy || '—'}</td>
+      </tr>`;
+    }).join('');
+  } catch(e) {
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:16px;color:#fca5a5">Error loading history.</td></tr>`;
+  }
 }
 
 async function loadMonthlySummary() {
   const month = document.getElementById('monthFilter').value;
-  if (!month || !allStaff.length) return;
-  const snap = await db.collection('attendance').where('date','>=',month+'-01').where('date','<=',month+'-31').get();
-  const counts = {};
-  allStaff.forEach(s => counts[s.id] = { name: s.name, Present:0, Absent:0, Late:0, Leave:0 });
-  snap.forEach(d => (d.data().records||[]).forEach(r => { if (counts[r.staffId]) counts[r.staffId][r.status] = (counts[r.staffId][r.status]||0)+1; }));
+  if (!month) return;
   const tbody = document.getElementById('monthTable');
-  const rows = Object.values(counts);
-  tbody.innerHTML = rows.length
-    ? rows.map(r => `<tr><td class="fw4">${r.name}</td><td><span class="badge badge-ok">${r.Present}</span></td><td><span class="badge badge-err">${r.Absent}</span></td><td><span class="badge badge-warn">${r.Late}</span></td><td><span class="badge badge-purple">${r.Leave}</span></td></tr>`).join('')
-    : '<tr><td colspan="5" style="text-align:center;padding:16px;color:#6a6b62">No data.</td></tr>';
+  try {
+    const snap = await db.collection('attendance')
+      .where('date', '>=', month + '-01')
+      .where('date', '<=', month + '-31')
+      .get();
+    if (snap.empty || !allStaff.length) {
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:16px;color:#6a6b62">No data for this month.</td></tr>';
+      return;
+    }
+    const counts = {};
+    allStaff.forEach(s => counts[s.id] = { name: s.name, Present:0, Absent:0, Late:0, Leave:0 });
+    snap.forEach(d => {
+      (d.data().records || []).forEach(r => {
+        if (counts[r.staffId]) counts[r.staffId][r.status] = (counts[r.staffId][r.status]||0) + 1;
+      });
+    });
+    tbody.innerHTML = Object.values(counts).map(r =>
+      `<tr>
+        <td class="fw4">${r.name}</td>
+        <td><span class="badge badge-ok">${r.Present}</span></td>
+        <td><span class="badge badge-err">${r.Absent}</span></td>
+        <td><span class="badge badge-warn">${r.Late}</span></td>
+        <td><span class="badge badge-purple">${r.Leave}</span></td>
+      </tr>`
+    ).join('');
+  } catch(e) {
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:16px;color:#fca5a5">Error loading summary.</td></tr>`;
+  }
 }
 
 init();
