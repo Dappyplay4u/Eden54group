@@ -12,20 +12,7 @@
 <aside class="sidebar" id="sidebar">
   <div class="sb-brand"><div class="sb-brand-name">Eden 54</div><div class="sb-brand-sub">Staff Portal</div></div>
   <nav class="sb-nav">
-    <div class="sb-section">Main</div>
-    <a href="/portal/home/" class="sb-item"><i class="sb-icon">🏠</i> My Home</a>
-    <a href="/portal/dashboard/" class="sb-item mgr-only" style="display:none"><i class="sb-icon">📊</i> Dashboard</a>
-    <div class="sb-section">Daily Reports</div>
-    <a href="/portal/sales/" class="sb-item"><i class="sb-icon">💰</i> Daily Sales</a>
-    <a href="/portal/bar/" class="sb-item"><i class="sb-icon">🍺</i> Bar Stock</a>
-    <a href="/portal/kitchen/" class="sb-item"><i class="sb-icon">🍽️</i> Kitchen</a>
-    <a href="/portal/barbing/" class="sb-item"><i class="sb-icon">💈</i> Barbing</a>
-    <a href="/portal/pool/" class="sb-item active"><i class="sb-icon">🏊</i> Pool</a>
-    <div class="sb-section mgr-only" style="display:none">HR</div>
-    <a href="/portal/attendance/" class="sb-item mgr-only" style="display:none"><i class="sb-icon">👥</i> Attendance</a>
-    <a href="/portal/payroll/" class="sb-item mgr-only" style="display:none"><i class="sb-icon">💵</i> Payroll</a>
-    <div class="sb-section mgr-only" style="display:none">Admin</div>
-    <a href="/portal/staff/" class="sb-item mgr-only" style="display:none"><i class="sb-icon">👤</i> Manage Staff</a>
+    <nav class="sb-nav" id="sbNav"></nav>
   </nav>
   <div class="sb-foot"><div id="sidebarUser"></div><a class="sb-item" onclick="switchProfile()" style="cursor:pointer"><i class="sb-icon">🔄</i> Switch Profile</a></div>
 </aside>
@@ -109,10 +96,9 @@
 <script>
 let matchCount = 0;
 const currentStaff = getStaff();
+requireAccess(currentStaff, 'pool');
 populateSidebar(currentStaff);
-if (currentStaff.role === 'manager') {
-  document.querySelectorAll('.mgr-only').forEach(el => el.style.display = el.tagName === 'A' ? 'flex' : 'block');
-}
+buildNav(currentStaff, 'pool');
 document.getElementById('poolDate').value = todayStr();
 document.getElementById('topDate').textContent = new Date().toLocaleDateString('en-NG',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
 
