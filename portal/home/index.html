@@ -95,6 +95,7 @@
         <div class="clock-timer" id="clockTimer"></div>
         <button class="btn btn-cin" id="cinBtn" onclick="clockIn()" style="display:none">Clock In</button>
         <button class="btn btn-cout" id="coutBtn" onclick="clockOut()" style="display:none">Clock Out</button>
+        <div id="geoStatus" style="font-size:0.7rem;letter-spacing:0.08em;text-align:center;margin-top:4px"></div>
       </div>
     </div>
 
@@ -212,19 +213,47 @@ function setClockUI(state, data = {}) {
   }
 }
 
+async function resolveGeo() {
+  const geoEl = document.getElementById('geoStatus');
+  geoEl.style.color = 'rgba(245,242,236,0.4)';
+  geoEl.textContent = 'Getting location…';
+  const loc = await captureLocation();
+  if (!loc) {
+    geoEl.style.color = '#fca5a5';
+    geoEl.textContent = 'Location unavailable';
+    return { loc: null, atFacility: false, distanceMeters: null };
+  }
+  const dist   = Math.round(haversineDistance(FACILITY.lat, FACILITY.lng, loc.lat, loc.lng));
+  const atFacility = dist <= CLOCK_RADIUS_METERS;
+  if (atFacility) {
+    geoEl.style.color = '#4ade80';
+    geoEl.textContent = 'At facility · ' + dist + 'm';
+  } else {
+    geoEl.style.color = '#fbbf24';
+    geoEl.textContent = 'Remote · ' + dist + 'm away';
+  }
+  return { loc, atFacility, distanceMeters: dist };
+}
+
 async function clockIn() {
   const btn = document.getElementById('cinBtn');
-  btn.disabled = true; btn.textContent = 'Clocking in…';
+  btn.disabled = true; btn.textContent = 'Getting location…';
+  const { loc, atFacility, distanceMeters } = await resolveGeo();
+  btn.textContent = 'Clocking in…';
   try {
     const now = firebase.firestore.Timestamp.now();
     await db.collection('clockings').doc(clockDocId).set({
       date: today, staffId: staff.id, staffName: staff.name, department: staff.department,
-      clockIn: now, clockOut: null
+      clockIn: now, clockOut: null,
+      clockInLocation: loc
+        ? { lat: loc.lat, lng: loc.lng, accuracy: loc.accuracy, distanceMeters, atFacility }
+        : null
     });
     clockInTime = now.toDate();
     setClockUI('in', { inTime: clockInTime });
     startTimer(clockInTime);
-    showAlert('alertBox', 'Clocked in at ' + fmtTime(clockInTime), 'alert-success');
+    const locNote = loc ? (atFacility ? ' · At facility' : ' · Remote (' + distanceMeters + 'm away)') : ' · Location not captured';
+    showAlert('alertBox', 'Clocked in at ' + fmtTime(clockInTime) + locNote, atFacility ? 'alert-success' : 'alert-warn');
   } catch(e) {
     showAlert('alertBox', 'Clock in failed. Check your connection.', 'alert-error');
     btn.disabled = false; btn.textContent = 'Clock In';
@@ -233,16 +262,24 @@ async function clockIn() {
 
 async function clockOut() {
   const btn = document.getElementById('coutBtn');
-  btn.disabled = true; btn.textContent = 'Clocking out…';
+  btn.disabled = true; btn.textContent = 'Getting location…';
+  const { loc, atFacility, distanceMeters } = await resolveGeo();
+  btn.textContent = 'Clocking out…';
   try {
     const now = firebase.firestore.Timestamp.now();
-    await db.collection('clockings').doc(clockDocId).update({ clockOut: now });
+    await db.collection('clockings').doc(clockDocId).update({
+      clockOut: now,
+      clockOutLocation: loc
+        ? { lat: loc.lat, lng: loc.lng, accuracy: loc.accuracy, distanceMeters, atFacility }
+        : null
+    });
     clearInterval(timerInt);
     document.getElementById('clockTimer').textContent = '';
     const dur = calcDur(clockInTime, now.toDate());
     setClockUI('done', { inTime: clockInTime, outTime: now.toDate(), dur });
     document.getElementById('hoursWorked').textContent = dur;
-    showAlert('alertBox', 'Clocked out. ' + dur + ' worked today.', 'alert-success');
+    const locNote = loc ? (atFacility ? ' · At facility' : ' · Remote (' + distanceMeters + 'm away)') : '';
+    showAlert('alertBox', 'Clocked out. ' + dur + ' worked today.' + locNote, atFacility ? 'alert-success' : 'alert-warn');
   } catch(e) {
     showAlert('alertBox', 'Clock out failed. Check your connection.', 'alert-error');
     btn.disabled = false; btn.textContent = 'Clock Out';

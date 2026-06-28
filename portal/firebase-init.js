@@ -35,13 +35,47 @@ function populateSidebar(staff) {
  *                          'bar','kitchen','barbing','pool',
  *                          'attendance','payroll','staff'
  */
+/**
+ * Eden 54 facility coordinates.
+ * UPDATE these to the actual GPS coordinates of the property.
+ * Tip: open Google Maps, long-press on the building → copy coordinates.
+ */
+const FACILITY = { lat: 7.6284, lng: 4.7407 }; // Ilesa, Osun — update to exact Eden 54 pin
+const CLOCK_RADIUS_METERS = 300; // staff must be within this distance to clock in/out
+
+function haversineDistance(lat1, lng1, lat2, lng2) {
+  const R = 6371000;
+  const toRad = d => d * Math.PI / 180;
+  const dLat  = toRad(lat2 - lat1);
+  const dLng  = toRad(lng2 - lng1);
+  const a = Math.sin(dLat/2)**2 +
+            Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+async function captureLocation() {
+  return new Promise(resolve => {
+    if (!navigator.geolocation) { resolve(null); return; }
+    navigator.geolocation.getCurrentPosition(
+      p => resolve({
+        lat:      p.coords.latitude,
+        lng:      p.coords.longitude,
+        accuracy: Math.round(p.coords.accuracy)
+      }),
+      () => resolve(null),
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
+  });
+}
+
 function buildNav(staff, active) {
-  const isManager = staff.role === 'manager';
-  const dept      = (staff.department || '').toLowerCase();
+  const isManager    = staff.role === 'manager' || staff.role === 'superadmin';
+  const isSuperAdmin = staff.role === 'superadmin';
+  const dept         = (staff.department || '').toLowerCase();
 
   // What each department is allowed to see in the Reports section
   const canReport = {
-    sales:   true,                                // everyone submits daily sales
+    sales:   true,
     bar:     isManager || dept === 'bar',
     kitchen: isManager || dept === 'kitchen',
     barbing: isManager || dept === 'salon',
@@ -78,12 +112,17 @@ function buildNav(staff, active) {
     html += sec('HR');
     html += a('/portal/attendance/', '👥', 'Attendance',   'attendance');
     html += a('/portal/payroll/',    '💵', 'Payroll',      'payroll');
+    if (isSuperAdmin) html += a('/portal/activity/', '🕵️', 'Staff Activity', 'activity');
     html += sec('Admin');
     html += a('/portal/staff/',      '👤', 'Manage Staff', 'staff');
   }
 
   const nav = document.getElementById('sbNav');
   if (nav) nav.innerHTML = html;
+
+  // Only managers can switch profiles — regular staff stay locked to their own portal
+  const switchBtn = document.querySelector('.sb-foot a[onclick]');
+  if (switchBtn) switchBtn.style.display = isManager ? '' : 'none';
 }
 
 /**
@@ -91,13 +130,15 @@ function buildNav(staff, active) {
  * Returns false and redirects if access is denied.
  */
 function requireAccess(staff, page) {
-  const isManager = staff.role === 'manager';
-  const dept      = (staff.department || '').toLowerCase();
+  const isManager    = staff.role === 'manager' || staff.role === 'superadmin';
+  const isSuperAdmin = staff.role === 'superadmin';
+  const dept         = (staff.department || '').toLowerCase();
   const rules = {
     dashboard:  isManager,
     staff:      isManager,
     attendance: isManager,
     payroll:    isManager,
+    activity:   isSuperAdmin,
     bar:        isManager || dept === 'bar',
     kitchen:    isManager || dept === 'kitchen',
     barbing:    isManager || dept === 'salon',

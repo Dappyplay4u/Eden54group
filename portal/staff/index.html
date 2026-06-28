@@ -80,6 +80,7 @@
             <select id="sRole" class="form-control">
               <option value="staff">Staff</option>
               <option value="manager">Manager</option>
+              <option value="superadmin">Super Admin (HR)</option>
             </select>
           </div>
           <div class="form-group">
@@ -140,10 +141,18 @@
       </div>
     </div>
 
+    <div class="form-group" style="margin-bottom:14px">
+      <label class="form-label">Display Name</label>
+      <input type="text" id="editDisplayName" class="form-control" placeholder="Name shown on portal">
+    </div>
     <div class="fg2" style="margin-bottom:14px">
       <div class="form-group">
         <label class="form-label">Role</label>
-        <select id="editRole" class="form-control"><option value="staff">Staff</option><option value="manager">Manager</option></select>
+        <select id="editRole" class="form-control">
+          <option value="staff">Staff</option>
+          <option value="manager">Manager</option>
+          <option value="superadmin">Super Admin (HR)</option>
+        </select>
       </div>
       <div class="form-group">
         <label class="form-label">Department</label>
@@ -267,7 +276,7 @@ async function loadStaff() {
       <td style="width:44px">${avatar}</td>
       <td class="fw4">${s.name}</td>
       <td>${s.department}</td>
-      <td><span class="badge badge-${s.role==='manager'?'purple':'info'}">${s.role||'staff'}</span></td>
+      <td><span class="badge badge-${s.role==='superadmin'?'warn':s.role==='manager'?'purple':'info'}">${s.role==='superadmin'?'Super Admin':s.role||'staff'}</span></td>
       <td><span class="badge badge-${s.active!==false?'ok':'err'}">${s.active!==false?'Active':'Inactive'}</span></td>
       <td><button class="btn btn-outline btn-sm" onclick="openEdit('${d.id}')">Edit</button></td>
     </tr>`;
@@ -282,11 +291,12 @@ async function openEdit(id) {
   document.getElementById('editId').value = id;
   document.getElementById('editName').textContent = s.name;
   document.getElementById('editCurrentPhoto').value = s.photoURL || '';
-  document.getElementById('editRole').value   = s.role || 'staff';
-  document.getElementById('editDept').value   = s.department;
-  document.getElementById('editSalary').value = s.basicSalary || 0;
-  document.getElementById('editPhone').value  = s.phone || '';
-  document.getElementById('editActive').value = String(s.active !== false);
+  document.getElementById('editDisplayName').value = s.name || '';
+  document.getElementById('editRole').value         = s.role || 'staff';
+  document.getElementById('editDept').value         = s.department;
+  document.getElementById('editSalary').value       = s.basicSalary || 0;
+  document.getElementById('editPhone').value        = s.phone || '';
+  document.getElementById('editActive').value       = String(s.active !== false);
   document.getElementById('ePhoto').value = '';
   const prev = document.getElementById('editPreview');
   prev.innerHTML = s.photoURL
@@ -296,11 +306,14 @@ async function openEdit(id) {
 }
 
 async function saveEdit() {
-  const id   = document.getElementById('editId').value;
-  const btn  = document.getElementById('saveEditBtn');
+  const id      = document.getElementById('editId').value;
+  const newName = document.getElementById('editDisplayName').value.trim();
+  if (!newName) { showAlert('alertBox','Display name cannot be empty.','alert-error'); return; }
+  const btn = document.getElementById('saveEditBtn');
   btn.disabled = true; btn.textContent = 'Saving…';
   try {
     const updates = {
+      name:        newName,
       role:        document.getElementById('editRole').value,
       department:  document.getElementById('editDept').value,
       basicSalary: +document.getElementById('editSalary').value || 0,
@@ -312,8 +325,16 @@ async function saveEdit() {
       updates.photoURL = await uploadPhoto(file, id, 'editProgress', 'editFill');
     }
     await db.collection('staff').doc(id).update(updates);
+
+    // If editing own profile, update localStorage so sidebar reflects new name immediately
+    if (staff && staff.id === id) {
+      const updated = { ...staff, name: newName, role: updates.role, department: updates.department };
+      setStaff(updated);
+      populateSidebar(updated);
+    }
+
     document.getElementById('editModal').classList.remove('show');
-    showAlert('alertBox','Staff updated.','alert-success');
+    showAlert('alertBox', newName + ' updated successfully.', 'alert-success');
     loadStaff();
   } catch(e) { showAlert('alertBox','Error: ' + e.message,'alert-error'); }
   btn.disabled = false; btn.textContent = 'Save Changes';

@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Staff Activity · Eden 54 Portal</title>
+<link rel="icon" type="image/jpeg" href="/logo/eden 54 logo.jpeg">
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/portal/portal.css">
+<style>
+.act-filters{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;align-items:flex-end;}
+.act-filters .form-group{margin:0;min-width:140px;}
+.clock-row{display:flex;align-items:flex-start;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--border);gap:14px;flex-wrap:wrap;}
+.clock-row:last-child{border-bottom:none;}
+.clock-who{min-width:160px;}
+.clock-who strong{display:block;font-size:0.88rem;font-weight:400;}
+.clock-who small{font-size:0.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;}
+.clock-times{font-size:0.82rem;color:var(--text);flex:1;}
+.clock-times span{display:inline-block;margin-right:16px;color:var(--muted);}
+.clock-times b{color:var(--text);}
+.geo-badge{display:inline-flex;align-items:center;gap:5px;font-size:0.7rem;padding:3px 10px;border-radius:12px;font-weight:400;letter-spacing:0.06em;white-space:nowrap;}
+.geo-ok  {background:#dcfce7;color:#166534;}
+.geo-warn{background:#fef9c3;color:#854d0e;}
+.geo-grey{background:#f3f4f6;color:#6b7280;}
+.dur-badge{font-size:0.78rem;font-weight:400;color:var(--gold);}
+
+.update-row{padding:14px 0;border-bottom:1px solid var(--border);}
+.update-row:last-child{border-bottom:none;}
+.update-who{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+.upd-ini{width:32px;height:32px;border-radius:50%;background:var(--gold);color:var(--deep);display:flex;align-items:center;justify-content:center;font-size:0.68rem;font-weight:500;flex-shrink:0;}
+.upd-body{font-size:0.85rem;line-height:1.6;color:var(--text);white-space:pre-wrap;word-break:break-word;}
+.upd-photos{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;}
+.upd-photos img{width:80px;height:80px;border-radius:6px;object-fit:cover;cursor:pointer;border:1px solid var(--border);}
+
+.lb{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:400;align-items:center;justify-content:center;}
+.lb.open{display:flex;}
+.lb img{max-width:92vw;max-height:90vh;border-radius:6px;}
+.lb-x{position:absolute;top:16px;right:20px;color:#fff;font-size:2rem;cursor:pointer;background:none;border:none;}
+</style>
+</head>
+<body>
+<div class="sb-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+<aside class="sidebar" id="sidebar">
+  <div class="sb-brand"><div class="sb-brand-name">Eden 54</div><div class="sb-brand-sub">Staff Portal</div></div>
+  <nav class="sb-nav" id="sbNav"></nav>
+  <div class="sb-foot">
+    <div id="sidebarUser"></div>
+    <a class="sb-item" onclick="switchProfile()" style="cursor:pointer"><i class="sb-icon">🔄</i> Switch Profile</a>
+  </div>
+</aside>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <button class="hamburger" onclick="toggleSidebar()"><div></div><div></div><div></div></button>
+      <h1>Staff Activity</h1>
+    </div>
+    <div class="topbar-date" id="topDate"></div>
+  </div>
+  <div class="content">
+    <div id="alertBox" class="alert"></div>
+
+    <!-- Filters -->
+    <div class="act-filters">
+      <div class="form-group">
+        <label class="form-label">Date</label>
+        <input type="date" id="filterDate" class="form-control" onchange="loadAll()">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Staff Member</label>
+        <select id="filterStaff" class="form-control" onchange="loadAll()">
+          <option value="">All Staff</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Clock In/Out Records -->
+    <div class="card" style="margin-bottom:24px">
+      <div class="section-head">
+        <h2>Clock Records</h2>
+        <span id="clockSummary" style="font-size:0.78rem;color:var(--muted)"></span>
+      </div>
+      <div id="clockList"><p class="text-muted" style="font-size:0.85rem">Loading…</p></div>
+    </div>
+
+    <!-- All Reports / Updates -->
+    <div class="card">
+      <div class="section-head">
+        <h2>Reports &amp; Updates</h2>
+        <span id="updateSummary" style="font-size:0.78rem;color:var(--muted)"></span>
+      </div>
+      <div id="updateList"><p class="text-muted" style="font-size:0.85rem">Loading…</p></div>
+    </div>
+  </div>
+</div>
+
+<div class="lb" id="lb" onclick="if(event.target===this)this.classList.remove('open')">
+  <button class="lb-x" onclick="document.getElementById('lb').classList.remove('open')">×</button>
+  <img id="lbImg" src="" alt="">
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="/portal/firebase-init.js"></script>
+<script>
+const currentStaff = getStaff();
+requireAccess(currentStaff, 'activity');
+populateSidebar(currentStaff);
+buildNav(currentStaff, 'activity');
+document.getElementById('topDate').textContent =
+  new Date().toLocaleDateString('en-NG',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+document.getElementById('filterDate').value = todayStr();
+
+let allStaff = [];
+
+async function init() {
+  const snap = await db.collection('staff').orderBy('name').get();
+  const sel  = document.getElementById('filterStaff');
+  snap.forEach(d => {
+    const s = { id: d.id, ...d.data() };
+    if (s.active !== false) {
+      allStaff.push(s);
+      sel.innerHTML += `<option value="${s.id}">${s.name} (${s.department})</option>`;
+    }
+  });
+  loadAll();
+}
+
+async function loadAll() {
+  loadClocks();
+  loadUpdates();
+}
+
+/* ── Clock Records ── */
+async function loadClocks() {
+  const date     = document.getElementById('filterDate').value;
+  const staffId  = document.getElementById('filterStaff').value;
+  const el       = document.getElementById('clockList');
+  el.innerHTML   = '<p class="text-muted" style="font-size:0.85rem">Loading…</p>';
+
+  try {
+    let snap;
+    if (staffId) {
+      const docId = date + '_' + staffId;
+      const d     = await db.collection('clockings').doc(docId).get();
+      snap        = d.exists ? [d] : [];
+    } else {
+      // Fetch all clockings for the selected date (doc IDs start with date_)
+      const all  = await db.collection('clockings').get();
+      snap = all.docs.filter(d => d.id.startsWith(date + '_'));
+    }
+
+    document.getElementById('clockSummary').textContent = snap.length + ' record' + (snap.length !== 1 ? 's' : '');
+
+    if (!snap.length) {
+      el.innerHTML = '<p class="text-muted" style="font-size:0.85rem;padding:8px 0">No clock records for this date.</p>';
+      return;
+    }
+
+    el.innerHTML = snap.map(d => {
+      const c = d.data();
+      const inT  = c.clockIn  ? c.clockIn.toDate()  : null;
+      const outT = c.clockOut ? c.clockOut.toDate() : null;
+      const dur  = inT && outT ? calcDur(inT, outT) : null;
+      const geo  = (loc, label) => {
+        if (!loc) return `<span class="geo-badge geo-grey">No location data</span>`;
+        return loc.atFacility
+          ? `<span class="geo-badge geo-ok">At facility · ${loc.distanceMeters}m</span>`
+          : `<span class="geo-badge geo-warn">Remote · ${loc.distanceMeters}m away</span>`;
+      };
+      return `<div class="clock-row">
+        <div class="clock-who"><strong>${c.staffName}</strong><small>${c.department}</small></div>
+        <div class="clock-times">
+          <div style="margin-bottom:6px">
+            <span>Clock In:</span><b>${inT ? fmtTime(inT) : '—'}</b>
+            ${geo(c.clockInLocation, 'In')}
+          </div>
+          <div>
+            <span>Clock Out:</span><b>${outT ? fmtTime(outT) : 'Still clocked in'}</b>
+            ${outT ? geo(c.clockOutLocation, 'Out') : ''}
+          </div>
+        </div>
+        ${dur ? `<div class="dur-badge">${dur} worked</div>` : ''}
+      </div>`;
+    }).join('');
+  } catch(e) {
+    el.innerHTML = `<p style="color:#fca5a5;font-size:0.85rem">Error: ${e.message}</p>`;
+  }
+}
+
+/* ── Reports / Updates ── */
+async function loadUpdates() {
+  const staffId = document.getElementById('filterStaff').value;
+  const date    = document.getElementById('filterDate').value;
+  const el      = document.getElementById('updateList');
+  el.innerHTML  = '<p class="text-muted" style="font-size:0.85rem">Loading…</p>';
+  try {
+    let query = db.collection('updates').orderBy('createdAt', 'desc').limit(50);
+    if (staffId) query = db.collection('updates').where('staffId','==',staffId).orderBy('createdAt','desc').limit(50);
+    const snap = await query.get();
+    // Filter by date client-side
+    const docs = snap.docs.filter(d => {
+      const ts = d.data().createdAt;
+      return ts && ts.toDate().toISOString().startsWith(date);
+    });
+    document.getElementById('updateSummary').textContent = docs.length + ' update' + (docs.length !== 1 ? 's' : '');
+    if (!docs.length) {
+      el.innerHTML = '<p class="text-muted" style="font-size:0.85rem;padding:8px 0">No updates for this date.</p>';
+      return;
+    }
+    el.innerHTML = docs.map(d => {
+      const u  = d.data();
+      const ts = u.createdAt ? u.createdAt.toDate().toLocaleTimeString('en-NG',{hour:'2-digit',minute:'2-digit'}) : '';
+      const pix = (u.photos||[]).length
+        ? `<div class="upd-photos">${u.photos.map(p=>`<img src="${p}" onclick="openLB('${p}')" loading="lazy" alt="">`).join('')}</div>`
+        : '';
+      return `<div class="update-row">
+        <div class="update-who">
+          <div class="upd-ini">${avatarInitials(u.staffName)}</div>
+          <div><strong style="font-size:0.85rem;font-weight:400">${escHtml(u.staffName||'')}</strong>
+               <span style="font-size:0.7rem;color:var(--muted);display:block">${escHtml(u.department||'')} · ${ts}</span></div>
+        </div>
+        ${u.text ? `<div class="upd-body">${escHtml(u.text)}</div>` : ''}
+        ${pix}
+      </div>`;
+    }).join('');
+  } catch(e) {
+    el.innerHTML = `<p style="color:#fca5a5;font-size:0.85rem">Error: ${e.message}</p>`;
+  }
+}
+
+function escHtml(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function openLB(src){ document.getElementById('lbImg').src=src; document.getElementById('lb').classList.add('open'); }
+function fmtTime(d){ return d.toLocaleTimeString('en-NG',{hour:'2-digit',minute:'2-digit'}); }
+function calcDur(start,end){ const d=end-start; return Math.floor(d/3600000)+'h '+String(Math.floor((d%3600000)/60000)).padStart(2,'0')+'m'; }
+
+init();
+</script>
+</body>
+</html>
