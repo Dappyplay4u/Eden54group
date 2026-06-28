@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Eden 54 | Games & Competition</title>
+<link rel="icon" type="image/jpeg" href="logo/eden 54 logo.jpeg">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@200;300;400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --deep: #0f2318;
+    --gold: #C9A96E;
+    --text: #F5F2EC;
+    --muted: rgba(245,242,236,0.55);
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body { background: var(--deep); color: var(--text); font-family: 'Jost', sans-serif; font-weight: 300; }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 48px;
+    background: linear-gradient(to bottom, rgba(15,35,24,0.95), rgba(15,35,24,0));
+  }
+  .nav-logo { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+  .nav-logo img { height: 44px; border-radius: 50%; }
+  .nav-logo span { font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; color: var(--gold); letter-spacing: 0.12em; }
+  .nav-links { display: flex; gap: 32px; list-style: none; align-items: center; }
+  .nav-links a { color: var(--text); text-decoration: none; font-size: 0.78rem; letter-spacing: 0.18em; text-transform: uppercase; opacity: 0.8; transition: opacity 0.2s, color 0.2s; }
+  .nav-links a:hover, .nav-links a.active { opacity: 1; color: var(--gold); }
+  .btn-gold {
+    display: inline-block; padding: 14px 40px;
+    border: 1px solid var(--gold); color: var(--gold);
+    font-family: 'Jost', sans-serif; font-size: 0.75rem; letter-spacing: 0.25em; text-transform: uppercase;
+    text-decoration: none; transition: background 0.3s, color 0.3s;
+  }
+  .btn-gold:hover { background: var(--gold); color: var(--deep); }
+
+  /* ── HERO ── */
+  .hero {
+    position: relative; height: 100vh; display: flex; align-items: flex-end;
+    padding-bottom: 100px;
+  }
+  .hero-video {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    object-fit: cover;
+    z-index: 0;
+    display: block;
+  }
+  .hero-overlay {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 1;
+    background: linear-gradient(to bottom, rgba(15,35,24,0.2) 0%, rgba(15,35,24,0.85) 100%);
+  }
+  .hero-content { position: relative; z-index: 2; padding: 0 80px; }
+  .eyebrow { font-size: 0.72rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--gold); margin-bottom: 16px; }
+  .hero-content h1 { font-family: 'Cormorant Garamond', serif; font-size: clamp(3rem, 6vw, 5.5rem); font-weight: 300; line-height: 1.05; margin-bottom: 20px; }
+  .hero-content h1 em { font-style: italic; color: var(--gold); }
+  .hero-content p { font-size: 1rem; opacity: 0.75; max-width: 480px; line-height: 1.7; margin-bottom: 36px; }
+
+  /* ── SECTION BASE ── */
+  section { padding: 100px 80px; }
+  .section-eyebrow { font-size: 0.7rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--gold); margin-bottom: 14px; }
+  .section-title { font-family: 'Cormorant Garamond', serif; font-size: clamp(2.2rem, 4vw, 3.5rem); font-weight: 300; margin-bottom: 20px; }
+  .section-title em { font-style: italic; color: var(--gold); }
+  .divider { width: 48px; height: 1px; background: var(--gold); margin: 20px 0 40px; opacity: 0.5; }
+
+  /* ── GAME CATEGORIES ── */
+  .games-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2px; background: rgba(201,169,110,0.08); margin-top: 48px; }
+  .game-card {
+    background: var(--deep); padding: 48px 36px;
+    position: relative; overflow: hidden;
+    transition: background 0.3s;
+  }
+  .game-card:hover { background: rgba(201,169,110,0.05); }
+  .game-card-num { font-family: 'Cormorant Garamond', serif; font-size: 4rem; color: rgba(201,169,110,0.12); position: absolute; top: 24px; right: 28px; line-height: 1; }
+  .game-icon { font-size: 2.4rem; margin-bottom: 20px; }
+  .game-name { font-family: 'Cormorant Garamond', serif; font-size: 1.6rem; margin-bottom: 12px; }
+  .game-desc { font-size: 0.82rem; color: var(--muted); line-height: 1.7; margin-bottom: 20px; }
+  .game-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+  .game-tag { font-size: 0.7rem; letter-spacing: 0.12em; padding: 4px 12px; border: 1px solid rgba(201,169,110,0.22); color: var(--muted); }
+
+  /* ── POOL SECTION ── */
+  #pool {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 0; min-height: 560px;
+  }
+  .pool-text { padding: 80px 64px; display: flex; flex-direction: column; justify-content: center; }
+  .pool-text p { color: var(--muted); line-height: 1.8; margin-bottom: 16px; }
+  .pool-img { position: relative; overflow: hidden; min-height: 400px; }
+  .pool-img img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+
+  /* ── COMPETITION ── */
+  #competition { background: rgba(255,255,255,0.02); text-align: center; }
+  .comp-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 32px; margin-top: 48px; }
+  .comp-card { border: 1px solid rgba(201,169,110,0.18); padding: 40px 28px; transition: border-color 0.3s; }
+  .comp-card:hover { border-color: rgba(201,169,110,0.45); }
+  .comp-icon { font-size: 2rem; margin-bottom: 16px; }
+  .comp-title { font-family: 'Cormorant Garamond', serif; font-size: 1.3rem; margin-bottom: 10px; }
+  .comp-desc { font-size: 0.78rem; color: var(--muted); line-height: 1.6; }
+
+  /* ── PRICING ── */
+  #pricing { border-top: 1px solid rgba(201,169,110,0.12); }
+  .pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 24px; margin-top: 48px; }
+  .pricing-card { border: 1px solid rgba(201,169,110,0.18); padding: 36px 28px; text-align: center; }
+  .pricing-service { font-size: 0.72rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold); margin-bottom: 12px; }
+  .pricing-amount { font-family: 'Cormorant Garamond', serif; font-size: 2.2rem; margin-bottom: 8px; }
+  .pricing-unit { font-size: 0.75rem; color: var(--muted); }
+
+  /* ── BOOK CTA ── */
+  #book {
+    background: linear-gradient(135deg, rgba(201,169,110,0.08) 0%, rgba(15,35,24,0.6) 100%);
+    text-align: center;
+    border-top: 1px solid rgba(201,169,110,0.15);
+  }
+  #book h2 { font-family: 'Cormorant Garamond', serif; font-size: clamp(2rem, 4vw, 3.2rem); font-weight: 300; margin-bottom: 16px; }
+  #book p { color: var(--muted); max-width: 500px; margin: 0 auto 36px; line-height: 1.7; }
+
+  /* ── FOOTER ── */
+  footer { padding: 40px 80px; border-top: 1px solid rgba(201,169,110,0.12); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; }
+  .footer-logo { font-family: 'Cormorant Garamond', serif; font-size: 1.2rem; color: var(--gold); letter-spacing: 0.15em; }
+  .footer-links { display: flex; gap: 28px; }
+  .footer-links a { font-size: 0.72rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); text-decoration: none; transition: color 0.2s; }
+  .footer-links a:hover { color: var(--gold); }
+  .footer-copy { font-size: 0.72rem; color: var(--muted); opacity: 0.5; }
+
+  @media (max-width: 900px) {
+    #pool { grid-template-columns: 1fr; }
+    .pool-img { min-height: 300px; }
+    .pool-text { padding: 48px 32px; }
+  }
+  @media (max-width: 768px) {
+    nav { padding: 16px 24px; }
+    .nav-links { display: none; }
+    section { padding: 72px 24px; }
+    .hero-content { padding: 0 24px; }
+    footer { padding: 32px 24px; flex-direction: column; align-items: flex-start; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-logo" href="index.html">
+    <img src="logo/eden 54 logo.jpeg" alt="Eden 54">
+    <span>Eden 54</span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="barbing.html">Barbing Salon</a></li>
+    <li><a href="games.html" class="active">Games</a></li>
+    <li><a href="car-rental.html">Car Rental</a></li>
+    <li><a href="index.html#contact" class="btn-gold" style="padding:10px 22px;">Reserve</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <video class="hero-video" autoplay muted loop playsinline preload="auto">
+    <source src="videos/gamelounge_web.mp4" type="video/mp4">
+  </video>
+  <div class="hero-overlay"></div>
+  <div class="hero-content">
+    <p class="eyebrow">Eden 54 · Games & Competition</p>
+    <h1>Play Hard,<br><em>Win</em> Together</h1>
+    <p>From poolside tournaments to PS5 showdowns and table tennis battles — Eden 54 is where competition meets luxury hospitality.</p>
+    <a href="#games" class="btn-gold">See What's On</a>
+  </div>
+</section>
+
+<!-- GAMES -->
+<section id="games">
+  <p class="section-eyebrow">Activities</p>
+  <h2 class="section-title">The <em>Arena</em></h2>
+  <div class="divider"></div>
+  <div class="games-grid">
+
+    <div class="game-card">
+      <div class="game-card-num">01</div>
+      <div class="game-icon">🎮</div>
+      <div class="game-name">PS5 Gaming</div>
+      <div class="game-desc">State-of-the-art PS5 setup with a curated library of titles. Challenge friends to FIFA, fight games, racing — or team up for co-op sessions.</div>
+      <div class="game-tags">
+        <span class="game-tag">FIFA</span>
+        <span class="game-tag">1v1 Battles</span>
+        <span class="game-tag">Multiplayer</span>
+        <span class="game-tag">Tournaments</span>
+      </div>
+    </div>
+
+    <div class="game-card">
+      <div class="game-card-num">02</div>
+      <div class="game-icon">🏓</div>
+      <div class="game-name">Table Tennis</div>
+      <div class="game-desc">Professional-grade table tennis for casual rallies or competitive sets. Singles or doubles — the table is yours.</div>
+      <div class="game-tags">
+        <span class="game-tag">Singles</span>
+        <span class="game-tag">Doubles</span>
+        <span class="game-tag">Tournaments</span>
+      </div>
+    </div>
+
+    <div class="game-card">
+      <div class="game-card-num">03</div>
+      <div class="game-icon">🎱</div>
+      <div class="game-name">Pool / Snooker</div>
+      <div class="game-desc">Full-size pool table for a classic lounge experience. Perfect for winding down after dinner or heating things up before a night out.</div>
+      <div class="game-tags">
+        <span class="game-tag">8-Ball</span>
+        <span class="game-tag">9-Ball</span>
+        <span class="game-tag">Snooker</span>
+      </div>
+    </div>
+
+    <div class="game-card">
+      <div class="game-card-num">04</div>
+      <div class="game-icon">🏊</div>
+      <div class="game-name">Pool Games</div>
+      <div class="game-desc">Water volleyball, relay races, and timed challenges in our luxury pool. Great for groups, events, and team bonding sessions.</div>
+      <div class="game-tags">
+        <span class="game-tag">Water Polo</span>
+        <span class="game-tag">Relay Races</span>
+        <span class="game-tag">Group Events</span>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- POOL SECTION -->
+<section id="pool">
+  <div class="pool-text">
+    <p class="section-eyebrow">The Pool</p>
+    <h2 class="section-title">Luxury Pool<br><em>Tournaments</em></h2>
+    <div class="divider"></div>
+    <p>Our swimming pool isn't just for relaxing — it's a competitive arena. We host organised pool tournaments and water games for groups, with the pergola bar right alongside to keep the energy going.</p>
+    <p>Available for private hire for birthday parties, corporate events, and group outings.</p>
+    <a href="index.html#contact" class="btn-gold" style="display:inline-block; margin-top:12px;">Book the Pool</a>
+  </div>
+  <div class="pool-img">
+    <img src="pool/poolside.jpg" alt="Eden 54 Pool">
+  </div>
+</section>
+
+<!-- COMPETITIONS -->
+<section id="competition">
+  <p class="section-eyebrow">Organised Events</p>
+  <h2 class="section-title">Eden 54 <em>Competitions</em></h2>
+  <div class="divider" style="margin: 20px auto 40px;"></div>
+  <div class="comp-grid">
+    <div class="comp-card">
+      <div class="comp-icon">🏆</div>
+      <div class="comp-title">FIFA Tournament</div>
+      <div class="comp-desc">Scheduled PS5 FIFA tournaments with prizes. Open to guests and walk-ins. Check the calendar for upcoming events.</div>
+    </div>
+    <div class="comp-card">
+      <div class="comp-icon">🏓</div>
+      <div class="comp-title">Table Tennis League</div>
+      <div class="comp-desc">Weekly table tennis league nights. Register individually or as a pair for doubles. Trophies for champions.</div>
+    </div>
+    <div class="comp-card">
+      <div class="comp-icon">🌊</div>
+      <div class="comp-title">Pool Challenge</div>
+      <div class="comp-desc">Timed swimming races and water game competitions. Great for groups, families, and corporate team-building.</div>
+    </div>
+    <div class="comp-card">
+      <div class="comp-icon">🎯</div>
+      <div class="comp-title">Private Events</div>
+      <div class="comp-desc">Host your own tournament at Eden 54. We set up the games, you bring the team. Catering available from the steakhouse.</div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section id="pricing">
+  <p class="section-eyebrow">Access</p>
+  <h2 class="section-title">Rates & <em>Packages</em></h2>
+  <div class="divider"></div>
+  <div class="pricing-grid">
+    <div class="pricing-card">
+      <div class="pricing-service">PS5 Gaming</div>
+      <div class="pricing-amount">₦[price]</div>
+      <div class="pricing-unit">per hour</div>
+    </div>
+    <div class="pricing-card">
+      <div class="pricing-service">Table Tennis</div>
+      <div class="pricing-amount">₦[price]</div>
+      <div class="pricing-unit">per session</div>
+    </div>
+    <div class="pricing-card">
+      <div class="pricing-service">Pool Access</div>
+      <div class="pricing-amount">₦[price]</div>
+      <div class="pricing-unit">per person / day</div>
+    </div>
+    <div class="pricing-card">
+      <div class="pricing-service">Private Hire</div>
+      <div class="pricing-amount">₦[price]</div>
+      <div class="pricing-unit">contact for quote</div>
+    </div>
+  </div>
+</section>
+
+<!-- BOOK CTA -->
+<section id="book">
+  <p class="section-eyebrow">Book Your Session</p>
+  <h2>Ready to <em>Play?</em></h2>
+  <p>Reserve your gaming session, pool slot, or private event space. Walk-ins welcome subject to availability.</p>
+  <a href="index.html#contact" class="btn-gold">Get in Touch</a>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">Eden 54</div>
+  <div class="footer-links">
+    <a href="index.html">Home</a>
+    <a href="barbing.html">Barbing Salon</a>
+    <a href="car-rental.html">Car Rental</a>
+  </div>
+  <div class="footer-copy">© 2026 Eden 54 · Ilesa, Osun State</div>
+</footer>
+
+</body>
+</html>

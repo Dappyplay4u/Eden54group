@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Eden 54 | Barbing Salon</title>
+<link rel="icon" type="image/jpeg" href="logo/eden 54 logo.jpeg">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@200;300;400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --deep: #0f2318;
+    --gold: #C9A96E;
+    --text: #F5F2EC;
+    --muted: rgba(245,242,236,0.55);
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; scroll-padding-top: 90px; }
+  body { background: var(--deep); color: var(--text); font-family: 'Jost', sans-serif; font-weight: 300; }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 48px;
+    background: rgba(15,35,24,0.97);
+    border-bottom: 1px solid rgba(201,169,110,0.1);
+  }
+  .nav-logo { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+  .nav-logo img { height: 44px; border-radius: 50%; }
+  .nav-logo span { font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; color: var(--gold); letter-spacing: 0.12em; }
+  .nav-links { display: flex; gap: 32px; list-style: none; align-items: center; }
+  .nav-links a { color: var(--text); text-decoration: none; font-size: 0.75rem; letter-spacing: 0.18em; text-transform: uppercase; opacity: 0.75; transition: opacity 0.2s, color 0.2s; }
+  .nav-links a:hover, .nav-links a.active { opacity: 1; color: var(--gold); }
+  .btn-gold {
+    display: inline-block; padding: 10px 24px;
+    border: 1px solid var(--gold); color: var(--gold) !important; opacity: 1 !important;
+    font-size: 0.72rem; letter-spacing: 0.22em; text-transform: uppercase;
+    text-decoration: none; transition: background 0.3s, color 0.3s;
+  }
+  .btn-gold:hover { background: var(--gold); color: var(--deep) !important; }
+  .btn-gold-lg {
+    display: inline-block; padding: 14px 40px;
+    border: 1px solid var(--gold); color: var(--gold);
+    font-size: 0.75rem; letter-spacing: 0.25em; text-transform: uppercase;
+    text-decoration: none; transition: background 0.3s, color 0.3s;
+  }
+  .btn-gold-lg:hover { background: var(--gold); color: var(--deep); }
+
+  /* ── HERO ── */
+  .hero {
+    position: relative; height: 100vh; display: flex; align-items: flex-end;
+    padding-bottom: 100px; overflow: hidden;
+    background: #111;
+  }
+  .hero-video {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    object-fit: cover;
+    z-index: 0;
+    display: block;
+  }
+  .hero-overlay {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 1;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, rgba(15,35,24,0.7) 100%);
+  }
+  .hero-content { position: relative; z-index: 2; padding: 0 80px; }
+  .eyebrow { font-size: 0.72rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--gold); margin-bottom: 16px; }
+  .hero-content h1 { font-family: 'Cormorant Garamond', serif; font-size: clamp(3rem, 6vw, 5.5rem); font-weight: 300; line-height: 1.05; margin-bottom: 20px; }
+  .hero-content h1 em { font-style: italic; color: var(--gold); }
+  .hero-content p { font-size: 1rem; opacity: 0.75; max-width: 480px; line-height: 1.7; margin-bottom: 36px; }
+
+  /* ── SECTION BASE ── */
+  section { padding: 100px 80px; }
+  .section-eyebrow { font-size: 0.7rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--gold); margin-bottom: 14px; }
+  .section-title { font-family: 'Cormorant Garamond', serif; font-size: clamp(2.2rem, 4vw, 3.5rem); font-weight: 300; margin-bottom: 20px; }
+  .section-title em { font-style: italic; color: var(--gold); }
+  .divider { width: 48px; height: 1px; background: var(--gold); margin: 20px 0 40px; opacity: 0.5; }
+
+  /* ── SERVICES GRID ── */
+  .services-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 2px; background: rgba(201,169,110,0.08); margin-top: 48px; }
+  .service-card {
+    background: var(--deep); padding: 48px 36px;
+    position: relative; overflow: hidden; transition: background 0.3s;
+  }
+  .service-card:hover { background: rgba(201,169,110,0.04); }
+  .service-num { font-family: 'Cormorant Garamond', serif; font-size: 3.5rem; color: rgba(201,169,110,0.1); position: absolute; top: 20px; right: 24px; line-height: 1; }
+  .service-icon { font-size: 2.2rem; margin-bottom: 20px; }
+  .service-name { font-family: 'Cormorant Garamond', serif; font-size: 1.5rem; margin-bottom: 10px; }
+  .service-desc { font-size: 0.82rem; color: var(--muted); line-height: 1.7; }
+  .service-price { font-size: 0.72rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gold); margin-top: 16px; }
+
+  /* ── ABOUT PANEL ── */
+  #about {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 0; min-height: 560px;
+    border-top: 1px solid rgba(201,169,110,0.12);
+  }
+  .about-text { padding: 80px 64px; display: flex; flex-direction: column; justify-content: center; }
+  .about-text p { color: var(--muted); line-height: 1.8; margin-bottom: 16px; }
+  .about-img { position: relative; overflow: hidden; min-height: 400px; }
+  .about-img img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+
+  /* ── BARBERS ── */
+  #team { background: rgba(255,255,255,0.02); border-top: 1px solid rgba(201,169,110,0.1); }
+  .team-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px; margin-top: 48px; }
+  .barber-card { border: 1px solid rgba(201,169,110,0.15); padding: 0; overflow: hidden; transition: border-color 0.3s; }
+  .barber-card:hover { border-color: rgba(201,169,110,0.4); }
+  .barber-img { width: 100%; height: 260px; object-fit: cover; display: block; background: rgba(201,169,110,0.05); filter: brightness(0.85); transition: filter 0.4s; }
+  .barber-card:hover .barber-img { filter: brightness(1); }
+  .barber-body { padding: 22px 22px 26px; }
+  .barber-name { font-family: 'Cormorant Garamond', serif; font-size: 1.3rem; margin-bottom: 4px; }
+  .barber-role { font-size: 0.72rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gold); margin-bottom: 10px; }
+  .barber-desc { font-size: 0.78rem; color: var(--muted); line-height: 1.6; }
+
+  /* ── PRICING ── */
+  #pricing { border-top: 1px solid rgba(201,169,110,0.12); }
+  .pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2px; background: rgba(201,169,110,0.08); margin-top: 48px; }
+  .pricing-item { background: var(--deep); padding: 36px 28px; text-align: center; }
+  .pricing-service { font-family: 'Cormorant Garamond', serif; font-size: 1.15rem; margin-bottom: 10px; }
+  .pricing-amount { font-size: 1.5rem; color: var(--gold); font-family: 'Cormorant Garamond', serif; margin-bottom: 6px; }
+  .pricing-note { font-size: 0.72rem; color: var(--muted); letter-spacing: 0.1em; }
+
+  /* ── HOURS ── */
+  #hours { background: rgba(255,255,255,0.02); border-top: 1px solid rgba(201,169,110,0.1); text-align: center; }
+  .hours-grid { display: flex; justify-content: center; gap: 64px; margin-top: 48px; flex-wrap: wrap; }
+  .hours-item { text-align: center; }
+  .hours-day { font-size: 0.72rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--gold); margin-bottom: 8px; }
+  .hours-time { font-family: 'Cormorant Garamond', serif; font-size: 1.5rem; }
+
+  /* ── LOCATION ── */
+  #location { border-top: 1px solid rgba(201,169,110,0.12); }
+  .location-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: start; margin-top: 48px; }
+  .location-info { }
+  .location-info p { color: var(--muted); line-height: 1.8; margin-bottom: 16px; }
+  .contact-line { display: flex; gap: 16px; align-items: flex-start; margin-bottom: 20px; }
+  .contact-icon { font-size: 1.2rem; margin-top: 2px; }
+  .contact-label { font-size: 0.68rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold); margin-bottom: 4px; }
+  .contact-value { font-size: 0.9rem; color: var(--text); }
+  .map-wrap { border: 1px solid rgba(201,169,110,0.2); overflow: hidden; }
+  .map-header { background: var(--deep); padding: 12px 16px; border-bottom: 1px solid rgba(201,169,110,0.15); }
+  .map-header span { font-size: 0.7rem; color: var(--gold); letter-spacing: 0.2em; text-transform: uppercase; }
+
+  /* ── BOOK CTA ── */
+  #book {
+    background: linear-gradient(135deg, rgba(201,169,110,0.08) 0%, rgba(15,35,24,0.6) 100%);
+    border-top: 1px solid rgba(201,169,110,0.15);
+    text-align: center;
+  }
+  #book h2 { font-family: 'Cormorant Garamond', serif; font-size: clamp(2rem, 4vw, 3.2rem); font-weight: 300; margin-bottom: 16px; }
+  #book p { color: var(--muted); max-width: 500px; margin: 0 auto 36px; line-height: 1.7; }
+
+  /* ── FOOTER ── */
+  footer { padding: 40px 80px; border-top: 1px solid rgba(201,169,110,0.12); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; }
+  .footer-logo { font-family: 'Cormorant Garamond', serif; font-size: 1.2rem; color: var(--gold); letter-spacing: 0.15em; }
+  .footer-links { display: flex; gap: 28px; }
+  .footer-links a { font-size: 0.72rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); text-decoration: none; transition: color 0.2s; }
+  .footer-links a:hover { color: var(--gold); }
+  .footer-copy { font-size: 0.72rem; color: var(--muted); opacity: 0.5; }
+
+  @media (max-width: 900px) {
+    #about, .location-grid { grid-template-columns: 1fr; }
+    .about-img { min-height: 300px; }
+    .about-text { padding: 48px 32px; }
+  }
+  @media (max-width: 768px) {
+    nav { padding: 16px 24px; }
+    .nav-links { display: none; }
+    section { padding: 72px 24px; }
+    .hero-content { padding: 0 24px; }
+    footer { padding: 32px 24px; flex-direction: column; align-items: flex-start; }
+    .hours-grid { gap: 32px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-logo" href="index.html">
+    <img src="logo/eden 54 logo.jpeg" alt="Eden 54">
+    <span>Eden 54</span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="index.html#rooms">Apartments</a></li>
+    <li><a href="index.html#dining">Restaurant</a></li>
+    <li><a href="barbing.html" class="active">Barbing Salon</a></li>
+    <li><a href="games.html">Games</a></li>
+    <li><a href="car-rental.html">Car Rental</a></li>
+    <li><a href="index.html#contact" class="btn-gold">Reserve</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <video class="hero-video" autoplay muted loop playsinline preload="auto">
+    <source src="videos/barbingsalon_web.mp4" type="video/mp4">
+  </video>
+  <div class="hero-overlay"></div>
+  <div class="hero-content">
+    <p class="eyebrow">Eden 54 · Barbing Salon</p>
+    <h1>Sharp Cuts,<br><em>Refined</em> Grooming</h1>
+    <p>A premium grooming experience in a relaxed, luxury setting. Expert barbers, precision cuts, and a space that feels as good as the service.</p>
+    <a href="#services" class="btn-gold-lg">Our Services</a>
+  </div>
+</section>
+
+<!-- SERVICES -->
+<section id="services">
+  <p class="section-eyebrow">What We Offer</p>
+  <h2 class="section-title">The <em>Chair</em></h2>
+  <div class="divider"></div>
+  <div class="services-grid">
+
+    <div class="service-card">
+      <div class="service-num">01</div>
+      <div class="service-icon">✂️</div>
+      <div class="service-name">Haircut & Style</div>
+      <div class="service-desc">Classic and modern cuts tailored to your face shape and style. From fades and tapers to textured crops — done with precision every time.</div>
+      <div class="service-price">From ₦[price]</div>
+    </div>
+
+    <div class="service-card">
+      <div class="service-num">02</div>
+      <div class="service-icon">🪒</div>
+      <div class="service-name">Beard Trim & Shape</div>
+      <div class="service-desc">Expert beard shaping, lining, and trim. Hot towel treatment available. Leave looking sharp and well-groomed.</div>
+      <div class="service-price">From ₦[price]</div>
+    </div>
+
+    <div class="service-card">
+      <div class="service-num">03</div>
+      <div class="service-icon">💈</div>
+      <div class="service-name">Full Groom Package</div>
+      <div class="service-desc">The complete experience — haircut, beard shape, hot towel, and scalp treatment. Perfect for a special occasion or when you want the works.</div>
+      <div class="service-price">From ₦[price]</div>
+    </div>
+
+    <div class="service-card">
+      <div class="service-num">04</div>
+      <div class="service-icon">🧴</div>
+      <div class="service-name">Scalp & Hair Treatment</div>
+      <div class="service-desc">Nourishing scalp care and conditioning treatments. Great for maintaining healthy hair and addressing dryness or irritation.</div>
+      <div class="service-price">From ₦[price]</div>
+    </div>
+
+    <div class="service-card">
+      <div class="service-num">05</div>
+      <div class="service-icon">👦</div>
+      <div class="service-name">Kids' Cut</div>
+      <div class="service-desc">Patient, gentle service for the little ones. Clean lines, safe products, and a welcoming environment for children of all ages.</div>
+      <div class="service-price">From ₦[price]</div>
+    </div>
+
+    <div class="service-card">
+      <div class="service-num">06</div>
+      <div class="service-icon">🎩</div>
+      <div class="service-name">VIP Session</div>
+      <div class="service-desc">Private session with our senior barber. Priority booking, personalised consultation, and complimentary refreshments.</div>
+      <div class="service-price">From ₦[price]</div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section id="about">
+  <div class="about-text">
+    <p class="section-eyebrow">The Space</p>
+    <h2 class="section-title">More Than<br>a <em>Haircut</em></h2>
+    <div class="divider"></div>
+    <p>Eden 54 Barbing Salon brings the same luxury philosophy of the main compound to your grooming routine. A clean, well-designed space with skilled hands and a calm atmosphere.</p>
+    <p>Whether you're walking in for a quick trim or booking a full VIP session, you'll leave feeling refreshed and confident every time.</p>
+    <p style="font-size:0.78rem; color:var(--gold); letter-spacing:0.1em;">📍 F27 Ereguru Street, Ilesa, Osun State, Nigeria</p>
+  </div>
+  <div class="about-img">
+    <img src="venue/Inbetween apartment and lounge.jpg" alt="Eden 54 Barbing Salon">
+  </div>
+</section>
+
+<!-- TEAM -->
+<section id="team">
+  <p class="section-eyebrow">Our Barbers</p>
+  <h2 class="section-title">Meet the <em>Team</em></h2>
+  <div class="divider"></div>
+  <div class="team-grid">
+    <div class="barber-card">
+      <div class="barber-img" style="display:flex;align-items:center;justify-content:center;font-size:4rem;height:260px;">✂️</div>
+      <div class="barber-body">
+        <div class="barber-name">[Barber Name]</div>
+        <div class="barber-role">Senior Barber</div>
+        <div class="barber-desc">Specialist in fades, tapers, and beard sculpting. [X] years of experience in premium grooming.</div>
+      </div>
+    </div>
+    <div class="barber-card">
+      <div class="barber-img" style="display:flex;align-items:center;justify-content:center;font-size:4rem;height:260px;">✂️</div>
+      <div class="barber-body">
+        <div class="barber-name">[Barber Name]</div>
+        <div class="barber-role">Stylist & Grooming Expert</div>
+        <div class="barber-desc">Expert in modern styles, creative cuts, and scalp treatments for all hair types.</div>
+      </div>
+    </div>
+    <div class="barber-card">
+      <div class="barber-img" style="display:flex;align-items:center;justify-content:center;font-size:4rem;height:260px;">✂️</div>
+      <div class="barber-body">
+        <div class="barber-name">[Barber Name]</div>
+        <div class="barber-role">Barber</div>
+        <div class="barber-desc">Known for clean lines, precision shapes, and a relaxed, friendly chair-side manner.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section id="pricing">
+  <p class="section-eyebrow">Rates</p>
+  <h2 class="section-title">Simple <em>Pricing</em></h2>
+  <div class="divider"></div>
+  <div class="pricing-grid">
+    <div class="pricing-item">
+      <div class="pricing-service">Haircut & Style</div>
+      <div class="pricing-amount">₦[price]</div>
+      <div class="pricing-note">All hair types</div>
+    </div>
+    <div class="pricing-item">
+      <div class="pricing-service">Beard Trim</div>
+      <div class="pricing-amount">₦[price]</div>
+      <div class="pricing-note">Shape & line-up</div>
+    </div>
+    <div class="pricing-item">
+      <div class="pricing-service">Full Groom Package</div>
+      <div class="pricing-amount">₦[price]</div>
+      <div class="pricing-note">Cut + beard + treatment</div>
+    </div>
+    <div class="pricing-item">
+      <div class="pricing-service">Kids' Cut</div>
+      <div class="pricing-amount">₦[price]</div>
+      <div class="pricing-note">Under 12</div>
+    </div>
+    <div class="pricing-item">
+      <div class="pricing-service">Scalp Treatment</div>
+      <div class="pricing-amount">₦[price]</div>
+      <div class="pricing-note">Conditioning & care</div>
+    </div>
+    <div class="pricing-item">
+      <div class="pricing-service">VIP Session</div>
+      <div class="pricing-amount">₦[price]</div>
+      <div class="pricing-note">Private · priority booking</div>
+    </div>
+  </div>
+</section>
+
+<!-- HOURS -->
+<section id="hours">
+  <p class="section-eyebrow">Opening Hours</p>
+  <h2 class="section-title">When We're <em>Open</em></h2>
+  <div class="divider" style="margin: 20px auto 40px;"></div>
+  <div class="hours-grid">
+    <div class="hours-item">
+      <div class="hours-day">Monday – Friday</div>
+      <div class="hours-time">[Opening] – [Closing]</div>
+    </div>
+    <div class="hours-item">
+      <div class="hours-day">Saturday</div>
+      <div class="hours-time">[Opening] – [Closing]</div>
+    </div>
+    <div class="hours-item">
+      <div class="hours-day">Sunday</div>
+      <div class="hours-time">[Opening] – [Closing]</div>
+    </div>
+  </div>
+</section>
+
+<!-- LOCATION -->
+<section id="location">
+  <p class="section-eyebrow">Find Us</p>
+  <h2 class="section-title">Our <em>Location</em></h2>
+  <div class="divider"></div>
+  <div class="location-grid">
+    <div class="location-info">
+      <p>The Eden 54 Barbing Salon is located at a separate address from the main Eden 54 compound. Drop in during opening hours or book an appointment in advance.</p>
+      <div class="contact-line">
+        <div class="contact-icon">📍</div>
+        <div>
+          <div class="contact-label">Address</div>
+          <div class="contact-value">F27 Ereguru Street, Ilesa, Osun State, Nigeria</div>
+        </div>
+      </div>
+      <div class="contact-line">
+        <div class="contact-icon">📞</div>
+        <div>
+          <div class="contact-label">Phone</div>
+          <div class="contact-value">[Salon phone number]</div>
+        </div>
+      </div>
+      <div class="contact-line">
+        <div class="contact-icon">✉️</div>
+        <div>
+          <div class="contact-label">Email</div>
+          <div class="contact-value">eden54group@gmail.com</div>
+        </div>
+      </div>
+    </div>
+    <div class="map-wrap">
+      <div class="map-header">
+        <span>📍 Find the Salon</span>
+      </div>
+      <!-- Replace src with actual Google Maps embed for salon address once confirmed -->
+      <iframe src="https://www.google.com/maps?q=F27+Ereguru+Street,+Ilesa,+Osun+State,+Nigeria&output=embed"
+        width="100%" height="320" style="border:0;display:block;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+    </div>
+  </div>
+</section>
+
+<!-- BOOK CTA -->
+<section id="book">
+  <p class="section-eyebrow">Appointments</p>
+  <h2>Ready for Your <em>Cut?</em></h2>
+  <p>Walk-ins are welcome. For VIP sessions or group bookings, contact us in advance to secure your slot.</p>
+  <a href="tel:[salon-phone]" class="btn-gold-lg">Call to Book</a>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">Eden 54</div>
+  <div class="footer-links">
+    <a href="index.html">Home</a>
+    <a href="games.html">Games</a>
+    <a href="car-rental.html">Car Rental</a>
+  </div>
+  <div class="footer-copy">© 2026 Eden 54 · Ilesa, Osun State</div>
+</footer>
+
+</body>
+</html>

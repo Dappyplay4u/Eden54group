@@ -1,0 +1,3347 @@
+﻿<!DOCTYPE html>
+<!-- EDEN 54 — Single HTML file containing all CSS styles, page content, and JavaScript behaviour -->
+<html lang="en">
+<head>
+
+<!-- Tells the browser this file uses the UTF-8 character set (supports all symbols & emojis) -->
+<meta charset="UTF-8">
+
+<!-- Makes the page scale correctly on phones and tablets instead of zooming out -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- Text shown on the browser tab and in Google search results -->
+<title>Eden 54 | Luxury Service Apartments · Steakhouse & Bar · Game Experience</title>
+
+<!-- Loads three custom fonts from Google Fonts:
+     - Cormorant Garamond → used for headings and elegant display text
+     - Marcellus           → decorative serif (available if needed)
+     - Jost                → used for body text, labels, and buttons -->
+<link rel="icon" type="image/jpeg" href="logo/eden 54 logo.jpeg">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Marcellus&family=Jost:wght@200;300;400&display=swap" rel="stylesheet">
+<style>
+
+  /* ── COLOUR PALETTE ──────────────────────────────────────────
+     All colours are stored as CSS variables so you only need to
+     change them in one place to update the entire site.
+     ---------------------------------------------------------- */
+  :root {
+    --gold:        #B8973A;  /* Warm gold accent — icons, borders, highlights */
+    --gold-light:  #D4AF62;  /* Lighter gold — hover states */
+    --gold-dark:   #8A6E25;  /* Darker gold — subtle text and shadows */
+    --deep:        #1B3A2A;  /* Deep forest green — hero, nav, footer (matches logo) */
+    --dark:        #F0EBE0;  /* Warm cream — alternate section backgrounds */
+    --mid:         #FFFFFF;  /* White — card backgrounds and form panels */
+    --surface:     #EDE6D8;  /* Slightly deeper cream — card hover surfaces */
+    --text:        #1A1A18;  /* Near-black — headings and body text on light sections */
+    --muted:       #6A6B62;  /* Warm grey — secondary descriptions and labels */
+    --cream:       #F8F5EF;  /* Pure cream — reserved for subtle accents */
+  }
+
+  /* Removes default browser spacing from every element */
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  /* scroll-behavior: smooth → anchor links (#amenities etc.) glide instead of jump
+     scroll-padding-top: 100px → leaves room so the fixed nav doesn't cover section headings */
+  html { scroll-behavior: smooth; scroll-padding-top: 160px; }
+
+  body {
+    background: #F8F4EE;           /* Warm cream page background */
+    color: var(--text);            /* Near-black text for light sections */
+    font-family: 'Jost', sans-serif;
+    font-weight: 300;
+    overflow-x: hidden;           /* Prevents horizontal scrollbar from animations */
+    cursor: none;                 /* Hides the default mouse pointer (custom cursor used instead) */
+  }
+
+  /* ── CUSTOM CURSOR ──────────────────────────────────────────
+     Replaces the browser's default arrow with a gold dot (.cursor)
+     surrounded by a larger ring (.cursor-ring) that follows with
+     a slight delay, giving a luxury trailing effect.
+     pointer-events: none ensures the cursor divs don't block clicks.
+     ---------------------------------------------------------- */
+  .cursor {
+    width: 12px; height: 12px;
+    background: var(--gold);
+    border-radius: 50%;           /* Makes it a circle */
+    position: fixed;              /* Stays in place relative to the viewport */
+    pointer-events: none;         /* Clicks pass straight through it */
+    z-index: 9999;                /* Sits on top of everything */
+    transform: translate(-50%, -50%);
+    transition: width 0.3s, height 0.3s, opacity 0.3s;
+    mix-blend-mode: screen;       /* Blends with background so it stays visible on any colour */
+  }
+  .cursor-ring {
+    width: 36px; height: 36px;
+    border: 1px solid rgba(201,169,110,0.5);
+    border-radius: 50%;
+    position: fixed;
+    pointer-events: none;
+    z-index: 9998;                /* Just below the dot */
+    transform: translate(-50%, -50%);
+    transition: all 0.12s ease;  /* Slight lag makes it trail behind the dot */
+  }
+
+  /* ── NAVIGATION BAR ─────────────────────────────────────────
+     Fixed to the top of the screen so it is always visible while
+     scrolling. Starts as a dark gradient that fades to transparent
+     at the bottom (so the hero shows through), then becomes a solid
+     dark background once the user scrolls down (.scrolled class is
+     added by JavaScript when window.scrollY > 60px).
+     ---------------------------------------------------------- */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    padding: 28px 60px;
+    display: flex; align-items: center; justify-content: space-between; /* Logo | Links | Button */
+    background: linear-gradient(to bottom, rgba(27,58,42,0.97) 0%, transparent 100%);
+    transition: background 0.4s, box-shadow 0.4s;
+  }
+  /* Solid background + smaller padding once the page is scrolled */
+  nav.scrolled { background: rgba(27,58,42,0.99); padding: 18px 60px; box-shadow: 0 2px 24px rgba(0,0,0,0.18); }
+
+  .nav-logo {
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+  }
+  .nav-logo img {
+    height: 100px;
+    width: auto;
+    display: block;
+    background: #fff;
+    padding: 8px 14px;
+    border-radius: 8px;
+  }
+
+  .nav-links {
+    display: flex; gap: 44px; list-style: none;
+  }
+  .nav-links a {
+    color: rgba(248,245,239,0.82);  /* Light cream on dark green nav */
+    text-decoration: none;
+    font-size: 0.72rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    transition: color 0.3s;
+    position: relative;
+  }
+  .nav-links a::after {
+    content: '';
+    position: absolute; bottom: -4px; left: 0; width: 0; height: 1px;
+    background: var(--gold);
+    transition: width 0.3s;
+  }
+  .nav-links a:hover { color: var(--gold); }
+  .nav-links a:hover::after { width: 100%; }
+
+  /* ── DROPDOWNS (Amenities + Services) ── */
+  .nav-dropdown { position: relative; }
+  .nav-dropdown > a::after { display: none; }
+  .nav-dropdown-toggle { display: flex; align-items: center; gap: 5px; cursor: pointer; }
+  .nav-dropdown-toggle svg { transition: transform 0.25s; }
+  .nav-dropdown.open .nav-dropdown-toggle svg { transform: rotate(180deg); }
+  .nav-dropdown-menu {
+    display: none; position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
+    background: rgba(15,35,24,0.98); border: 1px solid rgba(201,169,110,0.18);
+    min-width: 220px; padding: 14px 0 8px; white-space: nowrap;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+  }
+  /* invisible bridge fills the gap so hover doesn't drop between toggle and menu */
+  .nav-dropdown-menu::before {
+    content: ''; position: absolute; top: -14px; left: 0; right: 0; height: 14px;
+  }
+  .nav-dropdown.open .nav-dropdown-menu { display: block; }
+  .nav-dropdown-menu a {
+    display: block; padding: 11px 20px;
+    font-size: 0.72rem; letter-spacing: 0.18em; text-transform: uppercase;
+    color: rgba(248,245,239,0.75); text-decoration: none;
+    transition: color 0.2s, background 0.2s;
+    border-bottom: none;
+  }
+  .nav-dropdown-menu a::after { display: none !important; }
+  .nav-dropdown-menu a:hover { color: var(--gold); background: rgba(201,169,110,0.06); }
+  .nav-dropdown-menu a + a { border-top: 1px solid rgba(201,169,110,0.08); }
+
+  .nav-book {
+    background: transparent;
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    padding: 10px 28px;
+    font-family: 'Jost', sans-serif;
+    font-size: 0.68rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    cursor: none;
+    transition: all 0.3s;
+    text-decoration: none;
+  }
+  .nav-book:hover { background: var(--gold); color: var(--deep); }
+
+  /* ── HERO SECTION ───────────────────────────────────────────
+     Full-screen opening section (100vh = full viewport height).
+     Stacks three layers on top of each other:
+       1. .hero-bg     → dark green gradient + subtle gold diagonal pattern
+       2. .hero-geo    → three slowly rotating gold circle outlines
+       3. .particles   → 25 tiny gold dots that float upward (created by JS)
+     The actual text (.hero-content) sits above all layers via z-index: 2.
+     ---------------------------------------------------------- */
+  .hero {
+    height: 100vh;
+    position: relative;
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+    background-color: #000; /* fallback while video loads */
+  }
+
+  /* Hero videos — two clips crossfade between each other */
+  .hero-video {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    object-fit: cover;
+    z-index: 0;
+    pointer-events: none;
+    transition: opacity 1.2s ease;
+  }
+  .hero-video.hidden { opacity: 0; }
+
+  /* Very light overlay — just enough to keep hero text readable at the bottom */
+  .hero-bg {
+    position: absolute; inset: 0;
+    z-index: 1;
+    background: linear-gradient(
+      to bottom,
+      rgba(0,0,0,0.08) 0%,
+      rgba(0,0,0,0.15) 50%,
+      rgba(0,0,0,0.60) 100%
+    );
+  }
+
+  /* Three large rotating circles in the top-right and bottom-left corners */
+  .hero-geo {
+    position: absolute; inset: 0; overflow: hidden; z-index: 2;
+  }
+  .geo-line {
+    position: absolute;
+    border: 1px solid rgba(201,169,110,0.1);
+    border-radius: 50%;
+    animation: geoRotate 30s linear infinite;
+  }
+  .geo-line:nth-child(1) { width: 600px; height: 600px; top: -100px; right: -100px; animation-duration: 40s; }
+  .geo-line:nth-child(2) { width: 900px; height: 900px; top: -250px; right: -250px; animation-duration: 60s; animation-direction: reverse; }
+  .geo-line:nth-child(3) { width: 400px; height: 400px; bottom: 50px; left: 50px; animation-duration: 35s; }
+  @keyframes geoRotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+  /* Container for the floating gold particle dots (dots created in JavaScript) */
+  .particles { position: absolute; inset: 0; pointer-events: none; z-index: 2; }
+  .particle {
+    position: absolute;
+    width: 2px; height: 2px;
+    background: var(--gold);
+    border-radius: 50%;
+    opacity: 0;
+    animation: particleFloat linear infinite;
+  }
+  /* Each particle rises from the bottom to the top of the screen and fades in/out */
+  @keyframes particleFloat {
+    0%   { transform: translateY(100vh) translateX(0); opacity: 0; }
+    10%  { opacity: 0.6; }
+    90%  { opacity: 0.2; }
+    100% { transform: translateY(-10vh) translateX(40px); opacity: 0; }
+  }
+
+  /* The main text block in the hero — slides up and fades in on page load.
+     padding-top pushes it clear of the fixed nav (nav height ≈ 120px). */
+  .hero-content {
+    text-align: center;
+    position: relative; z-index: 2;
+    animation: heroReveal 1.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    padding-top: 160px;
+  }
+  @keyframes heroReveal {
+    from { opacity: 0; transform: translateY(40px); }  /* starts hidden, 40px lower */
+    to   { opacity: 1; transform: translateY(0); }      /* ends fully visible, in place */
+  }
+
+  .hero-eyebrow {
+    font-size: 0.68rem;
+    letter-spacing: 0.5em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 24px;
+    animation-delay: 0.3s;
+  }
+
+  .hero-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(5rem, 12vw, 10rem);
+    font-weight: 300;
+    line-height: 0.9;
+    color: #F5F2EC;  /* Explicit light cream — hero bg is dark green so var(--text) would be invisible */
+    margin-bottom: 8px;
+    letter-spacing: -0.01em;
+  }
+  .hero-title em {
+    font-style: italic;
+    color: var(--gold);
+    display: block;
+  }
+
+  .hero-number {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(3rem, 7vw, 6rem);
+    font-weight: 300;
+    color: rgba(245,242,236,0.5);  /* Faded light cream on dark hero */
+    letter-spacing: 0.2em;
+    margin-bottom: 40px;
+  }
+
+  .hero-sub {
+    font-size: 0.8rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: rgba(245,242,236,0.6);  /* Faded light cream on dark hero */
+    margin-bottom: 64px;
+  }
+
+  .hero-cta {
+    display: inline-flex; align-items: center; gap: 16px;
+    color: var(--gold);
+    text-decoration: none;
+    font-size: 0.72rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    border-bottom: 1px solid rgba(201,169,110,0.3);
+    padding-bottom: 8px;
+    transition: gap 0.3s, border-color 0.3s;
+  }
+  .hero-cta:hover { gap: 26px; border-color: var(--gold); }
+  .hero-cta svg { width: 20px; transition: transform 0.3s; }
+  .hero-cta:hover svg { transform: translateX(4px); }
+
+  .hero-scroll {
+    position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
+    color: rgba(245,242,236,0.45); font-size: 0.62rem; letter-spacing: 0.3em; text-transform: uppercase;
+  }
+  .scroll-line {
+    width: 1px; height: 60px;
+    background: linear-gradient(to bottom, transparent, var(--gold));
+    animation: scrollPulse 2s ease-in-out infinite;
+  }
+  @keyframes scrollPulse {
+    0%, 100% { opacity: 0.3; transform: scaleY(1); }
+    50% { opacity: 1; transform: scaleY(1.1); }
+  }
+
+  /* ── DECORATIVE DIVIDER ─────────────────────────────────────
+     The ornament sits between the hero and the intro section.
+     It is a centred row of: line → diamond → diamond → diamond → line
+     The lines fade in from the edges toward the centre using gradients.
+     ---------------------------------------------------------- */
+  .ornament {
+    display: flex; align-items: center; gap: 20px;
+    justify-content: center; padding: 60px 0 20px;
+  }
+  .ornament-line { flex: 1; max-width: 120px; height: 1px; background: linear-gradient(to right, transparent, var(--gold)); }
+  .ornament-line.rev { background: linear-gradient(to left, transparent, var(--gold)); }
+  .ornament-diamond {
+    width: 8px; height: 8px;
+    border: 1px solid var(--gold);
+    transform: rotate(45deg);
+  }
+
+  /* INTRO */
+  .intro {
+    padding: 80px 60px 120px;
+    max-width: 1400px; margin: 0 auto;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center;
+  }
+  .intro-text h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(2.5rem, 4vw, 4.5rem);
+    font-weight: 300;
+    line-height: 1.1;
+    margin-bottom: 32px;
+    color: var(--text);
+  }
+  .intro-text h2 em { font-style: italic; color: var(--gold); }
+  .intro-text p {
+    line-height: 1.9;
+    color: var(--muted);
+    font-size: 0.9rem;
+    margin-bottom: 20px;
+    font-weight: 300;
+  }
+  .intro-stats {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 40px;
+    padding-top: 20px;
+  }
+  .stat-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 3rem;
+    font-weight: 300;
+    color: var(--gold);
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+  .stat-label {
+    font-size: 0.65rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .intro-visual {
+    position: relative; height: 500px;
+  }
+  .intro-card {
+    position: absolute;
+    background: var(--mid);
+    border: 1px solid rgba(184,151,58,0.2);
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+  }
+  .intro-card:nth-child(1) { width: 70%; height: 75%; top: 0; right: 0; }
+  .intro-card:nth-child(2) { width: 45%; height: 50%; bottom: 0; left: 0; }
+  .card-inner {
+    width: 100%; height: 100%;
+    display: block;
+    object-fit: cover;
+  }
+  .card-badge {
+    position: absolute; bottom: 16px; right: 16px;
+    background: rgba(201,169,110,0.1);
+    border: 1px solid rgba(201,169,110,0.3);
+    padding: 6px 14px;
+    font-size: 0.6rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+  }
+
+  /* ── AMENITIES SECTION ──────────────────────────────────────
+     A dark-background section with a 3-column grid of service cards.
+     Each card (.amenity-card) has:
+       - A large faint number (01–05) in the top-right corner for decoration
+       - An emoji icon in a gold-bordered circle
+       - A title and description
+       - A gold bar (.amenity-bar) that slides in from the left on hover
+     The ::before pseudo-element adds a subtle gold gradient shimmer on hover.
+     ---------------------------------------------------------- */
+  .amenities {
+    background: var(--dark);
+    padding: 100px 60px;
+    position: relative; overflow: hidden;
+  }
+  .amenities::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(to right, transparent, var(--gold), transparent);
+  }
+
+  .section-header {
+    text-align: center; margin-bottom: 80px;
+  }
+  .section-eyebrow {
+    font-size: 0.65rem;
+    letter-spacing: 0.5em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 20px;
+  }
+  .section-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(2.5rem, 4vw, 4rem);
+    font-weight: 500;
+    color: var(--text);
+    line-height: 1.1;
+  }
+  .section-title em { font-style: italic; color: var(--gold); }
+
+  .amenities-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2px;
+    max-width: 1300px; margin: 0 auto;
+  }
+
+  .amenity-card {
+    background: var(--deep);
+    padding: 56px 44px;
+    position: relative;
+    overflow: hidden;
+    transition: box-shadow 0.4s;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.12);
+  }
+  .amenity-card-img {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    object-fit: cover;
+    opacity: 0.28;
+    transition: opacity 0.5s ease, transform 0.6s ease;
+    z-index: 0;
+  }
+  .amenity-card:hover .amenity-card-img { opacity: 0.42; transform: scale(1.06); }
+  .amenity-card::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(to bottom, rgba(15,35,24,0.45) 0%, rgba(15,35,24,0.82) 100%);
+    z-index: 1;
+  }
+  .amenity-num, .amenity-icon, .amenity-title, .amenity-desc, .amenity-bar {
+    position: relative; z-index: 2;
+  }
+  .amenity-icon {
+    width: 52px; height: 52px;
+    border: 1px solid rgba(201,169,110,0.45);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 32px;
+    font-size: 1.4rem;
+    transition: border-color 0.4s, background 0.4s;
+    background: rgba(15,35,24,0.4);
+  }
+  .amenity-card:hover .amenity-icon {
+    border-color: var(--gold);
+    background: rgba(201,169,110,0.15);
+  }
+
+  .amenity-num {
+    position: absolute; top: 32px; right: 32px;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 4rem;
+    font-weight: 300;
+    color: rgba(201,169,110,0.06);
+    line-height: 1;
+    transition: color 0.4s;
+  }
+  .amenity-card:hover .amenity-num { color: rgba(201,169,110,0.1); }
+
+  .amenity-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.6rem;
+    font-weight: 400;
+    color: #F5F2EC;
+    margin-bottom: 14px;
+  }
+  .amenity-desc {
+    font-size: 0.82rem;
+    line-height: 1.8;
+    color: rgba(245,242,236,0.65);
+    font-weight: 300;
+  }
+  .amenity-bar {
+    position: absolute; bottom: 0; left: 0; width: 0; height: 2px;
+    background: var(--gold);
+    transition: width 0.5s ease;
+  }
+  .amenity-card:hover .amenity-bar { width: 100%; }
+
+  /* ── FINE DINING SECTION ────────────────────────────────────
+     Two-column layout: a visual panel on the left, content on the right.
+     The visual panel (.dining-bg) shows stylised "La Carte" text as decoration.
+     .dining-accent is a floating gold-bordered box offset bottom-right
+     showing the tasting menu course count.
+     .menu-preview lists sample dishes with names, details, and prices.
+     ---------------------------------------------------------- */
+  .dining {
+    padding: 120px 60px;
+    max-width: 1400px; margin: 0 auto;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 100px; align-items: center;
+  }
+
+  /* ── RESTAURANT VIDEO PANEL ── */
+  .restaurant-video-panel {
+    position: relative;
+    height: 70vh;
+    overflow: hidden;
+  }
+  .restaurant-video-panel video {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .restaurant-video-panel .rv-overlay {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: linear-gradient(to bottom, rgba(15,35,24,0.3) 0%, rgba(15,35,24,0.65) 100%);
+    z-index: 1;
+  }
+  .restaurant-video-panel .rv-content {
+    position: absolute;
+    bottom: 60px; left: 80px;
+    z-index: 2;
+  }
+  .restaurant-video-panel .rv-content p {
+    font-size: 0.72rem; letter-spacing: 0.3em; text-transform: uppercase;
+    color: var(--gold); margin-bottom: 12px;
+  }
+  .restaurant-video-panel .rv-content h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(2rem, 4vw, 3.5rem);
+    font-weight: 300; line-height: 1.1; color: var(--text);
+  }
+  .restaurant-video-panel .rv-content h2 em { font-style: italic; color: var(--gold); }
+  .dining-visual {
+    position: relative;
+    height: 600px;
+  }
+  .dining-bg {
+    position: absolute; inset: 0;
+    border: 1px solid rgba(184,151,58,0.2);
+    overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .dining-bg img {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: opacity 0.8s ease, transform 0.6s ease;
+  }
+  .dining-bg img.fade { opacity: 0; }
+  .dining-bg video {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .dining-bg::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(to bottom, rgba(15,30,20,0.45) 0%, rgba(15,30,20,0.65) 100%);
+    z-index: 1;
+  }
+  .dining-visual:hover .dining-bg img { transform: scale(1.04); }
+  .dining-centerpiece {
+    position: relative; z-index: 2;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 6rem;
+    font-style: italic;
+    color: rgba(201,169,110,0.55);
+    text-align: center;
+    line-height: 1;
+    pointer-events: none;
+  }
+  .dining-accent {
+    position: absolute; bottom: -20px; right: -20px;
+    width: 180px; height: 220px;
+    border: 1px solid var(--gold);
+    background: var(--deep);
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column; gap: 12px;
+  }
+  .dining-accent-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 3rem;
+    color: var(--gold);
+    font-weight: 300;
+  }
+  .dining-accent-text { font-size: 0.6rem; letter-spacing: 0.3em; text-transform: uppercase; color: rgba(248,245,239,0.65); text-align: center; }
+
+  .dining-content h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(2.5rem, 4vw, 4rem);
+    font-weight: 300;
+    line-height: 1.1; margin-bottom: 32px;
+  }
+  .dining-content h2 em { font-style: italic; color: var(--gold); }
+  .dining-content p {
+    color: var(--muted); font-size: 0.88rem; line-height: 1.9;
+    margin-bottom: 20px; font-weight: 300;
+  }
+
+  .menu-preview {
+    margin-top: 48px;
+    display: flex; flex-direction: column; gap: 0;
+  }
+  .menu-category {
+    display: flex; align-items: center; gap: 16px;
+    margin: 28px 0 4px;
+  }
+  .menu-category-label {
+    font-size: 0.6rem; letter-spacing: 0.45em; text-transform: uppercase;
+    color: var(--gold); white-space: nowrap;
+  }
+  .menu-category-line {
+    flex: 1; height: 1px;
+    background: linear-gradient(to right, rgba(184,151,58,0.4), transparent);
+  }
+  .menu-category:first-child { margin-top: 0; }
+  .menu-item {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 0;
+    border-bottom: 1px solid rgba(201,169,110,0.1);
+    transition: border-color 0.3s;
+    overflow: visible;
+    position: relative;
+  }
+  .menu-item:hover { border-color: rgba(201,169,110,0.4); }
+  .menu-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.2rem;
+    font-style: italic;
+  }
+  .menu-detail { font-size: 0.7rem; letter-spacing: 0.15em; color: var(--muted); text-transform: uppercase; margin-top: 4px; }
+  .menu-price { font-family: 'Cormorant Garamond', serif; font-size: 1.1rem; color: var(--gold); flex-shrink: 0; }
+  .menu-sides {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 6px;
+    margin-top: 10px;
+  }
+  .menu-sides-label {
+    font-size: 0.58rem; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--gold); flex-shrink: 0; margin-right: 2px;
+  }
+  .menu-option {
+    font-size: 0.58rem; letter-spacing: 0.08em; text-transform: uppercase;
+    padding: 3px 10px;
+    border: 1px solid rgba(184,151,58,0.35);
+    color: var(--muted);
+    border-radius: 20px;
+    transition: border-color 0.3s, color 0.3s;
+  }
+  .menu-item:hover .menu-option { border-color: rgba(184,151,58,0.6); color: var(--text); }
+  .menu-img-wrapper {
+    position: relative;
+    width: 80px; height: 80px;
+    border-radius: 8px;
+    overflow: hidden;
+    flex-shrink: 0;
+    background: #000;
+    border: 1px solid rgba(184,151,58,0.2);
+    margin-left: 20px;
+    cursor: zoom-in;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    z-index: 1;
+  }
+  .menu-img-wrapper:hover {
+    transform: scale(2.2);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+    z-index: 10;
+  }
+  .menu-img-wrapper img {
+    width: 100%; height: 100%;
+    object-fit: contain;
+    display: block;
+    pointer-events: none;
+  }
+
+  /* ── OUTDOOR & POOL SECTION ─────────────────────────────────
+     A mid-tone green section with a two-column layout:
+       Left  → .outdoor-main: large pool feature panel with floating wave icon
+       Right → .outdoor-features: four feature blocks (Sky Bar, Gardens, Fire Pit, Courts)
+     Each feature block highlights and lightens on hover.
+     The floating wave icon uses a gentle up-down animation (floatIcon).
+     ---------------------------------------------------------- */
+  .outdoor {
+    background: var(--mid);
+    padding: 120px 60px;
+    position: relative; overflow: hidden;
+  }
+  .outdoor::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 30% 50%, rgba(201,169,110,0.04) 0%, transparent 70%);
+  }
+
+  .outdoor-inner { max-width: 1300px; margin: 0 auto; }
+
+  .outdoor-grid {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 60px;
+    margin-top: 80px;
+  }
+  .outdoor-main {
+    background: var(--deep);
+    border: 1px solid rgba(184,151,58,0.2);
+    padding: 80px 60px;
+    position: relative;
+    display: flex; flex-direction: column; justify-content: flex-end;
+    min-height: 500px;
+    overflow: hidden;
+  }
+  .outdoor-main-img {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    object-fit: cover;
+    display: block;
+    opacity: 0.35;
+    transition: opacity 0.4s ease;
+  }
+  .outdoor-main:hover .outdoor-main-img { opacity: 0.45; }
+  .outdoor-main::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(to top, rgba(27,58,42,0.97) 0%, rgba(27,58,42,0.55) 60%, rgba(27,58,42,0.4) 100%);
+    z-index: 1;
+  }
+  .outdoor-main .pool-icon,
+  .outdoor-main h3,
+  .outdoor-main p { position: relative; z-index: 2; }
+  .pool-icon {
+    position: absolute; top: 40px; right: 40px;
+    font-size: 5rem; opacity: 0.06;
+    animation: floatIcon 6s ease-in-out infinite;
+  }
+  @keyframes floatIcon {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-12px); }
+  }
+  .outdoor-main h3 {
+    color: #F5F2EC;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2.8rem;
+    font-weight: 300;
+    margin-bottom: 16px;
+    position: relative;
+  }
+  .outdoor-main h3 em { font-style: italic; color: var(--gold); }
+  .outdoor-main p { color: rgba(245,242,236,0.65); font-size: 0.85rem; line-height: 1.8; font-weight: 300; position: relative; }
+
+  .outdoor-features { display: flex; flex-direction: column; gap: 20px; }
+  .feature-block {
+    background: var(--mid);
+    border: 1px solid rgba(184,151,58,0.15);
+    padding: 36px 32px;
+    display: flex; align-items: flex-start; gap: 22px;
+    transition: border-color 0.3s, background 0.3s, box-shadow 0.3s;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+  }
+  .feature-block:hover { border-color: rgba(184,151,58,0.35); background: var(--surface); box-shadow: 0 4px 20px rgba(0,0,0,0.07); }
+  .feature-emoji { font-size: 1.6rem; flex-shrink: 0; margin-top: 2px; }
+  .feature-block h4 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.2rem;
+    margin-bottom: 8px;
+  }
+  .feature-block p { font-size: 0.78rem; color: var(--muted); line-height: 1.7; font-weight: 300; }
+
+  /* ── ROOMS / SUITES SECTION ─────────────────────────────────
+     Three suite cards in a row, each (.room-card) working like a
+     portrait image card:
+       - .room-bg      → emoji placeholder sits behind a dark gradient overlay
+       - .room-content → text (tag, name, description, price) anchored to bottom
+       - .room-arrow   → a circular arrow button that fades in on hover
+     On hover, the background zooms in slightly (scale 1.05) and the
+     gradient darkens to keep the text readable.
+     ---------------------------------------------------------- */
+  .rooms {
+    padding: 120px 60px;
+    max-width: 1400px; margin: 0 auto;
+  }
+  .rooms-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px;
+    margin-top: 80px;
+  }
+  .room-card {
+    background: var(--deep);
+    position: relative; overflow: hidden;
+    min-height: 420px;
+    display: flex; flex-direction: column; justify-content: flex-end;
+    padding: 40px 36px;
+    cursor: none;
+  }
+  .room-card::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(to top, rgba(15,35,24,0.95) 0%, rgba(15,35,24,0.2) 60%, transparent 100%);
+    z-index: 1;
+    transition: background 0.4s;
+  }
+  .room-card:hover::before {
+    background: linear-gradient(to top, rgba(15,35,24,0.98) 0%, rgba(15,35,24,0.5) 70%, transparent 100%);
+  }
+  .room-bg {
+    position: absolute; inset: 0;
+    overflow: hidden;
+    transition: transform 0.6s ease;
+  }
+  .room-bg img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .room-card:hover .room-bg { transform: scale(1.05); }
+  .room-content { position: relative; z-index: 2; }
+  .room-tag {
+    font-size: 0.6rem; letter-spacing: 0.3em; text-transform: uppercase;
+    color: var(--gold); margin-bottom: 12px;
+  }
+  .room-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2rem; font-weight: 300;
+    color: #F5F2EC;  /* Light on dark green card overlay */
+    margin-bottom: 12px;
+  }
+  .room-desc { font-size: 0.78rem; color: rgba(245,242,236,0.65); line-height: 1.7; font-weight: 300; margin-bottom: 24px; }
+  .room-price {
+    display: flex; align-items: baseline; gap: 8px;
+  }
+  .price-num { font-family: 'Cormorant Garamond', serif; font-size: 1.8rem; color: var(--gold); }
+  .price-unit { font-size: 0.65rem; letter-spacing: 0.15em; color: var(--muted); text-transform: uppercase; }
+  .room-arrow {
+    position: absolute; top: 32px; right: 32px; z-index: 2;
+    width: 40px; height: 40px;
+    border: 1px solid rgba(201,169,110,0.3);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s, border-color 0.3s;
+    font-size: 1rem;
+  }
+  .room-card:hover .room-arrow { opacity: 1; border-color: var(--gold); }
+
+  /* ── TESTIMONIALS SECTION ───────────────────────────────────
+     Displays guest reviews one at a time with a fade transition.
+     Three dot buttons (.t-dot) at the bottom let visitors jump to
+     any review. JavaScript auto-rotates them every 6 seconds.
+     The large decorative opening quote mark is added via CSS ::before.
+     ---------------------------------------------------------- */
+  .testimonials {
+    background: var(--dark);
+    padding: 120px 60px;
+    position: relative;
+  }
+  .testimonials::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(to right, transparent, var(--gold), transparent);
+  }
+
+  .testimonials-inner { max-width: 900px; margin: 0 auto; }
+  .testimonial-slider {
+    margin-top: 80px;
+    text-align: center;
+  }
+  .testimonial-quote {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(1.6rem, 2.5vw, 2.5rem);
+    font-style: italic;
+    font-weight: 300;
+    line-height: 1.5;
+    color: var(--text);
+    margin-bottom: 40px;
+    position: relative;
+  }
+  .testimonial-quote::before {
+    content: '\201C';
+    position: absolute; top: -30px; left: 50%; transform: translateX(-50%);
+    font-size: 6rem;
+    color: rgba(201,169,110,0.15);
+    line-height: 1;
+    font-family: 'Cormorant Garamond', serif;
+  }
+  .testimonial-author { font-size: 0.72rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--gold); }
+  .testimonial-origin { font-size: 0.65rem; letter-spacing: 0.2em; color: var(--muted); margin-top: 6px; }
+  .t-dots { display: flex; justify-content: center; gap: 10px; margin-top: 48px; }
+  .t-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--muted);
+    cursor: none;
+    transition: background 0.3s, transform 0.3s;
+  }
+  .t-dot.active { background: var(--gold); transform: scale(1.3); }
+
+  /* ── BOOKING / CONTACT SECTION ──────────────────────────────
+     Dark luxury redesign: deep green background with subtle venue
+     image texture, two-column layout — info left, form card right.
+     ---------------------------------------------------------- */
+  #contact {
+    background: var(--deep);
+    position: relative;
+    overflow: hidden;
+  }
+  #contact::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: url('pool/poolside.jpg') center/cover no-repeat;
+    opacity: 0.07;
+    z-index: 0;
+  }
+  .booking {
+    padding: 120px 60px;
+    max-width: 1400px; margin: 0 auto;
+    display: grid; grid-template-columns: 1fr 1.35fr; gap: 80px; align-items: start;
+    position: relative; z-index: 1;
+  }
+
+  /* ── Left column — info ── */
+  .booking-info .section-eyebrow { color: var(--gold); }
+  .booking-info h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(2.5rem, 4vw, 4rem);
+    font-weight: 300; line-height: 1.1;
+    margin-bottom: 24px;
+    color: #F5F2EC;
+  }
+  .booking-info h2 em { font-style: italic; color: var(--gold); }
+  .booking-info > p { color: rgba(245,242,236,0.55); font-size: 0.88rem; line-height: 1.9; margin-bottom: 48px; font-weight: 300; }
+
+  .contact-lines { display: flex; flex-direction: column; gap: 0; margin-bottom: 40px; }
+  .contact-line {
+    display: flex; gap: 20px; align-items: flex-start;
+    padding: 20px 0;
+    border-bottom: 1px solid rgba(201,169,110,0.12);
+  }
+  .contact-line:first-child { border-top: 1px solid rgba(201,169,110,0.12); }
+  .contact-line-icon {
+    width: 38px; height: 38px; flex-shrink: 0;
+    border: 1px solid rgba(201,169,110,0.3);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.95rem;
+    background: rgba(201,169,110,0.07);
+  }
+  .contact-label { font-size: 0.58rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--gold); margin-bottom: 5px; }
+  .contact-value { font-size: 0.88rem; font-weight: 300; color: rgba(245,242,236,0.75); }
+  .contact-value a { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
+
+  /* ── Right column — Google Form card ── */
+  .booking-form {
+    position: relative;
+    box-shadow: 0 32px 80px rgba(0,0,0,0.45), 0 0 0 1px rgba(201,169,110,0.18);
+    overflow: hidden;
+  }
+  .booking-form::before {
+    content: '';
+    display: block; height: 3px;
+    background: linear-gradient(90deg, transparent 0%, var(--gold) 40%, rgba(201,169,110,0.4) 100%);
+  }
+  .booking-form-header {
+    background: #0f2318;
+    padding: 36px 44px 32px;
+    border-bottom: 1px solid rgba(201,169,110,0.15);
+  }
+  .booking-form-header .form-eyebrow {
+    font-size: 0.6rem; letter-spacing: 0.35em; text-transform: uppercase;
+    color: var(--gold); margin-bottom: 10px; display: block;
+  }
+  .booking-form-header h3 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2rem; font-weight: 300;
+    color: #F5F2EC; margin: 0 0 8px;
+  }
+  .booking-form-header p {
+    font-size: 0.78rem; color: rgba(245,242,236,0.4);
+    font-weight: 300; letter-spacing: 0.04em; margin: 0;
+  }
+  .booking-form-divider {
+    display: flex; align-items: center; gap: 16px;
+    padding: 0 44px;
+    margin: 0;
+    background: #0f2318;
+    padding-bottom: 0;
+  }
+  .booking-form-divider span { font-size: 0.58rem; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(201,169,110,0.4); white-space: nowrap; }
+  .booking-form-divider::before, .booking-form-divider::after { content: ''; flex: 1; height: 1px; background: rgba(201,169,110,0.15); }
+
+  .google-form-wrapper {
+    background: #fff;
+    overflow: hidden;
+  }
+  .google-form-wrapper iframe { display: block; width: 100%; }
+
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .form-group { margin-bottom: 24px; }
+  .form-group label {
+    display: block;
+    font-size: 0.62rem; letter-spacing: 0.25em; text-transform: uppercase;
+    color: var(--gold); margin-bottom: 10px;
+  }
+
+  .btn-submit {
+    width: 100%;
+    background: var(--gold);
+    color: var(--deep);
+    border: none;
+    padding: 18px;
+    font-family: 'Jost', sans-serif;
+    font-size: 0.72rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    cursor: none;
+    transition: background 0.3s, letter-spacing 0.3s;
+  }
+  .btn-submit:hover { background: var(--gold-light); letter-spacing: 0.4em; }
+
+  /* ── FOOTER ─────────────────────────────────────────────────
+     Four-column grid: brand info + social links | Experiences | Suites | Information
+     Collapses to 2 columns on tablets and 1 column on phones.
+     The bottom bar shows the copyright notice and tagline.
+     ---------------------------------------------------------- */
+  footer {
+    background: #1B3A2A;  /* Deep forest green — matches nav and logo */
+    border-top: 1px solid rgba(184,151,58,0.15);
+    padding: 80px 60px 40px;
+    color: rgba(248,245,239,0.8);
+  }
+  .footer-grid {
+    max-width: 1300px; margin: 0 auto;
+    display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr; gap: 60px;
+    margin-bottom: 60px;
+  }
+  .footer-brand .logo {
+    margin-bottom: 20px;
+  }
+  .footer-brand .logo img {
+    height: 110px;
+    width: auto;
+    display: block;
+    background: #fff;
+    padding: 8px 14px;
+    border-radius: 8px;
+  }
+  .footer-brand p { font-size: 0.8rem; color: rgba(248,245,239,0.6); line-height: 1.8; font-weight: 300; }
+  .footer-socials {
+    display: flex; gap: 12px; margin-top: 32px;
+  }
+  .social-btn {
+    width: 36px; height: 36px;
+    border: 1px solid rgba(184,151,58,0.3);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.85rem;
+    color: rgba(248,245,239,0.6);
+    transition: border-color 0.3s, color 0.3s;
+    cursor: none;
+    text-decoration: none;
+  }
+  .social-btn:hover { border-color: var(--gold); color: var(--gold); }
+  .footer-col h5 {
+    font-size: 0.62rem; letter-spacing: 0.3em; text-transform: uppercase;
+    color: var(--gold); margin-bottom: 24px;
+  }
+  .footer-col ul { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+  .footer-col ul li a {
+    color: rgba(248,245,239,0.6); text-decoration: none; font-size: 0.82rem; font-weight: 300;
+    transition: color 0.3s;
+  }
+  .footer-col ul li a:hover { color: #F8F5EF; }
+  .footer-bottom {
+    max-width: 1300px; margin: 0 auto;
+    padding-top: 32px;
+    border-top: 1px solid rgba(201,169,110,0.08);
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: 0.7rem; color: rgba(248,245,239,0.5); font-weight: 300;
+  }
+
+  /* ── SCROLL REVEAL ANIMATION ────────────────────────────────
+     Any element with class="reveal" starts invisible and 30px lower.
+     When the user scrolls it into view, JavaScript adds class "visible"
+     which triggers the transition — the element fades in and slides up.
+     reveal-delay-1 through -4 stagger children so they appear one after
+     another rather than all at the same moment.
+     ---------------------------------------------------------- */
+  .reveal {
+    opacity: 0; transform: translateY(30px);
+    transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+  .reveal-delay-1 { transition-delay: 0.1s; }
+  .reveal-delay-2 { transition-delay: 0.2s; }
+  .reveal-delay-3 { transition-delay: 0.3s; }
+  .reveal-delay-4 { transition-delay: 0.4s; }
+
+  /* ── LOGO LIGHTBOX MODAL ────────────────────────────────────
+     Shown when the user clicks the nav logo. The backdrop dims the
+     page and the logo zooms in from small to full size.
+     ---------------------------------------------------------- */
+  .logo-modal {
+    position: fixed; inset: 0; z-index: 99999;
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+  .logo-modal.open { opacity: 1; pointer-events: all; }
+  .logo-modal-backdrop {
+    position: absolute; inset: 0;
+    background: rgba(0,0,0,0.75);
+    backdrop-filter: blur(6px);
+  }
+  .logo-modal-box {
+    position: relative; z-index: 1;
+    background: #fff;
+    border-radius: 16px;
+    padding: 32px;
+    max-width: 480px; width: 90%;
+    transform: scale(0.6);
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 40px 80px rgba(0,0,0,0.5);
+  }
+  .logo-modal.open .logo-modal-box { transform: scale(1); }
+  .logo-modal-box img { width: 100%; height: auto; display: block; }
+  .logo-modal-close {
+    position: absolute; top: -14px; right: -14px;
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: var(--gold);
+    color: var(--deep);
+    border: none;
+    font-size: 0.85rem;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 600;
+  }
+
+  /* ── MENU IMAGE LIGHTBOX ────────────────────────────────────
+     Opens when a menu dish thumbnail is clicked.
+     Backdrop blurs the page; image zooms in with a spring animation.
+     ---------------------------------------------------------- */
+  .menu-img-modal {
+    position: fixed; inset: 0; z-index: 99999;
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+  .menu-img-modal.open { opacity: 1; pointer-events: all; }
+  .menu-img-modal-backdrop {
+    position: absolute; inset: 0;
+    background: rgba(0,0,0,0.82);
+    backdrop-filter: blur(8px);
+  }
+  .menu-img-modal-box {
+    position: relative; z-index: 1;
+    max-width: 90vw; max-height: 88vh;
+    border-radius: 12px; overflow: hidden;
+    box-shadow: 0 40px 80px rgba(0,0,0,0.55);
+    transform: scale(0.85);
+    transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  .menu-img-modal.open .menu-img-modal-box { transform: scale(1); }
+  .menu-img-modal-box img { width: 100%; height: auto; max-height: 88vh; object-fit: contain; display: block; transition: transform 0.2s ease; cursor: zoom-in; }
+  .menu-img-modal-close {
+    position: absolute; top: -14px; right: -14px;
+    width: 32px; height: 32px;
+    background: var(--gold); color: var(--deep);
+    border: none; border-radius: 50%; cursor: pointer;
+    font-size: 0.85rem; font-weight: 600;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  }
+
+  /* ── GALLERY CAROUSEL LIGHTBOX ──────────────────────────────
+     Full-screen lightbox with prev/next arrows and image counter.
+     Opens when any .gallery-item is clicked.
+     ---------------------------------------------------------- */
+  .gallery-lb {
+    position: fixed; inset: 0; z-index: 100000;
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+  .gallery-lb.open { opacity: 1; pointer-events: all; }
+  .gallery-lb-backdrop {
+    position: absolute; inset: 0;
+    background: rgba(0,0,0,0.92);
+    backdrop-filter: blur(10px);
+  }
+  .gallery-lb-box {
+    position: relative; z-index: 1;
+    display: flex; flex-direction: column; align-items: center;
+    max-width: 92vw;
+  }
+  .gallery-lb-img {
+    max-width: 88vw; max-height: 80vh;
+    object-fit: contain; display: block;
+    border-radius: 6px;
+    transition: opacity 0.2s ease, transform 0.25s ease;
+    cursor: zoom-in;
+    transform-origin: center center;
+  }
+  .gallery-lb-caption {
+    margin-top: 14px;
+    font-size: 0.65rem; letter-spacing: 0.25em;
+    text-transform: uppercase; color: rgba(255,255,255,0.55);
+  }
+  .gallery-lb-counter {
+    margin-top: 6px;
+    font-size: 0.7rem; color: rgba(255,255,255,0.35);
+    letter-spacing: 0.1em;
+  }
+  .gallery-lb-close {
+    position: fixed; top: 20px; right: 24px;
+    width: 36px; height: 36px;
+    background: var(--gold); color: var(--deep);
+    border: none; border-radius: 50%; cursor: pointer;
+    font-size: 1rem; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    z-index: 2; box-shadow: 0 2px 12px rgba(0,0,0,0.4);
+  }
+  .gallery-lb-arrow {
+    position: fixed; top: 50%; transform: translateY(-50%);
+    width: 44px; height: 44px;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: #fff; font-size: 1.2rem;
+    border-radius: 50%; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    z-index: 2;
+    transition: background 0.2s;
+  }
+  .gallery-lb-arrow:hover { background: rgba(184,151,58,0.7); border-color: var(--gold); }
+  .gallery-lb-prev { left: 20px; }
+  .gallery-lb-next { right: 20px; }
+
+  /* ── GALLERY SECTION ────────────────────────────────────────
+     Masonry-style grid of all food and venue photos.
+     Each image opens the menu lightbox on click.
+     ---------------------------------------------------------- */
+  .gallery { padding: 100px 60px; background: var(--dark); }
+  .gallery-inner { max-width: 1300px; margin: 0 auto; }
+  .gallery-grid {
+    columns: 4;
+    column-gap: 12px;
+    margin-top: 60px;
+  }
+  .gallery-item {
+    break-inside: avoid;
+    margin-bottom: 12px;
+    overflow: hidden;
+    border-radius: 6px;
+    cursor: zoom-in;
+    position: relative;
+  }
+  .gallery-item img {
+    width: 100%;
+    display: block;
+    transition: transform 0.4s ease;
+    background: #000;
+  }
+  .gallery-item:hover img { transform: scale(1.05); }
+  .gallery-item-label {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    padding: 20px 12px 10px;
+    background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
+    color: #fff;
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .gallery-item:hover .gallery-item-label { opacity: 1; }
+  @media (max-width: 1024px) { .gallery-grid { columns: 3; } }
+  @media (max-width: 640px)  { .gallery-grid { columns: 2; } }
+
+  /* ── EXPLORE / TOUR SECTION ─────────────────────────────────
+     Showcases local attractions guests can visit using Eden 54
+     car rental services. Cards show an image, destination name,
+     distance, description, and a link to the official site.
+     ---------------------------------------------------------- */
+  .explore { padding: 100px 60px; background: #fff; }
+  .explore-inner { max-width: 1300px; margin: 0 auto; }
+  .explore-intro {
+    max-width: 640px;
+    margin: 0 auto 60px;
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.88rem;
+    line-height: 1.9;
+  }
+  .explore-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 32px;
+    margin-bottom: 60px;
+  }
+  .explore-card {
+    background: var(--mid);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.07);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  .explore-card:hover { transform: translateY(-6px); box-shadow: 0 12px 40px rgba(0,0,0,0.13); }
+  .explore-img {
+    width: 100%; height: 230px;
+    object-fit: cover;
+    display: block;
+  }
+  .explore-info { padding: 24px 28px 28px; }
+  .explore-info h3 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.5rem;
+    font-weight: 400;
+    margin-bottom: 4px;
+    color: var(--text);
+  }
+  .explore-location {
+    font-size: 0.62rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 14px;
+  }
+  .explore-desc {
+    font-size: 0.84rem;
+    color: var(--muted);
+    line-height: 1.8;
+    margin-bottom: 20px;
+  }
+  .explore-link {
+    display: inline-block;
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+    text-decoration: none;
+    border-bottom: 1px solid rgba(184,151,58,0.4);
+    padding-bottom: 2px;
+    transition: color 0.3s, border-color 0.3s;
+  }
+  .explore-link:hover { color: var(--gold-dark); border-color: var(--gold-dark); }
+  .car-rental-banner {
+    background: var(--deep);
+    border-radius: 12px;
+    padding: 40px 48px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 32px;
+    flex-wrap: wrap;
+  }
+  .car-rental-text h3 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.8rem;
+    font-weight: 300;
+    color: #F5F2EC;
+    margin-bottom: 8px;
+  }
+  .car-rental-text p { font-size: 0.84rem; color: rgba(245,242,236,0.65); line-height: 1.7; max-width: 500px; }
+  .car-rental-btn {
+    display: inline-block;
+    padding: 14px 36px;
+    background: var(--gold);
+    color: var(--deep);
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    text-decoration: none;
+    border-radius: 2px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    transition: background 0.3s;
+  }
+  .car-rental-btn:hover { background: var(--gold-light); }
+  @media (max-width: 1024px) { .gallery { padding: 80px 32px; } .explore { padding: 80px 32px; } }
+
+  /* ── SPECIAL PACKAGES SECTION ──────────────────────────────
+     A gold-accented banner section showcasing limited-time deals.
+     The package card uses a two-column layout: details on the left,
+     savings badge on the right. The badge pulses gently to draw attention.
+     ---------------------------------------------------------- */
+  .packages {
+    background: var(--dark);
+    padding: 100px 60px;
+    position: relative; overflow: hidden;
+  }
+  .packages::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(to right, transparent, var(--gold), transparent);
+  }
+  .packages-inner { max-width: 1100px; margin: 0 auto; }
+  .package-card {
+    background: var(--mid);
+    border: 1px solid rgba(201,169,110,0.25);
+    border-radius: 4px;
+    padding: 60px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 60px;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+    margin-top: 60px;
+  }
+  .package-card::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(135deg, rgba(201,169,110,0.06) 0%, transparent 60%);
+  }
+  .package-tag {
+    font-size: 0.62rem; letter-spacing: 0.4em; text-transform: uppercase;
+    color: var(--gold); margin-bottom: 16px;
+  }
+  .package-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(2rem, 3.5vw, 3rem);
+    font-weight: 400; line-height: 1.1;
+    margin-bottom: 20px;
+  }
+  .package-name em { font-style: italic; color: var(--gold); }
+  .package-desc {
+    font-size: 0.85rem; line-height: 1.9;
+    color: var(--muted); font-weight: 300;
+    margin-bottom: 32px; max-width: 560px;
+  }
+  .package-includes {
+    display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 36px;
+  }
+  .package-pill {
+    background: rgba(201,169,110,0.1);
+    border: 1px solid rgba(201,169,110,0.25);
+    color: var(--gold);
+    font-size: 0.65rem; letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 6px 16px; border-radius: 20px;
+  }
+  .package-cta {
+    display: inline-block;
+    background: var(--gold);
+    color: var(--deep);
+    padding: 14px 36px;
+    font-family: 'Jost', sans-serif;
+    font-size: 0.68rem; letter-spacing: 0.25em;
+    text-transform: uppercase;
+    text-decoration: none;
+    transition: background 0.3s, letter-spacing 0.3s;
+  }
+  .package-cta:hover { background: var(--gold-light); letter-spacing: 0.35em; }
+  .package-badge {
+    text-align: center; position: relative; z-index: 1;
+    flex-shrink: 0;
+  }
+  .badge-circle {
+    width: 160px; height: 160px;
+    border: 2px solid var(--gold);
+    border-radius: 50%;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 4px;
+    animation: badgePulse 3s ease-in-out infinite;
+  }
+  @keyframes badgePulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(201,169,110,0.3); }
+    50%       { box-shadow: 0 0 0 14px rgba(201,169,110,0); }
+  }
+  .badge-save {
+    font-size: 0.58rem; letter-spacing: 0.3em;
+    text-transform: uppercase; color: var(--muted);
+  }
+  .badge-pct {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 3.5rem; font-weight: 400; line-height: 1;
+    color: var(--gold);
+  }
+  .badge-off {
+    font-size: 0.62rem; letter-spacing: 0.25em;
+    text-transform: uppercase; color: var(--muted);
+  }
+  @media (max-width: 768px) {
+    .package-card { grid-template-columns: 1fr; gap: 40px; text-align: center; }
+    .package-includes { justify-content: center; }
+    .badge-circle { margin: 0 auto; }
+  }
+
+  /* ── RESPONSIVE BREAKPOINTS ─────────────────────────────────
+     Adjusts the layout for tablets (≤1024px) and phones (≤640px).
+     On tablets: nav links are hidden, multi-column grids become 1–2 cols.
+     On phones:  everything stacks into a single column.
+     ---------------------------------------------------------- */
+  @media (max-width: 1024px) {
+    nav { padding: 24px 32px; }
+    .nav-links { display: none; }
+    .intro, .dining, .booking { grid-template-columns: 1fr; gap: 60px; }
+    .intro-visual { height: 350px; }
+    .amenities-grid, .rooms-grid { grid-template-columns: 1fr 1fr; }
+    .outdoor-grid { grid-template-columns: 1fr; }
+    .footer-grid { grid-template-columns: 1fr 1fr; }
+    .amenities, .outdoor, .dining, .rooms, .booking, .testimonials { padding: 80px 32px; }
+    .intro { padding: 60px 32px 80px; }
+  }
+  @media (max-width: 640px) {
+    .amenities-grid, .rooms-grid { grid-template-columns: 1fr; }
+    .footer-grid { grid-template-columns: 1fr; }
+    .form-row { grid-template-columns: 1fr; }
+    .booking-form-header { padding: 28px 24px 24px; }
+    .booking { padding: 80px 24px; gap: 60px; }
+    .booking { grid-template-columns: 1fr; }
+    #rfFormWrap .rf-row-2, #rfFormWrap .rf-row-3 { grid-template-columns: 1fr; }
+    #rfFormWrap { padding: 24px 20px 32px; }
+  }
+
+  /* ── CUSTOM RESERVATION FORM ───────────────────────────────── */
+  #rfFormWrap { background: #FDFCFA; padding: 36px 44px 44px; }
+  #rfFormWrap .rf-form-body.hide { display: none; }
+  #rfFormWrap .rf-section { margin-bottom: 22px; }
+  #rfFormWrap .rf-section-label {
+    font-size: 0.57rem; letter-spacing: 0.22em; text-transform: uppercase;
+    color: var(--gold); margin: 0 0 14px; padding-bottom: 10px;
+    border-bottom: 1px solid rgba(201,169,110,0.2);
+    font-family: 'Jost', sans-serif; font-weight: 500; display: block;
+  }
+  #rfFormWrap .rf-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  #rfFormWrap .rf-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+  #rfFormWrap .rf-field { display: flex; flex-direction: column; gap: 7px; margin-bottom: 16px; }
+  #rfFormWrap .rf-row-2 .rf-field,
+  #rfFormWrap .rf-row-3 .rf-field { margin-bottom: 0; }
+  #rfFormWrap label {
+    font-size: 0.65rem; letter-spacing: 0.14em; text-transform: uppercase;
+    font-weight: 500; color: #555; font-family: 'Jost', sans-serif;
+  }
+  #rfFormWrap label .req { color: #B91C1C; margin-left: 2px; }
+  #rfFormWrap input[type="text"],
+  #rfFormWrap input[type="email"],
+  #rfFormWrap input[type="tel"],
+  #rfFormWrap input[type="date"],
+  #rfFormWrap select,
+  #rfFormWrap textarea {
+    width: 100%; padding: 11px 14px;
+    font-size: 0.85rem; font-family: 'Jost', sans-serif;
+    color: #1A1A1A; background: #F4F1EC;
+    border: 1px solid #DDD9D1; border-radius: 3px;
+    outline: none; transition: border-color 0.2s, box-shadow 0.2s;
+    appearance: none; -webkit-appearance: none;
+  }
+  #rfFormWrap input:focus, #rfFormWrap select:focus, #rfFormWrap textarea:focus {
+    border-color: var(--gold); box-shadow: 0 0 0 3px rgba(201,169,110,0.14);
+  }
+  #rfFormWrap input.rferror, #rfFormWrap select.rferror, #rfFormWrap textarea.rferror {
+    border-color: #B91C1C; box-shadow: 0 0 0 3px rgba(185,28,28,0.1);
+  }
+  #rfFormWrap .rf-field-error { font-size: 0.7rem; color: #B91C1C; display: none; font-family: 'Jost', sans-serif; }
+  #rfFormWrap .rf-field-error.show { display: block; }
+  #rfFormWrap select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23888580' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 12px center;
+    background-color: #F4F1EC; padding-right: 36px; cursor: pointer;
+  }
+  #rfFormWrap textarea { resize: vertical; min-height: 88px; line-height: 1.6; }
+  #rfFormWrap .rf-divider { border: none; border-top: 1px solid rgba(201,169,110,0.15); margin: 24px 0; }
+  #rfFormWrap .rf-submit-btn {
+    width: 100%; padding: 15px 24px;
+    background: var(--deep); color: #F5F2EC;
+    font-size: 0.75rem; font-weight: 500; letter-spacing: 0.22em; text-transform: uppercase;
+    font-family: 'Jost', sans-serif;
+    border: 1px solid rgba(201,169,110,0.3); border-radius: 3px;
+    cursor: pointer; transition: background 0.25s, color 0.25s, border-color 0.25s;
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    margin-top: 8px;
+  }
+  #rfFormWrap .rf-submit-btn:hover { background: var(--gold); color: var(--deep); border-color: var(--gold); }
+  #rfFormWrap .rf-submit-btn:active { transform: scale(0.99); }
+  #rfFormWrap .rf-submit-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+  #rfFormWrap .rf-submit-btn svg { width: 15px; height: 15px; flex-shrink: 0; }
+  .rf-spinner {
+    width: 15px; height: 15px; border: 2px solid rgba(245,242,236,0.3);
+    border-top-color: #F5F2EC; border-radius: 50%;
+    animation: rfSpin 0.7s linear infinite; display: none; flex-shrink: 0;
+  }
+  @keyframes rfSpin { to { transform: rotate(360deg); } }
+  .rf-msg {
+    display: none; border-radius: 3px; padding: 13px 15px;
+    font-size: 0.8rem; margin-top: 14px;
+    font-family: 'Jost', sans-serif;
+  }
+  .rf-msg.show { display: flex; align-items: flex-start; gap: 10px; }
+  .rf-msg svg { width: 15px; height: 15px; flex-shrink: 0; margin-top: 2px; }
+  .rf-msg.rf-success { background: #EAF5EE; color: #1A6B3C; border: 1px solid #A7D9B8; }
+  .rf-msg.rf-error-msg { background: #FEF2F2; color: #B91C1C; border: 1px solid #FECACA; }
+  .rf-success-screen {
+    display: none; text-align: center; padding: 60px 32px;
+    background: #FDFCFA;
+  }
+  .rf-success-screen.show { display: block; }
+  .rf-success-icon {
+    width: 64px; height: 64px;
+    background: rgba(201,169,110,0.1); border: 1px solid rgba(201,169,110,0.3);
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 20px;
+  }
+  .rf-success-icon svg { width: 28px; height: 28px; color: var(--gold); }
+  .rf-success-screen h2 {
+    font-family: 'Cormorant Garamond', serif; font-size: 2rem;
+    font-weight: 300; color: #1A1A1A; margin-bottom: 12px;
+  }
+  .rf-success-screen p { font-size: 0.85rem; color: #888580; max-width: 320px; margin: 0 auto 28px; line-height: 1.7; font-family: 'Jost', sans-serif; }
+  .rf-new-booking-btn {
+    display: inline-block; padding: 10px 28px;
+    background: transparent; border: 1px solid rgba(201,169,110,0.4);
+    border-radius: 3px; font-size: 0.72rem; color: var(--gold);
+    cursor: pointer; font-family: 'Jost', sans-serif;
+    letter-spacing: 0.18em; text-transform: uppercase;
+    transition: background 0.2s, color 0.2s;
+  }
+  .rf-new-booking-btn:hover { background: var(--gold); color: var(--deep); }
+  #rfFormWrap .rf-footer {
+    display: flex; align-items: center; gap: 8px; justify-content: center;
+    margin-top: 20px; font-size: 0.7rem; color: rgba(0,0,0,0.3);
+    font-family: 'Jost', sans-serif; padding-bottom: 4px;
+  }
+  #rfFormWrap .rf-footer svg { width: 12px; height: 12px; }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════════
+     CUSTOM CURSOR
+     Two layered divs that replace the browser's default pointer:
+       .cursor      → small gold dot that follows the mouse exactly
+       .cursor-ring → larger ring that trails slightly behind the dot
+     Both are moved by JavaScript on mousemove events.
+     ══════════════════════════════════════════════════════════════ -->
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     LOGO LIGHTBOX MODAL
+     Hidden by default (opacity: 0, pointer-events: none).
+     Clicking the nav logo triggers JavaScript to add class "open",
+     which fades in the backdrop and scales the logo image up to full
+     size. Clicking the ✕ button or the dark backdrop closes it again.
+     ══════════════════════════════════════════════════════════════ -->
+<div class="logo-modal" id="logoModal">
+  <div class="logo-modal-backdrop" id="logoBackdrop"></div>
+  <div class="logo-modal-box">
+    <button class="logo-modal-close" id="logoClose">✕</button>
+    <img src="logo/eden 54 logo.jpeg" alt="Eden 54 Logo">
+  </div>
+</div>
+
+<!-- Gallery carousel lightbox — opens when a gallery item is clicked -->
+<div class="gallery-lb" id="galleryLb">
+  <div class="gallery-lb-backdrop" id="galleryLbBackdrop"></div>
+  <button class="gallery-lb-close" id="galleryLbClose">✕</button>
+  <button class="gallery-lb-arrow gallery-lb-prev" id="galleryLbPrev">&#8592;</button>
+  <button class="gallery-lb-arrow gallery-lb-next" id="galleryLbNext">&#8594;</button>
+  <div class="gallery-lb-box">
+    <img src="" alt="" id="galleryLbImg" class="gallery-lb-img">
+    <div class="gallery-lb-caption" id="galleryLbCaption"></div>
+    <div class="gallery-lb-counter" id="galleryLbCounter"></div>
+  </div>
+</div>
+
+<!-- Menu image lightbox — opens when a dish thumbnail is clicked -->
+<div class="menu-img-modal" id="menuImgModal">
+  <div class="menu-img-modal-backdrop" id="menuImgBackdrop"></div>
+  <div class="menu-img-modal-box">
+    <button class="menu-img-modal-close" id="menuImgClose">✕</button>
+    <img src="" alt="" id="menuImgLarge">
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     NAVIGATION BAR
+     Fixed to the top of the screen at all times. Contains:
+       - Logo (left)  → clicking it opens the logo lightbox modal
+       - Nav links (centre) → smooth-scroll anchor links to each section
+       - "Reserve Now" button (right) → jumps to the booking/contact section
+     JavaScript adds class "scrolled" when the page scrolls past 60px,
+     which changes the background from a transparent gradient to solid.
+     ══════════════════════════════════════════════════════════════ -->
+<nav id="nav">
+  <a href="#" class="nav-logo" id="logoBtn"><img src="logo/eden 54 logo.jpeg" alt="Eden 54"></a>
+  <ul class="nav-links">
+    <li class="nav-dropdown">
+      <a class="nav-dropdown-toggle" href="#amenities">
+        Amenities
+        <svg width="10" height="6" viewBox="0 0 10 6" fill="none">
+          <path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+        </svg>
+      </a>
+      <div class="nav-dropdown-menu">
+        <a href="#dining">🍽️ Fine Dining</a>
+        <a href="games.html">🎮 Game House</a>
+        <a href="#outdoor">🍸 Outdoor Bar</a>
+        <a href="#outdoor">🏊 Swimming Pool</a>
+        <a href="#outdoor">🍹 Pergola Pool Bar</a>
+      </div>
+    </li>
+    <li><a href="#dining">Dining</a></li>
+    <li><a href="#gallery">Gallery</a></li>
+    <li><a href="#explore">Explore</a></li>
+    <li><a href="#rooms">Suites</a></li>
+    <li><a href="#outdoor">Outdoor</a></li>
+    <li><a href="#contact">Contact</a></li>
+    <li class="nav-dropdown">
+      <a class="nav-dropdown-toggle" href="javascript:void(0)">
+        Services
+        <svg width="10" height="6" viewBox="0 0 10 6" fill="none">
+          <path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+        </svg>
+      </a>
+      <div class="nav-dropdown-menu">
+        <a href="barbing.html">Barbing Salon</a>
+        <a href="games.html">Games & Competition</a>
+        <a href="car-rental.html">Car Rental</a>
+      </div>
+    </li>
+  </ul>
+  <a href="#contact" class="nav-book">Reserve Now</a>
+</nav>
+
+<!-- ══════════════════════════════════════════════════════════════
+     HERO SECTION
+     Full-screen opening section (100vh). Three visual layers stack
+     on top of each other to build depth:
+       1. .hero-bg    → dark gradient background + faint gold diagonal lines
+       2. .hero-geo   → three large slowly rotating gold circle outlines
+       3. .particles  → 25 tiny gold dots that float upward (created by JS)
+     The text block (.hero-content) sits above all layers via z-index.
+     .hero-scroll is the animated "Scroll" indicator at the bottom.
+     ══════════════════════════════════════════════════════════════ -->
+<section class="hero">
+  <video class="hero-video" id="heroVid1" autoplay muted playsinline preload="auto">
+    <source src="videos/Videoofapartmentcompound1.mp4" type="video/mp4">
+  </video>
+  <video class="hero-video hidden" id="heroVid2" muted playsinline preload="auto">
+    <source src="videos/Videoofapartmentcompound2.mp4" type="video/mp4">
+  </video>
+  <div class="hero-bg"></div>
+  <div class="hero-geo">
+    <div class="geo-line"></div>
+    <div class="geo-line"></div>
+    <div class="geo-line"></div>
+  </div>
+  <div class="particles" id="particles"></div>
+
+  <div class="hero-content">
+    <p class="hero-eyebrow">Luxury Service Apartments</p>
+    <h1 class="hero-title">
+      Eden
+      <em>54</em>
+    </h1>
+    <p class="hero-number">Luxury Experience</p>
+    <p class="hero-sub">Where Every Stay Becomes a Story</p>
+    <a href="#amenities" class="hero-cta">
+      Explore Eden
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M5 12h14M12 5l7 7-7 7"/>
+      </svg>
+    </a>
+  </div>
+
+  <div class="hero-scroll">
+    <div class="scroll-line"></div>
+    <span>Scroll</span>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════
+     DECORATIVE ORNAMENT DIVIDER
+     A centred row of: line → diamond → diamond → diamond → line
+     placed between the hero and the intro section as a visual break.
+     The lines use gradients so they fade from the edges toward the centre.
+     ══════════════════════════════════════════════════════════════ -->
+<!-- ══════════════════════════════════════════════════════════════
+     INTRO / ABOUT SECTION
+     Two-column layout:
+       Left  → headline, two paragraphs, and a 2×2 stats grid
+               (6 Suites · 6+ Amenities · 24/7 Gaming · ⭐⭐⭐⭐⭐ Rating)
+       Right → two overlapping placeholder image cards that represent
+               suite interiors and pool views
+     All child elements carry class="reveal" so they fade in on scroll.
+     ══════════════════════════════════════════════════════════════ -->
+<div class="ornament">
+  <div class="ornament-line"></div>
+  <div class="ornament-diamond"></div>
+  <div class="ornament-diamond"></div>
+  <div class="ornament-diamond"></div>
+  <div class="ornament-line rev"></div>
+</div>
+<section>
+  <div class="intro">
+    <div class="intro-text reveal">
+      <h2>A Sanctuary of <em>Refined Living</em></h2>
+      <p>Eden 54 redefines what it means to feel at home. Nestled in a setting of unparalleled elegance, our service apartments blend the warmth of a private residence with the impeccable standards of a world-class hotel.</p>
+      <p>From intimate candlelit dinners at our fine dining restaurant to sun-drenched afternoons by the pool, every moment at Eden 54 is crafted to exceed expectation.</p>
+      <div class="intro-stats">
+        <div class="reveal reveal-delay-1">
+          <div class="stat-num">6</div>
+          <div class="stat-label">Luxury Suites</div>
+        </div>
+        <div class="reveal reveal-delay-2">
+          <div class="stat-num">6+</div>
+          <div class="stat-label">World-Class Amenities</div>
+        </div>
+        <div class="reveal reveal-delay-3">
+          <div class="stat-num">24/7</div>
+          <div class="stat-label">Gaming Services</div>
+        </div>
+        <div class="reveal reveal-delay-4">
+          <div class="stat-num">⭐⭐⭐⭐⭐</div>
+          <div class="stat-label">Guest Rating</div>
+        </div>
+      </div>
+    </div>
+    <div class="intro-visual reveal reveal-delay-2">
+      <div class="intro-card">
+        <img class="card-inner" src="venue/Eden54 front view.jpg" alt="Eden 54 Game Lounge & Steakhouse">
+        <div class="card-badge">Game Lounge &amp; Steakhouse</div>
+      </div>
+      <div class="intro-card">
+        <img class="card-inner" src="venue/apartment section.jpg" alt="Eden 54 Apartment Section">
+        <div class="card-badge">Apartments</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════
+     AMENITIES SECTION  (anchor: #amenities)
+     A 3-column grid of 5 service cards covering Eden 54's offerings:
+       01 Fine Dining · 02 Game House · 03 Outdoor Bar (guests only)
+       04 Swimming Pool · 05 Pergola Pool Bar (open to public)
+     Each card has a large faint number, an icon, title, description,
+     and a gold bar that slides in from the left on hover.
+     ══════════════════════════════════════════════════════════════ -->
+<section class="amenities" id="amenities">
+  <div class="section-header reveal">
+    <p class="section-eyebrow">Curated Experiences</p>
+    <h2 class="section-title">The Eden <em>Collection</em></h2>
+  </div>
+
+  <div class="amenities-grid">
+    <div class="amenity-card reveal">
+      <img src="menu/Steak.jpg" alt="Fine Dining" class="amenity-card-img">
+      <div class="amenity-num">01</div>
+      <div class="amenity-icon">🍽️</div>
+      <h3 class="amenity-title">Fine Dining</h3>
+      <p class="amenity-desc">A curated culinary journey led by our executive chef. Seasonal menus, rare vintages, and an ambience designed for moments that matter.</p>
+      <div class="amenity-bar"></div>
+    </div>
+    <div class="amenity-card reveal reveal-delay-1">
+      <img src="venue/Eden54 front view.jpg" alt="Game House" class="amenity-card-img">
+      <div class="amenity-num">02</div>
+      <div class="amenity-icon">🎮</div>
+      <h3 class="amenity-title">Game House</h3>
+      <p class="amenity-desc">A sanctuary of play featuring table tennis, billiard pool, PS5 gaming, a car racing simulator, and immersive VR games — thrills for every kind of guest.</p>
+      <div class="amenity-bar"></div>
+    </div>
+    <div class="amenity-card reveal reveal-delay-2">
+      <img src="venue/Inbetween apartment and lounge.jpg" alt="Outdoor Bar" class="amenity-card-img">
+      <div class="amenity-num">03</div>
+      <div class="amenity-icon">🍸</div>
+      <h3 class="amenity-title">Outdoor Bar</h3>
+      <p class="amenity-desc">An exclusive rooftop retreat reserved strictly for lodged guests. Sip handcrafted cocktails, premium spirits, and enjoy golden-hour views in a private space-within-a-space experience.</p>
+      <div class="amenity-bar"></div>
+    </div>
+    <div class="amenity-card reveal">
+      <img src="pool/pool.jpg" alt="Swimming Pool" class="amenity-card-img">
+      <div class="amenity-num">04</div>
+      <div class="amenity-icon">🏊</div>
+      <h3 class="amenity-title">Swimming Pool</h3>
+      <p class="amenity-desc">Dive into our pristine swimming pool — a refreshing retreat surrounded by manicured gardens and private poolside cabanas, perfect for a relaxing swim.</p>
+      <div class="amenity-bar"></div>
+    </div>
+    <div class="amenity-card reveal reveal-delay-1">
+      <img src="pool/poolside.jpg" alt="Pergola Pool Bar" class="amenity-card-img">
+      <div class="amenity-num">05</div>
+      <div class="amenity-icon">🍹</div>
+      <h3 class="amenity-title">Pergola Pool Bar</h3>
+      <p class="amenity-desc">Open to all. Our stunning pergola pool bar blends relaxed poolside vibes with premium drinks, fresh bites, and a vibrant social atmosphere — no room key required.</p>
+      <div class="amenity-bar"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════
+     FINE DINING SECTION  (anchor: #dining)
+     Two-column layout:
+       Left  → .dining-visual: a styled panel with "La Carte" as large
+               decorative text, plus a floating accent box showing the
+               2-course tasting menu count
+       Right → .dining-content: heading, description, and a preview of
+               4 signature dishes with names, details, and prices (₦)
+     To update menu items, edit the .menu-item blocks in this section.
+     ══════════════════════════════════════════════════════════════ -->
+<section id="dining">
+  <div class="dining">
+    <div class="dining-visual reveal">
+      <div class="dining-bg">
+        <img src="menu/Steak.jpg" alt="Eden 54 Menu" id="diningBgImg">
+        <div class="dining-centerpiece">La<br>Carte</div>
+      </div>
+      <div class="dining-accent">
+        <div class="dining-accent-num">2</div>
+        <div class="dining-accent-text">Course<br>Tasting Menu</div>
+      </div>
+    </div>
+    <div class="dining-content reveal reveal-delay-2">
+      <p class="section-eyebrow">Restaurant & Bar</p>
+      <h2>Fine Dining at <em>Eden</em></h2>
+      <p>Our restaurant is a symphony of flavour, craft, and atmosphere. Helmed by our award-winning executive chef, every dish is a love letter to the finest ingredients the world has to offer.</p>
+      <p>Paired with an exceptional cellar of wines and the intimate glow of candlelight, dinner at Eden 54 is an experience reserved for those who settle for nothing less.</p>
+
+      <div class="menu-preview">
+
+        <!-- Starters -->
+        <div class="menu-category">
+          <span class="menu-category-label">Starters</span>
+          <span class="menu-category-line"></span>
+        </div>
+
+        <div class="menu-item">
+          <div>
+            <div class="menu-name">Chicken Skewers</div>
+            <div class="menu-detail">Tender seasoned chicken skewers, grilled to perfection</div>
+            <div class="menu-sides">
+              <span class="menu-sides-label">Sides:</span>
+              <span class="menu-option">Onion Rings or Chips</span>
+            </div>
+          </div>
+          <div class="menu-price">₦8,000</div>
+          <div class="menu-img-wrapper"><img src="menu/chicken skewers.png" alt="Chicken Skewers"></div>
+        </div>
+
+        <div class="menu-item">
+          <div>
+            <div class="menu-name">Suya Skewers</div>
+            <div class="menu-detail">Classic spiced suya skewers with sliced tomatoes and onions</div>
+            <div class="menu-sides">
+              <span class="menu-sides-label">Sides:</span>
+              <span class="menu-option">Onion Rings or Chips</span>
+            </div>
+          </div>
+          <div class="menu-price">₦8,500</div>
+          <div class="menu-img-wrapper"><img src="menu/Suya Skewers.png" alt="Suya Skewers"></div>
+        </div>
+
+        <div class="menu-item">
+          <div>
+            <div class="menu-name">Steak Skewers</div>
+            <div class="menu-detail">Juicy grilled steak skewers, seasoned and chargrilled</div>
+            <div class="menu-sides">
+              <span class="menu-sides-label">Sides:</span>
+              <span class="menu-option">Onion Rings or Chips</span>
+            </div>
+          </div>
+          <div class="menu-price">₦10,000</div>
+          <div class="menu-img-wrapper"><img src="menu/Stake Skewers.jpg" alt="Steak Skewers"></div>
+        </div>
+
+        <div class="menu-item">
+          <div>
+            <div class="menu-name">Small Chops</div>
+            <div class="menu-detail">A delightful platter of bite-sized finger foods — perfect to share</div>
+            <div class="menu-sides">
+              <span class="menu-sides-label">Sides:</span>
+              <span class="menu-option">Onion Rings or Chips</span>
+            </div>
+          </div>
+          <div class="menu-price">₦6,500</div>
+          <div class="menu-img-wrapper"><img src="menu/Small chops.jpg" alt="Small Chops"></div>
+        </div>
+
+
+        <!-- Mains -->
+        <div class="menu-category">
+          <span class="menu-category-label">Mains</span>
+          <span class="menu-category-line"></span>
+        </div>
+
+        <div class="menu-item">
+          <div>
+            <div class="menu-name">Suya Tacos</div>
+            <div class="menu-detail">Seasoned suya · warm tortilla · fresh tomatoes</div>
+            <div class="menu-sides">
+              <span class="menu-sides-label">Sauce:</span>
+              <span class="menu-option">Peri Peri</span>
+              <span class="menu-option">Ranch</span>
+            </div>
+            <div class="menu-sides">
+              <span class="menu-sides-label">Sides:</span>
+              <span class="menu-option">Onion Rings or Chips</span>
+            </div>
+          </div>
+          <div class="menu-price">₦12,000</div>
+          <div class="menu-img-wrapper"><img src="menu/Suya Tacos.jpg" alt="Suya Tacos"></div>
+        </div>
+
+        <div class="menu-item">
+          <div>
+            <div class="menu-name">Chipotle Rice Bowl</div>
+            <div class="menu-detail">Chipotle style rice · tomatoes · sweet corn</div>
+            <div class="menu-sides">
+              <span class="menu-sides-label">Protein:</span>
+              <span class="menu-option">Grilled Chicken</span>
+              <span class="menu-option">Suya</span>
+              <span class="menu-option">Steak</span>
+              <span class="menu-option">Asun</span>
+            </div>
+            <div class="menu-sides">
+              <span class="menu-sides-label">Sauce:</span>
+              <span class="menu-option">Peri Peri</span>
+              <span class="menu-option">Ranch</span>
+            </div>
+            <div class="menu-sides">
+              <span class="menu-sides-label">Sides:</span>
+              <span class="menu-option">Onion Rings or Chips</span>
+            </div>
+          </div>
+          <div class="menu-price">₦16,500</div>
+          <div class="menu-img-wrapper"><img src="menu/Chipotle Rice Bowl.jpg" alt="Chipotle Rice Bowl"></div>
+        </div>
+
+        <div class="menu-item">
+          <div>
+            <div class="menu-name">Jollof Rice</div>
+            <div class="menu-detail">Smoky party jollof</div>
+            <div class="menu-sides">
+              <span class="menu-sides-label">Protein:</span>
+              <span class="menu-option">Grilled Chicken</span>
+              <span class="menu-option">Steak</span>
+              <span class="menu-option">Suya</span>
+              <span class="menu-option">Asun</span>
+            </div>
+            <div class="menu-sides">
+              <span class="menu-sides-label">Sauce:</span>
+              <span class="menu-option">Peri Peri</span>
+              <span class="menu-option">Ranch</span>
+            </div>
+            <div class="menu-sides">
+              <span class="menu-sides-label">Sides:</span>
+              <span class="menu-option">Onion Rings or Chips</span>
+            </div>
+          </div>
+          <div class="menu-price">₦14,000</div>
+          <div class="menu-img-wrapper"><img src="menu/Jollof Rice.jpg" alt="Jollof Rice"></div>
+        </div>
+
+        <div class="menu-item">
+          <div>
+            <div class="menu-name">Fried Rice</div>
+            <div class="menu-detail">Seasoned fried rice</div>
+            <div class="menu-sides">
+              <span class="menu-sides-label">Protein:</span>
+              <span class="menu-option">Grilled Chicken</span>
+              <span class="menu-option">Steak</span>
+              <span class="menu-option">Suya</span>
+              <span class="menu-option">Asun</span>
+            </div>
+            <div class="menu-sides">
+              <span class="menu-sides-label">Sauce:</span>
+              <span class="menu-option">Peri Peri</span>
+              <span class="menu-option">Ranch</span>
+            </div>
+            <div class="menu-sides">
+              <span class="menu-sides-label">Sides:</span>
+              <span class="menu-option">Onion Rings or Chips</span>
+            </div>
+          </div>
+          <div class="menu-price">₦13,500</div>
+          <div class="menu-img-wrapper"><img src="menu/Fried Rice.jpg" alt="Fried Rice"></div>
+        </div>
+
+        <div class="menu-item">
+          <div>
+            <div class="menu-name">Chicken & Chips</div>
+            <div class="menu-detail">Crispy fried chicken · golden chips</div>
+            <div class="menu-sides">
+              <span class="menu-sides-label">Sauce:</span>
+              <span class="menu-option">Peri Peri</span>
+              <span class="menu-option">Ranch</span>
+            </div>
+            <div class="menu-sides">
+              <span class="menu-sides-label">Sides:</span>
+              <span class="menu-option">Onion Rings or Chips</span>
+            </div>
+          </div>
+          <div class="menu-price">₦11,000</div>
+          <div class="menu-img-wrapper"><img src="menu/Chicken & Chips.jpg" alt="Chicken & Chips"></div>
+        </div>
+
+        <div class="menu-item">
+          <div>
+            <div class="menu-name">Grilled Catfish</div>
+            <div class="menu-detail">Whole grilled catfish · spiced tomato sauce</div>
+            <div class="menu-sides">
+              <span class="menu-sides-label">Sides 1:</span>
+              <span class="menu-option">Jollof Rice</span>
+              <span class="menu-option">Fried Rice</span>
+              <span class="menu-option">Fried Plantain</span>
+              <span class="menu-option">Fried Yam</span>
+            </div>
+            <div class="menu-sides">
+              <span class="menu-sides-label">Sides 2:</span>
+              <span class="menu-option">Onion Rings or Chips</span>
+            </div>
+            <div class="menu-sides">
+              <span class="menu-sides-label">Sauce:</span>
+              <span class="menu-option">Peri Peri</span>
+              <span class="menu-option">Ranch</span>
+            </div>
+          </div>
+          <div class="menu-price">₦16,000</div>
+          <div class="menu-img-wrapper"><img src="menu/Grilled Cat fish.jpg" alt="Grilled Catfish"></div>
+        </div>
+
+        <div class="menu-item">
+          <div>
+            <div class="menu-name">Grilled Croaker Fish</div>
+            <div class="menu-detail">Seasoned croaker · pepper sauce</div>
+            <div class="menu-sides">
+              <span class="menu-sides-label">Sides 1:</span>
+              <span class="menu-option">Jollof Rice</span>
+              <span class="menu-option">Fried Rice</span>
+              <span class="menu-option">Fried Plantain</span>
+              <span class="menu-option">Fried Yam</span>
+            </div>
+            <div class="menu-sides">
+              <span class="menu-sides-label">Sides 2:</span>
+              <span class="menu-option">Onion Rings or Chips</span>
+            </div>
+            <div class="menu-sides">
+              <span class="menu-sides-label">Sauce:</span>
+              <span class="menu-option">Peri Peri</span>
+              <span class="menu-option">Ranch</span>
+            </div>
+          </div>
+          <div class="menu-price">₦15,000</div>
+          <div class="menu-img-wrapper"><img src="menu/Grilled Croaker Fish.jpg" alt="Grilled Croaker Fish"></div>
+        </div>
+
+        <div class="menu-item">
+          <div>
+            <div class="menu-name">Grilled Tilapia Fish</div>
+            <div class="menu-detail">Fresh tilapia, seasoned and grilled over open flame</div>
+            <div class="menu-sides">
+              <span class="menu-sides-label">Sides 1:</span>
+              <span class="menu-option">Jollof Rice</span>
+              <span class="menu-option">Fried Rice</span>
+              <span class="menu-option">Fried Plantain</span>
+              <span class="menu-option">Fried Yam</span>
+            </div>
+            <div class="menu-sides">
+              <span class="menu-sides-label">Sides 2:</span>
+              <span class="menu-option">Onion Rings or Chips</span>
+            </div>
+            <div class="menu-sides">
+              <span class="menu-sides-label">Sauce:</span>
+              <span class="menu-option">Peri Peri</span>
+              <span class="menu-option">Ranch</span>
+            </div>
+          </div>
+          <div class="menu-price">₦14,000</div>
+          <div class="menu-img-wrapper"><img src="menu/Grilled Tilapia Fish.jpg" alt="Grilled Tilapia Fish"></div>
+        </div>
+
+        <div class="menu-item">
+          <div>
+            <div class="menu-name">Steak</div>
+            <div class="menu-detail">Grilled steak</div>
+            <div class="menu-sides">
+              <span class="menu-sides-label">Chips:</span>
+              <span class="menu-option">Potato</span>
+              <span class="menu-option">Yam</span>
+            </div>
+            <div class="menu-sides">
+              <span class="menu-sides-label">Sides 1:</span>
+              <span class="menu-option">Mashed Potatoes</span>
+              <span class="menu-option">Fried Rice</span>
+              <span class="menu-option">Jollof Rice</span>
+            </div>
+            <div class="menu-sides">
+              <span class="menu-sides-label">Sides 2:</span>
+              <span class="menu-option">Onion Rings or Chips</span>
+            </div>
+            <div class="menu-sides">
+              <span class="menu-sides-label">Sauce:</span>
+              <span class="menu-option">Peri Peri</span>
+              <span class="menu-option">Ranch</span>
+            </div>
+          </div>
+          <div class="menu-price">₦20,000</div>
+          <div class="menu-img-wrapper"><img src="menu/Steak.jpg" alt="Steak"></div>
+        </div>
+
+        <div class="menu-item">
+          <div>
+            <div class="menu-name">Chicken Shawarma</div>
+            <div class="menu-detail">Spiced grilled chicken · soft wrap · garlic sauce · fresh veggies</div>
+            <div class="menu-sides">
+              <span class="menu-sides-label">Sauce:</span>
+              <span class="menu-option">Peri Peri</span>
+              <span class="menu-option">Ranch</span>
+            </div>
+            <div class="menu-sides">
+              <span class="menu-sides-label">Sides:</span>
+              <span class="menu-option">Onion Rings or Chips</span>
+            </div>
+          </div>
+          <div class="menu-price">₦8,500</div>
+          <div class="menu-img-wrapper"><img src="menu/Chicken Shawarma.jpg" alt="Chicken Shawarma"></div>
+        </div>
+
+        <div class="menu-item">
+          <div>
+            <div class="menu-name">Suya Shawarma</div>
+            <div class="menu-detail">Tender suya strips · soft wrap · tomatoes</div>
+            <div class="menu-sides">
+              <span class="menu-sides-label">Sauce:</span>
+              <span class="menu-option">Peri Peri</span>
+              <span class="menu-option">Ranch</span>
+            </div>
+            <div class="menu-sides">
+              <span class="menu-sides-label">Sides:</span>
+              <span class="menu-option">Onion Rings or Chips</span>
+            </div>
+          </div>
+          <div class="menu-price">₦9,500</div>
+          <div class="menu-img-wrapper"><img src="menu/Suya Shawarma.jpg" alt="Suya Shawarma"></div>
+        </div>
+
+        <div class="menu-item">
+          <div>
+            <div class="menu-name">Seafood Broil</div>
+            <div class="menu-detail">Seasoned broiled seafood medley</div>
+            <div class="menu-sides">
+              <span class="menu-sides-label">Sides:</span>
+              <span class="menu-option">Onion Rings or Chips</span>
+            </div>
+            <div class="menu-sides">
+              <span class="menu-sides-label">Sauce:</span>
+              <span class="menu-option">Peri Peri</span>
+              <span class="menu-option">Ranch</span>
+            </div>
+          </div>
+          <div class="menu-price">₦22,000</div>
+          <div class="menu-img-wrapper"><img src="menu/Seafood Broil.jpg" alt="Seafood Broil"></div>
+        </div>
+
+        <div class="menu-item">
+          <div>
+            <div class="menu-name">Lamb Chops</div>
+            <div class="menu-detail">Grilled lamb chops</div>
+            <div class="menu-sides">
+              <span class="menu-sides-label">Sides 1:</span>
+              <span class="menu-option">Mashed Potatoes</span>
+              <span class="menu-option">Fried Yam</span>
+              <span class="menu-option">Jollof Rice</span>
+              <span class="menu-option">Fried Rice</span>
+            </div>
+            <div class="menu-sides">
+              <span class="menu-sides-label">Sides 2:</span>
+              <span class="menu-option">Onion Rings or Chips</span>
+            </div>
+            <div class="menu-sides">
+              <span class="menu-sides-label">Sauce:</span>
+              <span class="menu-option">Peri Peri</span>
+              <span class="menu-option">Ranch</span>
+            </div>
+          </div>
+          <div class="menu-price">₦28,000</div>
+          <div class="menu-img-wrapper"><img src="menu/Lamb Chops.jpg" alt="Lamb Chops"></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- RESTAURANT VIDEO PANEL -->
+<div class="restaurant-video-panel">
+  <video autoplay muted loop playsinline preload="auto">
+    <source src="videos/restaurant_web.mp4" type="video/mp4">
+  </video>
+  <div class="rv-overlay"></div>
+  <div class="rv-content reveal">
+    <p>Eden 54 · The Experience</p>
+    <h2>Where Every Dish Tells<br>a <em>Story</em></h2>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     GALLERY SECTION  (anchor: #gallery)
+     Masonry grid of all food and venue photos. Each image opens the
+     shared menu lightbox so visitors can view full-size.
+     ══════════════════════════════════════════════════════════════ -->
+<section class="gallery" id="gallery">
+  <div class="gallery-inner">
+    <div class="section-header reveal">
+      <p class="section-eyebrow">Our Food</p>
+      <h2 class="section-title">A Taste of <em>Eden 54</em></h2>
+    </div>
+    <div class="gallery-grid">
+      <div class="gallery-item reveal"><img src="menu/chicken skewers.png" alt="Chicken Skewers"><span class="gallery-item-label">Chicken Skewers</span></div>
+      <div class="gallery-item reveal"><img src="menu/Suya Skewers.png" alt="Suya Skewers"><span class="gallery-item-label">Suya Skewers</span></div>
+      <div class="gallery-item reveal"><img src="menu/Stake Skewers.jpg" alt="Steak Skewers"><span class="gallery-item-label">Steak Skewers</span></div>
+      <div class="gallery-item reveal"><img src="menu/Small chops.jpg" alt="Small Chops"><span class="gallery-item-label">Small Chops</span></div>
+      <div class="gallery-item reveal"><img src="menu/Suya Tacos.jpg" alt="Suya Tacos"><span class="gallery-item-label">Suya Tacos</span></div>
+      <div class="gallery-item reveal"><img src="menu/Chipotle Rice Bowl.jpg" alt="Chipotle Rice Bowl"><span class="gallery-item-label">Chipotle Rice Bowl</span></div>
+      <div class="gallery-item reveal"><img src="menu/Jollof Rice.jpg" alt="Jollof Rice"><span class="gallery-item-label">Jollof Rice</span></div>
+      <div class="gallery-item reveal"><img src="menu/Fried Rice.jpg" alt="Fried Rice"><span class="gallery-item-label">Fried Rice</span></div>
+      <div class="gallery-item reveal"><img src="menu/Chicken & Chips.jpg" alt="Chicken & Chips"><span class="gallery-item-label">Chicken &amp; Chips</span></div>
+      <div class="gallery-item reveal"><img src="menu/Grilled Cat fish.jpg" alt="Grilled Catfish"><span class="gallery-item-label">Grilled Catfish</span></div>
+      <div class="gallery-item reveal"><img src="menu/Grilled Croaker Fish.jpg" alt="Grilled Croaker Fish"><span class="gallery-item-label">Grilled Croaker Fish</span></div>
+      <div class="gallery-item reveal"><img src="menu/Grilled Tilapia Fish.jpg" alt="Grilled Tilapia Fish"><span class="gallery-item-label">Grilled Tilapia Fish</span></div>
+      <div class="gallery-item reveal"><img src="menu/Steak.jpg" alt="Steak"><span class="gallery-item-label">Steak</span></div>
+      <div class="gallery-item reveal"><img src="menu/Chicken Shawarma.jpg" alt="Chicken Shawarma"><span class="gallery-item-label">Chicken Shawarma</span></div>
+      <div class="gallery-item reveal"><img src="menu/Suya Shawarma.jpg" alt="Suya Shawarma"><span class="gallery-item-label">Suya Shawarma</span></div>
+      <div class="gallery-item reveal"><img src="menu/Seafood Broil.jpg" alt="Seafood Broil"><span class="gallery-item-label">Seafood Broil</span></div>
+      <div class="gallery-item reveal"><img src="menu/Lamb Chops.jpg" alt="Lamb Chops"><span class="gallery-item-label">Lamb Chops</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════
+     EXPLORE / TOUR SECTION  (anchor: #explore)
+     Showcases local attractions guests can visit. Eden 54 offers
+     car rental services to take guests to these destinations.
+     To add more destinations, duplicate an .explore-card block.
+     ══════════════════════════════════════════════════════════════ -->
+<section class="explore" id="explore">
+  <div class="explore-inner">
+    <div class="section-header reveal">
+      <p class="section-eyebrow">Day Trips &amp; Experiences</p>
+      <h2 class="section-title">Explore <em>Osun State</em></h2>
+    </div>
+    <p class="explore-intro">Beyond our walls, Osun State holds some of Nigeria's most breathtaking natural and cultural treasures. Let us take you there — our car rental service is available to all guests.</p>
+    <div class="explore-grid">
+
+      <div class="explore-card reveal">
+        <img class="explore-img" src="explore/Erin-ijesa-waterfall.jpg" alt="Olumirin Waterfall, Erin-Ijesha">
+        <div class="explore-info">
+          <h3>Olumirin Waterfall</h3>
+          <p class="explore-location">Erin-Ijesha · Approx. 45 min drive</p>
+          <p class="explore-desc">A stunning seven-level waterfall nestled in the heart of Erin-Ijesha. Climb the natural rock steps, feel the cool mist, and take in one of Nigeria's most spectacular landscapes — a must-see experience for every guest.</p>
+          <a href="https://tourismboard.os.gov.ng/olumirin-water-falls/" target="_blank" rel="noopener" class="explore-link">Learn More →</a>
+        </div>
+      </div>
+
+      <div class="explore-card reveal">
+        <img class="explore-img" src="explore/Osun-grove.jpg" alt="Osun-Osogbo Sacred Grove">
+        <div class="explore-info">
+          <h3>Osun Sacred Grove</h3>
+          <p class="explore-location">Osogbo · UNESCO World Heritage Site</p>
+          <p class="explore-desc">One of the last remaining sacred groves in Yorubaland and a UNESCO World Heritage Site since 2005. A serene forest sanctuary along the Osun River, adorned with shrines, sculptures, and artworks honouring the Yoruba goddess Osun — a profoundly spiritual and cultural experience.</p>
+          <a href="https://whc.unesco.org/en/list/1118" target="_blank" rel="noopener" class="explore-link">UNESCO Profile →</a>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="car-rental-banner reveal">
+      <div class="car-rental-text">
+        <h3>Eden 54 <em style="font-style:italic; color:var(--gold)">Car Rental</em></h3>
+        <p>Our private car rental service is available exclusively for Eden 54 guests. Explore Osun State in comfort and style — from waterfalls to cultural sites, we'll get you there and back safely.</p>
+      </div>
+      <a href="#contact" class="car-rental-btn">Book a Car</a>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════
+     OUTDOOR & POOL SECTION  (anchor: #outdoor)
+     Two-column layout:
+       Left  → .outdoor-main: large Swimming Pool feature panel with a
+               floating wave icon and descriptive text
+       Right → .outdoor-features: 5 feature blocks covering:
+               Sky Bar (guests only) · Pergola Pool Bar (public) ·
+               Eden Gardens · Rooftop Fire Pit · Sports Courts
+     Each feature block shows an emoji icon, title, and description.
+     ══════════════════════════════════════════════════════════════ -->
+<section class="outdoor" id="outdoor">
+  <div class="outdoor-inner">
+    <div class="section-header reveal">
+      <p class="section-eyebrow">Al Fresco Living</p>
+      <h2 class="section-title">Life <em>Outdoors</em></h2>
+    </div>
+    <div class="outdoor-grid">
+      <div class="outdoor-main reveal">
+        <img src="pool/poolside.jpg" alt="Eden 54 Pool Side" class="outdoor-main-img">
+        <div class="pool-icon">🌊</div>
+        <h3>The Eden <em>Swimming Pool</em></h3>
+        <p>A pristine swimming pool perfect for leisure and relaxation. Lined with private cabanas and attended by our poolside team ready to bring you refreshments and ice-cold towels on demand.</p>
+      </div>
+      <div class="outdoor-features">
+        <div class="feature-block reveal">
+          <div class="feature-emoji">🍸</div>
+          <div>
+            <h4>The Sky Bar — Guests Only</h4>
+            <p>An exclusive rooftop space reserved strictly for lodged guests. Signature cocktails, sundowners, and craft spirits in a private space-within-a-space setting. Live DJ sets every Friday and Saturday evening.</p>
+          </div>
+        </div>
+        <div class="feature-block reveal reveal-delay-1">
+          <div class="feature-emoji">🍹</div>
+          <div>
+            <h4>Pergola Pool Bar — Open to All</h4>
+            <p>A vibrant poolside bar open to the public. Enjoy premium cocktails, cold drinks, and light bites under our beautiful pergola — the perfect social spot for everyone.</p>
+          </div>
+        </div>
+        <div class="feature-block reveal reveal-delay-1">
+          <div class="feature-emoji">🌿</div>
+          <div>
+            <h4>Eden Gardens</h4>
+            <p>Lush tropical gardens designed for tranquil walks, private reading nooks, and guided morning meditation sessions.</p>
+          </div>
+        </div>
+        <div class="feature-block reveal reveal-delay-2">
+          <div class="feature-emoji">🔥</div>
+          <div>
+            <h4>Space in Space Fire Pit</h4>
+            <p>Gather around our intimate fire pit — a private space within a space, perfect for cool evenings with great company, wine, and ambient warmth.</p>
+          </div>
+        </div>
+        <div class="feature-block reveal reveal-delay-3">
+          <div class="feature-emoji">🎾</div>
+          <div>
+            <h4>Table Tennis</h4>
+            <p>Professional table tennis tables available for guests — a fast-paced, fun way to unwind between dips and dining.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════
+     SUITES SECTION  (anchor: #rooms)
+     Three suite cards displayed side by side:
+       - One-Bedroom Suite   → ₦45,000/night  (Entry Collection)
+       - Two-Bedroom Suite   → ₦85,000/night  (Signature Collection)
+       - Three-Bedroom Suite → ₦120,000/night (Prestige Collection)
+     Each card has an emoji placeholder background, a dark gradient
+     overlay so text stays readable, and an arrow icon that appears
+     on hover. To update pricing or descriptions, edit the .room-card
+     blocks below. Prices also appear in the booking form dropdown.
+     ══════════════════════════════════════════════════════════════ -->
+<section id="rooms">
+  <div class="rooms">
+    <div class="section-header reveal">
+      <p class="section-eyebrow">Your Private Sanctuary</p>
+      <h2 class="section-title">The Eden <em>Suites</em></h2>
+    </div>
+    <div class="rooms-grid">
+      <div class="room-card reveal">
+        <div class="room-bg"><img src="venue/apartment section.jpg" alt="One-Bedroom Suite"></div>
+        <div class="room-arrow">→</div>
+        <div class="room-content">
+          <p class="room-tag">Entry Collection</p>
+          <h3 class="room-name">One-Bedroom Suite</h3>
+          <p class="room-desc">Elegantly appointed living space with a fully equipped kitchenette, king bed, ensuite bathroom, and garden views.</p>
+          <div class="room-price">
+            <span class="price-num">₦45,000</span>
+            <span class="price-unit">per night</span>
+          </div>
+        </div>
+      </div>
+      <div class="room-card reveal reveal-delay-1">
+        <div class="room-bg"><img src="venue/apartment section.jpg" alt="Two-Bedroom Suite"></div>
+        <div class="room-arrow">→</div>
+        <div class="room-content">
+          <p class="room-tag">Signature Collection</p>
+          <h3 class="room-name">Two-Bedroom Suite</h3>
+          <p class="room-desc">Separate living and dining areas, two marble-clad ensuites, walk-in wardrobes, and a private balcony.</p>
+          <div class="room-price">
+            <span class="price-num">₦85,000</span>
+            <span class="price-unit">per night</span>
+          </div>
+        </div>
+      </div>
+      <div class="room-card reveal reveal-delay-2">
+        <div class="room-bg"><img src="venue/apartment section.jpg" alt="Three-Bedroom Suite"></div>
+        <div class="room-arrow">→</div>
+        <div class="room-content">
+          <p class="room-tag">Prestige Collection</p>
+          <h3 class="room-name">Three-Bedroom Suite</h3>
+          <p class="room-desc">Three bedrooms, spacious living and dining areas, fully equipped kitchen, and premium amenities throughout.</p>
+          <div class="room-price">
+            <span class="price-num">₦120,000</span>
+            <span class="price-unit">per night</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════
+     SPECIAL PACKAGES SECTION
+     Highlights limited-time offers and deals. Currently features the
+     Family Escape package (20% savings). To add more packages, duplicate
+     the .package-card block below and update the details.
+     ══════════════════════════════════════════════════════════════ -->
+<section class="packages">
+  <div class="packages-inner">
+    <div class="section-header reveal">
+      <p class="section-eyebrow">Limited Offers</p>
+      <h2 class="section-title">Special <em>Packages</em></h2>
+    </div>
+    <div class="package-card reveal">
+      <div>
+        <p class="package-tag">Family Package</p>
+        <h3 class="package-name">The Family <em>Escape</em></h3>
+        <p class="package-desc">Treat your family to an unforgettable luxury getaway at Eden 54. Enjoy spacious suites, poolside fun, the game center, fine dining, and the pergola pool bar — all at an exclusive 20% discount. Perfect for creating memories that last a lifetime.</p>
+        <div class="package-includes">
+          <span class="package-pill">🏠 Suite Accommodation</span>
+          <span class="package-pill">🏊 Pool Access</span>
+          <span class="package-pill">🎮 Game Center</span>
+          <span class="package-pill">🍽️ Fine Dining</span>
+          <span class="package-pill">🍹 Pergola Pool Bar</span>
+          <span class="package-pill">🌿 Garden Access</span>
+        </div>
+        <a href="#contact" class="package-cta">Book This Package</a>
+      </div>
+      <div class="package-badge">
+        <div class="badge-circle">
+          <span class="badge-save">Save</span>
+          <span class="badge-pct">20%</span>
+          <span class="badge-off">Off</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════
+     TESTIMONIALS / GUEST REVIEWS SECTION
+     Displays one guest review at a time. Three dot buttons at the
+     bottom let visitors jump to any review manually. JavaScript also
+     auto-rotates through the reviews every 6 seconds.
+     To add, remove, or edit reviews, update the "testimonials" array
+     in the JavaScript section at the bottom of this file.
+     Each entry has: quote, author, and origin (city + nights stayed).
+     ══════════════════════════════════════════════════════════════ -->
+<section class="testimonials">
+  <div class="testimonials-inner">
+    <div class="section-header reveal">
+      <p class="section-eyebrow">Guest Voices</p>
+      <h2 class="section-title">Stories from <em>Eden 54</em></h2>
+    </div>
+    <div class="testimonial-slider" id="testimonialSlider">
+      <div class="testimonial-quote reveal" id="tQuote">
+        Eden 54 is simply incredible. The indoor fine dining restaurant served the most exquisite meals, and evenings at the pergola pool bar were pure magic. A truly unforgettable stay.
+      </div>
+      <p class="testimonial-author reveal" id="tAuthor">Victoria Okonkwo</p>
+      <p class="testimonial-origin reveal" id="tOrigin">Lagos, Nigeria · Stayed 7 Nights</p>
+      <div class="t-dots" id="tDots">
+        <div class="t-dot active" data-index="0"></div>
+        <div class="t-dot" data-index="1"></div>
+        <div class="t-dot" data-index="2"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════
+     BOOKING & CONTACT SECTION  (anchor: #contact)
+     Two-column layout:
+       Left  → .booking-info: contact details (location, phone, email,
+               check-in/out times) + embedded Google Maps iframe showing
+               the Arimoro area. Clicking the address opens Google Maps.
+       Right → .booking-form: reservation form with fields for:
+               First/Last Name · Email · Check-In/Out Dates ·
+               Suite Type (dropdown) · Special Requests
+     JavaScript validates that check-out is always after check-in and
+     shows a success message for 4 seconds after the form is submitted.
+     ══════════════════════════════════════════════════════════════ -->
+<section id="contact">
+  <div class="booking">
+    <div class="booking-info reveal">
+      <p class="section-eyebrow">Reservations</p>
+      <h2>Begin Your <em>Eden</em> Chapter</h2>
+      <p>Whether you're seeking a romantic escape, a business retreat, or an extended luxury residence, our team is ready to craft your perfect stay.</p>
+      <div class="contact-lines">
+        <div class="contact-line">
+          <div class="contact-line-icon">📍</div>
+          <div>
+            <div class="contact-label">Location</div>
+            <div class="contact-value"><a href="https://maps.app.goo.gl/DAk7MQqYsNXVBUvU8" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline;text-underline-offset:3px;">Close to Arimoro High School, Arimoro, Ilesa, Osun State, Nigeria</a></div>
+          </div>
+        </div>
+        <div class="contact-line">
+          <div class="contact-line-icon">📞</div>
+          <div>
+            <div class="contact-label">Reservations</div>
+            <div class="contact-value">+234 (0) 800 EDEN 54</div>
+          </div>
+        </div>
+        <div class="contact-line">
+          <div class="contact-line-icon">✉️</div>
+          <div>
+            <div class="contact-label">Email</div>
+            <div class="contact-value">eden54group@gmail.com</div>
+          </div>
+        </div>
+        <div class="contact-line">
+          <div class="contact-line-icon">🕐</div>
+          <div>
+            <div class="contact-label">Check-in / Check-out</div>
+            <div class="contact-value">3:00 PM / 12:00 Noon</div>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top:36px; border:1px solid rgba(201,169,110,0.2); overflow:hidden; box-shadow: 0 8px 32px rgba(0,0,0,0.3);">
+        <div style="background:#0f2318; padding:12px 16px; border-bottom:1px solid rgba(201,169,110,0.15); display:flex; align-items:center; gap:10px;">
+          <span style="font-size:0.7rem; color:var(--gold); letter-spacing:0.2em; text-transform:uppercase;">📍 Find Us</span>
+        </div>
+        <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d7909.195256894762!2d4.705409339470755!3d7.618684919586597!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x103823e0b10a1f61%3A0x6be10db0bd5614fa!2sEden54%20luxury%20Apartment%20and%20Lounge!5e0!3m2!1sen!2sus!4v1781476033262!5m2!1sen!2sus" width="100%" height="260" style="border:0;display:block;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+      </div>
+    </div>
+    <div class="booking-form reveal reveal-delay-2">
+      <div class="booking-form-header">
+        <span class="form-eyebrow">Reservations</span>
+        <h3>Reserve Your Suite</h3>
+        <p>Complete the form below and our team will confirm your booking within 24 hours.</p>
+      </div>
+
+      <div id="rfFormWrap">
+
+        <div class="rf-form-body" id="rfFormBody">
+
+          <div class="rf-section">
+            <span class="rf-section-label">Personal Information</span>
+            <div class="rf-row-2">
+              <div class="rf-field">
+                <label for="rfFirstName">First name <span class="req">*</span></label>
+                <input type="text" id="rfFirstName" name="entry.1210157" placeholder="John">
+                <span class="rf-field-error" id="rferr-rfFirstName">Please enter your first name</span>
+              </div>
+              <div class="rf-field">
+                <label for="rfLastName">Last name <span class="req">*</span></label>
+                <input type="text" id="rfLastName" name="entry.5692462" placeholder="Smith">
+                <span class="rf-field-error" id="rferr-rfLastName">Please enter your last name</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="rf-section">
+            <div class="rf-row-2">
+              <div class="rf-field">
+                <label for="rfEmail">Email address <span class="req">*</span></label>
+                <input type="email" id="rfEmail" name="entry.1163602" placeholder="john@example.com">
+                <span class="rf-field-error" id="rferr-rfEmail">Please enter a valid email</span>
+              </div>
+              <div class="rf-field">
+                <label for="rfPhone">Phone number <span class="req">*</span></label>
+                <input type="tel" id="rfPhone" name="entry.1591634" placeholder="+234 (0) 000 0000">
+                <span class="rf-field-error" id="rferr-rfPhone">Please enter your phone number</span>
+              </div>
+            </div>
+          </div>
+
+          <hr class="rf-divider">
+
+          <div class="rf-section">
+            <span class="rf-section-label">Stay Details</span>
+            <div class="rf-row-3">
+              <div class="rf-field">
+                <label for="rfCheckin">Check-in <span class="req">*</span></label>
+                <input type="date" id="rfCheckin" name="entry.4193625">
+                <span class="rf-field-error" id="rferr-rfCheckin">Select a check-in date</span>
+              </div>
+              <div class="rf-field">
+                <label for="rfCheckout">Check-out <span class="req">*</span></label>
+                <input type="date" id="rfCheckout" name="entry.9504276">
+                <span class="rf-field-error" id="rferr-rfCheckout">Select a check-out date</span>
+              </div>
+              <div class="rf-field">
+                <label for="rfGuests">Guests <span class="req">*</span></label>
+                <select id="rfGuests" name="entry.3271317">
+                  <option value="" disabled selected>Select</option>
+                  <option value="1">1 guest</option>
+                  <option value="2">2 guests</option>
+                  <option value="3">3 guests</option>
+                  <option value="4">4 guests</option>
+                  <option value="5">5 guests</option>
+                </select>
+                <span class="rf-field-error" id="rferr-rfGuests">Please select guests</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="rf-section">
+            <div class="rf-field">
+              <label for="rfUnit">Apartment unit <span class="req">*</span></label>
+              <select id="rfUnit" name="entry.9091780">
+                <option value="" disabled selected>Choose</option>
+                <option value="1 Bedroom Apartment">1 Bedroom Apartment</option>
+                <option value="2 Bedroom Apartment">2 Bedroom Apartment</option>
+                <option value="3 Bedroom Apartment">3 Bedroom Apartment</option>
+              </select>
+              <span class="rf-field-error" id="rferr-rfUnit">Please select an apartment unit</span>
+            </div>
+          </div>
+
+          <div class="rf-section">
+            <div class="rf-field">
+              <label for="rfRequests">Special requests</label>
+              <textarea id="rfRequests" name="entry.1510999" placeholder="Dietary requirements, accessibility needs, occasion details…"></textarea>
+            </div>
+          </div>
+
+          <button type="button" class="rf-submit-btn" id="rfSubmitBtn" onclick="rfSubmitForm()">
+            <svg id="rfBtnIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13"/><path d="M22 2L15 22 11 13 2 9l20-7z"/></svg>
+            <div class="rf-spinner" id="rfSpinner"></div>
+            <span id="rfBtnText">Send Reservation Request</span>
+          </button>
+
+          <div class="rf-msg rf-error-msg" id="rfErrorMsg">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <div>Something went wrong. Please try again or contact us directly.</div>
+          </div>
+
+          <div class="rf-footer">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+            Your information is securely submitted and never shared with third parties.
+          </div>
+
+        </div>
+
+        <div class="rf-success-screen" id="rfSuccessScreen">
+          <div class="rf-success-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          </div>
+          <h2>Reservation Received</h2>
+          <p>Thank you — our team will review your details and confirm your suite within 24 hours.</p>
+          <button class="rf-new-booking-btn" onclick="rfResetForm()">Make another booking</button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Hidden iframe + static form for Google Forms submission -->
+  <iframe name="rfHiddenFrame" id="rfHiddenFrame" style="display:none;position:absolute;width:0;height:0;border:0;"></iframe>
+  <form id="rfRealForm"
+        action="https://docs.google.com/forms/d/e/1FAIpQLSe-0VpwCWMfScS_28uawPeLuqxQBgcUFppc0-INSRptgEAKKA/formResponse"
+        method="POST" target="rfHiddenFrame" style="display:none;">
+    <input type="hidden" name="emailAddress"      id="rh_emailAddress">
+    <input type="hidden" name="entry.1069749255" id="rh_firstName">
+    <input type="hidden" name="entry.1336973942" id="rh_lastName">
+    <input type="hidden" name="entry.1968163125" id="rh_email">
+    <input type="hidden" name="entry.334493718"  id="rh_phone">
+    <input type="hidden" name="entry.1969288775" id="rh_checkin">
+    <input type="hidden" name="entry.1222740020" id="rh_checkout">
+    <input type="hidden" name="entry.1818404740" id="rh_guests">
+    <input type="hidden" name="entry.1734377936" id="rh_unit">
+    <input type="hidden" name="entry.1621521925" id="rh_requests">
+  </form>
+
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════
+     FOOTER
+     Four-column grid:
+       Col 1 → Brand logo, tagline, and social media icons
+               (𝕏 Twitter · LinkedIn · Instagram → @eden54group · Facebook)
+       Col 2 → Experiences links (Fine Dining, Game House, etc.)
+       Col 3 → Suites links (One-Bedroom, Two-Bedroom, Three-Bedroom)
+       Col 4 → Information links (About, Gallery, Events, Careers, Policy)
+     The bottom bar shows the copyright notice and tagline.
+     To update social links, find the .footer-socials div below.
+     Instagram is already linked — update the href on the other icons
+     when those profiles are ready.
+     ══════════════════════════════════════════════════════════════ -->
+<footer>
+  <div class="footer-grid">
+    <div class="footer-brand">
+      <div class="logo"><img src="logo/eden 54 logo.jpeg" alt="Eden 54"></div>
+      <p>A collection of luxury service apartments where every detail is designed to elevate your experience. Live beautifully. Stay memorably.</p>
+      <div class="footer-socials">
+        <a href="#" class="social-btn">𝕏</a>
+        <a href="#" class="social-btn">in</a>
+        <a href="https://www.instagram.com/eden54group?igsh=MTQ3dDJpcmlmZGs5bQ%3D%3D&utm_source=qr" class="social-btn" target="_blank" rel="noopener">📸</a>
+        <a href="#" class="social-btn">fb</a>
+      </div>
+    </div>
+    <div class="footer-col">
+      <h5>Our Services</h5>
+      <ul>
+        <li><a href="apartment.html">Apartments</a></li>
+        <li><a href="apartment.html#dining">Steakhouse & Lounge</a></li>
+        <li><a href="games.html">Games & Competition</a></li>
+        <li><a href="car-rental.html">Car Rental</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h5>Suites</h5>
+      <ul>
+        <li><a href="apartment.html">One-Bedroom Suite</a></li>
+        <li><a href="apartment.html">Two-Bedroom Suite</a></li>
+        <li><a href="apartment.html">Three-Bedroom Suite</a></li>
+        <li><a href="#contact">Long Stay Packages</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h5>Information</h5>
+      <ul>
+        <li><a href="#">About Eden 54</a></li>
+        <li><a href="#">Gallery</a></li>
+        <li><a href="#">Events & Weddings</a></li>
+        <li><a href="#">Careers</a></li>
+        <li><a href="#">Privacy Policy</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2025 Eden 54 Luxury Service Apartments. All rights reserved.</span>
+    <span style="color: var(--gold-dark);">Crafted with excellence.</span>
+  </div>
+</footer>
+
+<script>
+  /* ============================================================
+     JAVASCRIPT — all interactive behaviour for the page
+     ============================================================ */
+
+  /* ── NAV DROPDOWNS ───────────────────────────────────────────
+     Click a dropdown toggle to open/close it. Clicking anywhere
+     outside closes all open dropdowns.
+     ---------------------------------------------------------- */
+  document.querySelectorAll('.nav-dropdown-toggle').forEach(toggle => {
+    toggle.addEventListener('click', e => {
+      e.preventDefault();
+      const parent = toggle.closest('.nav-dropdown');
+      const isOpen = parent.classList.contains('open');
+      // close all dropdowns first
+      document.querySelectorAll('.nav-dropdown').forEach(d => d.classList.remove('open'));
+      // toggle the clicked one
+      if (!isOpen) parent.classList.add('open');
+    });
+  });
+
+  // close dropdowns when clicking outside the nav
+  document.addEventListener('click', e => {
+    if (!e.target.closest('.nav-dropdown')) {
+      document.querySelectorAll('.nav-dropdown').forEach(d => d.classList.remove('open'));
+    }
+  });
+
+  // close dropdown after a menu link is clicked (so it doesn't stay open)
+  document.querySelectorAll('.nav-dropdown-menu a').forEach(link => {
+    link.addEventListener('click', () => {
+      document.querySelectorAll('.nav-dropdown').forEach(d => d.classList.remove('open'));
+    });
+  });
+
+  /* ── LOGO LIGHTBOX ───────────────────────────────────────────
+     Clicking the nav logo opens a modal showing the full logo at a
+     large zoom. Clicking the X button or the dark backdrop closes it.
+     ---------------------------------------------------------- */
+  const logoModal    = document.getElementById('logoModal');
+  const logoBtn      = document.getElementById('logoBtn');
+  const logoClose    = document.getElementById('logoClose');
+  const logoBackdrop = document.getElementById('logoBackdrop');
+
+  logoBtn.addEventListener('click', e => {
+    e.preventDefault();
+    logoModal.classList.add('open');
+  });
+  logoClose.addEventListener('click', () => logoModal.classList.remove('open'));
+  logoBackdrop.addEventListener('click', () => logoModal.classList.remove('open'));
+
+  /* ── MENU IMAGE LIGHTBOX ─────────────────────────────────────
+     Any .menu-item-img thumbnail opens the lightbox with the full
+     image. The backdrop and close button both dismiss it.
+     ---------------------------------------------------------- */
+  const menuImgModal    = document.getElementById('menuImgModal');
+  const menuImgLarge    = document.getElementById('menuImgLarge');
+  const menuImgClose    = document.getElementById('menuImgClose');
+  const menuImgBackdrop = document.getElementById('menuImgBackdrop');
+
+  let menuZoom = 1;
+
+  function openMenuImg(src, alt) {
+    menuImgLarge.src = src;
+    menuImgLarge.alt = alt;
+    menuZoom = 1;
+    menuImgLarge.style.transform = 'scale(1)';
+    menuImgLarge.style.cursor = 'zoom-in';
+    menuImgModal.classList.add('open');
+  }
+
+  function closeMenuImg() {
+    menuImgModal.classList.remove('open');
+    menuZoom = 1;
+    menuImgLarge.style.transform = 'scale(1)';
+  }
+
+  /* Open simple lightbox for menu thumbnails */
+  document.querySelectorAll('.menu-img-wrapper').forEach(wrapper => {
+    wrapper.addEventListener('click', () => {
+      const img = wrapper.querySelector('img');
+      openMenuImg(img.src, img.alt);
+    });
+  });
+
+  /* ── GALLERY CAROUSEL ────────────────────────────────────────
+     Collects all gallery images into an array; clicking any item
+     opens the carousel at that index. Arrows and keyboard ← →
+     navigate between images.
+     ---------------------------------------------------------- */
+  const galleryLb        = document.getElementById('galleryLb');
+  const galleryLbImg     = document.getElementById('galleryLbImg');
+  const galleryLbCaption = document.getElementById('galleryLbCaption');
+  const galleryLbCounter = document.getElementById('galleryLbCounter');
+  const galleryLbClose   = document.getElementById('galleryLbClose');
+  const galleryLbBackdrop= document.getElementById('galleryLbBackdrop');
+  const galleryLbPrev    = document.getElementById('galleryLbPrev');
+  const galleryLbNext    = document.getElementById('galleryLbNext');
+
+  const galleryItems = Array.from(document.querySelectorAll('.gallery-item'));
+  let galleryIndex = 0;
+
+  let galleryZoom = 1;
+
+  function resetGalleryZoom() {
+    galleryZoom = 1;
+    galleryLbImg.style.transform = 'scale(1)';
+    galleryLbImg.style.cursor = 'zoom-in';
+  }
+
+  function showGallerySlide(index) {
+    galleryIndex = (index + galleryItems.length) % galleryItems.length;
+    const img = galleryItems[galleryIndex].querySelector('img');
+    resetGalleryZoom();
+    galleryLbImg.style.opacity = '0';
+    setTimeout(() => {
+      galleryLbImg.src = img.src;
+      galleryLbImg.alt = img.alt;
+      galleryLbCaption.textContent = img.alt;
+      galleryLbCounter.textContent = (galleryIndex + 1) + ' / ' + galleryItems.length;
+      galleryLbImg.style.opacity = '1';
+    }, 150);
+  }
+
+  function openGalleryLb(index) {
+    galleryLb.classList.add('open');
+    showGallerySlide(index);
+  }
+
+  function closeGalleryLb() {
+    galleryLb.classList.remove('open');
+    resetGalleryZoom();
+  }
+
+  galleryItems.forEach((item, i) => {
+    item.addEventListener('click', () => openGalleryLb(i));
+  });
+
+  /* Mouse-wheel zoom in gallery lightbox */
+  galleryLb.addEventListener('wheel', e => {
+    e.preventDefault();
+    galleryZoom = Math.min(Math.max(galleryZoom + (e.deltaY < 0 ? 0.15 : -0.15), 0.5), 5);
+    galleryLbImg.style.transform = `scale(${galleryZoom})`;
+    galleryLbImg.style.cursor = galleryZoom > 1 ? 'zoom-out' : 'zoom-in';
+  }, { passive: false });
+
+  /* Click image to cycle 1× → 2× → 3× → 1× */
+  galleryLbImg.addEventListener('click', e => {
+    e.stopPropagation();
+    galleryZoom = galleryZoom >= 3 ? 1 : galleryZoom + 1;
+    galleryLbImg.style.transform = `scale(${galleryZoom})`;
+    galleryLbImg.style.cursor = galleryZoom > 1 ? 'zoom-out' : 'zoom-in';
+  });
+
+  galleryLbPrev.addEventListener('click', () => showGallerySlide(galleryIndex - 1));
+  galleryLbNext.addEventListener('click', () => showGallerySlide(galleryIndex + 1));
+  galleryLbClose.addEventListener('click', closeGalleryLb);
+  galleryLbBackdrop.addEventListener('click', closeGalleryLb);
+
+  /* Keyboard: ← → navigate · + / - zoom · Escape close */
+  document.addEventListener('keydown', e => {
+    if (!galleryLb.classList.contains('open')) return;
+    if (e.key === 'ArrowLeft')       showGallerySlide(galleryIndex - 1);
+    if (e.key === 'ArrowRight')      showGallerySlide(galleryIndex + 1);
+    if (e.key === 'Escape')          closeGalleryLb();
+    if (e.key === '+' || e.key === '=') {
+      galleryZoom = Math.min(galleryZoom + 0.25, 5);
+      galleryLbImg.style.transform = `scale(${galleryZoom})`;
+      galleryLbImg.style.cursor = galleryZoom > 1 ? 'zoom-out' : 'zoom-in';
+    }
+    if (e.key === '-') {
+      galleryZoom = Math.max(galleryZoom - 0.25, 0.5);
+      galleryLbImg.style.transform = `scale(${galleryZoom})`;
+      galleryLbImg.style.cursor = galleryZoom > 1 ? 'zoom-out' : 'zoom-in';
+    }
+  });
+
+  /* Mouse-wheel zoom inside the lightbox */
+  menuImgModal.addEventListener('wheel', e => {
+    e.preventDefault();
+    menuZoom = Math.min(Math.max(menuZoom + (e.deltaY < 0 ? 0.15 : -0.15), 0.5), 4);
+    menuImgLarge.style.transform = `scale(${menuZoom})`;
+    menuImgLarge.style.cursor = menuZoom > 1 ? 'zoom-out' : 'zoom-in';
+  }, { passive: false });
+
+  /* Click image inside lightbox to cycle 1× → 2× → 3× → 1× */
+  menuImgLarge.addEventListener('click', e => {
+    e.stopPropagation();
+    menuZoom = menuZoom >= 3 ? 1 : menuZoom + 1;
+    menuImgLarge.style.transform = `scale(${menuZoom})`;
+    menuImgLarge.style.cursor = menuZoom > 1 ? 'zoom-out' : 'zoom-in';
+  });
+
+  menuImgClose.addEventListener('click', closeMenuImg);
+  menuImgBackdrop.addEventListener('click', closeMenuImg);
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeMenuImg(); });
+
+  /* ── DINING PANEL IMAGE SLIDESHOW ── */
+  const diningBgImg = document.getElementById('diningBgImg');
+  const diningSlides = [
+    'menu/Steak.jpg','menu/Seafood Broil.jpg','menu/Lamb Chops.jpg',
+    'menu/Chipotle Rice Bowl.jpg','menu/Jollof Rice.jpg','menu/Fried Rice.jpg',
+    'menu/Chicken & Chips.jpg','menu/Grilled Cat fish.jpg','menu/Grilled Croaker Fish.jpg',
+    'menu/Grilled Tilapia Fish.jpg','menu/Chicken Shawarma.jpg','menu/Suya Shawarma.jpg',
+    'menu/Suya Tacos.jpg','menu/Small chops.jpg','menu/chicken skewers.png',
+    'menu/Suya Skewers.png','menu/Stake Skewers.jpg'
+  ];
+  let diningSlideIndex = 0;
+  setInterval(() => {
+    diningBgImg.classList.add('fade');
+    setTimeout(() => {
+      diningSlideIndex = (diningSlideIndex + 1) % diningSlides.length;
+      diningBgImg.src = diningSlides[diningSlideIndex];
+      diningBgImg.classList.remove('fade');
+    }, 800);
+  }, 3500);
+
+  /* ── CUSTOM RESERVATION FORM ────────────────────────────────
+     Submits directly to Google Forms via fetch (no-cors).
+     Entry field names map to the Google Form question IDs.
+     ---------------------------------------------------------- */
+  const RF_ACTION = 'https://docs.google.com/forms/d/e/1FAIpQLSe-0VpwCWMfScS_28uawPeLuqxQBgcUFppc0-INSRptgEAKKA/formResponse';
+
+  const rfFields = [
+    { id: 'rfFirstName', required: true },
+    { id: 'rfLastName',  required: true },
+    { id: 'rfEmail',     required: true, type: 'email' },
+    { id: 'rfPhone',     required: true },
+    { id: 'rfCheckin',   required: true },
+    { id: 'rfCheckout',  required: true },
+    { id: 'rfGuests',    required: true },
+    { id: 'rfUnit',      required: true },
+    { id: 'rfRequests',  required: false },
+  ];
+
+  (function initRF() {
+    const rfToday = new Date().toISOString().split('T')[0];
+    const rfCI = document.getElementById('rfCheckin');
+    const rfCO = document.getElementById('rfCheckout');
+    if (rfCI) rfCI.min = rfToday;
+    if (rfCO) rfCO.min = rfToday;
+    if (rfCI) rfCI.addEventListener('change', function() {
+      rfCO.min = this.value;
+      if (rfCO.value && rfCO.value < this.value) rfCO.value = this.value;
+    });
+  })();
+
+  function rfValidate() {
+    let valid = true;
+    rfFields.forEach(f => {
+      const el  = document.getElementById(f.id);
+      const err = document.getElementById('rferr-' + f.id);
+      if (!el) return;
+      el.classList.remove('rferror');
+      if (err) err.classList.remove('show');
+      if (f.required && !el.value.trim()) {
+        el.classList.add('rferror'); if (err) err.classList.add('show'); valid = false;
+      } else if (f.type === 'email' && el.value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(el.value)) {
+        el.classList.add('rferror'); if (err) err.classList.add('show'); valid = false;
+      }
+    });
+    return valid;
+  }
+
+  let rfSubmitting = false;
+
+  document.getElementById('rfHiddenFrame').addEventListener('load', function() {
+    console.log('[RF] iframe load event fired. rfSubmitting =', rfSubmitting);
+    if (!rfSubmitting) return;
+    rfSubmitting = false;
+    console.log('[RF] ✅ Success screen shown');
+    document.getElementById('rfFormBody').classList.add('hide');
+    document.getElementById('rfSuccessScreen').classList.add('show');
+  });
+
+  function rfSubmitForm() {
+    document.getElementById('rfErrorMsg').classList.remove('show');
+    console.log('[RF] Submit clicked — running validation...');
+    if (!rfValidate()) {
+      console.log('[RF] ❌ Validation failed — check highlighted fields');
+      return;
+    }
+    console.log('[RF] ✅ Validation passed');
+
+    const btn     = document.getElementById('rfSubmitBtn');
+    const spinner = document.getElementById('rfSpinner');
+    const btnIcon = document.getElementById('rfBtnIcon');
+    const btnText = document.getElementById('rfBtnText');
+    btn.disabled = true;
+    spinner.style.display = 'block';
+    btnIcon.style.display = 'none';
+    btnText.textContent = 'Sending…';
+
+    /* Populate hidden form fields */
+    document.getElementById('rh_emailAddress').value = document.getElementById('rfEmail').value;
+    document.getElementById('rh_firstName').value    = document.getElementById('rfFirstName').value;
+    document.getElementById('rh_lastName').value  = document.getElementById('rfLastName').value;
+    document.getElementById('rh_email').value     = document.getElementById('rfEmail').value;
+    document.getElementById('rh_phone').value     = document.getElementById('rfPhone').value;
+    document.getElementById('rh_checkin').value   = document.getElementById('rfCheckin').value;
+    document.getElementById('rh_checkout').value  = document.getElementById('rfCheckout').value;
+    document.getElementById('rh_guests').value    = document.getElementById('rfGuests').value;
+    document.getElementById('rh_unit').value      = document.getElementById('rfUnit').value;
+    document.getElementById('rh_requests').value  = document.getElementById('rfRequests').value;
+
+    /* Log every field value being sent */
+    const rhForm = document.getElementById('rfRealForm');
+    const payload = {};
+    Array.from(rhForm.elements).forEach(el => { if (el.name) payload[el.name] = el.value; });
+    console.log('[RF] 📤 Submitting to Google Forms with payload:', payload);
+    console.log('[RF] Form action:', rhForm.action);
+
+    rfSubmitting = true;
+    rhForm.submit();
+    console.log('[RF] form.submit() called — waiting for iframe load...');
+  }
+
+  function rfResetForm() {
+    rfFields.forEach(f => {
+      const el = document.getElementById(f.id);
+      if (el) { el.value = ''; el.classList.remove('rferror'); }
+      const err = document.getElementById('rferr-' + f.id);
+      if (err) err.classList.remove('show');
+    });
+    document.getElementById('rfFormBody').classList.remove('hide');
+    document.getElementById('rfSuccessScreen').classList.remove('show');
+    document.getElementById('rfErrorMsg').classList.remove('show');
+    const btn = document.getElementById('rfSubmitBtn');
+    btn.disabled = false;
+    document.getElementById('rfSpinner').style.display = 'none';
+    document.getElementById('rfBtnIcon').style.display = 'block';
+    document.getElementById('rfBtnText').textContent = 'Send Reservation Request';
+  }
+
+  /* ── CUSTOM CURSOR ANIMATION ─────────────────────────────────
+     Tracks the mouse position (mx, my) and moves the gold dot
+     there instantly on every frame. The ring (rx, ry) catches up
+     at 12% of the remaining distance each frame — this creates
+     the smooth trailing lag effect. requestAnimationFrame keeps
+     it in sync with the screen refresh rate (typically 60fps).
+     ---------------------------------------------------------- */
+  const cursor = document.getElementById('cursor');
+  const ring   = document.getElementById('cursorRing');
+  let mx = 0, my = 0, rx = 0, ry = 0;
+  document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+  function animateCursor() {
+    cursor.style.left = mx + 'px';
+    cursor.style.top  = my + 'px';
+    rx += (mx - rx) * 0.12; // eases toward mouse X
+    ry += (my - ry) * 0.12; // eases toward mouse Y
+    ring.style.left = rx + 'px';
+    ring.style.top  = ry + 'px';
+    requestAnimationFrame(animateCursor); // runs again on next screen refresh
+  }
+  animateCursor();
+
+  /* ── NAV SCROLL EFFECT ───────────────────────────────────────
+     Listens for the user scrolling. Once they pass 60px down,
+     the "scrolled" class is added to the nav which triggers the
+     CSS change to a solid background and reduced padding.
+     ---------------------------------------------------------- */
+  const nav = document.getElementById('nav');
+  window.addEventListener('scroll', () => {
+    nav.classList.toggle('scrolled', window.scrollY > 60);
+  });
+
+  /* ── HERO FLOATING PARTICLES ─────────────────────────────────
+     Creates 25 tiny gold dots in the hero section at startup.
+     Each dot gets a random: horizontal position, size (1–3px),
+     animation duration (8–23s), and start delay (0–15s) so they
+     rise at different speeds and times, never looking uniform.
+     ---------------------------------------------------------- */
+  const container = document.getElementById('particles');
+  for (let i = 0; i < 25; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    p.style.left              = Math.random() * 100 + '%';
+    p.style.animationDuration = (8 + Math.random() * 15) + 's';
+    p.style.animationDelay    = (Math.random() * 15) + 's';
+    p.style.width = p.style.height = (1 + Math.random() * 2) + 'px';
+    container.appendChild(p);
+  }
+
+  /* ── SCROLL REVEAL (INTERSECTION OBSERVER) ───────────────────
+     Watches every element with class="reveal". When one enters
+     the visible area of the screen (at least 12% visible, with a
+     60px bottom buffer), "visible" is added and the CSS transition
+     fades + slides it into place. Works automatically as the user
+     scrolls down — no manual triggers needed.
+     ---------------------------------------------------------- */
+  /* ── HERO VIDEO CROSSFADE ────────────────────────────────────
+     Plays two videos in sequence, crossfading between them.
+     Explicitly calls .play() to bypass autoplay restrictions.
+     ---------------------------------------------------------- */
+  const heroVid1 = document.getElementById('heroVid1');
+  const heroVid2 = document.getElementById('heroVid2');
+
+  function playVid(vid) {
+    vid.muted = true;
+    const p = vid.play();
+    if (p !== undefined) p.catch(() => {});
+  }
+
+  function switchTo(show, hide) {
+    show.currentTime = 0;
+    show.classList.remove('hidden');
+    playVid(show);
+    setTimeout(() => hide.classList.add('hidden'), 100);
+  }
+
+  heroVid1.addEventListener('ended', () => switchTo(heroVid2, heroVid1));
+  heroVid2.addEventListener('ended', () => switchTo(heroVid1, heroVid2));
+
+  // Start video 1 immediately
+  heroVid1.muted = true;
+  heroVid2.muted = true;
+  playVid(heroVid1);
+  heroVid2.load();
+
+  // Fallback: if autoplay blocked, start on first user interaction
+  const startOnInteraction = () => {
+    if (heroVid1.paused) playVid(heroVid1);
+    document.removeEventListener('click',      startOnInteraction);
+    document.removeEventListener('touchstart', startOnInteraction);
+    document.removeEventListener('keydown',    startOnInteraction);
+  };
+  document.addEventListener('click',      startOnInteraction);
+  document.addEventListener('touchstart', startOnInteraction);
+  document.addEventListener('keydown',    startOnInteraction);
+
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+  }, { threshold: 0.12, rootMargin: '0px 0px -60px 0px' });
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+  /* ── TESTIMONIAL SLIDER ──────────────────────────────────────
+     Holds all three guest reviews in an array. showTestimonial(idx)
+     fades the text out, swaps in the new quote/author/location, then
+     fades back in. The active dot updates to show which review is
+     currently displayed. setInterval auto-advances every 6 seconds.
+     Clicking a dot manually jumps to that review.
+     ---------------------------------------------------------- */
+  const testimonials = [
+    { quote: "Eden 54 is simply incredible. The indoor fine dining restaurant served the most exquisite meals, and evenings at the pergola pool bar were pure magic. A truly unforgettable stay.",        author: "Victoria Okonkwo",  origin: "Lagos, Nigeria · Stayed 7 Nights" },
+    { quote: "The pool and pool bar at Eden 54 are absolutely stunning. After a long day of games and table tennis at the game center, relaxing poolside was the perfect way to unwind. Loved every moment.", author: "Chidi Eze-Okafor", origin: "Abuja, Nigeria · Stayed 5 Nights" },
+    { quote: "The private rooftop access as a lodger was a highlight — peaceful, exclusive, and breathtaking. Add the game center and the warm hospitality, and Eden 54 is in a league of its own.",   author: "Adaeze Williams",  origin: "Port Harcourt · Stayed 10 Nights" }
+  ];
+  const tQ   = document.getElementById('tQuote');
+  const tA   = document.getElementById('tAuthor');
+  const tO   = document.getElementById('tOrigin');
+  const dots = document.querySelectorAll('.t-dot');
+  let current = 0;
+
+  function showTestimonial(idx) {
+    const t = testimonials[idx];
+    tQ.style.opacity = '0'; tA.style.opacity = '0'; tO.style.opacity = '0'; // fade out
+    setTimeout(() => {
+      tQ.textContent = t.quote;  tA.textContent = t.author;  tO.textContent = t.origin; // swap text
+      tQ.style.opacity = '1'; tA.style.opacity = '1'; tO.style.opacity = '1'; // fade in
+    }, 300); // wait 300ms for the fade-out to finish before swapping
+    dots.forEach((d, i) => d.classList.toggle('active', i === idx)); // highlight correct dot
+    current = idx;
+  }
+
+  dots.forEach(d => d.addEventListener('click', () => showTestimonial(+d.dataset.index)));
+  tQ.style.transition = tA.style.transition = tO.style.transition = 'opacity 0.4s';
+  setInterval(() => showTestimonial((current + 1) % testimonials.length), 6000); // auto-rotate
+</script>
+</body>
+</html>
