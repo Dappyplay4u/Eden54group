@@ -77,9 +77,9 @@
     <div class="sb-section">HR</div>
     <a href="/portal/attendance/" class="sb-item"><i class="sb-icon">👥</i> Attendance</a>
     <a href="/portal/payroll/" class="sb-item"><i class="sb-icon">💵</i> Payroll</a>
-    <div class="sb-section">Admin</div>
-    <a href="/portal/dashboard/" class="sb-item"><i class="sb-icon">📊</i> Dashboard</a>
-    <a href="/portal/staff/" class="sb-item"><i class="sb-icon">👤</i> Staff</a>
+    <div class="sb-section mgr-only" id="adminSection" style="display:none">Admin</div>
+    <a href="/portal/dashboard/" class="sb-item mgr-only" id="dashLink" style="display:none"><i class="sb-icon">📊</i> Dashboard</a>
+    <a href="/portal/staff/" class="sb-item mgr-only" id="staffLink" style="display:none"><i class="sb-icon">👤</i> Manage Staff</a>
   </nav>
   <div class="sb-foot"><div id="sidebarUser"></div><a class="sb-item" onclick="switchProfile()" style="cursor:pointer"><i class="sb-icon">🔄</i> Switch Profile</a></div>
 </aside>
@@ -158,6 +158,9 @@
 <script>
 const staff = getStaff();
 populateSidebar(staff);
+if (staff.role === 'manager') {
+  document.querySelectorAll('.mgr-only').forEach(el => el.style.display = el.tagName === 'A' ? 'flex' : 'block');
+}
 document.getElementById('clockName').textContent = staff.name;
 document.getElementById('topDate').textContent = new Date().toLocaleDateString('en-NG',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
 
