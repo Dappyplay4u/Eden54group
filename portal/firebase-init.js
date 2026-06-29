@@ -100,7 +100,7 @@ function buildNav(staff, active) {
     html += sec('HR');
     html += a('/portal/attendance/', '👥', 'Attendance',   'attendance');
     html += a('/portal/payroll/',    '💵', 'Payroll',      'payroll');
-    if (isSuperAdmin) html += a('/portal/activity/', '🕵️', 'Staff Activity', 'activity');
+    html += a('/portal/activity/', '🕵️', 'Staff Activity', 'activity');
     html += sec('Admin');
     html += a('/portal/staff/',      '👤', 'Manage Staff', 'staff');
   } else {
@@ -140,7 +140,7 @@ function requireAccess(staff, page) {
     attendance: isManager,
     payroll:    isManager,
     reports:    isManager,
-    activity:   isSuperAdmin,
+    activity:   isManager,
     bar:        isManager || dept === 'bar',
     kitchen:    isManager || dept === 'kitchen',
     barbing:    isManager || dept === 'salon',

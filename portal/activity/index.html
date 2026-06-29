@@ -178,17 +178,21 @@ document.getElementById('dateTo').value   = today;
 let staffMap = {};
 
 async function init() {
-  const snap = await db.collection('staff').orderBy('name').get();
-  const sel  = document.getElementById('filterStaff');
-  snap.forEach(d => {
-    const s = { id: d.id, ...d.data() };
-    if (s.active !== false) {
-      staffMap[s.id] = s;
-      sel.innerHTML += `<option value="${s.id}">${s.name} — ${s.department}</option>`;
-    }
-  });
-  // Auto-load report with default date range on page open
-  await loadAll();
+  try {
+    const snap = await db.collection('staff').orderBy('name').get();
+    const sel  = document.getElementById('filterStaff');
+    snap.forEach(d => {
+      const s = { id: d.id, ...d.data() };
+      if (s.active !== false) {
+        staffMap[s.id] = s;
+        sel.innerHTML += `<option value="${s.id}">${s.name} — ${s.department}</option>`;
+      }
+    });
+  } catch(e) {
+    console.error('Staff list error:', e);
+  }
+  // Auto-load regardless of whether staff list succeeded
+  loadAll();
 }
 
 /* ── Pull Report ── */
