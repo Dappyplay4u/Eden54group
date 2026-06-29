@@ -132,15 +132,19 @@ async function loadAttForm() {
   let existMap = {};
   try {
     const snap = await db.collection('attendance').doc(date).get();
-    if (snap.exists) (snap.data().records || []).forEach(r => existMap[r.staffId] = r.status);
+    if (snap.exists) (snap.data().records || []).forEach(r => existMap[r.staffId] = r);
   } catch(e) {}
 
   form.innerHTML = allStaff.map(s => {
-    const cur = existMap[s.id] || 'Present';
+    const rec = existMap[s.id] || {};
+    const cur = rec.status || 'Present';
     const radio = (val, label, color) =>
       `<label><input type="radio" name="att_${s.id}" value="${val}" ${cur===val?'checked':''} style="accent-color:${color}"> ${label}</label>`;
+    const autoNote = rec.autoMarked
+      ? `<span style="font-size:0.67rem;color:var(--ok);margin-left:6px">⏱ clocked out${rec.hoursWorked?' · '+rec.hoursWorked:''}</span>`
+      : '';
     return `<div class="att-row">
-      <div class="att-name"><strong>${s.name}</strong><small>${s.department}</small></div>
+      <div class="att-name"><strong>${s.name}</strong><small>${s.department}</small>${autoNote}</div>
       <div class="att-radios">
         ${radio('Present','Present','#16a34a')}
         ${radio('Absent','Absent','#dc2626')}

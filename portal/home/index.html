@@ -280,9 +280,36 @@ async function clockOut() {
     document.getElementById('hoursWorked').textContent = dur;
     const locNote = loc ? (atFacility ? ' · At facility' : ' · Remote (' + distanceMeters + 'm away)') : '';
     showAlert('alertBox', 'Clocked out. ' + dur + ' worked today.' + locNote, atFacility ? 'alert-success' : 'alert-warn');
+    autoMarkAttendance(today, dur);
   } catch(e) {
     showAlert('alertBox', 'Clock out failed. Check your connection.', 'alert-error');
     btn.disabled = false; btn.textContent = 'Clock Out';
+  }
+}
+
+async function autoMarkAttendance(date, hoursWorked) {
+  try {
+    const attRef  = db.collection('attendance').doc(date);
+    const snap    = await attRef.get();
+    const record  = {
+      staffId: staff.id, staffName: staff.name, department: staff.department,
+      status: 'Present', autoMarked: true, hoursWorked
+    };
+    if (snap.exists) {
+      const records = snap.data().records || [];
+      const idx = records.findIndex(r => r.staffId === staff.id);
+      if (idx >= 0) {
+        // Don't override a manual 'Leave' decision, but update everything else
+        if (records[idx].status !== 'Leave') records[idx] = { ...records[idx], ...record };
+      } else {
+        records.push(record);
+      }
+      await attRef.update({ records });
+    } else {
+      await attRef.set({ date, records: [record], markedBy: 'Auto', markedAt: firebase.firestore.FieldValue.serverTimestamp() });
+    }
+  } catch(e) {
+    // Silent — attendance auto-mark is best-effort; don't interrupt the clock-out flow
   }
 }
 
