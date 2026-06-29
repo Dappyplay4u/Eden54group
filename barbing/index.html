@@ -124,6 +124,21 @@
   .pricing-note { font-size: 0.72rem; color: var(--muted); letter-spacing: 0.1em; }
 
   /* �"?�"? HOURS �"?�"? */
+  /* GALLERY */
+  #gallery { border-top: 1px solid rgba(201,169,110,0.12); background: rgba(255,255,255,0.01); }
+  .gallery-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:3px; margin-top:48px; }
+  .gallery-item { position:relative; overflow:hidden; cursor:pointer; aspect-ratio:1/1; background:rgba(201,169,110,0.05); }
+  .gallery-item img { width:100%; height:100%; object-fit:cover; display:block; filter:brightness(0.75) saturate(0.85); transition:filter 0.4s,transform 0.5s; }
+  .gallery-item:hover img { filter:brightness(1) saturate(1); transform:scale(1.05); }
+  .gallery-label { position:absolute; bottom:0; left:0; right:0; padding:28px 14px 12px; background:linear-gradient(to top,rgba(15,35,24,0.92) 0%,transparent 100%); font-size:0.7rem; letter-spacing:0.18em; text-transform:uppercase; color:var(--text); opacity:0; transition:opacity 0.3s; pointer-events:none; }
+  .gallery-item:hover .gallery-label { opacity:1; }
+  .lb-overlay { display:none; position:fixed; inset:0; z-index:500; background:rgba(0,0,0,0.95); align-items:center; justify-content:center; flex-direction:column; gap:16px; }
+  .lb-overlay.open { display:flex; }
+  .lb-overlay img { max-width:88vw; max-height:80vh; object-fit:contain; border:1px solid rgba(201,169,110,0.2); }
+  .lb-caption { font-size:0.72rem; letter-spacing:0.22em; text-transform:uppercase; color:var(--gold); margin-top:8px; }
+  .lb-close { position:absolute; top:20px; right:28px; font-size:2rem; color:rgba(245,242,236,0.5); background:none; border:none; cursor:pointer; line-height:1; transition:color 0.2s; }
+  .lb-close:hover { color:var(--gold); }
+
   #hours { background: rgba(255,255,255,0.02); border-top: 1px solid rgba(201,169,110,0.1); text-align: center; }
   .hours-grid { display: flex; justify-content: center; gap: 64px; margin-top: 48px; flex-wrap: wrap; }
   .hours-item { text-align: center; }
@@ -188,6 +203,7 @@
     <li><a href="/#rooms">Apartments</a></li>
     <li><a href="/#dining">Restaurant</a></li>
     <li><a href="/barbing" class="active">Barbing Salon</a></li>
+    <li><a href="#gallery">Gallery</a></li>
     <li><a href="/games">Games</a></li>
     <li><a href="/car-rental">Car Rental</a></li>
     <li><a href="/#contact" class="btn-gold">Reserve</a></li>
@@ -314,6 +330,66 @@
   </div>
 </section>
 
+<!-- GALLERY -->
+<section id="gallery">
+  <p class="section-eyebrow">Style Inspiration</p>
+  <h2 class="section-title">Hairstyle <em>Gallery</em></h2>
+  <div class="divider"></div>
+  <div class="gallery-grid">
+    <div class="gallery-item" onclick="openLB('/hairstyles/360%20waves.webp','360 Waves')">
+      <img src="/hairstyles/360%20waves.webp" alt="360 Waves" loading="lazy">
+      <div class="gallery-label">360 Waves</div>
+    </div>
+    <div class="gallery-item" onclick="openLB('/hairstyles/Bald%20with%20Beards.jpg','Bald with Beards')">
+      <img src="/hairstyles/Bald%20with%20Beards.jpg" alt="Bald with Beards" loading="lazy">
+      <div class="gallery-label">Bald with Beards</div>
+    </div>
+    <div class="gallery-item" onclick="openLB('/hairstyles/Burst%20Fade.png','Burst Fade')">
+      <img src="/hairstyles/Burst%20Fade.png" alt="Burst Fade" loading="lazy">
+      <div class="gallery-label">Burst Fade</div>
+    </div>
+    <div class="gallery-item" onclick="openLB('/hairstyles/Drop%20Fade.jpg','Drop Fade')">
+      <img src="/hairstyles/Drop%20Fade.jpg" alt="Drop Fade" loading="lazy">
+      <div class="gallery-label">Drop Fade</div>
+    </div>
+    <div class="gallery-item" onclick="openLB('/hairstyles/High%20Fade.jpg','High Fade')">
+      <img src="/hairstyles/High%20Fade.jpg" alt="High Fade" loading="lazy">
+      <div class="gallery-label">High Fade</div>
+    </div>
+    <div class="gallery-item" onclick="openLB('/hairstyles/Low%20Taper%20Fade.jpg','Low Taper Fade')">
+      <img src="/hairstyles/Low%20Taper%20Fade.jpg" alt="Low Taper Fade" loading="lazy">
+      <div class="gallery-label">Low Taper Fade</div>
+    </div>
+    <div class="gallery-item" onclick="openLB('/hairstyles/Mid%20Fade.jpg','Mid Fade')">
+      <img src="/hairstyles/Mid%20Fade.jpg" alt="Mid Fade" loading="lazy">
+      <div class="gallery-label">Mid Fade</div>
+    </div>
+    <div class="gallery-item" onclick="openLB('/hairstyles/Skin%20Fade.png','Skin Fade')">
+      <img src="/hairstyles/Skin%20Fade.png" alt="Skin Fade" loading="lazy">
+      <div class="gallery-label">Skin Fade</div>
+    </div>
+    <div class="gallery-item" onclick="openLB('/hairstyles/Sponge%20Twist%20Fade.jpg','Sponge Twist Fade')">
+      <img src="/hairstyles/Sponge%20Twist%20Fade.jpg" alt="Sponge Twist Fade" loading="lazy">
+      <div class="gallery-label">Sponge Twist Fade</div>
+    </div>
+    <div class="gallery-item" onclick="openLB('/hairstyles/Starter%20locs.png','Starter Locs')">
+      <img src="/hairstyles/Starter%20locs.png" alt="Starter Locs" loading="lazy">
+      <div class="gallery-label">Starter Locs</div>
+    </div>
+    <div class="gallery-item" onclick="openLB('/hairstyles/Temple%20Fade.jpg','Temple Fade')">
+      <img src="/hairstyles/Temple%20Fade.jpg" alt="Temple Fade" loading="lazy">
+      <div class="gallery-label">Temple Fade</div>
+    </div>
+  </div>
+</section>
+
+<!-- Lightbox -->
+<div class="lb-overlay" id="lb" onclick="if(event.target===this)closeLB()">
+  <button class="lb-close" onclick="closeLB()">&#215;</button>
+  <img id="lbImg" src="" alt="">
+  <div class="lb-caption" id="lbCap"></div>
+</div>
+
 <!-- PRICING -->
 <section id="pricing">
   <p class="section-eyebrow">Rates</p>
@@ -434,6 +510,20 @@
   <div class="footer-copy">© 2026 Eden 54 · Ilesa, Osun State</div>
 </footer>
 
+<script>
+function openLB(src, caption) {
+  document.getElementById('lbImg').src = src;
+  document.getElementById('lbCap').textContent = caption;
+  document.getElementById('lb').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeLB() {
+  document.getElementById('lb').classList.remove('open');
+  document.getElementById('lbImg').src = '';
+  document.body.style.overflow = '';
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLB(); });
+</script>
 </body>
 </html>
 
