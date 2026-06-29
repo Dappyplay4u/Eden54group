@@ -17,7 +17,7 @@
   html { scroll-behavior: smooth; scroll-padding-top: 90px; }
   body { background: var(--deep); color: var(--text); font-family: 'Jost', sans-serif; font-weight: 300; }
 
-  /* �"?�"? NAV �"?�"? */
+  /* NAV */
   nav {
     position: fixed; top: 0; left: 0; right: 0; z-index: 100;
     display: flex; align-items: center; justify-content: space-between;
@@ -46,7 +46,7 @@
   }
   .btn-gold-lg:hover { background: var(--gold); color: var(--deep); }
 
-  /* �"?�"? HERO �"?�"? */
+  /* HERO */
   .hero {
     position: relative; height: 100vh; display: flex; align-items: flex-end;
     padding-bottom: 100px; overflow: hidden;
@@ -73,14 +73,14 @@
   .hero-content h1 em { font-style: italic; color: var(--gold); }
   .hero-content p { font-size: 1rem; opacity: 0.75; max-width: 480px; line-height: 1.7; margin-bottom: 36px; }
 
-  /* �"?�"? SECTION BASE �"?�"? */
+  /* SECTION BASE */
   section { padding: 100px 80px; }
   .section-eyebrow { font-size: 0.7rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--gold); margin-bottom: 14px; }
   .section-title { font-family: 'Cormorant Garamond', serif; font-size: clamp(2.2rem, 4vw, 3.5rem); font-weight: 300; margin-bottom: 20px; }
   .section-title em { font-style: italic; color: var(--gold); }
   .divider { width: 48px; height: 1px; background: var(--gold); margin: 20px 0 40px; opacity: 0.5; }
 
-  /* �"?�"? SERVICES GRID �"?�"? */
+  /* SERVICES GRID */
   .services-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 2px; background: rgba(201,169,110,0.08); margin-top: 48px; }
   .service-card {
     background: var(--deep); padding: 48px 36px;
@@ -93,7 +93,7 @@
   .service-desc { font-size: 0.82rem; color: var(--muted); line-height: 1.7; }
   .service-price { font-size: 0.72rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gold); margin-top: 16px; }
 
-  /* �"?�"? ABOUT PANEL �"?�"? */
+  /* ABOUT PANEL */
   #about {
     display: grid; grid-template-columns: 1fr 1fr; gap: 0; min-height: 560px;
     border-top: 1px solid rgba(201,169,110,0.12);
@@ -103,7 +103,7 @@
   .about-img { position: relative; overflow: hidden; min-height: 400px; }
   .about-img img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 
-  /* �"?�"? BARBERS �"?�"? */
+  /* BARBERS */
   #team { background: rgba(255,255,255,0.02); border-top: 1px solid rgba(201,169,110,0.1); }
   .team-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px; margin-top: 48px; }
   .barber-card { border: 1px solid rgba(201,169,110,0.15); padding: 0; overflow: hidden; transition: border-color 0.3s; }
@@ -115,7 +115,7 @@
   .barber-role { font-size: 0.72rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gold); margin-bottom: 10px; }
   .barber-desc { font-size: 0.78rem; color: var(--muted); line-height: 1.6; }
 
-  /* �"?�"? PRICING �"?�"? */
+  /* PRICING */
   #pricing { border-top: 1px solid rgba(201,169,110,0.12); }
   .pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2px; background: rgba(201,169,110,0.08); margin-top: 48px; }
   .pricing-item { background: var(--deep); padding: 36px 28px; text-align: center; }
@@ -123,7 +123,7 @@
   .pricing-amount { font-size: 1.5rem; color: var(--gold); font-family: 'Cormorant Garamond', serif; margin-bottom: 6px; }
   .pricing-note { font-size: 0.72rem; color: var(--muted); letter-spacing: 0.1em; }
 
-  /* �"?�"? HOURS �"?�"? */
+  /* HOURS */
   /* GALLERY */
   #gallery { border-top: 1px solid rgba(201,169,110,0.12); background: rgba(255,255,255,0.01); }
   .gallery-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:3px; margin-top:48px; }
@@ -145,7 +145,7 @@
   .hours-day { font-size: 0.72rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--gold); margin-bottom: 8px; }
   .hours-time { font-family: 'Cormorant Garamond', serif; font-size: 1.5rem; }
 
-  /* �"?�"? LOCATION �"?�"? */
+  /* LOCATION */
   #location { border-top: 1px solid rgba(201,169,110,0.12); }
   .location-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: start; margin-top: 48px; }
   .location-info { }
@@ -158,7 +158,7 @@
   .map-header { background: var(--deep); padding: 12px 16px; border-bottom: 1px solid rgba(201,169,110,0.15); }
   .map-header span { font-size: 0.7rem; color: var(--gold); letter-spacing: 0.2em; text-transform: uppercase; }
 
-  /* �"?�"? BOOK CTA �"?�"? */
+  /* BOOK CTA */
   #book {
     background: linear-gradient(135deg, rgba(201,169,110,0.08) 0%, rgba(15,35,24,0.6) 100%);
     border-top: 1px solid rgba(201,169,110,0.15);
@@ -167,7 +167,7 @@
   #book h2 { font-family: 'Cormorant Garamond', serif; font-size: clamp(2rem, 4vw, 3.2rem); font-weight: 300; margin-bottom: 16px; }
   #book p { color: var(--muted); max-width: 500px; margin: 0 auto 36px; line-height: 1.7; }
 
-  /* �"?�"? FOOTER �"?�"? */
+  /* FOOTER */
   footer { padding: 40px 80px; border-top: 1px solid rgba(201,169,110,0.12); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; }
   .footer-logo { font-family: 'Cormorant Garamond', serif; font-size: 1.2rem; color: var(--gold); letter-spacing: 0.15em; }
   .footer-links { display: flex; gap: 28px; }
@@ -233,50 +233,50 @@
 
     <div class="service-card">
       <div class="service-num">01</div>
-      <div class="service-icon">�o,️</div>
-      <div class="service-name">Haircut & Style</div>
-      <div class="service-desc">Classic and modern cuts tailored to your face shape and style. From fades and tapers to textured crops �?" done with precision every time.</div>
-      <div class="service-price">From �,�[price]</div>
+      <div class="service-icon">&#9986;</div>
+      <div class="service-name">Haircut &amp; Style</div>
+      <div class="service-desc">Classic and modern cuts tailored to your face shape and style. From fades and tapers to textured crops &mdash; done with precision every time.</div>
+      <div class="service-price">From &#8358;[price]</div>
     </div>
 
     <div class="service-card">
       <div class="service-num">02</div>
-      <div class="service-icon">�Y�'</div>
-      <div class="service-name">Beard Trim & Shape</div>
+      <div class="service-icon">&#9675;</div>
+      <div class="service-name">Beard Trim &amp; Shape</div>
       <div class="service-desc">Expert beard shaping, lining, and trim. Hot towel treatment available. Leave looking sharp and well-groomed.</div>
-      <div class="service-price">From �,�[price]</div>
+      <div class="service-price">From &#8358;[price]</div>
     </div>
 
     <div class="service-card">
       <div class="service-num">03</div>
-      <div class="service-icon">�Y'^</div>
+      <div class="service-icon">&#9670;</div>
       <div class="service-name">Full Groom Package</div>
-      <div class="service-desc">The complete experience �?" haircut, beard shape, hot towel, and scalp treatment. Perfect for a special occasion or when you want the works.</div>
-      <div class="service-price">From �,�[price]</div>
+      <div class="service-desc">The complete experience &mdash; haircut, beard shape, hot towel, and scalp treatment. Perfect for a special occasion or when you want the works.</div>
+      <div class="service-price">From &#8358;[price]</div>
     </div>
 
     <div class="service-card">
       <div class="service-num">04</div>
-      <div class="service-icon">�Y��</div>
-      <div class="service-name">Scalp & Hair Treatment</div>
+      <div class="service-icon">&#10022;</div>
+      <div class="service-name">Scalp &amp; Hair Treatment</div>
       <div class="service-desc">Nourishing scalp care and conditioning treatments. Great for maintaining healthy hair and addressing dryness or irritation.</div>
-      <div class="service-price">From �,�[price]</div>
+      <div class="service-price">From &#8358;[price]</div>
     </div>
 
     <div class="service-card">
       <div class="service-num">05</div>
-      <div class="service-icon">�Y'�</div>
-      <div class="service-name">Kids' Cut</div>
+      <div class="service-icon">&#9829;</div>
+      <div class="service-name">Kids&#39; Cut</div>
       <div class="service-desc">Patient, gentle service for the little ones. Clean lines, safe products, and a welcoming environment for children of all ages.</div>
-      <div class="service-price">From �,�[price]</div>
+      <div class="service-price">From &#8358;[price]</div>
     </div>
 
     <div class="service-card">
       <div class="service-num">06</div>
-      <div class="service-icon">�YZ�</div>
+      <div class="service-icon">&#9733;</div>
       <div class="service-name">VIP Session</div>
       <div class="service-desc">Private session with our senior barber. Priority booking, personalised consultation, and complimentary refreshments.</div>
-      <div class="service-price">From �,�[price]</div>
+      <div class="service-price">From &#8358;[price]</div>
     </div>
 
   </div>
@@ -290,7 +290,7 @@
     <div class="divider"></div>
     <p>Eden 54 Barbing Salon brings the same luxury philosophy of the main compound to your grooming routine. A clean, well-designed space with skilled hands and a calm atmosphere.</p>
     <p>Whether you're walking in for a quick trim or booking a full VIP session, you'll leave feeling refreshed and confident every time.</p>
-    <p style="font-size:0.78rem; color:var(--gold); letter-spacing:0.1em;">�Y"� F27 Ereguru Street, Ilesa, Osun State, Nigeria</p>
+    <p style="font-size:0.78rem; color:var(--gold); letter-spacing:0.1em;">&#9679; F27 Ereguru Street, Ilesa, Osun State, Nigeria</p>
   </div>
   <div class="about-img">
     <img src="/venue/Inbetween apartment and lounge.jpg" alt="Eden 54 Barbing Salon">
@@ -304,7 +304,11 @@
   <div class="divider"></div>
   <div class="team-grid">
     <div class="barber-card">
-      <div class="barber-img" style="display:flex;align-items:center;justify-content:center;font-size:4rem;height:260px;">�o,️</div>
+      <div class="barber-img" style="display:flex;align-items:center;justify-content:center;height:260px;">
+        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="rgba(201,169,110,0.35)" stroke-width="1" stroke-linecap="round">
+          <circle cx="12" cy="7" r="4"/><path d="M3 21c0-4.4 4-8 9-8s9 3.6 9 8"/>
+        </svg>
+      </div>
       <div class="barber-body">
         <div class="barber-name">[Barber Name]</div>
         <div class="barber-role">Senior Barber</div>
@@ -312,7 +316,11 @@
       </div>
     </div>
     <div class="barber-card">
-      <div class="barber-img" style="display:flex;align-items:center;justify-content:center;font-size:4rem;height:260px;">�o,️</div>
+      <div class="barber-img" style="display:flex;align-items:center;justify-content:center;height:260px;">
+        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="rgba(201,169,110,0.35)" stroke-width="1" stroke-linecap="round">
+          <circle cx="12" cy="7" r="4"/><path d="M3 21c0-4.4 4-8 9-8s9 3.6 9 8"/>
+        </svg>
+      </div>
       <div class="barber-body">
         <div class="barber-name">[Barber Name]</div>
         <div class="barber-role">Stylist & Grooming Expert</div>
@@ -320,7 +328,11 @@
       </div>
     </div>
     <div class="barber-card">
-      <div class="barber-img" style="display:flex;align-items:center;justify-content:center;font-size:4rem;height:260px;">�o,️</div>
+      <div class="barber-img" style="display:flex;align-items:center;justify-content:center;height:260px;">
+        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="rgba(201,169,110,0.35)" stroke-width="1" stroke-linecap="round">
+          <circle cx="12" cy="7" r="4"/><path d="M3 21c0-4.4 4-8 9-8s9 3.6 9 8"/>
+        </svg>
+      </div>
       <div class="barber-body">
         <div class="barber-name">[Barber Name]</div>
         <div class="barber-role">Barber</div>
@@ -398,32 +410,32 @@
   <div class="pricing-grid">
     <div class="pricing-item">
       <div class="pricing-service">Haircut & Style</div>
-      <div class="pricing-amount">�,�[price]</div>
+      <div class="pricing-amount">&#8358;[price]</div>
       <div class="pricing-note">All hair types</div>
     </div>
     <div class="pricing-item">
       <div class="pricing-service">Beard Trim</div>
-      <div class="pricing-amount">�,�[price]</div>
+      <div class="pricing-amount">&#8358;[price]</div>
       <div class="pricing-note">Shape & line-up</div>
     </div>
     <div class="pricing-item">
       <div class="pricing-service">Full Groom Package</div>
-      <div class="pricing-amount">�,�[price]</div>
+      <div class="pricing-amount">&#8358;[price]</div>
       <div class="pricing-note">Cut + beard + treatment</div>
     </div>
     <div class="pricing-item">
       <div class="pricing-service">Kids' Cut</div>
-      <div class="pricing-amount">�,�[price]</div>
+      <div class="pricing-amount">&#8358;[price]</div>
       <div class="pricing-note">Under 12</div>
     </div>
     <div class="pricing-item">
       <div class="pricing-service">Scalp Treatment</div>
-      <div class="pricing-amount">�,�[price]</div>
+      <div class="pricing-amount">&#8358;[price]</div>
       <div class="pricing-note">Conditioning & care</div>
     </div>
     <div class="pricing-item">
       <div class="pricing-service">VIP Session</div>
-      <div class="pricing-amount">�,�[price]</div>
+      <div class="pricing-amount">&#8358;[price]</div>
       <div class="pricing-note">Private · priority booking</div>
     </div>
   </div>
@@ -436,16 +448,16 @@
   <div class="divider" style="margin: 20px auto 40px;"></div>
   <div class="hours-grid">
     <div class="hours-item">
-      <div class="hours-day">Monday �?" Friday</div>
-      <div class="hours-time">[Opening] �?" [Closing]</div>
+      <div class="hours-day">Monday &mdash; Friday</div>
+      <div class="hours-time">[Opening] &mdash; [Closing]</div>
     </div>
     <div class="hours-item">
       <div class="hours-day">Saturday</div>
-      <div class="hours-time">[Opening] �?" [Closing]</div>
+      <div class="hours-time">[Opening] &mdash; [Closing]</div>
     </div>
     <div class="hours-item">
       <div class="hours-day">Sunday</div>
-      <div class="hours-time">[Opening] �?" [Closing]</div>
+      <div class="hours-time">[Opening] &mdash; [Closing]</div>
     </div>
   </div>
 </section>
@@ -459,21 +471,21 @@
     <div class="location-info">
       <p>The Eden 54 Barbing Salon is located at a separate address from the main Eden 54 compound. Drop in during opening hours or book an appointment in advance.</p>
       <div class="contact-line">
-        <div class="contact-icon">�Y"�</div>
+        <div class="contact-icon">&#9673;</div>
         <div>
           <div class="contact-label">Address</div>
           <div class="contact-value">F27 Ereguru Street, Ilesa, Osun State, Nigeria</div>
         </div>
       </div>
       <div class="contact-line">
-        <div class="contact-icon">�Y"z</div>
+        <div class="contact-icon">&#9742;</div>
         <div>
           <div class="contact-label">Phone</div>
           <div class="contact-value">[Salon phone number]</div>
         </div>
       </div>
       <div class="contact-line">
-        <div class="contact-icon">�o?️</div>
+        <div class="contact-icon">&#9993;</div>
         <div>
           <div class="contact-label">Email</div>
           <div class="contact-value">eden54group@gmail.com</div>
@@ -482,7 +494,7 @@
     </div>
     <div class="map-wrap">
       <div class="map-header">
-        <span>�Y"� Find the Salon</span>
+        <span>&#9679; Find the Salon</span>
       </div>
       <!-- Replace src with actual Google Maps embed for salon address once confirmed -->
       <iframe src="https://www.google.com/maps?q=F27+Ereguru+Street,+Ilesa,+Osun+State,+Nigeria&output=embed"
