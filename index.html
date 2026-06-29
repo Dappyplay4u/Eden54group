@@ -200,19 +200,16 @@
     position: relative;
     display: flex; align-items: center; justify-content: center;
     overflow: hidden;
-    background-color: #000; /* fallback while video loads */
+    background-color: #0a1a10;
   }
 
-  /* Hero videos — two clips crossfade between each other */
   .hero-video {
     position: absolute; inset: 0;
     width: 100%; height: 100%;
     object-fit: cover;
     z-index: 0;
     pointer-events: none;
-    transition: opacity 1.2s ease;
   }
-  .hero-video.hidden { opacity: 0; }
 
   /* Very light overlay — just enough to keep hero text readable at the bottom */
   .hero-bg {
@@ -1802,11 +1799,8 @@
      .hero-scroll is the animated "Scroll" indicator at the bottom.
      ══════════════════════════════════════════════════════════════ -->
 <section class="hero">
-  <video class="hero-video" id="heroVid1" autoplay muted playsinline preload="auto">
+  <video id="heroVid" class="hero-video" autoplay muted loop playsinline preload="auto">
     <source src="videos/Videoofapartmentcompound1.mp4" type="video/mp4">
-  </video>
-  <video class="hero-video hidden" id="heroVid2" muted playsinline preload="auto">
-    <source src="videos/Videoofapartmentcompound2.mp4" type="video/mp4">
   </video>
   <div class="hero-bg"></div>
   <div class="hero-geo">
@@ -3299,45 +3293,14 @@
      fades + slides it into place. Works automatically as the user
      scrolls down — no manual triggers needed.
      ---------------------------------------------------------- */
-  /* ── HERO VIDEO CROSSFADE ────────────────────────────────────
-     Plays two videos in sequence, crossfading between them.
-     Explicitly calls .play() to bypass autoplay restrictions.
-     ---------------------------------------------------------- */
-  const heroVid1 = document.getElementById('heroVid1');
-  const heroVid2 = document.getElementById('heroVid2');
 
-  function playVid(vid) {
-    vid.muted = true;
-    const p = vid.play();
+  const heroVid = document.getElementById('heroVid');
+  if (heroVid) {
+    heroVid.muted = true;
+    const p = heroVid.play();
     if (p !== undefined) p.catch(() => {});
+    document.addEventListener('click', () => { if (heroVid.paused) heroVid.play().catch(()=>{}); }, { once: true });
   }
-
-  function switchTo(show, hide) {
-    show.currentTime = 0;
-    show.classList.remove('hidden');
-    playVid(show);
-    setTimeout(() => hide.classList.add('hidden'), 100);
-  }
-
-  heroVid1.addEventListener('ended', () => switchTo(heroVid2, heroVid1));
-  heroVid2.addEventListener('ended', () => switchTo(heroVid1, heroVid2));
-
-  // Start video 1 immediately
-  heroVid1.muted = true;
-  heroVid2.muted = true;
-  playVid(heroVid1);
-  heroVid2.load();
-
-  // Fallback: if autoplay blocked, start on first user interaction
-  const startOnInteraction = () => {
-    if (heroVid1.paused) playVid(heroVid1);
-    document.removeEventListener('click',      startOnInteraction);
-    document.removeEventListener('touchstart', startOnInteraction);
-    document.removeEventListener('keydown',    startOnInteraction);
-  };
-  document.addEventListener('click',      startOnInteraction);
-  document.addEventListener('touchstart', startOnInteraction);
-  document.addEventListener('keydown',    startOnInteraction);
 
   const observer = new IntersectionObserver(entries => {
     entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
