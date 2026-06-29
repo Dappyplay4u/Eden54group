@@ -41,7 +41,7 @@
       <div class="card">
         <div class="card-label">Staff Present</div>
         <div class="card-value" id="statPresent">—</div>
-        <div class="card-sub">Today</div>
+        <div class="card-sub" id="statPresentSub">Currently clocked in</div>
       </div>
       <div class="card">
         <div class="card-label">This Month Sales</div>
@@ -84,7 +84,7 @@
         <h2>Today's Attendance</h2>
         <a href="/portal/attendance/" class="btn btn-outline btn-sm">Mark Attendance</a>
       </div>
-      <div id="attSummary" class="text-muted" style="font-size:0.85rem;padding:8px 0">Loading…</div>
+      <div id="attSummary">Loading…</div>
     </div>
   </div>
 </div>
@@ -100,8 +100,15 @@ requireAccess(staff, 'dashboard');
 populateSidebar(staff);
 buildNav(staff, 'dashboard');
 
+function fmtT(ts) {
+  if (!ts) return '—';
+  return ts.toDate().toLocaleTimeString('en-NG',{hour:'2-digit',minute:'2-digit'});
+}
+
 async function load() {
   const today = todayStr();
+
+  // ── Sales ──────────────────────────────────────────────
   const salesSnap = await db.collection('sales').where('date','==',today).get();
   let todayTotal = 0, deptMap = {};
   salesSnap.forEach(d => {
@@ -109,25 +116,86 @@ async function load() {
     deptMap[s.department] = (deptMap[s.department] || 0) + (s.totalSales || 0);
   });
   document.getElementById('statSales').textContent = fmtNaira(todayTotal);
-  document.getElementById('statSubs').textContent = salesSnap.size;
+  document.getElementById('statSubs').textContent  = salesSnap.size;
 
   const monthStart = today.slice(0,7) + '-01';
   const monthSnap = await db.collection('sales').where('date','>=',monthStart).where('date','<=',today).get();
   let monthTotal = 0; monthSnap.forEach(d => monthTotal += d.data().totalSales || 0);
   document.getElementById('statMonth').textContent = fmtNaira(monthTotal);
 
-  const attSnap = await db.collection('attendance').doc(today).get();
+  // ── Clocking & Attendance ─────────────────────────────
+  const [allClockSnap, attSnap] = await Promise.all([
+    db.collection('clockings').get(),
+    db.collection('attendance').doc(today).get()
+  ]);
+
+  // Build clock map: staffId → {clockIn, clockOut, staffName, department}
+  const clockMap = {};
+  allClockSnap.docs.forEach(d => {
+    if (!d.id.startsWith(today + '_')) return;
+    const c = d.data();
+    clockMap[c.staffId] = c;
+  });
+
+  // Staff Present = currently clocked in (has clockIn, no clockOut)
+  const nowIn  = Object.values(clockMap).filter(c => c.clockIn && !c.clockOut);
+  const doneIn = Object.values(clockMap).filter(c => c.clockIn && c.clockOut);
+  document.getElementById('statPresent').textContent = nowIn.length;
+  document.getElementById('statPresentSub').textContent =
+    nowIn.length === 1 ? 'Currently on shift' :
+    nowIn.length === 0 ? 'No one clocked in' : 'Currently on shift';
+
+  // Build attendance status map
+  const attMap = {};
+  if (attSnap.exists) (attSnap.data().records||[]).forEach(r => attMap[r.staffId] = r);
+
+  // Merge: everyone who has a clock record today
+  const allEntries = Object.values(clockMap);
+  // Also include anyone with an attendance mark but no clock record
   if (attSnap.exists) {
-    const recs = attSnap.data().records || [];
-    const present = recs.filter(r => r.status === 'Present').length;
-    document.getElementById('statPresent').textContent = present + ' / ' + recs.length;
-    document.getElementById('attSummary').innerHTML = recs.map(r =>
-      `<span style="display:inline-block;margin:4px 8px 4px 0">
-        <span class="badge badge-${r.status==='Present'?'ok':r.status==='Absent'?'err':'warn'}">${r.status}</span> ${r.staffName}
-      </span>`).join('');
+    (attSnap.data().records||[]).forEach(r => {
+      if (!clockMap[r.staffId]) allEntries.push({ staffId: r.staffId, staffName: r.staffName, department: r.department });
+    });
+  }
+
+  const attEl = document.getElementById('attSummary');
+  if (!allEntries.length) {
+    attEl.innerHTML = '<p class="text-muted" style="font-size:0.85rem;padding:8px 0">No clock records yet today.</p>';
   } else {
-    document.getElementById('statPresent').textContent = 'Not marked';
-    document.getElementById('attSummary').textContent = 'Attendance not yet marked for today.';
+    // Sort: currently in first, then completed, then absent
+    allEntries.sort((a,b) => {
+      const aIn = !!(a.clockIn && !a.clockOut), bIn = !!(b.clockIn && !b.clockOut);
+      if (aIn !== bIn) return aIn ? -1 : 1;
+      return (a.staffName||'').localeCompare(b.staffName||'');
+    });
+
+    attEl.innerHTML = `
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;padding:4px 0">
+        ${allEntries.map(c => {
+          const att    = attMap[c.staffId] || {};
+          const status = att.status || (c.clockIn ? 'Present' : null);
+          const isIn   = c.clockIn && !c.clockOut;
+          const isDone = c.clockIn && c.clockOut;
+          const dot    = isIn
+            ? '<span style="width:8px;height:8px;border-radius:50%;background:#22c55e;display:inline-block;flex-shrink:0"></span>'
+            : '<span style="width:8px;height:8px;border-radius:50%;background:#d1d5db;display:inline-block;flex-shrink:0"></span>';
+          const badge = status
+            ? `<span class="badge badge-${status==='Present'?'ok':status==='Absent'?'err':status==='Leave'?'purple':'warn'}" style="font-size:0.6rem">${status}</span>`
+            : '';
+          const times = c.clockIn
+            ? `<span style="font-size:0.7rem;color:var(--muted)">In ${fmtT(c.clockIn)}${c.clockOut?' · Out '+fmtT(c.clockOut):' · still in'}</span>`
+            : '';
+          return `<div style="display:flex;align-items:center;gap:9px;padding:9px 12px;border:1px solid var(--border);border-radius:6px;background:#fafaf8">
+            ${dot}
+            <div style="flex:1;min-width:0">
+              <div style="font-size:0.84rem;font-weight:400;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${c.staffName||''}</div>
+              <div style="font-size:0.7rem;color:var(--muted)">${c.department||''}</div>
+              ${times}
+            </div>
+            ${badge}
+          </div>`;
+        }).join('')}
+      </div>`;
   }
 
   const recentSnap = await db.collection('sales').orderBy('submittedAt','desc').limit(20).get();
