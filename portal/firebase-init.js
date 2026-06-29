@@ -93,30 +93,29 @@ function buildNav(staff, active) {
   html += a('/portal/updates/',   '📸', 'Updates',   'updates');
   if (isManager) html += a('/portal/dashboard/', '📊', 'Dashboard', 'dashboard');
 
-  // Reports — only show what's relevant to this person's role/dept
-  const reportLinks = [
-    canReport.sales   && a('/portal/sales/',   '💰', 'Daily Sales', 'sales'),
-    canReport.bar     && a('/portal/bar/',     '🍺', 'Bar Stock',   'bar'),
-    canReport.kitchen && a('/portal/kitchen/', '🍽️', 'Kitchen',     'kitchen'),
-    canReport.barbing && a('/portal/barbing/', '💈', 'Barbing',     'barbing'),
-    canReport.pool    && a('/portal/pool/',    '🏊', 'Pool',        'pool'),
-  ].filter(Boolean);
-
-  if (reportLinks.length) {
-    html += sec('Reports');
-    html += reportLinks.join('');
-  }
-
-  // HR + Admin — manager only
   if (isManager) {
-    html += sec('Overview');
-    html += a('/portal/reports/',    '📋', 'Reports',       'reports');
+    // Managers & HR see the collated overview — not individual submission pages
+    html += sec('Reports');
+    html += a('/portal/reports/', '📋', 'All Reports', 'reports');
     html += sec('HR');
-    html += a('/portal/attendance/', '👥', 'Attendance',    'attendance');
-    html += a('/portal/payroll/',    '💵', 'Payroll',       'payroll');
+    html += a('/portal/attendance/', '👥', 'Attendance',   'attendance');
+    html += a('/portal/payroll/',    '💵', 'Payroll',      'payroll');
     if (isSuperAdmin) html += a('/portal/activity/', '🕵️', 'Staff Activity', 'activity');
     html += sec('Admin');
-    html += a('/portal/staff/',      '👤', 'Manage Staff',  'staff');
+    html += a('/portal/staff/',      '👤', 'Manage Staff', 'staff');
+  } else {
+    // Regular staff see only their own department submission pages
+    const reportLinks = [
+      canReport.sales   && a('/portal/sales/',   '💰', 'Daily Sales', 'sales'),
+      canReport.bar     && a('/portal/bar/',     '🍺', 'Bar Stock',   'bar'),
+      canReport.kitchen && a('/portal/kitchen/', '🍽️', 'Kitchen',     'kitchen'),
+      canReport.barbing && a('/portal/barbing/', '💈', 'Barbing',     'barbing'),
+      canReport.pool    && a('/portal/pool/',    '🏊', 'Pool',        'pool'),
+    ].filter(Boolean);
+    if (reportLinks.length) {
+      html += sec('Reports');
+      html += reportLinks.join('');
+    }
   }
 
   const nav = document.getElementById('sbNav');
