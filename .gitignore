@@ -12,6 +12,6 @@ desktop.ini
 .vscode/
 *.code-workspace
 
-# Large video files — host on Firebase Storage instead
+# Original large apartment videos (over Cloudflare 25MB limit)
 videos/Videoofapartmentcompound1.mp4
 videos/Videoofapartmentcompound2.mp4
