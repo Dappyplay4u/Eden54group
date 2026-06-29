@@ -105,8 +105,13 @@
         <h2>Team Updates</h2>
         <select id="filterDept" class="form-control" style="width:160px;font-size:0.8rem" onchange="loadFeed()">
           <option value="">All Departments</option>
-          <option>salon</option><option>lounge</option><option>bar</option>
-          <option>kitchen</option><option>apartment</option><option>pool</option><option>management</option>
+          <option value="salon">Barbing Salon</option>
+          <option value="lounge">Lounge</option>
+          <option value="bar">Bar</option>
+          <option value="kitchen">Kitchen</option>
+          <option value="apartment">Apartment</option>
+          <option value="pool">Pool</option>
+          <option value="management">Management</option>
         </select>
       </div>
       <div id="feedEl"><p class="text-muted" style="font-size:0.85rem;text-align:center;padding:20px">Loading…</p></div>
@@ -232,13 +237,25 @@ let lastDoc = null;
 async function loadFeed(reset = true) {
   if (reset) { lastDoc = null; document.getElementById('feedEl').innerHTML = '<p class="text-muted" style="font-size:0.85rem;text-align:center;padding:16px">Loading…</p>'; }
   const dept = document.getElementById('filterDept').value;
-  let query = db.collection('updates').orderBy('createdAt','desc').limit(12);
-  if (dept) query = query.where('department','==',dept);
-  if (lastDoc) query = query.startAfter(lastDoc);
-  const snap = await query.get();
+  let snap;
+  if (dept) {
+    // Filter by dept client-side sort to avoid composite index requirement
+    const raw = await db.collection('updates').where('department','==',dept).get();
+    const sorted = raw.docs.sort((a,b) => {
+      const at = a.data().createdAt, bt = b.data().createdAt;
+      if (!at && !bt) return 0; if (!at) return 1; if (!bt) return -1;
+      return bt.toDate() - at.toDate();
+    });
+    snap = { docs: sorted.slice(0, 40), size: sorted.length, empty: sorted.length === 0 };
+    lastDoc = null; // disable pagination when filtering
+  } else {
+    let query = db.collection('updates').orderBy('createdAt','desc').limit(12);
+    if (lastDoc) query = query.startAfter(lastDoc);
+    snap = await query.get();
+  }
   if (snap.empty && reset) { document.getElementById('feedEl').innerHTML = '<p class="text-muted" style="font-size:0.85rem;text-align:center;padding:24px">No updates yet. Post the first one!</p>'; document.getElementById('loadMoreWrap').style.display='none'; return; }
-  lastDoc = snap.docs[snap.docs.length - 1];
-  document.getElementById('loadMoreWrap').style.display = snap.size === 12 ? 'block' : 'none';
+  if (!dept && snap.docs.length) lastDoc = snap.docs[snap.docs.length - 1];
+  document.getElementById('loadMoreWrap').style.display = (!dept && snap.size === 12) ? 'block' : 'none';
 
   const html = snap.docs.map(d => {
     const u = d.data();

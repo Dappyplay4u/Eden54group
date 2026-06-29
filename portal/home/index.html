@@ -39,24 +39,6 @@
 .upload-bar .fill{height:100%;background:var(--gold);transition:width 0.2s;width:0%;}
 .report-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:14px;}
 
-/* ── Feed ── */
-.feed-item{border-bottom:1px solid var(--border);padding:16px 0;}
-.feed-item:last-child{border-bottom:none;}
-.feed-head{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
-.feed-av{width:36px;height:36px;border-radius:50%;object-fit:cover;border:1px solid var(--border);}
-.feed-ini{width:36px;height:36px;border-radius:50%;background:var(--gold);color:var(--deep);display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:500;flex-shrink:0;}
-.feed-meta strong{display:block;font-size:0.85rem;font-weight:400;}
-.feed-meta span{font-size:0.7rem;color:var(--muted);}
-.feed-body{font-size:0.88rem;line-height:1.65;margin-bottom:10px;white-space:pre-wrap;word-break:break-word;}
-.feed-photos{display:flex;gap:6px;flex-wrap:wrap;}
-.feed-photos img{width:88px;height:88px;border-radius:6px;object-fit:cover;cursor:pointer;border:1px solid var(--border);transition:opacity 0.15s;}
-.feed-photos img:hover{opacity:0.85;}
-
-/* lightbox */
-.lb{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:400;align-items:center;justify-content:center;}
-.lb.open{display:flex;}
-.lb img{max-width:92vw;max-height:90vh;border-radius:6px;}
-.lb-x{position:absolute;top:16px;right:20px;color:#fff;font-size:2rem;cursor:pointer;background:none;border:none;line-height:1;}
 </style>
 </head>
 <body>
@@ -131,22 +113,9 @@
       </div>
     </div>
 
-    <!-- ── 4. TEAM FEED ── -->
-    <div class="card">
-      <div class="section-head">
-        <h2>Team Updates</h2>
-        <a href="/portal/updates/" class="btn btn-outline btn-sm">View All</a>
-      </div>
-      <div id="feedEl"><p class="text-muted" style="font-size:0.85rem;padding:12px 0">Loading…</p></div>
-    </div>
   </div>
 </div>
 
-<!-- Lightbox -->
-<div class="lb" id="lb" onclick="closeLB(event)">
-  <button class="lb-x" onclick="document.getElementById('lb').classList.remove('open')">×</button>
-  <img id="lbImg" src="" alt="">
-</div>
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
@@ -164,12 +133,17 @@ document.getElementById('clockDept').textContent = staff.department;
 document.getElementById('topDate').textContent =
   new Date().toLocaleDateString('en-NG',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
 
-const today     = todayStr();
+const today      = todayStr();
 const clockDocId = today + '_' + staff.id;
 let clockInTime = null, timerInt = null;
 
 /* ═══════════════════════════════
-   CLOCK IN / OUT
+   CLOCK IN / OUT  (multi-session per day)
+   One Firestore doc per staff per day.
+   Doc stores a 'sessions' array:
+     [{clockIn, clockOut, clockInLocation, clockOutLocation}, …]
+   The last entry without clockOut = active session.
+   No composite index needed.
 ═══════════════════════════════ */
 async function loadClockStatus() {
   try {
@@ -178,19 +152,33 @@ async function loadClockStatus() {
       setClockUI('out');
     } else {
       const d = snap.data();
-      clockInTime = d.clockIn ? d.clockIn.toDate() : null;
-      if (d.clockOut) {
-        const dur = calcDur(d.clockIn.toDate(), d.clockOut.toDate());
-        setClockUI('done', { inTime: d.clockIn.toDate(), outTime: d.clockOut.toDate(), dur });
-        document.getElementById('hoursWorked').textContent = dur;
+      const sessions = d.sessions || [];
+      const last = sessions[sessions.length - 1];
+      if (!last) { setClockUI('out'); return; }
+      clockInTime = last.clockIn ? last.clockIn.toDate() : null;
+      if (last.clockOut) {
+        const dur   = calcDur(last.clockIn.toDate(), last.clockOut.toDate());
+        const total = calcTotal(sessions);
+        setClockUI('done', { inTime: last.clockIn.toDate(), outTime: last.clockOut.toDate(), dur, total });
+        document.getElementById('hoursWorked').textContent = total;
       } else {
-        setClockUI('in', { inTime: d.clockIn.toDate() });
-        startTimer(d.clockIn.toDate());
+        setClockUI('in', { inTime: clockInTime });
+        startTimer(clockInTime);
       }
     }
   } catch(e) {
     document.getElementById('clockStatus').textContent = 'Could not load clock status';
+    console.error(e);
   }
+}
+
+function calcTotal(sessions) {
+  let ms = 0;
+  (sessions || []).forEach(s => {
+    if (s.clockIn && s.clockOut) ms += s.clockOut.toDate() - s.clockIn.toDate();
+  });
+  const h = Math.floor(ms / 3600000), m = Math.floor((ms % 3600000) / 60000);
+  return h + 'h ' + pad(m) + 'm';
 }
 
 function setClockUI(state, data = {}) {
@@ -203,13 +191,17 @@ function setClockUI(state, data = {}) {
     status.textContent = 'Not clocked in yet today';
     ctime.textContent  = '';
     cinBtn.style.display = 'inline-flex';
+    cinBtn.textContent  = 'Clock In';
   } else if (state === 'in') {
     status.textContent = 'Clocked in';
     ctime.textContent  = 'Since ' + fmtTime(data.inTime);
     coutBtn.style.display = 'inline-flex';
+    coutBtn.textContent   = 'Clock Out';
   } else {
-    status.textContent = 'Clocked out — ' + data.dur + ' worked today';
+    status.textContent = 'Last out: ' + data.dur + ' · Total today: ' + (data.total || data.dur);
     ctime.textContent  = 'In: ' + fmtTime(data.inTime) + ' · Out: ' + fmtTime(data.outTime);
+    cinBtn.style.display = 'inline-flex';
+    cinBtn.textContent  = 'Clock In Again';
   }
 }
 
@@ -223,7 +215,7 @@ async function resolveGeo() {
     geoEl.textContent = 'Location unavailable';
     return { loc: null, atFacility: false, distanceMeters: null };
   }
-  const dist   = Math.round(haversineDistance(FACILITY.lat, FACILITY.lng, loc.lat, loc.lng));
+  const dist      = Math.round(haversineDistance(FACILITY.lat, FACILITY.lng, loc.lat, loc.lng));
   const atFacility = dist <= CLOCK_RADIUS_METERS;
   if (atFacility) {
     geoEl.style.color = '#4ade80';
@@ -241,15 +233,24 @@ async function clockIn() {
   const { loc, atFacility, distanceMeters } = await resolveGeo();
   btn.textContent = 'Clocking in…';
   try {
-    const now = firebase.firestore.Timestamp.now();
-    await db.collection('clockings').doc(clockDocId).set({
-      date: today, staffId: staff.id, staffName: staff.name, department: staff.department,
+    const now     = firebase.firestore.Timestamp.now();
+    const newSess = {
       clockIn: now, clockOut: null,
-      clockInLocation: loc
-        ? { lat: loc.lat, lng: loc.lng, accuracy: loc.accuracy, distanceMeters, atFacility }
-        : null
-    });
+      clockInLocation: loc ? { lat: loc.lat, lng: loc.lng, accuracy: loc.accuracy, distanceMeters, atFacility } : null
+    };
+    const docRef = db.collection('clockings').doc(clockDocId);
+    const snap   = await docRef.get();
+    if (snap.exists) {
+      await docRef.update({ sessions: firebase.firestore.FieldValue.arrayUnion(newSess) });
+    } else {
+      await docRef.set({
+        date: today, staffId: staff.id, staffName: staff.name, department: staff.department,
+        sessions: [newSess]
+      });
+    }
     clockInTime = now.toDate();
+    clearInterval(timerInt);
+    document.getElementById('clockTimer').textContent = '';
     setClockUI('in', { inTime: clockInTime });
     startTimer(clockInTime);
     const locNote = loc ? (atFacility ? ' · At facility' : ' · Remote (' + distanceMeters + 'm away)') : ' · Location not captured';
@@ -266,21 +267,28 @@ async function clockOut() {
   const { loc, atFacility, distanceMeters } = await resolveGeo();
   btn.textContent = 'Clocking out…';
   try {
-    const now = firebase.firestore.Timestamp.now();
-    await db.collection('clockings').doc(clockDocId).update({
+    const now    = firebase.firestore.Timestamp.now();
+    const docRef = db.collection('clockings').doc(clockDocId);
+    const snap   = await docRef.get();
+    const sessions = snap.data().sessions || [];
+    // Update the last session that has no clockOut
+    const idx = sessions.map(s => !s.clockOut).lastIndexOf(true);
+    if (idx === -1) { showAlert('alertBox', 'No active session to clock out of.', 'alert-error'); btn.disabled = false; btn.textContent = 'Clock Out'; return; }
+    sessions[idx] = {
+      ...sessions[idx],
       clockOut: now,
-      clockOutLocation: loc
-        ? { lat: loc.lat, lng: loc.lng, accuracy: loc.accuracy, distanceMeters, atFacility }
-        : null
-    });
+      clockOutLocation: loc ? { lat: loc.lat, lng: loc.lng, accuracy: loc.accuracy, distanceMeters, atFacility } : null
+    };
+    await docRef.update({ sessions });
     clearInterval(timerInt);
     document.getElementById('clockTimer').textContent = '';
-    const dur = calcDur(clockInTime, now.toDate());
-    setClockUI('done', { inTime: clockInTime, outTime: now.toDate(), dur });
-    document.getElementById('hoursWorked').textContent = dur;
+    const dur   = calcDur(clockInTime, now.toDate());
+    const total = calcTotal(sessions);
+    setClockUI('done', { inTime: clockInTime, outTime: now.toDate(), dur, total });
+    document.getElementById('hoursWorked').textContent = total;
     const locNote = loc ? (atFacility ? ' · At facility' : ' · Remote (' + distanceMeters + 'm away)') : '';
-    showAlert('alertBox', 'Clocked out. ' + dur + ' worked today.' + locNote, atFacility ? 'alert-success' : 'alert-warn');
-    autoMarkAttendance(today, dur);
+    showAlert('alertBox', 'Clocked out. ' + dur + ' this session · ' + total + ' total today.' + locNote, atFacility ? 'alert-success' : 'alert-warn');
+    autoMarkAttendance(today, total);
   } catch(e) {
     showAlert('alertBox', 'Clock out failed. Check your connection.', 'alert-error');
     btn.disabled = false; btn.textContent = 'Clock Out';
@@ -413,7 +421,6 @@ async function submitReport() {
 
     showAlert('alertBox','Report submitted successfully!','alert-success');
     loadMyReports();
-    loadFeed();
   } catch(e) {
     console.error(e);
     showAlert('alertBox','Submission failed: ' + e.message,'alert-error');
@@ -432,43 +439,16 @@ async function loadMyReports() {
       .where('staffId','==',staff.id)
       .get();
     // Filter today client-side (avoid composite index requirement)
-    const todayUpdates = snap.docs.filter(d => {
-      const ts = d.data().createdAt;
+    const todayUpdates = snap.docs.filter(doc => {
+      const ts = doc.data().createdAt;
       if (!ts) return false;
-      return ts.toDate().toISOString().split('T')[0] === today;
+      const dt = ts.toDate();
+      const ds = dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0');
+      return ds === today;
     });
     document.getElementById('myReports').textContent = todayUpdates.length;
   } catch(e) {
     document.getElementById('myReports').textContent = '—';
-  }
-}
-
-/* ═══════════════════════════════
-   TEAM FEED
-═══════════════════════════════ */
-async function loadFeed() {
-  try {
-    const snap = await db.collection('updates').orderBy('createdAt','desc').limit(12).get();
-    const el = document.getElementById('feedEl');
-    if (snap.empty) {
-      el.innerHTML = '<p class="text-muted" style="font-size:0.85rem;padding:8px 0">No updates yet. Post your first report above!</p>';
-      return;
-    }
-    el.innerHTML = snap.docs.map(d => {
-      const u  = d.data();
-      const ts = u.createdAt ? u.createdAt.toDate().toLocaleString('en-NG',{dateStyle:'medium',timeStyle:'short'}) : '';
-      const av = `<div class="feed-ini">${avatarInitials(u.staffName)}</div>`;
-      const pix = (u.photos||[]).length
-        ? `<div class="feed-photos">${u.photos.map(p=>`<img src="${p}" onclick="openLB('${p}')" loading="lazy" alt="">`).join('')}</div>`
-        : '';
-      return `<div class="feed-item">
-        <div class="feed-head">${av}<div class="feed-meta"><strong>${escHtml(u.staffName||'')}</strong><span>${escHtml(u.department||'')} · ${ts}</span></div></div>
-        ${u.text ? `<div class="feed-body">${escHtml(u.text)}</div>` : ''}
-        ${pix}
-      </div>`;
-    }).join('');
-  } catch(e) {
-    document.getElementById('feedEl').innerHTML = '<p class="text-muted" style="font-size:0.85rem">Could not load updates.</p>';
   }
 }
 
@@ -480,7 +460,6 @@ function closeLB(e){ if(e.target===document.getElementById('lb')) document.getEl
 /* ── Run ── */
 loadClockStatus();
 loadMyReports();
-loadFeed();
 </script>
 </body>
 </html>

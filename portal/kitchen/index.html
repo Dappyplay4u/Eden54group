@@ -11,9 +11,7 @@
 <div class="sb-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
 <aside class="sidebar" id="sidebar">
   <div class="sb-brand"><div class="sb-brand-name">Eden 54</div><div class="sb-brand-sub">Staff Portal</div></div>
-  <nav class="sb-nav">
-    <nav class="sb-nav" id="sbNav"></nav>
-  </nav>
+  <nav class="sb-nav" id="sbNav"></nav>
   <div class="sb-foot"><div id="sidebarUser"></div><a class="sb-item" onclick="switchProfile()" style="cursor:pointer"><i class="sb-icon">🔄</i> Switch Profile</a></div>
 </aside>
 
@@ -116,7 +114,10 @@ async function submitKitchen() {
   const btn=document.getElementById('submitBtn'); btn.disabled=true; btn.textContent='Saving…';
   try {
     await db.collection('kitchen_inventory').add({ date, items, notes, meals, lowItems, staffId:staff.id, staffName:staff.name, submittedAt:firebase.firestore.FieldValue.serverTimestamp() });
-    showAlert('alertBox','Kitchen report saved!','alert-success'); loadHistory();
+    showAlert('alertBox','Kitchen report saved!','alert-success');
+    document.getElementById('kitNotes').value = ''; document.getElementById('mealsCount').value = '';
+    KIT_ITEMS.forEach((_,i) => { document.getElementById(`ko_${i}`).value='0'; document.getElementById(`kp_${i}`).value='0'; document.getElementById(`kc_${i}`).value='0'; document.getElementById(`ku_${i}`).textContent='0'; document.getElementById(`ks_${i}`).innerHTML=''; });
+    loadHistory();
   } catch(e) { showAlert('alertBox','Error saving.','alert-error'); }
   btn.disabled=false; btn.textContent='Save Report';
 }

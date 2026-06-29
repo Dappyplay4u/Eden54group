@@ -72,7 +72,7 @@
       <div class="act-filters">
         <div class="form-group">
           <label class="form-label">Staff Member</label>
-          <select id="filterStaff" class="form-control" style="min-width:200px">
+          <select id="filterStaff" class="form-control" style="min-width:200px" onchange="loadAll()">
             <option value="">All Staff</option>
           </select>
         </div>
@@ -103,6 +103,11 @@
     <!-- Summary Cards -->
     <div class="g3 no-print" id="summaryCards" style="margin-bottom:20px;display:none">
       <div class="card">
+        <div class="card-label">Total Sales</div>
+        <div class="card-value gold" id="sumSales">₦0</div>
+        <div class="card-sub" id="sumSalesSub">In date range</div>
+      </div>
+      <div class="card">
         <div class="card-label">Total Hours Worked</div>
         <div class="card-value gold" id="sumHours">—</div>
         <div class="card-sub">Clock records</div>
@@ -117,6 +122,15 @@
         <div class="card-value" id="sumReports">—</div>
         <div class="card-sub">Updates &amp; reports</div>
       </div>
+    </div>
+
+    <!-- Sales Summary -->
+    <div class="card" style="margin-bottom:24px">
+      <div class="section-head">
+        <h2>Sales Records</h2>
+        <span id="salesSummary" style="font-size:0.78rem;color:var(--muted)"></span>
+      </div>
+      <div id="salesList"><p class="text-muted" style="font-size:0.85rem;padding:8px 0">Set filters above and click Pull Report.</p></div>
     </div>
 
     <!-- Clock Records -->
@@ -173,6 +187,8 @@ async function init() {
       sel.innerHTML += `<option value="${s.id}">${s.name} — ${s.department}</option>`;
     }
   });
+  // Auto-load report with default date range on page open
+  await loadAll();
 }
 
 /* ── Pull Report ── */
@@ -181,11 +197,78 @@ async function loadAll() {
   const dateFrom = document.getElementById('dateFrom').value;
   const dateTo   = document.getElementById('dateTo').value;
   if (!dateFrom || !dateTo) { showAlert('alertBox','Please select a date range.','alert-error'); return; }
+  document.getElementById('summaryCards').style.display = '';
 
   await Promise.all([
+    loadSales(staffId, dateFrom, dateTo),
     loadClocks(staffId, dateFrom, dateTo),
     loadUpdates(staffId, dateFrom, dateTo)
   ]);
+}
+
+/* ── Sales Records ── */
+async function loadSales(staffId, from, to) {
+  const el = document.getElementById('salesList');
+  el.innerHTML = '<p class="text-muted" style="font-size:0.85rem">Loading…</p>';
+  try {
+    let query = db.collection('sales').where('date','>=',from).where('date','<=',to);
+    if (staffId) query = query.where('staffId','==',staffId);
+    const snap = await query.get();
+
+    let grand = 0, cash = 0, transfer = 0, pos = 0;
+    snap.forEach(d => {
+      const s = d.data();
+      grand    += s.totalSales    || 0;
+      cash     += s.cashSales     || 0;
+      transfer += s.transferSales || 0;
+      pos      += s.posSales      || 0;
+    });
+    document.getElementById('sumSales').textContent    = fmtNaira(grand);
+    document.getElementById('sumSalesSub').textContent = snap.size + ' submission' + (snap.size !== 1 ? 's' : '');
+    document.getElementById('salesSummary').textContent = snap.size + ' record' + (snap.size !== 1 ? 's' : '') + ' · Total ' + fmtNaira(grand);
+
+    if (snap.empty) {
+      el.innerHTML = '<p class="text-muted" style="font-size:0.85rem;padding:8px 0">No sales records in this range.</p>';
+      return;
+    }
+
+    // Sort by date desc client-side
+    const docs = snap.docs.sort((a,b) => b.data().date.localeCompare(a.data().date));
+
+    el.innerHTML = `
+      <div style="margin-bottom:12px;padding:10px 14px;background:#f9f9f7;border-radius:6px;display:flex;gap:24px;flex-wrap:wrap;font-size:0.82rem">
+        <span><span style="color:var(--muted)">Cash:</span> <strong>${fmtNaira(cash)}</strong></span>
+        <span><span style="color:var(--muted)">Transfer:</span> <strong>${fmtNaira(transfer)}</strong></span>
+        <span><span style="color:var(--muted)">POS:</span> <strong>${fmtNaira(pos)}</strong></span>
+        <span><span style="color:var(--muted)">Total:</span> <strong class="text-gold">${fmtNaira(grand)}</strong></span>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Date</th><th>Staff</th><th>Department</th><th>Cash</th><th>Transfer</th><th>POS</th><th>Total</th><th>Notes</th></tr></thead>
+          <tbody>
+            ${docs.map(d => {
+              const s = d.data();
+              const svcHtml = (s.services||[]).length
+                ? `<div style="font-size:0.68rem;color:var(--muted);margin-top:2px">${s.services.map(x=>x.type+(x.amount?': '+fmtNaira(x.amount):'')).join(' · ')}</div>`
+                : '';
+              return `<tr>
+                <td class="fw4">${s.date}</td>
+                <td>${s.staffName}</td>
+                <td><span class="badge badge-info">${s.department}</span>${svcHtml}</td>
+                <td>${fmtNaira(s.cashSales)}</td>
+                <td>${fmtNaira(s.transferSales)}</td>
+                <td>${fmtNaira(s.posSales)}</td>
+                <td class="fw4 text-gold">${fmtNaira(s.totalSales)}</td>
+                <td style="font-size:0.78rem;color:var(--muted)">${s.notes||''}</td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>`;
+  } catch(e) {
+    el.innerHTML = `<p style="color:#fca5a5;font-size:0.85rem">Error: ${e.message}</p>`;
+    document.getElementById('sumSales').textContent = '—';
+  }
 }
 
 /* ── Clock Records ── */
@@ -201,16 +284,16 @@ async function loadClocks(staffId, from, to) {
     docs.sort((a,b) => b.id.localeCompare(a.id));
 
     document.getElementById('clockSummary').textContent = docs.length + ' record' + (docs.length !== 1 ? 's' : '');
-    document.getElementById('summaryCards').style.display = '';
 
-    // Calculate summary
+    // Calculate summary — sessions[] array schema
     let totalMs = 0, daysWithClock = 0;
     docs.forEach(d => {
       const c = d.data();
-      if (c.clockIn && c.clockOut) {
-        totalMs += c.clockOut.toDate() - c.clockIn.toDate();
-        daysWithClock++;
-      }
+      const sessions = c.sessions || (c.clockIn ? [{ clockIn: c.clockIn, clockOut: c.clockOut, clockInLocation: c.clockInLocation, clockOutLocation: c.clockOutLocation }] : []);
+      sessions.forEach(s => {
+        if (s.clockIn && s.clockOut) { totalMs += s.clockOut.toDate() - s.clockIn.toDate(); }
+      });
+      if (sessions.length) daysWithClock++;
     });
     const h = Math.floor(totalMs/3600000), m = Math.floor((totalMs%3600000)/60000);
     document.getElementById('sumHours').textContent = h + 'h ' + String(m).padStart(2,'0') + 'm';
@@ -221,19 +304,29 @@ async function loadClocks(staffId, from, to) {
       return;
     }
 
+    const geoBadge = loc => {
+      if (!loc) return `<span class="geo-badge geo-grey">No GPS</span>`;
+      return loc.atFacility
+        ? `<span class="geo-badge geo-ok">At facility</span>`
+        : `<span class="geo-badge geo-warn">Remote · ${loc.distanceMeters}m</span>`;
+    };
+
     el.innerHTML = docs.map(d => {
       const c    = d.data();
       const date = d.id.split('_')[0];
-      const inT  = c.clockIn  ? c.clockIn.toDate()  : null;
-      const outT = c.clockOut ? c.clockOut.toDate() : null;
-      const dur  = inT && outT ? calcDur(inT, outT) : null;
-
-      const geoBadge = loc => {
-        if (!loc) return `<span class="geo-badge geo-grey">No GPS</span>`;
-        return loc.atFacility
-          ? `<span class="geo-badge geo-ok">At facility</span>`
-          : `<span class="geo-badge geo-warn">Remote · ${loc.distanceMeters}m</span>`;
-      };
+      const sessions = c.sessions || (c.clockIn ? [{ clockIn: c.clockIn, clockOut: c.clockOut, clockInLocation: c.clockInLocation, clockOutLocation: c.clockOutLocation }] : []);
+      const sessionRows = sessions.map((s, i) => {
+        const inT  = s.clockIn  ? s.clockIn.toDate()  : null;
+        const outT = s.clockOut ? s.clockOut.toDate() : null;
+        const dur  = inT && outT ? calcDur(inT, outT) : null;
+        return `<div style="font-size:0.82rem;margin-bottom:4px${i>0?';padding-top:4px;border-top:1px dashed #e4e4df':''}">
+          <span style="color:var(--muted)">In:</span> <b>${inT ? fmtTime(inT) : '—'}</b> ${geoBadge(s.clockInLocation)}
+          &nbsp; <span style="color:var(--muted)">Out:</span> <b>${outT ? fmtTime(outT) : 'Still in'}</b> ${outT ? geoBadge(s.clockOutLocation) : ''}
+          ${dur ? `<span style="color:var(--gold);margin-left:8px">${dur}</span>` : ''}
+        </div>`;
+      }).join('');
+      const dayMs = sessions.reduce((acc,s) => s.clockIn && s.clockOut ? acc + (s.clockOut.toDate() - s.clockIn.toDate()) : acc, 0);
+      const dayDur = dayMs > 0 ? calcDur(new Date(0), new Date(dayMs)) : null;
 
       return `<div class="clock-row">
         <div class="clock-who">
@@ -241,17 +334,8 @@ async function loadClocks(staffId, from, to) {
           <small>${c.department}</small>
           <div class="clock-date">${date}</div>
         </div>
-        <div style="flex:1;font-size:0.82rem">
-          <div style="margin-bottom:5px">
-            <span style="color:var(--muted)">In:</span> <b>${inT ? fmtTime(inT) : '—'}</b>
-            &nbsp;${geoBadge(c.clockInLocation)}
-          </div>
-          <div>
-            <span style="color:var(--muted)">Out:</span> <b>${outT ? fmtTime(outT) : 'Still in'}</b>
-            &nbsp;${outT ? geoBadge(c.clockOutLocation) : ''}
-          </div>
-        </div>
-        ${dur ? `<div style="font-size:0.82rem;color:var(--gold);font-weight:400;white-space:nowrap">${dur}</div>` : ''}
+        <div style="flex:1">${sessionRows || '<span style="font-size:0.82rem;color:var(--muted)">No sessions</span>'}</div>
+        ${dayDur ? `<div style="font-size:0.82rem;color:var(--gold);font-weight:400;white-space:nowrap">${dayDur} total</div>` : ''}
       </div>`;
     }).join('');
   } catch(e) {
@@ -270,7 +354,7 @@ async function loadUpdates(staffId, from, to) {
     const docs = snap.docs.filter(d => {
       const ts = d.data().createdAt;
       if (!ts) return false;
-      const date = ts.toDate().toISOString().split('T')[0];
+      const d = ts.toDate(); const date = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
       return date >= from && date <= to;
     });
     document.getElementById('updateSummary').textContent = docs.length + ' update' + (docs.length !== 1 ? 's' : '');

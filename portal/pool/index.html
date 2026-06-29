@@ -11,9 +11,7 @@
 <div class="sb-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
 <aside class="sidebar" id="sidebar">
   <div class="sb-brand"><div class="sb-brand-name">Eden 54</div><div class="sb-brand-sub">Staff Portal</div></div>
-  <nav class="sb-nav">
-    <nav class="sb-nav" id="sbNav"></nav>
-  </nav>
+  <nav class="sb-nav" id="sbNav"></nav>
   <div class="sb-foot"><div id="sidebarUser"></div><a class="sb-item" onclick="switchProfile()" style="cursor:pointer"><i class="sb-icon">🔄</i> Switch Profile</a></div>
 </aside>
 
@@ -141,7 +139,12 @@ async function submitPool() {
       matches, notes, staffId:currentStaff.id, staffName:currentStaff.name,
       submittedAt:firebase.firestore.FieldValue.serverTimestamp()
     });
-    showAlert('alertBox','Session logged!','alert-success'); loadHistory();
+    showAlert('alertBox','Session logged!','alert-success');
+    document.getElementById('poolPlayers').value=''; document.getElementById('poolTables').value='';
+    document.getElementById('poolCash').value=''; document.getElementById('poolPrize').value='';
+    document.getElementById('poolNotes').value=''; document.getElementById('poolNet').textContent=fmtNaira(0);
+    document.getElementById('matchRows').innerHTML=''; matchCount=0;
+    loadHistory();
   } catch(e) { showAlert('alertBox','Error saving.','alert-error'); }
   btn.disabled=false; btn.textContent='Log Session';
 }

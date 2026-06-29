@@ -11,9 +11,7 @@
 <div class="sb-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
 <aside class="sidebar" id="sidebar">
   <div class="sb-brand"><div class="sb-brand-name">Eden 54</div><div class="sb-brand-sub">Staff Portal</div></div>
-  <nav class="sb-nav">
-    <nav class="sb-nav" id="sbNav"></nav>
-  </nav>
+  <nav class="sb-nav" id="sbNav"></nav>
   <div class="sb-foot"><div id="sidebarUser"></div><a class="sb-item" onclick="switchProfile()" style="cursor:pointer"><i class="sb-icon">🔄</i> Switch Profile</a></div>
 </aside>
 
@@ -37,18 +35,19 @@
           </div>
           <div class="form-group">
             <label class="form-label">Department</label>
-            <select id="saleDept" class="form-control">
+            <select id="saleDept" class="form-control" onchange="onDeptChange()">
               <option value="">Select…</option>
-              <option>Restaurant &amp; Lounge</option>
-              <option>Bar</option>
-              <option>Apartment</option>
-              <option>Barbing Salon</option>
-              <option>Pool</option>
-              <option>Car Rental</option>
-              <option>Games</option>
             </select>
           </div>
         </div>
+
+        <!-- Service breakdown — shown only for Barbing Salon -->
+        <div id="svcSection" style="display:none;margin-bottom:14px">
+          <div class="divider"></div>
+          <p style="font-size:0.7rem;color:#6a6b62;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:10px">Services Rendered</p>
+          <div id="svcGrid" style="display:grid;gap:4px"></div>
+        </div>
+
         <div class="divider"></div>
         <div class="fg3" style="margin-bottom:14px">
           <div class="form-group">
@@ -102,7 +101,57 @@ const today = todayStr();
 document.getElementById('saleDate').value = today;
 document.getElementById('topDate').textContent = new Date().toLocaleDateString('en-NG',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
 
+/* ── Department options ── */
+const ALL_DEPTS = ['Restaurant & Lounge','Bar','Apartment','Barbing Salon','Pool','Car Rental','Games'];
+const SALON_DEPTS = ['Barbing Salon','Pool','Games'];
+const isSalon = (staff.department || '').toLowerCase() === 'salon';
+
+const SALON_SERVICES = ['Haircut', 'Games', 'Pool'];
+
+function buildDeptOptions() {
+  const sel = document.getElementById('saleDept');
+  const opts = isSalon ? SALON_DEPTS : ALL_DEPTS;
+  sel.innerHTML = '<option value="">Select…</option>' +
+    opts.map(d => `<option${isSalon && d==='Barbing Salon'?' selected':''}>${d}</option>`).join('');
+  if (isSalon) onDeptChange();
+}
+
+function onDeptChange() {
+  const dept = document.getElementById('saleDept').value;
+  const show = dept === 'Barbing Salon';
+  document.getElementById('svcSection').style.display = show ? 'block' : 'none';
+  if (show) buildSvcGrid();
+  calcTotal();
+}
+
+function buildSvcGrid() {
+  const grid = document.getElementById('svcGrid');
+  grid.innerHTML = SALON_SERVICES.map(name =>
+    `<div style="display:flex;align-items:center;gap:12px;padding:10px 12px;background:#f9f9f7;border-radius:6px">
+      <input type="checkbox" class="svc-check" data-type="${name}" id="chk_${name}" onchange="toggleSvcAmt('${name}')" style="width:16px;height:16px;cursor:pointer;accent-color:#C9A96E">
+      <label for="chk_${name}" style="font-size:0.88rem;cursor:pointer;flex:1">${name}</label>
+      <input type="number" class="form-control svc-amt" id="amt_${name}" data-type="${name}" min="0" placeholder="₦ amount" style="width:120px;display:none" oninput="calcTotal()">
+    </div>`
+  ).join('');
+}
+
+function toggleSvcAmt(name) {
+  const checked = document.getElementById('chk_' + name).checked;
+  const amtEl = document.getElementById('amt_' + name);
+  amtEl.style.display = checked ? 'block' : 'none';
+  if (!checked) { amtEl.value = ''; }
+  calcTotal();
+}
+
+function getSvcBreakdown() {
+  return SALON_SERVICES
+    .filter(name => document.getElementById('chk_' + name)?.checked)
+    .map(name => ({ type: name, amount: +document.getElementById('amt_' + name)?.value || 0 }))
+    .filter(s => s.amount > 0);
+}
+
 function calcTotal() {
+  const dept = document.getElementById('saleDept').value;
   const t = (+document.getElementById('cashSales').value||0)+(+document.getElementById('transferSales').value||0)+(+document.getElementById('posSales').value||0);
   document.getElementById('totalDisplay').textContent = fmtNaira(t);
 }
@@ -115,17 +164,19 @@ async function submitSales() {
   const trans = +document.getElementById('transferSales').value || 0;
   const pos   = +document.getElementById('posSales').value || 0;
   const notes = document.getElementById('saleNotes').value.trim();
+  const services = dept === 'Barbing Salon' ? getSvcBreakdown() : [];
   const btn = document.getElementById('submitBtn');
   btn.disabled = true; btn.textContent = 'Submitting…';
   try {
     await db.collection('sales').add({
       date, department: dept, staffId: staff.id, staffName: staff.name,
       cashSales: cash, transferSales: trans, posSales: pos, totalSales: cash + trans + pos,
-      notes, submittedAt: firebase.firestore.FieldValue.serverTimestamp()
+      services, notes, submittedAt: firebase.firestore.FieldValue.serverTimestamp()
     });
     showAlert('alertBox','Sales report submitted!','alert-success');
     ['cashSales','transferSales','posSales','saleNotes'].forEach(id => document.getElementById(id).value = '');
     document.getElementById('totalDisplay').textContent = '₦0.00';
+    if (dept === 'Barbing Salon') { buildSvcGrid(); }
     loadToday(); loadHistory();
   } catch(e) { showAlert('alertBox','Error submitting. Try again.','alert-error'); }
   btn.disabled = false; btn.textContent = 'Submit Report';
@@ -158,7 +209,7 @@ async function loadHistory() {
     : snap.docs.map(d => { const s=d.data(); return `<tr><td>${s.date}</td><td>${s.department}</td><td class="text-gold fw4">${fmtNaira(s.totalSales)}</td></tr>`; }).join('');
 }
 
-loadToday(); loadHistory();
+buildDeptOptions(); loadToday(); loadHistory();
 </script>
 </body>
 </html>

@@ -12,9 +12,7 @@
 <div class="sb-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
 <aside class="sidebar" id="sidebar">
   <div class="sb-brand"><div class="sb-brand-name">Eden 54</div><div class="sb-brand-sub">Staff Portal</div></div>
-  <nav class="sb-nav">
-    <nav class="sb-nav" id="sbNav"></nav>
-  </nav>
+  <nav class="sb-nav" id="sbNav"></nav>
   <div class="sb-foot">
     <div id="sidebarUser"></div>
     <a class="sb-item" onclick="switchProfile()" style="cursor:pointer"><i class="sb-icon">🔄</i> Switch Profile</a>
@@ -129,7 +127,7 @@ async function load() {
     db.collection('attendance').doc(today).get()
   ]);
 
-  // Build clock map: staffId → {clockIn, clockOut, staffName, department}
+  // Build clock map: staffId → doc data (sessions[] schema, fallback to flat fields)
   const clockMap = {};
   allClockSnap.docs.forEach(d => {
     if (!d.id.startsWith(today + '_')) return;
@@ -137,9 +135,20 @@ async function load() {
     clockMap[c.staffId] = c;
   });
 
-  // Staff Present = currently clocked in (has clockIn, no clockOut)
-  const nowIn  = Object.values(clockMap).filter(c => c.clockIn && !c.clockOut);
-  const doneIn = Object.values(clockMap).filter(c => c.clockIn && c.clockOut);
+  // Helper: get sessions array regardless of schema version
+  const getSessions = c => c.sessions || (c.clockIn ? [{ clockIn: c.clockIn, clockOut: c.clockOut }] : []);
+
+  // Staff Present = last session has clockIn but no clockOut
+  const nowIn = Object.values(clockMap).filter(c => {
+    const ss = getSessions(c);
+    if (!ss.length) return false;
+    const last = ss[ss.length - 1];
+    return last.clockIn && !last.clockOut;
+  });
+  const doneIn = Object.values(clockMap).filter(c => {
+    const ss = getSessions(c);
+    return ss.length > 0 && ss.every(s => s.clockIn && s.clockOut);
+  });
   document.getElementById('statPresent').textContent = nowIn.length;
   document.getElementById('statPresentSub').textContent =
     nowIn.length === 1 ? 'Currently on shift' :
@@ -162,9 +171,10 @@ async function load() {
   if (!allEntries.length) {
     attEl.innerHTML = '<p class="text-muted" style="font-size:0.85rem;padding:8px 0">No clock records yet today.</p>';
   } else {
-    // Sort: currently in first, then completed, then absent
     allEntries.sort((a,b) => {
-      const aIn = !!(a.clockIn && !a.clockOut), bIn = !!(b.clockIn && !b.clockOut);
+      const aSS = getSessions(a), bSS = getSessions(b);
+      const aIn = aSS.length > 0 && aSS[aSS.length-1].clockIn && !aSS[aSS.length-1].clockOut;
+      const bIn = bSS.length > 0 && bSS[bSS.length-1].clockIn && !bSS[bSS.length-1].clockOut;
       if (aIn !== bIn) return aIn ? -1 : 1;
       return (a.staffName||'').localeCompare(b.staffName||'');
     });
@@ -172,18 +182,22 @@ async function load() {
     attEl.innerHTML = `
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;padding:4px 0">
         ${allEntries.map(c => {
-          const att    = attMap[c.staffId] || {};
-          const status = att.status || (c.clockIn ? 'Present' : null);
-          const isIn   = c.clockIn && !c.clockOut;
-          const isDone = c.clockIn && c.clockOut;
-          const dot    = isIn
+          const att  = attMap[c.staffId] || {};
+          const ss   = getSessions(c);
+          const last = ss.length ? ss[ss.length-1] : null;
+          const isIn = last && last.clockIn && !last.clockOut;
+          const firstIn  = ss.length ? ss[0].clockIn  : null;
+          const lastOut  = last ? last.clockOut : null;
+          const hasClock = ss.length > 0;
+          const status = att.status || (hasClock ? 'Present' : null);
+          const dot  = isIn
             ? '<span style="width:8px;height:8px;border-radius:50%;background:#22c55e;display:inline-block;flex-shrink:0"></span>'
             : '<span style="width:8px;height:8px;border-radius:50%;background:#d1d5db;display:inline-block;flex-shrink:0"></span>';
           const badge = status
             ? `<span class="badge badge-${status==='Present'?'ok':status==='Absent'?'err':status==='Leave'?'purple':'warn'}" style="font-size:0.6rem">${status}</span>`
             : '';
-          const times = c.clockIn
-            ? `<span style="font-size:0.7rem;color:var(--muted)">In ${fmtT(c.clockIn)}${c.clockOut?' · Out '+fmtT(c.clockOut):' · still in'}</span>`
+          const times = firstIn
+            ? `<span style="font-size:0.7rem;color:var(--muted)">In ${fmtT(firstIn)}${lastOut?' · Out '+fmtT(lastOut):(ss.length>1?' · '+ss.length+' sessions':' · still in')}</span>`
             : '';
           return `<div style="display:flex;align-items:center;gap:9px;padding:9px 12px;border:1px solid var(--border);border-radius:6px;background:#fafaf8">
             ${dot}
@@ -210,7 +224,7 @@ async function load() {
   const days = [], sales7 = [];
   for (let i = 6; i >= 0; i--) {
     const d = new Date(); d.setDate(d.getDate() - i);
-    const ds = d.toISOString().split('T')[0];
+    const ds = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
     days.push(ds.slice(5));
     const snap = await db.collection('sales').where('date','==',ds).get();
     let t = 0; snap.forEach(x => t += x.data().totalSales || 0);

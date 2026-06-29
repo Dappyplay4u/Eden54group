@@ -11,9 +11,7 @@
 <div class="sb-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
 <aside class="sidebar" id="sidebar">
   <div class="sb-brand"><div class="sb-brand-name">Eden 54</div><div class="sb-brand-sub">Staff Portal</div></div>
-  <nav class="sb-nav">
-    <nav class="sb-nav" id="sbNav"></nav>
-  </nav>
+  <nav class="sb-nav" id="sbNav"></nav>
   <div class="sb-foot"><div id="sidebarUser"></div><a class="sb-item" onclick="switchProfile()" style="cursor:pointer"><i class="sb-icon">🔄</i> Switch Profile</a></div>
 </aside>
 
@@ -100,9 +98,10 @@ document.getElementById('barbDate').value = todayStr();
 document.getElementById('topDate').textContent = new Date().toLocaleDateString('en-NG',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
 
 async function init() {
-  const snap = await db.collection('staff').where('department','==','salon').where('active','==',true).get();
+  const snap = await db.collection('staff').where('department','==','salon').get();
   const sel = document.getElementById('barbStaff');
   snap.forEach(d => {
+    if (d.data().active === false) return;
     const opt = document.createElement('option');
     opt.value = d.id; opt.textContent = d.data().name;
     if (d.id === currentStaff.id) opt.selected = true;
@@ -125,7 +124,7 @@ function addService() {
       </select></div>
     <div class="form-group"><label class="form-label">Amount (₦)</label>
       <input type="number" class="form-control svc-amt" min="0" placeholder="0" oninput="calcBarb()"></div>
-    <button onclick="document.getElementById('${id}').remove();calcBarb()" class="btn btn-outline btn-sm" style="margin-bottom:1px">✕</button>`;
+    <button onclick="document.getElementById('${id}').remove();calcBarb()" class="btn btn-outline btn-sm" style="margin-bottom:1px">&#x2715;</button>`;
   document.getElementById('serviceRows').appendChild(div);
 }
 
@@ -161,6 +160,13 @@ async function submitBarbing() {
       submittedAt: firebase.firestore.FieldValue.serverTimestamp()
     });
     showAlert('alertBox','Report submitted!','alert-success');
+    document.getElementById('barbCash').value = '';
+    document.getElementById('barbTransfer').value = '';
+    document.getElementById('barbNotes').value = '';
+    document.getElementById('serviceRows').innerHTML = '';
+    svcCount = 0;
+    calcBarb();
+    addService(); addService();
     loadToday(); loadHistory();
   } catch(e) { showAlert('alertBox','Error submitting.','alert-error'); }
   btn.disabled=false; btn.textContent='Submit Report';

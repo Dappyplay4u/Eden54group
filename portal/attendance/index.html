@@ -20,9 +20,7 @@
 <div class="sb-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
 <aside class="sidebar" id="sidebar">
   <div class="sb-brand"><div class="sb-brand-name">Eden 54</div><div class="sb-brand-sub">Staff Portal</div></div>
-  <nav class="sb-nav">
-    <nav class="sb-nav" id="sbNav"></nav>
-  </nav>
+  <nav class="sb-nav" id="sbNav"></nav>
   <div class="sb-foot"><div id="sidebarUser"></div><a class="sb-item" onclick="switchProfile()" style="cursor:pointer"><i class="sb-icon">🔄</i> Switch Profile</a></div>
 </aside>
 
@@ -44,6 +42,7 @@
           <h2>Mark Attendance</h2>
           <div style="display:flex;gap:8px;align-items:center">
             <input type="date" id="attDate" class="form-control" style="width:148px" onchange="loadAttForm()">
+            <button class="btn btn-outline btn-sm" onclick="loadAttForm()">Load</button>
           </div>
         </div>
         <div id="attForm">
@@ -128,20 +127,32 @@ async function loadAttForm() {
     return;
   }
 
+  // Show loading while fetching
+  form.innerHTML = `<p class="text-muted" style="font-size:0.85rem;padding:8px 0">Loading ${date}…</p>`;
+  document.getElementById('attSaveWrap').style.display = 'none';
+
   // Load any existing record for this date
-  let existMap = {};
+  let existMap = {}, hasRecord = false;
   try {
     const snap = await db.collection('attendance').doc(date).get();
-    if (snap.exists) (snap.data().records || []).forEach(r => existMap[r.staffId] = r);
+    if (snap.exists) {
+      hasRecord = true;
+      (snap.data().records || []).forEach(r => existMap[r.staffId] = r);
+    }
   } catch(e) {}
 
-  form.innerHTML = allStaff.map(s => {
+  const banner = hasRecord
+    ? `<div style="font-size:0.75rem;color:var(--ok);margin-bottom:12px;padding:6px 10px;background:rgba(22,163,74,0.08);border-radius:6px;border-left:3px solid var(--ok)">Saved record loaded for ${date}</div>`
+    : `<div style="font-size:0.75rem;color:var(--gold);margin-bottom:12px;padding:6px 10px;background:rgba(201,169,110,0.08);border-radius:6px;border-left:3px solid var(--gold)">No saved record for ${date} — mark and save below</div>`;
+
+  form.innerHTML = banner + allStaff.map(s => {
     const rec = existMap[s.id] || {};
-    const cur = rec.status || 'Present';
+    // Only pre-select if record exists, otherwise leave blank
+    const cur = hasRecord ? (rec.status || 'Present') : '';
     const radio = (val, label, color) =>
       `<label><input type="radio" name="att_${s.id}" value="${val}" ${cur===val?'checked':''} style="accent-color:${color}"> ${label}</label>`;
     const autoNote = rec.autoMarked
-      ? `<span style="font-size:0.67rem;color:var(--ok);margin-left:6px">⏱ clocked out${rec.hoursWorked?' · '+rec.hoursWorked:''}</span>`
+      ? `<span style="font-size:0.67rem;color:var(--ok);margin-left:6px">&#x23F1; clocked out${rec.hoursWorked?' · '+rec.hoursWorked:''}</span>`
       : '';
     return `<div class="att-row">
       <div class="att-name"><strong>${s.name}</strong><small>${s.department}</small>${autoNote}</div>
