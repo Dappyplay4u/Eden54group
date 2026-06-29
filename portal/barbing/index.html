@@ -83,76 +83,8 @@
       </div>
     </div>
 
-    <!-- Hairstyle Gallery -->
-    <div class="card" style="margin-top:24px">
-      <div class="section-head">
-        <h2>Hairstyle Gallery</h2>
-        <span style="font-size:0.75rem;color:var(--muted)">11 styles available</span>
-      </div>
-      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px">
-        <div class="hs-card" onclick="openLB('/hairstyles/360%20waves.webp','360 Waves')">
-          <img src="/hairstyles/360%20waves.webp" alt="360 Waves">
-          <div class="hs-name">360 Waves</div>
-        </div>
-        <div class="hs-card" onclick="openLB('/hairstyles/Bald%20with%20Beards.jpg','Bald with Beards')">
-          <img src="/hairstyles/Bald%20with%20Beards.jpg" alt="Bald with Beards">
-          <div class="hs-name">Bald with Beards</div>
-        </div>
-        <div class="hs-card" onclick="openLB('/hairstyles/Burst%20Fade.png','Burst Fade')">
-          <img src="/hairstyles/Burst%20Fade.png" alt="Burst Fade">
-          <div class="hs-name">Burst Fade</div>
-        </div>
-        <div class="hs-card" onclick="openLB('/hairstyles/Drop%20Fade.jpg','Drop Fade')">
-          <img src="/hairstyles/Drop%20Fade.jpg" alt="Drop Fade">
-          <div class="hs-name">Drop Fade</div>
-        </div>
-        <div class="hs-card" onclick="openLB('/hairstyles/High%20Fade.jpg','High Fade')">
-          <img src="/hairstyles/High%20Fade.jpg" alt="High Fade">
-          <div class="hs-name">High Fade</div>
-        </div>
-        <div class="hs-card" onclick="openLB('/hairstyles/Low%20Taper%20Fade.jpg','Low Taper Fade')">
-          <img src="/hairstyles/Low%20Taper%20Fade.jpg" alt="Low Taper Fade">
-          <div class="hs-name">Low Taper Fade</div>
-        </div>
-        <div class="hs-card" onclick="openLB('/hairstyles/Mid%20Fade.jpg','Mid Fade')">
-          <img src="/hairstyles/Mid%20Fade.jpg" alt="Mid Fade">
-          <div class="hs-name">Mid Fade</div>
-        </div>
-        <div class="hs-card" onclick="openLB('/hairstyles/Skin%20Fade.png','Skin Fade')">
-          <img src="/hairstyles/Skin%20Fade.png" alt="Skin Fade">
-          <div class="hs-name">Skin Fade</div>
-        </div>
-        <div class="hs-card" onclick="openLB('/hairstyles/Sponge%20Twist%20Fade.jpg','Sponge Twist Fade')">
-          <img src="/hairstyles/Sponge%20Twist%20Fade.jpg" alt="Sponge Twist Fade">
-          <div class="hs-name">Sponge Twist Fade</div>
-        </div>
-        <div class="hs-card" onclick="openLB('/hairstyles/Starter%20locs.png','Starter Locs')">
-          <img src="/hairstyles/Starter%20locs.png" alt="Starter Locs">
-          <div class="hs-name">Starter Locs</div>
-        </div>
-        <div class="hs-card" onclick="openLB('/hairstyles/Temple%20Fade.jpg','Temple Fade')">
-          <img src="/hairstyles/Temple%20Fade.jpg" alt="Temple Fade">
-          <div class="hs-name">Temple Fade</div>
-        </div>
-      </div>
-    </div>
-
   </div>
 </div>
-
-<!-- Lightbox -->
-<div id="lb" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:400;align-items:center;justify-content:center;flex-direction:column;gap:12px" onclick="if(event.target===this)closeLB()">
-  <button onclick="closeLB()" style="position:absolute;top:16px;right:20px;color:#fff;font-size:2rem;background:none;border:none;cursor:pointer;line-height:1">×</button>
-  <img id="lbImg" src="" alt="" style="max-width:90vw;max-height:80vh;border-radius:8px;object-fit:contain">
-  <div id="lbCaption" style="color:rgba(255,255,255,0.75);font-size:0.88rem;letter-spacing:0.1em;text-transform:uppercase"></div>
-</div>
-
-<style>
-.hs-card { cursor:pointer; border-radius:8px; overflow:hidden; border:1px solid var(--border); transition:transform 0.18s,box-shadow 0.18s; }
-.hs-card:hover { transform:translateY(-3px); box-shadow:0 6px 18px rgba(0,0,0,0.1); }
-.hs-card img { width:100%; aspect-ratio:1/1; object-fit:cover; display:block; }
-.hs-name { padding:8px 10px; font-size:0.75rem; letter-spacing:0.06em; color:var(--text); text-align:center; background:var(--card); }
-</style>
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
@@ -253,15 +185,6 @@ async function loadHistory() {
     ? '<tr><td colspan="4" style="text-align:center;padding:16px;color:#6a6b62">No reports yet.</td></tr>'
     : snap.docs.map(d=>{ const r=d.data(); return `<tr><td>${r.date}</td><td class="fw4">${r.staffName}</td><td>${r.clientsServed}</td><td class="text-gold fw4">${fmtNaira(r.totalRevenue)}</td></tr>`; }).join('');
 }
-function openLB(src, caption) {
-  const lb = document.getElementById('lb');
-  document.getElementById('lbImg').src = src;
-  document.getElementById('lbCaption').textContent = caption;
-  lb.style.display = 'flex';
-}
-function closeLB() { document.getElementById('lb').style.display = 'none'; }
-document.addEventListener('keydown', e => { if(e.key==='Escape') closeLB(); });
-
 init();
 </script>
 </body>
