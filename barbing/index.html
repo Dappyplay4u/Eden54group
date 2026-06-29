@@ -83,15 +83,20 @@
   /* SERVICES GRID */
   .services-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 2px; background: rgba(201,169,110,0.08); margin-top: 48px; }
   .service-card {
-    background: var(--deep); padding: 48px 36px;
+    background: var(--deep); padding: 0;
     position: relative; overflow: hidden; transition: background 0.3s;
+    display: flex; flex-direction: column;
   }
   .service-card:hover { background: rgba(201,169,110,0.04); }
-  .service-num { font-family: 'Cormorant Garamond', serif; font-size: 3.5rem; color: rgba(201,169,110,0.1); position: absolute; top: 20px; right: 24px; line-height: 1; }
-  .service-icon { font-size: 2.2rem; margin-bottom: 20px; }
+  .service-num { font-family: 'Cormorant Garamond', serif; font-size: 3.5rem; color: rgba(201,169,110,0.1); position: absolute; top: 20px; right: 24px; line-height: 1; z-index: 1; }
+  .service-img { width: 100%; height: 200px; object-fit: cover; display: block; filter: brightness(0.8) saturate(0.85); transition: filter 0.4s; }
+  .service-card:hover .service-img { filter: brightness(0.95) saturate(1); }
+  .service-body { padding: 28px 36px 36px; flex: 1; }
+  .service-icon { display: none; }
   .service-name { font-family: 'Cormorant Garamond', serif; font-size: 1.5rem; margin-bottom: 10px; }
   .service-desc { font-size: 0.82rem; color: var(--muted); line-height: 1.7; }
   .service-price { font-size: 0.72rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gold); margin-top: 16px; }
+  @media(max-width:600px){ .service-img { height: 160px; } }
 
   /* ABOUT PANEL */
   #about {
@@ -233,50 +238,62 @@
 
     <div class="service-card">
       <div class="service-num">01</div>
-      <div class="service-icon">&#9986;</div>
-      <div class="service-name">Haircut &amp; Style</div>
-      <div class="service-desc">Classic and modern cuts tailored to your face shape and style. From fades and tapers to textured crops &mdash; done with precision every time.</div>
-      <div class="service-price">From &#8358;2,500</div>
+      <img class="service-img" src="/hairstyles/High%20Fade.jpg" alt="Haircut & Style">
+      <div class="service-body">
+        <div class="service-name">Haircut &amp; Style</div>
+        <div class="service-desc">Classic and modern cuts tailored to your face shape and style. From fades and tapers to textured crops &mdash; done with precision every time.</div>
+        <div class="service-price">From &#8358;2,500</div>
+      </div>
     </div>
 
     <div class="service-card">
       <div class="service-num">02</div>
-      <div class="service-icon">&#9675;</div>
-      <div class="service-name">Beard Trim &amp; Shape</div>
-      <div class="service-desc">Expert beard shaping, lining, and trim. Hot towel treatment available. Leave looking sharp and well-groomed.</div>
-      <div class="service-price">From &#8358;1,000</div>
+      <img class="service-img" src="/hairstyles/Bald%20with%20Beards.jpg" alt="Beard Trim & Shape">
+      <div class="service-body">
+        <div class="service-name">Beard Trim &amp; Shape</div>
+        <div class="service-desc">Expert beard shaping, lining, and trim. Hot towel treatment available. Leave looking sharp and well-groomed.</div>
+        <div class="service-price">From &#8358;1,000</div>
+      </div>
     </div>
 
     <div class="service-card">
       <div class="service-num">03</div>
-      <div class="service-icon">&#9670;</div>
-      <div class="service-name">Full Groom Package</div>
-      <div class="service-desc">The complete experience &mdash; haircut, beard shape, hot towel, and scalp treatment. Perfect for a special occasion or when you want the works.</div>
-      <div class="service-price">From &#8358;3,000</div>
+      <img class="service-img" src="/hairstyles/Low%20Taper%20Fade.jpg" alt="Full Groom Package">
+      <div class="service-body">
+        <div class="service-name">Full Groom Package</div>
+        <div class="service-desc">The complete experience &mdash; haircut, beard shape, hot towel, and scalp treatment. Perfect for a special occasion or when you want the works.</div>
+        <div class="service-price">From &#8358;3,000</div>
+      </div>
     </div>
 
     <div class="service-card">
       <div class="service-num">04</div>
-      <div class="service-icon">&#10022;</div>
-      <div class="service-name">Scalp &amp; Hair Treatment</div>
-      <div class="service-desc">Nourishing scalp care and conditioning treatments. Great for maintaining healthy hair and addressing dryness or irritation.</div>
-      <div class="service-price">From &#8358;1,500</div>
+      <img class="service-img" src="/hairstyles/Starter%20locs.png" alt="Scalp & Hair Treatment">
+      <div class="service-body">
+        <div class="service-name">Scalp &amp; Hair Treatment</div>
+        <div class="service-desc">Nourishing scalp care and conditioning treatments. Great for maintaining healthy hair and addressing dryness or irritation.</div>
+        <div class="service-price">From &#8358;1,500</div>
+      </div>
     </div>
 
     <div class="service-card">
       <div class="service-num">05</div>
-      <div class="service-icon">&#9829;</div>
-      <div class="service-name">Kids&#39; Cut</div>
-      <div class="service-desc">Patient, gentle service for the little ones. Clean lines, safe products, and a welcoming environment for children of all ages.</div>
-      <div class="service-price">From &#8358;1,500</div>
+      <img class="service-img" src="/hairstyles/Temple%20Fade.jpg" alt="Kids' Cut">
+      <div class="service-body">
+        <div class="service-name">Kids&#39; Cut</div>
+        <div class="service-desc">Patient, gentle service for the little ones. Clean lines, safe products, and a welcoming environment for children of all ages.</div>
+        <div class="service-price">From &#8358;1,500</div>
+      </div>
     </div>
 
     <div class="service-card">
       <div class="service-num">06</div>
-      <div class="service-icon">&#9733;</div>
-      <div class="service-name">VIP Session</div>
-      <div class="service-desc">Private session with our senior barber. Priority booking, personalised consultation, and complimentary refreshments.</div>
-      <div class="service-price">From &#8358;3,000</div>
+      <img class="service-img" src="/hairstyles/360%20waves.webp" alt="VIP Session">
+      <div class="service-body">
+        <div class="service-name">VIP Session</div>
+        <div class="service-desc">Private session with our senior barber. Priority booking, personalised consultation, and complimentary refreshments.</div>
+        <div class="service-price">From &#8358;3,000</div>
+      </div>
     </div>
 
   </div>
