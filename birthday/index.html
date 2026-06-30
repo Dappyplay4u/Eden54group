@@ -537,8 +537,7 @@
 <p class="page-footer">Good Vibes &nbsp;&middot;&nbsp; Great Company &nbsp;&middot;&nbsp; Premium Experience</p>
 
 <script>
-  const FORMSPREE_ID  = 'YOUR_FORM_ID'; // ← Replace with your Formspree form ID
-  const INVITE_CODE   = 'OAT40';        // ← Change this to your chosen invite code
+  const INVITE_CODE = 'OAT40'; // ← Change this to your chosen invite code
 
   /* ── Gate ── */
   function checkCode() {
@@ -580,16 +579,24 @@
     submitBtn.disabled    = true;
     submitBtn.textContent = 'Sending…';
 
-    const data   = new FormData(form);
     const events = Array.from(checked).map(c => c.value).join(' | ');
-    data.delete('Events');
-    data.append('Events Attending', events);
+
+    const payload = {
+      '_subject':       "Oladapo's 40th Birthday RSVP",
+      'Full Name':      name,
+      'Phone Number':   document.getElementById('phone').value.trim() || 'Not provided',
+      'Events Attending': events,
+      'Special Requests': document.getElementById('notes').value.trim() || 'None',
+    };
 
     try {
-      const res = await fetch('https://formspree.io/f/' + FORMSPREE_ID, {
+      const res = await fetch('https://formsubmit.co/ajax/jegede.oladapo@ymail.com', {
         method: 'POST',
-        body: data,
-        headers: { 'Accept': 'application/json' }
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify(payload)
       });
 
       if (res.ok) {
