@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Oladapo's 40th · RSVP</title>
+<link rel="icon" type="image/jpeg" href="/logo/eden 54 logo.jpeg">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --deep: #0a0a0a;
+    --gold: #C9A96E;
+    --gold-light: rgba(201,169,110,0.12);
+    --text: #F5F2EC;
+    --muted: rgba(245,242,236,0.55);
+    --border: rgba(201,169,110,0.25);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    min-height: 100vh;
+    background: var(--deep);
+    color: var(--text);
+    font-family: 'Jost', sans-serif;
+    font-weight: 300;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 60px 20px 80px;
+    background-image:
+      radial-gradient(ellipse at 20% 0%, rgba(201,169,110,0.07) 0%, transparent 55%),
+      radial-gradient(ellipse at 80% 100%, rgba(201,169,110,0.05) 0%, transparent 55%);
+  }
+
+  /* HEADER */
+  .invite-header {
+    text-align: center;
+    margin-bottom: 48px;
+    max-width: 580px;
+  }
+  .invite-eyebrow {
+    font-size: 0.68rem;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 18px;
+  }
+  .invite-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(2.6rem, 8vw, 5rem);
+    font-weight: 300;
+    line-height: 1;
+    margin-bottom: 6px;
+    color: var(--gold);
+  }
+  .invite-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(1.1rem, 3vw, 1.6rem);
+    font-weight: 300;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--text);
+    margin-bottom: 20px;
+  }
+  .invite-date-badge {
+    display: inline-block;
+    border: 1px solid var(--gold);
+    padding: 10px 32px;
+    font-size: 0.78rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 20px;
+  }
+  .invite-divider {
+    width: 48px;
+    height: 1px;
+    background: var(--gold);
+    opacity: 0.4;
+    margin: 20px auto;
+  }
+  .invite-sub {
+    font-size: 0.88rem;
+    color: var(--muted);
+    line-height: 1.8;
+    max-width: 420px;
+    margin: 0 auto;
+  }
+  .adults-notice {
+    display: inline-block;
+    margin-top: 16px;
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+    opacity: 0.7;
+  }
+
+  /* FORM CARD */
+  .form-card {
+    width: 100%;
+    max-width: 580px;
+    border: 1px solid var(--border);
+    padding: 48px 44px;
+    background: rgba(255,255,255,0.02);
+  }
+
+  .form-section-label {
+    font-size: 0.65rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 20px;
+    opacity: 0.75;
+  }
+
+  .form-group { margin-bottom: 22px; }
+  .form-label {
+    display: block;
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  .form-control {
+    width: 100%;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'Jost', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 300;
+    padding: 13px 16px;
+    outline: none;
+    transition: border-color 0.2s, background 0.2s;
+    -webkit-appearance: none;
+  }
+  .form-control:focus {
+    border-color: rgba(201,169,110,0.6);
+    background: rgba(255,255,255,0.06);
+  }
+  .form-control::placeholder { color: rgba(245,242,236,0.22); }
+
+  select.form-control {
+    cursor: pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23C9A96E' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 16px center;
+    padding-right: 40px;
+  }
+  select.form-control option { background: #0a0a0a; color: #F5F2EC; }
+
+  /* EVENTS */
+  .events-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+  .event-option { position: relative; cursor: pointer; }
+  .event-option input[type="checkbox"] {
+    position: absolute; opacity: 0; width: 0; height: 0;
+  }
+  .event-box {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 18px 20px;
+    border: 1px solid var(--border);
+    transition: border-color 0.2s, background 0.2s;
+    cursor: pointer;
+  }
+  .event-option input:checked + .event-box {
+    border-color: var(--gold);
+    background: var(--gold-light);
+  }
+  .event-check {
+    width: 18px; height: 18px;
+    border: 1px solid var(--border);
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .event-option input:checked + .event-box .event-check {
+    border-color: var(--gold);
+    background: var(--gold);
+  }
+  .event-check svg { opacity: 0; transition: opacity 0.15s; }
+  .event-option input:checked + .event-box .event-check svg { opacity: 1; }
+  .event-info { flex: 1; min-width: 0; }
+  .event-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.1rem;
+    margin-bottom: 3px;
+  }
+  .event-meta {
+    font-size: 0.7rem;
+    color: var(--gold);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 3px;
+  }
+  .event-dress {
+    font-size: 0.72rem;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+  .event-icon { font-size: 1.5rem; opacity: 0.8; flex-shrink: 0; }
+
+  .divider-line {
+    width: 100%;
+    height: 1px;
+    background: var(--border);
+    margin: 28px 0;
+  }
+
+  /* SUBMIT */
+  .btn-submit {
+    width: 100%;
+    padding: 16px;
+    background: transparent;
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    font-family: 'Jost', sans-serif;
+    font-size: 0.78rem;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.3s, color 0.3s;
+    margin-top: 8px;
+  }
+  .btn-submit:hover:not(:disabled) { background: var(--gold); color: #0a0a0a; }
+  .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .form-note {
+    text-align: center;
+    font-size: 0.7rem;
+    color: var(--muted);
+    margin-top: 14px;
+    opacity: 0.55;
+  }
+
+  .error-msg {
+    font-size: 0.75rem;
+    color: #e07070;
+    margin-top: 6px;
+    display: none;
+  }
+
+  /* SUCCESS */
+  .success-state {
+    display: none;
+    text-align: center;
+    padding: 64px 44px;
+  }
+  .success-icon { font-size: 3rem; margin-bottom: 24px; }
+  .success-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2.4rem;
+    font-weight: 300;
+    margin-bottom: 12px;
+    color: var(--gold);
+  }
+  .success-sub {
+    font-size: 0.88rem;
+    color: var(--muted);
+    line-height: 1.9;
+    max-width: 360px;
+    margin: 16px auto 0;
+  }
+
+  /* GATE */
+  .gate-screen {
+    position: fixed;
+    inset: 0;
+    background: var(--deep);
+    background-image:
+      radial-gradient(ellipse at 20% 0%, rgba(201,169,110,0.07) 0%, transparent 55%),
+      radial-gradient(ellipse at 80% 100%, rgba(201,169,110,0.05) 0%, transparent 55%);
+    z-index: 999;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 20px;
+    text-align: center;
+  }
+  .gate-screen.hidden { display: none; }
+  .gate-logo {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1rem;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 48px;
+    opacity: 0.6;
+  }
+  .gate-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(1.8rem, 5vw, 2.6rem);
+    font-weight: 300;
+    margin-bottom: 10px;
+  }
+  .gate-title em { font-style: italic; color: var(--gold); }
+  .gate-sub {
+    font-size: 0.82rem;
+    color: var(--muted);
+    margin-bottom: 36px;
+    line-height: 1.7;
+    max-width: 320px;
+  }
+  .gate-input-wrap {
+    width: 100%;
+    max-width: 320px;
+    margin-bottom: 14px;
+  }
+  .gate-input {
+    width: 100%;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'Jost', sans-serif;
+    font-size: 1.1rem;
+    letter-spacing: 0.25em;
+    text-align: center;
+    text-transform: uppercase;
+    padding: 15px 20px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .gate-input:focus { border-color: rgba(201,169,110,0.6); }
+  .gate-input::placeholder { letter-spacing: 0.15em; font-size: 0.85rem; text-transform: none; opacity: 0.4; }
+  .gate-input.shake {
+    animation: shake 0.4s ease;
+    border-color: #e07070;
+  }
+  @keyframes shake {
+    0%,100% { transform: translateX(0); }
+    20%      { transform: translateX(-8px); }
+    40%      { transform: translateX(8px); }
+    60%      { transform: translateX(-6px); }
+    80%      { transform: translateX(6px); }
+  }
+  .gate-error {
+    font-size: 0.75rem;
+    color: #e07070;
+    margin-bottom: 16px;
+    min-height: 18px;
+  }
+  .gate-btn {
+    width: 100%;
+    max-width: 320px;
+    padding: 14px;
+    background: transparent;
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    font-family: 'Jost', sans-serif;
+    font-size: 0.75rem;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.3s, color 0.3s;
+  }
+  .gate-btn:hover { background: var(--gold); color: #0a0a0a; }
+
+  /* FOOTER */
+  .page-footer {
+    margin-top: 48px;
+    font-size: 0.65rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--muted);
+    opacity: 0.3;
+    text-align: center;
+  }
+
+  @media (max-width: 600px) {
+    body { padding: 40px 16px 60px; }
+    .form-card { padding: 32px 20px; }
+    .invite-name { font-size: 2.4rem; }
+    .event-box { padding: 14px 14px; gap: 12px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- GATE SCREEN -->
+<div class="gate-screen" id="gateScreen">
+  <div class="gate-logo">Eden 54 &nbsp;&middot;&nbsp; Private Event</div>
+  <h2 class="gate-title">This is a <em>Private</em><br>Celebration</h2>
+  <p class="gate-sub">An invite code is required to access this page. Please check your invitation for the code.</p>
+  <div class="gate-input-wrap">
+    <input type="text" class="gate-input" id="gateInput" placeholder="Enter invite code" maxlength="20" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false">
+  </div>
+  <p class="gate-error" id="gateError"></p>
+  <button class="gate-btn" onclick="checkCode()">Enter</button>
+</div>
+
+<div class="invite-header">
+  <p class="invite-eyebrow">You Are Cordially Invited</p>
+  <div class="invite-name">Oladapo's</div>
+  <div class="invite-title">40<sup style="font-size:0.55em;vertical-align:super">th</sup> Birthday Experience</div>
+  <div class="invite-date-badge">Saturday, July 25</div>
+  <div class="invite-divider"></div>
+  <p class="invite-sub">An unforgettable day of fun, great food, amazing vibes, and unforgettable memories with family and friends.</p>
+  <p class="adults-notice">Adults Only (21+) &nbsp;&middot;&nbsp; No Kids Please</p>
+</div>
+
+<div class="form-card">
+
+  <div id="formState">
+    <form id="rsvpForm" novalidate>
+
+      <input type="hidden" name="_subject" value="Oladapo 40th Birthday RSVP">
+
+      <p class="form-section-label">Your Details</p>
+
+      <div class="form-group">
+        <label class="form-label" for="fullName">Full Name *</label>
+        <input type="text" id="fullName" name="Full Name" class="form-control" placeholder="Enter your full name" required>
+        <span class="error-msg" id="nameErr">Please enter your name.</span>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="phone">Phone Number</label>
+        <input type="tel" id="phone" name="Phone Number" class="form-control" placeholder="+234 000 000 0000">
+      </div>
+
+
+      <div class="divider-line"></div>
+      <p class="form-section-label">Which Events Will You Attend? *</p>
+
+      <div class="events-grid" id="eventsGrid">
+
+        <label class="event-option">
+          <input type="checkbox" name="Events" value="Top Golf (5:00 PM)">
+          <div class="event-box">
+            <span class="event-icon">⛳</span>
+            <div class="event-info">
+              <div class="event-meta">First Stop &nbsp;·&nbsp; 5:00 PM</div>
+              <div class="event-name">Top Golf</div>
+              <div class="event-dress">Dress Code: Sporty Chic — Polos, stylish golf attire, sneakers or fashionable casual wear</div>
+            </div>
+            <div class="event-check">
+              <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
+                <path d="M1 4l3 3 5-6" stroke="#0a0a0a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+          </div>
+        </label>
+
+        <label class="event-option">
+          <input type="checkbox" name="Events" value="Overstory Rooftop Bar - Dinner (8:35 PM)">
+          <div class="event-box">
+            <span class="event-icon">🍽️</span>
+            <div class="event-info">
+              <div class="event-meta">Dinner Experience &nbsp;·&nbsp; 8:35 PM</div>
+              <div class="event-name">Overstory Rooftop Bar</div>
+              <div class="event-dress">Dress Code: Elegant Evening Attire — Black with a Touch of Gold</div>
+            </div>
+            <div class="event-check">
+              <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
+                <path d="M1 4l3 3 5-6" stroke="#0a0a0a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+          </div>
+        </label>
+
+        <label class="event-option">
+          <input type="checkbox" name="Events" value="VIP After Party">
+          <div class="event-box">
+            <span class="event-icon">🎉</span>
+            <div class="event-info">
+              <div class="event-meta">VIP After Party</div>
+              <div class="event-name">After Party</div>
+              <div class="event-dress">Great music, premium drinks, and an unforgettable night — location to be confirmed</div>
+            </div>
+            <div class="event-check">
+              <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
+                <path d="M1 4l3 3 5-6" stroke="#0a0a0a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+          </div>
+        </label>
+
+      </div>
+      <span class="error-msg" id="eventsErr">Please select at least one event.</span>
+
+      <div class="divider-line"></div>
+
+      <div class="form-group" style="margin-bottom:0">
+        <label class="form-label" for="notes">Special Requests or Dietary Requirements</label>
+        <textarea id="notes" name="Special Requests" class="form-control" rows="3" placeholder="Allergies, dietary needs, anything we should know…" style="resize:vertical"></textarea>
+      </div>
+
+      <div style="margin-top:32px">
+        <button type="submit" class="btn-submit" id="submitBtn">Confirm My Attendance</button>
+        <p class="form-note">Come Ready to Eat &nbsp;&middot;&nbsp; Laugh &nbsp;&middot;&nbsp; Compete &nbsp;&middot;&nbsp; Celebrate</p>
+      </div>
+
+    </form>
+  </div>
+
+  <!-- SUCCESS -->
+  <div class="success-state" id="successState">
+    <div class="success-icon">🥂</div>
+    <div class="success-title">You're In!</div>
+    <div class="invite-divider" style="margin:16px auto;"></div>
+    <p class="success-sub">Thank you for your RSVP. We can't wait to celebrate with you on <strong>Saturday, July 25</strong>. Further details will follow closer to the date.</p>
+  </div>
+
+</div>
+
+<p class="page-footer">Good Vibes &nbsp;&middot;&nbsp; Great Company &nbsp;&middot;&nbsp; Premium Experience</p>
+
+<script>
+  const FORMSPREE_ID  = 'YOUR_FORM_ID'; // ← Replace with your Formspree form ID
+  const INVITE_CODE   = 'OAT40';        // ← Change this to your chosen invite code
+
+  /* ── Gate ── */
+  function checkCode() {
+    const input = document.getElementById('gateInput').value.trim().toUpperCase();
+    const err   = document.getElementById('gateError');
+    const inp   = document.getElementById('gateInput');
+
+    if (input === INVITE_CODE.toUpperCase()) {
+      document.getElementById('gateScreen').classList.add('hidden');
+    } else {
+      err.textContent = 'Incorrect code. Please check your invitation.';
+      inp.classList.remove('shake');
+      void inp.offsetWidth; // force reflow to re-trigger animation
+      inp.classList.add('shake');
+      inp.value = '';
+      setTimeout(() => inp.classList.remove('shake'), 500);
+    }
+  }
+
+  document.getElementById('gateInput').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') checkCode();
+  });
+
+  /* ── RSVP Form ── */
+  const form      = document.getElementById('rsvpForm');
+  const submitBtn = document.getElementById('submitBtn');
+
+  form.addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    const name    = document.getElementById('fullName').value.trim();
+    const checked = document.querySelectorAll('#eventsGrid input[type="checkbox"]:checked');
+
+    document.getElementById('nameErr').style.display   = name          ? 'none' : 'block';
+    document.getElementById('eventsErr').style.display = checked.length ? 'none' : 'block';
+
+    if (!name || !checked.length) return;
+
+    submitBtn.disabled    = true;
+    submitBtn.textContent = 'Sending…';
+
+    const data   = new FormData(form);
+    const events = Array.from(checked).map(c => c.value).join(' | ');
+    data.delete('Events');
+    data.append('Events Attending', events);
+
+    try {
+      const res = await fetch('https://formspree.io/f/' + FORMSPREE_ID, {
+        method: 'POST',
+        body: data,
+        headers: { 'Accept': 'application/json' }
+      });
+
+      if (res.ok) {
+        document.getElementById('formState').style.display    = 'none';
+        document.getElementById('successState').style.display = 'block';
+      } else {
+        throw new Error();
+      }
+    } catch {
+      submitBtn.disabled    = false;
+      submitBtn.textContent = 'Confirm My Attendance';
+      alert('Something went wrong. Please try again.');
+    }
+  });
+</script>
+</body>
+</html>
