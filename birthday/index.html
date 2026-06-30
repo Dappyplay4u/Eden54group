@@ -432,9 +432,12 @@
 <div class="form-card">
 
   <div id="formState">
-    <form id="rsvpForm" novalidate>
+    <form id="rsvpForm" action="https://formsubmit.co/jegede.oladapo@ymail.com" method="POST" novalidate>
 
-      <input type="hidden" name="_subject" value="Oladapo 40th Birthday RSVP">
+      <input type="hidden" name="_subject" value="Oladapo's 40th Birthday RSVP">
+      <input type="hidden" name="_captcha" value="false">
+      <input type="hidden" name="_next" value="https://eden54group.com/birthday/?done=1">
+      <input type="hidden" name="_template" value="table">
 
       <p class="form-section-label">Your Details</p>
 
@@ -539,6 +542,13 @@
 <script>
   const INVITE_CODE = 'OAT40'; // ← Change this to your chosen invite code
 
+  /* ── Show success if redirected back after submit ── */
+  if (new URLSearchParams(window.location.search).get('done') === '1') {
+    document.getElementById('gateScreen').classList.add('hidden');
+    document.getElementById('formState').style.display    = 'none';
+    document.getElementById('successState').style.display = 'block';
+  }
+
   /* ── Gate ── */
   function checkCode() {
     const input = document.getElementById('gateInput').value.trim().toUpperCase();
@@ -550,7 +560,7 @@
     } else {
       err.textContent = 'Incorrect code. Please check your invitation.';
       inp.classList.remove('shake');
-      void inp.offsetWidth; // force reflow to re-trigger animation
+      void inp.offsetWidth;
       inp.classList.add('shake');
       inp.value = '';
       setTimeout(() => inp.classList.remove('shake'), 500);
@@ -561,55 +571,21 @@
     if (e.key === 'Enter') checkCode();
   });
 
-  /* ── RSVP Form ── */
-  const form      = document.getElementById('rsvpForm');
-  const submitBtn = document.getElementById('submitBtn');
-
-  form.addEventListener('submit', async function(e) {
-    e.preventDefault();
-
+  /* ── Validate before standard form POST ── */
+  document.getElementById('rsvpForm').addEventListener('submit', function(e) {
     const name    = document.getElementById('fullName').value.trim();
     const checked = document.querySelectorAll('#eventsGrid input[type="checkbox"]:checked');
 
     document.getElementById('nameErr').style.display   = name          ? 'none' : 'block';
     document.getElementById('eventsErr').style.display = checked.length ? 'none' : 'block';
 
-    if (!name || !checked.length) return;
-
-    submitBtn.disabled    = true;
-    submitBtn.textContent = 'Sending…';
-
-    const events = Array.from(checked).map(c => c.value).join(' | ');
-
-    const payload = {
-      '_subject':       "Oladapo's 40th Birthday RSVP",
-      'Full Name':      name,
-      'Phone Number':   document.getElementById('phone').value.trim() || 'Not provided',
-      'Events Attending': events,
-      'Special Requests': document.getElementById('notes').value.trim() || 'None',
-    };
-
-    try {
-      const res = await fetch('https://formsubmit.co/ajax/jegede.oladapo@ymail.com', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        body: JSON.stringify(payload)
-      });
-
-      if (res.ok) {
-        document.getElementById('formState').style.display    = 'none';
-        document.getElementById('successState').style.display = 'block';
-      } else {
-        throw new Error();
-      }
-    } catch {
-      submitBtn.disabled    = false;
-      submitBtn.textContent = 'Confirm My Attendance';
-      alert('Something went wrong. Please try again.');
+    if (!name || !checked.length) {
+      e.preventDefault();
+      return;
     }
+
+    document.getElementById('submitBtn').disabled    = true;
+    document.getElementById('submitBtn').textContent = 'Sending…';
   });
 </script>
 </body>
