@@ -573,7 +573,7 @@
     if (e.key === 'Enter') checkCode();
   });
 
-  /* ── Validate before standard form POST ── */
+  /* ── Validate and combine checkboxes before standard form POST ── */
   document.getElementById('rsvpForm').addEventListener('submit', function(e) {
     const name    = document.getElementById('fullName').value.trim();
     const checked = document.querySelectorAll('#eventsGrid input[type="checkbox"]:checked');
@@ -585,6 +585,17 @@
       e.preventDefault();
       return;
     }
+
+    // Combine all selected events into one hidden field so all values reach the email
+    const combined = Array.from(checked).map(c => c.value).join(', ');
+    const hidden = document.createElement('input');
+    hidden.type  = 'hidden';
+    hidden.name  = 'Events Attending';
+    hidden.value = combined;
+    this.appendChild(hidden);
+
+    // Disable original checkboxes so they don't submit duplicate/partial values
+    document.querySelectorAll('#eventsGrid input[type="checkbox"]').forEach(c => c.disabled = true);
 
     document.getElementById('submitBtn').disabled    = true;
     document.getElementById('submitBtn').textContent = 'Sending…';
