@@ -43,6 +43,24 @@
 .pill-warn { background:#fef9c3; color:#854d0e; }
 .pill-none { background:#f3f4f6; color:#6b7280; }
 
+/* Monthly summary */
+.ms-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:20px; }
+@media(max-width:640px){ .ms-grid { grid-template-columns:1fr; } }
+.ms-card { background:var(--card); border:1px solid var(--border); border-radius:8px; padding:16px 18px; }
+.ms-card.profit-pos { border-color:#86efac; }
+.ms-card.profit-neg { border-color:#fca5a5; }
+.ms-label { font-size:0.62rem; letter-spacing:0.14em; text-transform:uppercase; color:var(--muted); margin-bottom:6px; }
+.ms-val   { font-size:1.25rem; font-weight:400; }
+.ms-sub   { font-size:0.72rem; color:var(--muted); margin-top:3px; }
+.ms-green { color:#16a34a; }
+.ms-red   { color:#ef4444; }
+.ms-gold  { color:var(--gold); }
+.ms-cats  { display:flex; flex-wrap:wrap; gap:4px; margin-top:8px; }
+/* Daily net strip inside grand bar */
+.grand-net { display:flex; gap:20px; flex-wrap:wrap; padding-top:10px; margin-top:10px; border-top:1px solid rgba(245,242,236,0.15); }
+.gn-item  { font-size:0.76rem; color:rgba(245,242,236,0.55); }
+.gn-item strong { font-weight:400; }
+
 @media print {
   body { background:#fff !important; }
   .sidebar,.topbar,.hamburger,.sb-overlay,.no-print { display:none !important; }
@@ -85,6 +103,26 @@
       <button class="btn btn-outline btn-sm" onclick="window.print()">Print Report</button>
     </div>
 
+    <!-- Monthly Financial Summary (HR only) -->
+    <div class="ms-grid no-print" id="monthlySummary" style="display:none">
+      <div class="ms-card">
+        <div class="ms-label" id="msRevenueLabel">Month Revenue</div>
+        <div class="ms-val ms-gold" id="msRevenue">—</div>
+        <div class="ms-sub" id="msRevenueSub"></div>
+      </div>
+      <div class="ms-card">
+        <div class="ms-label" id="msExpLabel">Month Expenses</div>
+        <div class="ms-val ms-red" id="msExpenses">—</div>
+        <div class="ms-sub" id="msExpSub"></div>
+        <div class="ms-cats" id="msCatChips"></div>
+      </div>
+      <div class="ms-card" id="msNetCard">
+        <div class="ms-label" id="msNetLabel">Net Profit</div>
+        <div class="ms-val" id="msNet">—</div>
+        <div class="ms-sub" id="msNetSub"></div>
+      </div>
+    </div>
+
     <!-- Print header -->
     <div class="print-header">
       <img src="/logo/eden 54 logo.jpeg" style="width:44px;height:44px;border-radius:50%;margin-bottom:8px">
@@ -92,11 +130,12 @@
       <p id="printDate" style="font-size:0.82rem;color:#555;margin-top:4px"></p>
     </div>
 
-    <!-- Grand Total -->
+    <!-- Grand Total (daily) -->
     <div class="grand-bar no-print" id="grandBar" style="display:none">
-      <div>
-        <div class="grand-bar-label">Total Revenue — All Departments</div>
+      <div style="flex:1">
+        <div class="grand-bar-label">Daily Revenue — All Departments</div>
         <div class="grand-bar-val" id="grandTotal">₦0.00</div>
+        <div class="grand-net" id="grandNet"></div>
       </div>
       <div class="gt-chips" id="grandChips"></div>
     </div>
@@ -110,6 +149,7 @@
     <div id="loungeCard"></div>
     <div id="apartmentCard"></div>
     <div id="otherCard"></div>
+    <div id="expensesCard"></div>
   </div>
 </div>
 
@@ -164,15 +204,17 @@ async function loadAll() {
   const date = document.getElementById('reportDate').value;
   document.getElementById('printDate').textContent = 'Date: ' + date;
   document.getElementById('grandBar').style.display = 'none';
-  ['salesCard','barbingCard','barCard','kitchenCard','poolCard','loungeCard','apartmentCard','otherCard']
+  ['salesCard','barbingCard','barCard','kitchenCard','poolCard','loungeCard','apartmentCard','otherCard','expensesCard']
     .forEach(id => { const el = document.getElementById(id); if(el) el.innerHTML=''; });
+  loadMonthlySummary();
 
-  const [allSales, barbReports, barStock, kitStock, poolComps] = await Promise.all([
+  const [allSales, barbReports, barStock, kitStock, poolComps, allExpenses] = await Promise.all([
     db.collection('sales').where('date','==',date).get().then(s=>s.docs.map(d=>d.data())),
     db.collection('barbing_reports').where('date','==',date).get().then(s=>s.docs.map(d=>d.data())),
     db.collection('bar_stock').where('date','==',date).get().then(s=>s.docs.map(d=>d.data())),
     db.collection('kitchen_inventory').where('date','==',date).get().then(s=>s.docs.map(d=>d.data())),
     db.collection('pool_competitions').where('date','==',date).get().then(s=>s.docs.map(d=>d.data())),
+    db.collection('expenses').where('date','==',date).get().then(s=>s.docs.map(d=>d.data())),
   ]);
 
   // Group sales by section
@@ -187,7 +229,8 @@ async function loadAll() {
   renderSalesOnly('loungeCard',    '🍽️', 'Restaurant & Lounge', date, bySection.lounge);
   renderSalesOnly('apartmentCard', '🏠', 'Apartment',           date, bySection.apartment);
   renderSalesOnly('otherCard',     '🎮', 'Other Revenue',       date, bySection.other);
-  renderGrandTotal(allSales, poolComps, bySection);
+  renderExpenses(date, allExpenses);
+  renderGrandTotal(allSales, poolComps, bySection, allExpenses);
 }
 
 /* ── Shared: sales revenue rows ── */
@@ -390,35 +433,173 @@ function renderSalesOnly(cardId, icon, title, date, rows) {
     html, pill(true, rows.length+' filed'));
 }
 
+/* ── EXPENSES ── */
+function renderExpenses(date, rows) {
+  const el = document.getElementById('expensesCard');
+  if (!el) return;
+  if (!rows.length) {
+    el.innerHTML = `<div class="dept-card">
+      <div class="dept-header">
+        <div class="dept-header-left"><span class="dept-icon">🧾</span>
+          <div><div class="dept-title">Daily Expenses</div><div class="dept-sub">Logged staff expenses</div></div>
+        </div>
+      </div>
+      <div class="dept-body"><div class="no-sub">No expenses logged for ${date}</div></div>
+    </div>`;
+    return;
+  }
+
+  // Group by department
+  const byDept = {};
+  rows.forEach(r => {
+    const k = r.department || 'other';
+    if (!byDept[k]) byDept[k] = [];
+    byDept[k].push(r);
+  });
+
+  const deptLabels = {
+    salon: 'Barbing Salon', lounge: 'Lounge', bar: 'Bar',
+    kitchen: 'Kitchen', apartment: 'Apartment', pool: 'Pool', management: 'Management'
+  };
+
+  let html = '';
+  let grandTotal = 0;
+
+  Object.entries(byDept).forEach(([dept, items]) => {
+    const deptTotal = items.reduce((s, e) => s + (e.amount || 0), 0);
+    grandTotal += deptTotal;
+    html += `<div class="sub-label">${esc(deptLabels[dept] || dept)}</div>`;
+    html += items.map(e => {
+      const receipt = e.photoUrl
+        ? `<a href="${e.photoUrl}" target="_blank" style="color:var(--gold);font-size:0.75rem">View</a>`
+        : '<span style="color:var(--muted)">—</span>';
+      return `<div class="rev-row">
+        <div>
+          <strong style="font-weight:400">${esc(e.staffName)}</strong>
+          <div class="cash-breakdown">${esc(e.category)} · ${esc(e.description)}</div>
+          ${e.notes ? `<div class="cash-breakdown">Note: ${esc(e.notes)}</div>` : ''}
+        </div>
+        <div style="text-align:right">
+          ${receipt}
+          <div style="font-weight:400;color:var(--gold);font-size:0.88rem">${N(e.amount)}</div>
+        </div>
+      </div>`;
+    }).join('');
+    html += `<div style="display:flex;justify-content:flex-end;font-size:0.8rem;color:var(--gold);padding:5px 0 10px;border-bottom:1px solid var(--border);margin-bottom:8px">${N(deptTotal)}</div>`;
+  });
+
+  html += `<div class="rev-total" style="margin-top:0"><span>Total Expenses</span><span style="color:#ef4444">${N(grandTotal)}</span></div>`;
+
+  el.innerHTML = `<div class="dept-card">
+    <div class="dept-header">
+      <div class="dept-header-left"><span class="dept-icon">🧾</span>
+        <div><div class="dept-title">Daily Expenses</div><div class="dept-sub">${rows.length} expense${rows.length !== 1 ? 's' : ''} logged</div></div>
+      </div>
+      <span class="pill-status pill-warn">Total: ${N(grandTotal)}</span>
+    </div>
+    <div class="dept-body">${html}</div>
+  </div>`;
+}
+
 /* ── GRAND TOTAL ── */
-function renderGrandTotal(allSales, poolComps, bySection) {
-  // Revenue from sales collection covers everything except pool net (prize deduction)
-  // Pool comps have their own net after prize payout — add net, not gross
-  const salesTot = allSales.reduce((s,r)=>s+(r.totalSales||0),0);
-  // Pool comps net replaces raw pool sales if both exist
+function renderGrandTotal(allSales, poolComps, bySection, allExpenses) {
+  const salesTot    = allSales.reduce((s,r)=>s+(r.totalSales||0),0);
   const poolCompNet = poolComps.reduce((s,r)=>s+(r.netRevenue||0),0);
   const poolSaleTot = bySection.pool.reduce((s,r)=>s+(r.totalSales||0),0);
-  const poolNet  = poolCompNet || poolSaleTot; // prefer comp net if available
+  const poolNet     = poolCompNet || poolSaleTot;
+  const gross       = salesTot - poolSaleTot + poolNet;
+  if (!gross) return;
 
-  const grand = salesTot - poolSaleTot + poolNet; // replace pool sales with net
-  if (!grand) return;
+  const totalExp  = (allExpenses||[]).reduce((s,e)=>s+(e.amount||0),0);
+  const netDay    = gross - totalExp;
+  const isProfit  = netDay >= 0;
 
   // Per-department chips
   const byDept = {};
-  allSales.forEach(r => {
-    const k = r.department||'Other';
-    byDept[k] = (byDept[k]||0) + (r.totalSales||0);
-  });
+  allSales.forEach(r => { const k = r.department||'Other'; byDept[k] = (byDept[k]||0) + (r.totalSales||0); });
   const chips = Object.entries(byDept)
     .map(([d,t]) => `<div class="gt-chip">${esc(d)} <strong>${N(t)}</strong></div>`)
     .join('');
 
-  document.getElementById('grandTotal').textContent = N(grand);
+  document.getElementById('grandTotal').textContent = N(gross);
   document.getElementById('grandChips').innerHTML   = chips;
   document.getElementById('grandBar').style.display = 'flex';
+
+  // Daily net strip
+  const netEl = document.getElementById('grandNet');
+  if (netEl && totalExp > 0) {
+    netEl.innerHTML = `
+      <div class="gn-item">Expenses <strong style="color:#fca5a5">${N(totalExp)}</strong></div>
+      <div class="gn-item">Daily Net <strong style="color:${isProfit?'#86efac':'#fca5a5'}">${isProfit?'+':''}${N(netDay)}</strong></div>`;
+  } else if (netEl) {
+    netEl.innerHTML = '';
+  }
+}
+
+/* ── MONTHLY FINANCIAL SUMMARY ── */
+async function loadMonthlySummary() {
+  const date = document.getElementById('reportDate').value;
+  if (!date) return;
+  const [yr, mo] = date.split('-');
+  const monthStart = `${yr}-${mo}-01`;
+  const lastDay    = new Date(+yr, +mo, 0).getDate();
+  const monthEnd   = `${yr}-${mo}-${String(lastDay).padStart(2,'0')}`;
+  const monthName  = new Date(+yr, +mo - 1, 1).toLocaleDateString('en-NG', {month:'long', year:'numeric'});
+
+  try {
+    const [salesSnap, expSnap] = await Promise.all([
+      db.collection('sales').where('date','>=',monthStart).where('date','<=',monthEnd).get(),
+      db.collection('expenses').where('date','>=',monthStart).where('date','<=',monthEnd).get(),
+    ]);
+
+    const mSales = salesSnap.docs.map(d => d.data());
+    const mExp   = expSnap.docs.map(d => d.data());
+
+    const totalSales = mSales.reduce((s,r) => s + (r.totalSales||0), 0);
+    const totalExp   = mExp.reduce((s,r)   => s + (r.amount||0),    0);
+    const net        = totalSales - totalExp;
+
+    // Top expense categories
+    const byCat = {};
+    mExp.forEach(e => { const k = e.category||'Other'; byCat[k] = (byCat[k]||0) + (e.amount||0); });
+    const catChips = Object.entries(byCat).sort((a,b)=>b[1]-a[1])
+      .map(([cat,amt]) => `<span class="item-chip">${esc(cat)} <strong>${N(amt)}</strong></span>`)
+      .join('');
+
+    // Expense by department (for sub-text)
+    const byDeptExp = {};
+    mExp.forEach(e => { const k = e.department||'other'; byDeptExp[k] = (byDeptExp[k]||0) + (e.amount||0); });
+    const deptLabels = { salon:'Salon', lounge:'Lounge', bar:'Bar', kitchen:'Kitchen', apartment:'Apt', pool:'Pool', management:'Mgmt' };
+    const deptExpSub = Object.entries(byDeptExp).sort((a,b)=>b[1]-a[1])
+      .slice(0,3).map(([k,v]) => `${deptLabels[k]||k} ${N(v)}`).join(' · ');
+
+    const isProfit = net >= 0;
+
+    document.getElementById('msRevenueLabel').textContent = monthName + ' — Revenue';
+    document.getElementById('msRevenue').textContent      = N(totalSales);
+    document.getElementById('msRevenueSub').textContent   = mSales.length + ' submission' + (mSales.length!==1?'s':'');
+
+    document.getElementById('msExpLabel').textContent     = monthName + ' — Expenses';
+    document.getElementById('msExpenses').textContent     = N(totalExp);
+    document.getElementById('msExpSub').textContent       = mExp.length + ' expense' + (mExp.length!==1?'s':'') + (deptExpSub ? ' · ' + deptExpSub : '');
+    document.getElementById('msCatChips').innerHTML       = catChips;
+
+    document.getElementById('msNetLabel').textContent     = monthName + ' — Net Profit';
+    const netEl = document.getElementById('msNet');
+    netEl.textContent   = (isProfit ? '+' : '') + N(net);
+    netEl.className     = 'ms-val ' + (isProfit ? 'ms-green' : 'ms-red');
+    document.getElementById('msNetSub').textContent       = isProfit ? 'Operating surplus' : 'Operating deficit';
+    const netCard = document.getElementById('msNetCard');
+    netCard.className   = 'ms-card ' + (isProfit ? 'profit-pos' : 'profit-neg');
+
+    document.getElementById('monthlySummary').style.display = 'grid';
+  } catch(e) {
+    console.error('Monthly summary:', e);
+  }
 }
 
 loadAll();
+loadMonthlySummary();
 </script>
 </body>
 </html>

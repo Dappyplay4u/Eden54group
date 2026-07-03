@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Daily Expenses · Eden 54 Portal</title>
+<link rel="icon" type="image/jpeg" href="/logo/eden 54 logo.jpeg">
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/portal/portal.css">
+<style>
+  .photo-preview {
+    display: none;
+    margin-top: 10px;
+    position: relative;
+    width: 100%;
+    max-height: 200px;
+    overflow: hidden;
+    border: 1px solid #e4e4df;
+    border-radius: 4px;
+  }
+  .photo-preview img {
+    width: 100%;
+    max-height: 200px;
+    object-fit: cover;
+    display: block;
+  }
+  .photo-preview-remove {
+    position: absolute;
+    top: 6px; right: 6px;
+    background: rgba(0,0,0,0.55);
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    width: 24px; height: 24px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .upload-progress {
+    display: none;
+    margin-top: 8px;
+  }
+  .upload-bar-wrap {
+    height: 4px;
+    background: #e4e4df;
+    border-radius: 2px;
+  }
+  .upload-bar {
+    height: 4px;
+    background: #C9A96E;
+    border-radius: 2px;
+    width: 0%;
+    transition: width 0.3s;
+  }
+  .receipt-thumb {
+    width: 36px; height: 36px;
+    object-fit: cover;
+    border-radius: 3px;
+    border: 1px solid #e4e4df;
+    cursor: pointer;
+    vertical-align: middle;
+  }
+</style>
+</head>
+<body>
+<div class="sb-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+<aside class="sidebar" id="sidebar">
+  <div class="sb-brand"><div class="sb-brand-name">Eden 54</div><div class="sb-brand-sub">Staff Portal</div></div>
+  <nav class="sb-nav" id="sbNav"></nav>
+  <div class="sb-foot"><div id="sidebarUser"></div><a class="sb-item" onclick="switchProfile()" style="cursor:pointer"><i class="sb-icon">🔄</i> Switch Profile</a></div>
+</aside>
+
+<!-- Lightbox for receipt photos -->
+<div class="lb" id="lb" onclick="if(event.target===this)this.classList.remove('open')">
+  <button class="lb-x" onclick="document.getElementById('lb').classList.remove('open')">×</button>
+  <img id="lbImg" src="" alt="Receipt">
+</div>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <button class="hamburger" onclick="toggleSidebar()"><div></div><div></div><div></div></button>
+      <h1>Daily Expenses</h1>
+    </div>
+    <div class="topbar-date" id="topDate"></div>
+  </div>
+
+  <div class="content">
+    <div id="alertBox" class="alert"></div>
+    <div class="g2">
+
+      <!-- LEFT: Submit Expense -->
+      <div class="card">
+        <div class="section-head"><h2>Log an Expense</h2></div>
+
+        <div class="fg2" style="margin-bottom:14px">
+          <div class="form-group">
+            <label class="form-label">Date</label>
+            <input type="date" id="expDate" class="form-control">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Department</label>
+            <select id="expDept" class="form-control">
+              <option value="salon">Barbing Salon</option>
+              <option value="lounge">Lounge</option>
+              <option value="bar">Bar</option>
+              <option value="kitchen">Kitchen</option>
+              <option value="apartment">Apartment</option>
+              <option value="pool">Pool</option>
+              <option value="management">Management</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Category</label>
+          <select id="expCategory" class="form-control">
+            <option value="">Select category…</option>
+            <option>Products & Supplies</option>
+            <option>Tools & Equipment</option>
+            <option>Cleaning Supplies</option>
+            <option>Maintenance & Repairs</option>
+            <option>Transport</option>
+            <option>Utilities</option>
+            <option>Staff Welfare</option>
+            <option>Other</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Description</label>
+          <input type="text" id="expDesc" class="form-control" placeholder="What was purchased or paid for?">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Amount (₦)</label>
+          <input type="number" id="expAmount" class="form-control" placeholder="0" min="0" oninput="updateTotal()">
+        </div>
+
+        <div class="card" style="background:#f5f9f5;border-color:#C9A96E;padding:14px;margin-bottom:14px">
+          <div class="card-label">Amount to Log</div>
+          <div class="card-value gold" id="expAmountDisplay">₦0.00</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Receipt / Photo (optional)</label>
+          <input type="file" id="expPhoto" class="form-control" accept="image/*" style="padding:8px" onchange="previewPhoto(this)">
+          <div class="photo-preview" id="photoPreview">
+            <img id="previewImg" src="" alt="Receipt preview">
+            <button class="photo-preview-remove" onclick="removePhoto()" title="Remove">&#x2715;</button>
+          </div>
+        </div>
+
+        <div class="upload-progress" id="uploadProgress">
+          <div class="upload-bar-wrap"><div class="upload-bar" id="uploadBar"></div></div>
+          <p style="font-size:0.75rem;color:#6a6b62;margin-top:4px" id="uploadLabel">Uploading…</p>
+        </div>
+
+        <div class="form-group" style="margin-bottom:16px">
+          <label class="form-label">Notes (optional)</label>
+          <textarea id="expNotes" class="form-control" rows="2" placeholder="Any additional details…"></textarea>
+        </div>
+
+        <button class="btn btn-gold" id="expSubmitBtn" onclick="submitExpense()" style="width:100%">Submit Expense</button>
+      </div>
+
+      <!-- RIGHT: Today + History -->
+      <div class="card">
+        <div class="section-head"><h2>Today's Expenses</h2></div>
+        <div id="todayExpenses" class="text-muted" style="font-size:0.85rem">Loading…</div>
+        <div class="divider"></div>
+        <div class="section-head" style="margin-top:0"><h2>My Recent Expenses</h2></div>
+        <div class="tbl-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Category</th>
+                <th>Description</th>
+                <th>Amount</th>
+                <th>Receipt</th>
+              </tr>
+            </thead>
+            <tbody id="histTable">
+              <tr><td colspan="5" style="text-align:center;padding:16px;color:#6a6b62">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div id="histTotal" style="text-align:right;padding:10px 0;font-size:0.85rem;color:#6a6b62"></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+<script src="/portal/firebase-init.js"></script>
+<script>
+const currentStaff = getStaff();
+requireAccess(currentStaff, 'expenses');
+populateSidebar(currentStaff);
+buildNav(currentStaff, 'expenses');
+document.getElementById('topDate').textContent =
+  new Date().toLocaleDateString('en-NG',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+document.getElementById('expDate').value = todayStr();
+
+// Lock dept to staff's own department for non-managers
+const isManager = currentStaff.role === 'manager' || currentStaff.role === 'superadmin';
+const deptSel   = document.getElementById('expDept');
+if (!isManager) {
+  deptSel.value    = currentStaff.department || 'salon';
+  deptSel.disabled = true;
+}
+
+function updateTotal() {
+  const v = +document.getElementById('expAmount').value || 0;
+  document.getElementById('expAmountDisplay').textContent = fmtNaira(v);
+}
+
+function previewPhoto(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    document.getElementById('previewImg').src = e.target.result;
+    document.getElementById('photoPreview').style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+}
+
+function removePhoto() {
+  document.getElementById('expPhoto').value = '';
+  document.getElementById('photoPreview').style.display = 'none';
+  document.getElementById('previewImg').src = '';
+}
+
+function viewReceipt(url) {
+  document.getElementById('lbImg').src = url;
+  document.getElementById('lb').classList.add('open');
+}
+
+async function submitExpense() {
+  const date     = document.getElementById('expDate').value;
+  const dept     = document.getElementById('expDept').value;
+  const category = document.getElementById('expCategory').value;
+  const desc     = document.getElementById('expDesc').value.trim();
+  const amount   = +document.getElementById('expAmount').value || 0;
+  const notes    = document.getElementById('expNotes').value.trim();
+  const file     = document.getElementById('expPhoto').files[0];
+
+  if (!date || !category || !desc || !amount) {
+    showAlert('alertBox', 'Please fill in date, category, description and amount.', 'alert-error');
+    return;
+  }
+
+  const btn = document.getElementById('expSubmitBtn');
+  btn.disabled = true; btn.textContent = 'Saving…';
+
+  try {
+    let photoUrl = null;
+
+    if (file) {
+      document.getElementById('uploadProgress').style.display = 'block';
+      const path = `expenses/${dept}/${currentStaff.id}/${Date.now()}_${file.name}`;
+      const ref  = storage.ref(path);
+      const task = ref.put(file);
+
+      await new Promise((resolve, reject) => {
+        task.on('state_changed',
+          snap => {
+            const pct = Math.round((snap.bytesTransferred / snap.totalBytes) * 100);
+            document.getElementById('uploadBar').style.width  = pct + '%';
+            document.getElementById('uploadLabel').textContent = `Uploading… ${pct}%`;
+          },
+          reject,
+          resolve
+        );
+      });
+
+      photoUrl = await ref.getDownloadURL();
+      document.getElementById('uploadProgress').style.display = 'none';
+    }
+
+    await db.collection('expenses').add({
+      date,
+      department: dept,
+      category,
+      description: desc,
+      amount,
+      notes,
+      photoUrl,
+      staffId:   currentStaff.id,
+      staffName: currentStaff.name,
+      submittedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    showAlert('alertBox', 'Expense submitted!', 'alert-success');
+
+    // Reset form
+    document.getElementById('expDate').value     = todayStr();
+    document.getElementById('expCategory').value = '';
+    document.getElementById('expDesc').value     = '';
+    document.getElementById('expAmount').value   = '';
+    document.getElementById('expNotes').value    = '';
+    removePhoto();
+    updateTotal();
+
+    loadToday();
+    loadHistory();
+  } catch(e) {
+    console.error(e);
+    showAlert('alertBox', 'Error submitting expense.', 'alert-error');
+  }
+
+  btn.disabled = false; btn.textContent = 'Submit Expense';
+}
+
+async function loadToday() {
+  const el   = document.getElementById('todayExpenses');
+  const snap = await db.collection('expenses')
+    .where('staffId', '==', currentStaff.id)
+    .where('date', '==', todayStr())
+    .get();
+
+  if (snap.empty) { el.textContent = 'No expenses logged today.'; return; }
+
+  let total = 0, html = '';
+  snap.forEach(d => {
+    const e = d.data();
+    total += e.amount || 0;
+    html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid #e4e4df;font-size:0.84rem">
+      <span><strong>${e.category}</strong> · ${e.description}</span>
+      <span class="text-gold fw4">${fmtNaira(e.amount)}</span>
+    </div>`;
+  });
+  html += `<div style="display:flex;justify-content:space-between;padding:9px 0;font-weight:400;font-size:0.88rem">
+    <span>Today's Total</span><span class="text-gold">${fmtNaira(total)}</span>
+  </div>`;
+  el.innerHTML = html;
+}
+
+async function loadHistory() {
+  const snap = await db.collection('expenses')
+    .where('staffId', '==', currentStaff.id)
+    .orderBy('date', 'desc')
+    .limit(30)
+    .get();
+
+  const tbody = document.getElementById('histTable');
+  const totalEl = document.getElementById('histTotal');
+
+  if (snap.empty) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:16px;color:#6a6b62">No expenses yet.</td></tr>';
+    totalEl.textContent = '';
+    return;
+  }
+
+  let grand = 0;
+  tbody.innerHTML = snap.docs.map(d => {
+    const e = d.data();
+    grand += e.amount || 0;
+    const receipt = e.photoUrl
+      ? `<img src="${e.photoUrl}" class="receipt-thumb" onclick="viewReceipt('${e.photoUrl}')" title="View receipt">`
+      : '<span style="color:#aaa">—</span>';
+    return `<tr>
+      <td>${e.date}</td>
+      <td>${e.category}</td>
+      <td>${e.description}</td>
+      <td class="text-gold fw4">${fmtNaira(e.amount)}</td>
+      <td style="text-align:center">${receipt}</td>
+    </tr>`;
+  }).join('');
+
+  totalEl.innerHTML = `Total (last 30): <strong class="text-gold">${fmtNaira(grand)}</strong>`;
+}
+
+loadToday();
+loadHistory();
+</script>
+</body>
+</html>

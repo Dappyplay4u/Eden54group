@@ -143,12 +143,21 @@
     </div>
 
     <!-- Updates / Reports -->
-    <div class="card">
+    <div class="card" style="margin-bottom:24px">
       <div class="section-head">
         <h2>Reports &amp; Updates</h2>
         <span id="updateSummary" style="font-size:0.78rem;color:var(--muted)"></span>
       </div>
       <div id="updateList"><p class="text-muted" style="font-size:0.85rem;padding:8px 0">Set filters above and click Pull Report.</p></div>
+    </div>
+
+    <!-- Expenses -->
+    <div class="card">
+      <div class="section-head">
+        <h2>Expenses</h2>
+        <span id="expenseSummary" style="font-size:0.78rem;color:var(--muted)"></span>
+      </div>
+      <div id="expenseList"><p class="text-muted" style="font-size:0.85rem;padding:8px 0">Set filters above and click Pull Report.</p></div>
     </div>
   </div>
 </div>
@@ -206,7 +215,8 @@ async function loadAll() {
   await Promise.all([
     loadSales(staffId, dateFrom, dateTo),
     loadClocks(staffId, dateFrom, dateTo),
-    loadUpdates(staffId, dateFrom, dateTo)
+    loadUpdates(staffId, dateFrom, dateTo),
+    loadExpenses(staffId, dateFrom, dateTo)
   ]);
 }
 
@@ -404,6 +414,63 @@ async function loadUpdates(staffId, from, to) {
 }
 
 /* ── Print ── */
+/* ── Expenses ── */
+async function loadExpenses(staffId, from, to) {
+  const el = document.getElementById('expenseList');
+  el.innerHTML = '<p class="text-muted" style="font-size:0.85rem">Loading…</p>';
+  try {
+    let rawSnap;
+    if (staffId) {
+      rawSnap = await db.collection('expenses').where('staffId','==',staffId).get();
+    } else {
+      rawSnap = await db.collection('expenses').where('date','>=',from).where('date','<=',to).get();
+    }
+    const docs = rawSnap.docs.filter(d => {
+      const date = d.data().date || '';
+      return date >= from && date <= to;
+    });
+
+    if (!docs.length) {
+      el.innerHTML = '<p class="text-muted" style="font-size:0.85rem">No expenses in this period.</p>';
+      document.getElementById('expenseSummary').textContent = '';
+      return;
+    }
+
+    let total = 0;
+    const rows = docs.sort((a,b) => a.data().date > b.data().date ? -1 : 1).map(d => {
+      const e = d.data();
+      total += e.amount || 0;
+      const receipt = e.photoUrl
+        ? `<a href="${e.photoUrl}" target="_blank" style="color:#C9A96E">View Receipt</a>`
+        : '—';
+      return `<tr>
+        <td>${e.date}</td>
+        <td>${e.staffName || '—'}</td>
+        <td>${e.category}</td>
+        <td>${e.description}</td>
+        <td class="fw4" style="color:#C9A96E">${fmtNaira(e.amount)}</td>
+        <td>${receipt}</td>
+      </tr>`;
+    }).join('');
+
+    el.innerHTML = `<div class="tbl-wrap"><table>
+      <thead><tr><th>Date</th><th>Staff</th><th>Category</th><th>Description</th><th>Amount</th><th>Receipt</th></tr></thead>
+      <tbody>${rows}</tbody>
+      <tfoot><tr>
+        <td colspan="4" style="text-align:right;font-weight:400;padding:10px 8px">Total Expenses</td>
+        <td style="font-weight:400;color:#C9A96E;padding:10px 8px">${fmtNaira(total)}</td>
+        <td></td>
+      </tr></tfoot>
+    </table></div>`;
+
+    document.getElementById('expenseSummary').textContent =
+      `${docs.length} record${docs.length !== 1 ? 's' : ''} · Total: ${fmtNaira(total)}`;
+  } catch(e) {
+    console.error(e);
+    el.innerHTML = '<p class="text-muted" style="font-size:0.85rem">Error loading expenses.</p>';
+  }
+}
+
 function printReport() {
   const staffId  = document.getElementById('filterStaff').value;
   const from     = document.getElementById('dateFrom').value;

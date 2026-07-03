@@ -100,7 +100,8 @@ function buildNav(staff, active) {
     html += sec('HR');
     html += a('/portal/attendance/', '👥', 'Attendance',   'attendance');
     html += a('/portal/payroll/',    '💵', 'Payroll',      'payroll');
-    html += a('/portal/activity/', '🕵️', 'Staff Activity', 'activity');
+    html += a('/portal/activity/',   '🕵️', 'Staff Activity', 'activity');
+    html += a('/portal/expenses/',   '🧾', 'Expenses',     'expenses');
     html += sec('Admin');
     html += a('/portal/staff/',      '👤', 'Manage Staff', 'staff');
   } else {
@@ -111,6 +112,7 @@ function buildNav(staff, active) {
       canReport.kitchen && a('/portal/kitchen/', '🍽️', 'Kitchen',     'kitchen'),
       canReport.barbing && a('/portal/barbing/', '💈', 'Barbing',     'barbing'),
       canReport.pool    && a('/portal/pool/',    '🏊', 'Pool',        'pool'),
+      a('/portal/expenses/', '🧾', 'Expenses', 'expenses'),
     ].filter(Boolean);
     if (reportLinks.length) {
       html += sec('Reports');
@@ -141,6 +143,7 @@ function requireAccess(staff, page) {
     payroll:    isManager,
     reports:    isManager,
     activity:   isManager,
+    expenses:   true,
     bar:        isManager || dept === 'bar',
     kitchen:    isManager || dept === 'kitchen',
     barbing:    isManager || dept === 'salon',
