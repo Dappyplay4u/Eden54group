@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ruby Sunrise Juice · Eden 54 Lounge</title>
+<meta name="description" content="Eden 54's signature Ruby Sunrise cleansing juice — beetroot, ginger, orange, pineapple, lime and lemon. Fresh. Natural. No preservatives. 340 ml.">
+<link rel="icon" type="image/jpeg" href="/logo/eden 54 logo.jpeg">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --deep:  #0f2318;
+  --gold:  #C9A96E;
+  --ruby:  #8B1A3A;
+  --ruby2: #C0284E;
+  --text:  #F5F2EC;
+  --muted: rgba(245,242,236,0.55);
+  --card:  rgba(255,255,255,0.04);
+  --border:rgba(201,169,110,0.14);
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; scroll-padding-top: 90px; }
+body { background: var(--deep); color: var(--text); font-family: 'Jost', sans-serif; font-weight: 300; overflow-x: hidden; }
+
+/* ── NAV ── */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 20px 48px;
+  background: rgba(15,35,24,0.97);
+  border-bottom: 1px solid var(--border);
+}
+.nav-logo { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+.nav-logo img { height: 44px; border-radius: 50%; }
+.nav-logo span { font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; color: var(--gold); letter-spacing: 0.12em; }
+.nav-links { display: flex; gap: 32px; list-style: none; align-items: center; }
+.nav-links a { color: var(--text); text-decoration: none; font-size: 0.72rem; letter-spacing: 0.2em; text-transform: uppercase; opacity: 0.72; transition: opacity 0.2s, color 0.2s; }
+.nav-links a:hover, .nav-links a.active { opacity: 1; color: var(--gold); }
+.btn-outline {
+  padding: 10px 24px; border: 1px solid var(--gold); color: var(--gold) !important; opacity: 1 !important;
+  font-size: 0.72rem; letter-spacing: 0.22em; text-transform: uppercase;
+  text-decoration: none; transition: background 0.3s, color 0.3s;
+}
+.btn-outline:hover { background: var(--gold); color: var(--deep) !important; }
+.btn-ruby {
+  display: inline-block; padding: 14px 36px;
+  background: var(--ruby2); color: #fff !important;
+  font-size: 0.72rem; letter-spacing: 0.25em; text-transform: uppercase;
+  text-decoration: none; transition: background 0.3s;
+  border: 1px solid var(--ruby2);
+}
+.btn-ruby:hover { background: #a01f3f; border-color: #a01f3f; }
+.hamburger { display: none; flex-direction: column; gap: 5px; background: none; border: none; cursor: pointer; padding: 4px; }
+.hamburger div { width: 22px; height: 1px; background: var(--text); }
+
+/* ── HERO ── */
+.hero {
+  min-height: 100vh;
+  display: grid; grid-template-columns: 1fr 1fr;
+  align-items: center; padding: 120px 80px 80px;
+  position: relative; overflow: hidden;
+}
+.hero::before {
+  content: ''; position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 70% 50%, rgba(139,26,58,0.18) 0%, transparent 65%),
+              radial-gradient(ellipse at 20% 80%, rgba(201,169,110,0.06) 0%, transparent 55%);
+  pointer-events: none;
+}
+.hero-text { position: relative; z-index: 2; }
+.eyebrow { font-size: 0.68rem; letter-spacing: 0.35em; text-transform: uppercase; color: var(--gold); margin-bottom: 20px; display: flex; align-items: center; gap: 12px; }
+.eyebrow::before { content: ''; display: block; width: 32px; height: 1px; background: var(--gold); }
+.hero-text h1 { font-family: 'Cormorant Garamond', serif; font-size: clamp(3.2rem, 6vw, 5.8rem); font-weight: 300; line-height: 1.0; margin-bottom: 24px; }
+.hero-text h1 em { font-style: italic; color: var(--ruby2); }
+.hero-desc { font-size: 0.95rem; line-height: 1.8; color: var(--muted); max-width: 420px; margin-bottom: 40px; }
+.hero-badges { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 40px; }
+.badge { padding: 6px 16px; border-radius: 20px; font-size: 0.68rem; letter-spacing: 0.18em; text-transform: uppercase; border: 1px solid rgba(201,169,110,0.3); color: var(--gold); }
+.badge.ruby { border-color: rgba(192,40,78,0.4); color: #e07090; }
+.hero-cta { display: flex; gap: 16px; align-items: center; }
+.hero-image { position: relative; z-index: 2; display: flex; align-items: center; justify-content: center; }
+.hero-image img { width: 100%; max-width: 520px; filter: drop-shadow(0 40px 80px rgba(139,26,58,0.45)) drop-shadow(0 0 60px rgba(192,40,78,0.2)); animation: float 6s ease-in-out infinite; }
+@keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-18px); } }
+
+/* ── INGREDIENT STRIP ── */
+.strip { background: rgba(255,255,255,0.03); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 28px 80px; display: flex; gap: 0; align-items: center; overflow-x: auto; }
+.strip-item { display: flex; align-items: center; gap: 10px; padding: 0 32px; border-right: 1px solid var(--border); white-space: nowrap; flex-shrink: 0; }
+.strip-item:first-child { padding-left: 0; }
+.strip-item:last-child { border-right: none; }
+.strip-icon { font-size: 1.3rem; }
+.strip-name { font-size: 0.72rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); }
+
+/* ── SECTIONS ── */
+section { padding: 100px 80px; }
+.section-eyebrow { font-size: 0.68rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--gold); margin-bottom: 14px; }
+.section-title { font-family: 'Cormorant Garamond', serif; font-size: clamp(2.2rem, 4vw, 3.4rem); font-weight: 300; margin-bottom: 20px; line-height: 1.1; }
+.section-title em { font-style: italic; color: var(--ruby2); }
+.section-body { font-size: 0.92rem; line-height: 1.8; color: var(--muted); max-width: 560px; }
+
+/* ── ABOUT SPLIT ── */
+.split { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; }
+.split-img { position: relative; }
+.split-img img { width: 100%; border-radius: 2px; }
+.split-img::after { content: ''; position: absolute; inset: -20px -20px auto auto; width: 180px; height: 180px; border-top: 1px solid var(--gold); border-right: 1px solid var(--gold); pointer-events: none; }
+.split-img::before { content: ''; position: absolute; inset: auto auto -20px -20px; width: 180px; height: 180px; border-bottom: 1px solid rgba(192,40,78,0.4); border-left: 1px solid rgba(192,40,78,0.4); pointer-events: none; z-index: 0; }
+.stat-row { display: flex; gap: 40px; margin-top: 36px; }
+.stat-val { font-family: 'Cormorant Garamond', serif; font-size: 2.4rem; font-weight: 300; color: var(--gold); line-height: 1; }
+.stat-label { font-size: 0.68rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); margin-top: 4px; }
+
+/* ── INGREDIENTS GRID ── */
+.ing-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-top: 56px; }
+.ing-card { background: var(--card); border: 1px solid var(--border); padding: 30px 24px; position: relative; overflow: hidden; transition: border-color 0.3s; }
+.ing-card:hover { border-color: var(--gold); }
+.ing-card::before { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--ruby2), var(--gold)); transform: scaleX(0); transform-origin: left; transition: transform 0.4s; }
+.ing-card:hover::before { transform: scaleX(1); }
+.ing-emoji { font-size: 2rem; margin-bottom: 14px; display: block; }
+.ing-name { font-family: 'Cormorant Garamond', serif; font-size: 1.3rem; font-weight: 300; margin-bottom: 8px; }
+.ing-benefit { font-size: 0.78rem; line-height: 1.6; color: var(--muted); }
+
+/* ── BENEFITS ── */
+.benefits-wrap { background: rgba(139,26,58,0.07); border: 1px solid rgba(192,40,78,0.18); border-radius: 4px; padding: 60px; margin-top: 60px; }
+.benefits-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 32px; margin-top: 40px; }
+.benefit-item { text-align: center; }
+.benefit-icon { font-size: 1.8rem; margin-bottom: 12px; display: block; }
+.benefit-title { font-size: 0.78rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--gold); margin-bottom: 8px; }
+.benefit-text { font-size: 0.78rem; line-height: 1.6; color: var(--muted); }
+
+/* ── CTA ── */
+.cta-section { text-align: center; padding: 100px 80px; background: rgba(255,255,255,0.02); border-top: 1px solid var(--border); }
+.cta-section .section-title { margin: 0 auto 20px; }
+.cta-section .section-body { margin: 0 auto 40px; text-align: center; }
+.cta-actions { display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; }
+
+/* ── FOOTER ── */
+footer { border-top: 1px solid var(--border); padding: 32px 80px; display: flex; align-items: center; justify-content: space-between; font-size: 0.72rem; color: var(--muted); letter-spacing: 0.1em; }
+footer a { color: var(--gold); text-decoration: none; }
+
+/* ── MOBILE ── */
+@media (max-width: 900px) {
+  nav { padding: 16px 24px; }
+  .nav-links { display: none; }
+  .hamburger { display: flex; }
+  .nav-links.open { display: flex; flex-direction: column; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15,35,24,0.98); justify-content: center; align-items: center; gap: 32px; z-index: 200; }
+  .hero { grid-template-columns: 1fr; padding: 110px 24px 60px; text-align: center; }
+  .hero-text { order: 2; } .hero-image { order: 1; }
+  .eyebrow { justify-content: center; }
+  .hero-desc { margin: 0 auto 32px; }
+  .hero-cta { justify-content: center; }
+  .strip { padding: 20px 24px; }
+  section { padding: 60px 24px; }
+  .split { grid-template-columns: 1fr; gap: 48px; }
+  .ing-grid { grid-template-columns: repeat(2, 1fr); gap: 16px; }
+  .benefits-wrap { padding: 32px 24px; }
+  .benefits-grid { grid-template-columns: repeat(2, 1fr); gap: 24px; }
+  .cta-section { padding: 60px 24px; }
+  footer { flex-direction: column; gap: 12px; text-align: center; padding: 24px; }
+}
+@media (max-width: 480px) {
+  .ing-grid { grid-template-columns: 1fr; }
+  .benefits-grid { grid-template-columns: 1fr 1fr; }
+  .stat-row { gap: 24px; }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="nav-logo">
+    <img src="/logo/eden 54 logo.jpeg" alt="Eden 54">
+    <span>Eden 54</span>
+  </a>
+  <ul class="nav-links" id="navLinks">
+    <li><a href="/">Home</a></li>
+    <li><a href="/apartmentandlounge/">Lounge</a></li>
+    <li><a href="/barbing/">Barbing</a></li>
+    <li><a href="/games/">Games</a></li>
+    <li><a href="/drinks/" class="active">Ruby Sunrise</a></li>
+    <li><a href="/#contact" class="btn-outline">Contact Us</a></li>
+  </ul>
+  <button class="hamburger" aria-label="Menu" onclick="document.getElementById('navLinks').classList.toggle('open')">
+    <div></div><div></div><div></div>
+  </button>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-text">
+    <div class="eyebrow">Eden 54 Lounge &mdash; Signature Drink</div>
+    <h1>Ruby<br><em>Sunrise</em><br>Juice</h1>
+    <p class="hero-desc">
+      A vibrant cleansing blend crafted exclusively at Eden 54 Lounge.
+      Six of nature's finest ingredients pressed into one revitalising,
+      preservative-free bottle.
+    </p>
+    <div class="hero-badges">
+      <span class="badge">340 ml</span>
+      <span class="badge">Fresh Daily</span>
+      <span class="badge ruby">No Preservatives</span>
+      <span class="badge ruby">Cold Pressed</span>
+    </div>
+    <div class="hero-cta">
+      <a href="#order" class="btn-ruby">Order Now</a>
+      <a href="#ingredients" class="btn-outline">See Ingredients</a>
+    </div>
+  </div>
+  <div class="hero-image">
+    <img src="/drinks/ruby-sunrise.png" alt="Ruby Sunrise Juice — Eden 54 Lounge">
+  </div>
+</section>
+
+<!-- INGREDIENT STRIP -->
+<div class="strip">
+  <div class="strip-item"><span class="strip-icon">🫚</span><span class="strip-name">Beetroot</span></div>
+  <div class="strip-item"><span class="strip-icon">🫛</span><span class="strip-name">Ginger Juice</span></div>
+  <div class="strip-item"><span class="strip-icon">🍊</span><span class="strip-name">Orange</span></div>
+  <div class="strip-item"><span class="strip-icon">🍍</span><span class="strip-name">Pineapple</span></div>
+  <div class="strip-item"><span class="strip-icon">🍋‍🟩</span><span class="strip-name">Lime</span></div>
+  <div class="strip-item"><span class="strip-icon">🍋</span><span class="strip-name">Lemon</span></div>
+</div>
+
+<!-- ABOUT -->
+<section id="about">
+  <div class="split">
+    <div class="split-img">
+      <img src="/drinks/ruby-sunrise.png" alt="Ruby Sunrise Juice">
+    </div>
+    <div>
+      <div class="section-eyebrow">Our Signature</div>
+      <h2 class="section-title">Born in the<br><em>Eden 54 Lounge</em></h2>
+      <p class="section-body">
+        Ruby Sunrise is more than a drink &mdash; it is a ritual. Each bottle is pressed fresh
+        daily using whole ingredients sourced for peak ripeness. No fillers, no concentrates,
+        no shortcuts. Just the honest, earthy depth of beetroot meeting the brightness of citrus,
+        grounded by raw ginger heat and lifted by tropical pineapple.
+      </p>
+      <p class="section-body" style="margin-top:16px">
+        Whether you take it at sunrise to start your day or as a palate cleanser between courses
+        at the Lounge, Ruby Sunrise delivers a flavour profile as complex as it is nourishing.
+      </p>
+      <div class="stat-row">
+        <div class="stat"><div class="stat-val">6</div><div class="stat-label">Ingredients</div></div>
+        <div class="stat"><div class="stat-val">340</div><div class="stat-label">Millilitres</div></div>
+        <div class="stat"><div class="stat-val">0</div><div class="stat-label">Preservatives</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- INGREDIENTS -->
+<section id="ingredients" style="background:rgba(255,255,255,0.015);border-top:1px solid var(--border)">
+  <div class="section-eyebrow" style="text-align:center">What Goes In</div>
+  <h2 class="section-title" style="text-align:center;max-width:480px;margin:0 auto 8px">Six Ingredients.<br><em>One Purpose.</em></h2>
+  <p style="text-align:center;font-size:0.85rem;color:var(--muted);max-width:460px;margin:0 auto">
+    Fresh. Natural. Cold pressed. Every ingredient chosen for its flavour and its benefit.
+  </p>
+  <div class="ing-grid">
+    <div class="ing-card"><span class="ing-emoji">🫚</span><div class="ing-name">Beetroot</div><div class="ing-benefit">The heart of Ruby Sunrise. Rich in nitrates and antioxidants, it delivers the deep crimson colour and earthy sweetness that define every sip.</div></div>
+    <div class="ing-card"><span class="ing-emoji">🫛</span><div class="ing-name">Ginger Juice</div><div class="ing-benefit">Raw cold-pressed ginger brings a warming heat that cuts through the sweetness, supports digestion, and adds aromatic depth.</div></div>
+    <div class="ing-card"><span class="ing-emoji">🍊</span><div class="ing-name">Orange</div><div class="ing-benefit">Whole-pressed Valencia oranges add natural vitamin C, a burst of bright citrus, and the sweetness that balances the blend.</div></div>
+    <div class="ing-card"><span class="ing-emoji">🍍</span><div class="ing-name">Pineapple</div><div class="ing-benefit">Tropical pineapple lifts the profile with its natural enzymes and a sun-ripened sweetness that brightens every note in the juice.</div></div>
+    <div class="ing-card"><span class="ing-emoji">🍋‍🟩</span><div class="ing-name">Lime</div><div class="ing-benefit">Fresh lime juice adds a sharp, clean tartness that sharpens the overall flavour and gives Ruby Sunrise its refreshing finish.</div></div>
+    <div class="ing-card"><span class="ing-emoji">🍋</span><div class="ing-name">Lemon</div><div class="ing-benefit">Cold-pressed lemon rounds out the citrus profile, adding a mellow tang and an extra layer of natural cleansing alkalinity.</div></div>
+  </div>
+</section>
+
+<!-- BENEFITS -->
+<section>
+  <div class="section-eyebrow">Why Ruby Sunrise</div>
+  <h2 class="section-title">A Cleanse You Can<br><em>Actually Taste</em></h2>
+  <div class="benefits-wrap">
+    <div class="benefits-grid">
+      <div class="benefit-item"><span class="benefit-icon">✨</span><div class="benefit-title">Detox Support</div><div class="benefit-text">Beetroot and lemon together support the liver's natural detoxification pathways, flushing out what the body doesn't need.</div></div>
+      <div class="benefit-item"><span class="benefit-icon">⚡</span><div class="benefit-title">Natural Energy</div><div class="benefit-text">Nitrates from beetroot convert to nitric oxide, improving blood flow and giving a sustained energy lift without caffeine or sugar spikes.</div></div>
+      <div class="benefit-item"><span class="benefit-icon">🛡️</span><div class="benefit-title">Immune Boost</div><div class="benefit-text">Orange, lime and lemon deliver a powerful dose of vitamin C and bioflavonoids to strengthen your immune response daily.</div></div>
+      <div class="benefit-item"><span class="benefit-icon">🌿</span><div class="benefit-title">Gut Health</div><div class="benefit-text">Ginger and pineapple enzymes soothe the digestive tract, reduce bloating, and support a healthy gut microbiome.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section" id="order">
+  <div class="section-eyebrow" style="text-align:center">Get Yours</div>
+  <h2 class="section-title">Ready to Experience<br><em>Ruby Sunrise?</em></h2>
+  <p class="section-body" style="text-align:center;max-width:480px;margin:0 auto 40px">
+    Available daily at Eden 54 Lounge. Order in advance for events, wellness packages,
+    or private sessions. Cold and ready for you.
+  </p>
+  <div class="cta-actions">
+    <a href="/#contact" class="btn-ruby">Get in Touch</a>
+    <a href="/apartmentandlounge/" class="btn-outline">Visit the Lounge</a>
+    <a href="/" class="btn-outline">Back to Eden 54</a>
+  </div>
+</section>
+
+<footer>
+  <span>&copy; 2026 Eden 54 Group &mdash; All rights reserved</span>
+  <span>Ruby Sunrise Juice is made fresh daily at <a href="/apartmentandlounge/">Eden 54 Lounge</a></span>
+  <a href="/">eden54group.com</a>
+</footer>
+
+<script>
+document.querySelectorAll('#navLinks a').forEach(a => a.addEventListener('click', () => {
+  document.getElementById('navLinks').classList.remove('open');
+}));
+</script>
+</body>
+</html>

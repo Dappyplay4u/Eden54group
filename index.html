@@ -25,10 +25,10 @@
      change them in one place to update the entire site.
      ---------------------------------------------------------- */
   :root {
-    --gold:        #B8973A;  /* Warm gold accent — icons, borders, highlights */
-    --gold-light:  #D4AF62;  /* Lighter gold — hover states */
-    --gold-dark:   #8A6E25;  /* Darker gold — subtle text and shadows */
-    --deep:        #1B3A2A;  /* Deep forest green — hero, nav, footer (matches logo) */
+    --gold:        #C9A96E;  /* Warm gold accent — icons, borders, highlights */
+    --gold-light:  #E0BE8A;  /* Lighter gold — hover states */
+    --gold-dark:   #9A7A3A;  /* Darker gold — subtle text and shadows */
+    --deep:        #0f2318;  /* Deep forest green — hero, nav, footer (matches logo) */
     --dark:        #F0EBE0;  /* Warm cream — alternate section backgrounds */
     --mid:         #FFFFFF;  /* White — card backgrounds and form panels */
     --surface:     #EDE6D8;  /* Slightly deeper cream — card hover surfaces */
@@ -200,7 +200,7 @@
     position: relative;
     display: flex; align-items: center; justify-content: center;
     overflow: hidden;
-    background-color: #0a1a10;
+    background-color: var(--deep);
   }
 
   .hero-video {
@@ -404,7 +404,7 @@
   .intro-card {
     position: absolute;
     background: var(--mid);
-    border: 1px solid rgba(184,151,58,0.2);
+    border: 1px solid rgba(201,169,110,0.2);
     overflow: hidden;
     box-shadow: 0 8px 32px rgba(0,0,0,0.08);
   }
@@ -598,7 +598,7 @@
   }
   .dining-bg {
     position: absolute; inset: 0;
-    border: 1px solid rgba(184,151,58,0.2);
+    border: 1px solid rgba(201,169,110,0.2);
     overflow: hidden;
     display: flex; align-items: center; justify-content: center;
   }
@@ -675,7 +675,7 @@
   }
   .menu-category-line {
     flex: 1; height: 1px;
-    background: linear-gradient(to right, rgba(184,151,58,0.4), transparent);
+    background: linear-gradient(to right, rgba(201,169,110,0.4), transparent);
   }
   .menu-category:first-child { margin-top: 0; }
   .menu-item {
@@ -705,12 +705,12 @@
   .menu-option {
     font-size: 0.58rem; letter-spacing: 0.08em; text-transform: uppercase;
     padding: 3px 10px;
-    border: 1px solid rgba(184,151,58,0.35);
+    border: 1px solid rgba(201,169,110,0.35);
     color: var(--muted);
     border-radius: 20px;
     transition: border-color 0.3s, color 0.3s;
   }
-  .menu-item:hover .menu-option { border-color: rgba(184,151,58,0.6); color: var(--text); }
+  .menu-item:hover .menu-option { border-color: rgba(201,169,110,0.6); color: var(--text); }
   .menu-img-wrapper {
     position: relative;
     width: 80px; height: 80px;
@@ -718,7 +718,7 @@
     overflow: hidden;
     flex-shrink: 0;
     background: #000;
-    border: 1px solid rgba(184,151,58,0.2);
+    border: 1px solid rgba(201,169,110,0.2);
     margin-left: 20px;
     cursor: zoom-in;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
@@ -734,6 +734,65 @@
     object-fit: contain;
     display: block;
     pointer-events: none;
+  }
+
+  /* ── MENU CARD (image-card format) ──────────────────────────*/
+  .mc {
+    position: relative; overflow: hidden; border-radius: 2px;
+    height: 400px; cursor: zoom-in;
+  }
+  .mc-img {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    object-fit: cover;
+    transition: transform 0.6s ease;
+  }
+  .mc-fade {
+    position: absolute; inset: 0;
+    background: linear-gradient(to top, rgba(10,25,16,0.96) 0%, rgba(10,25,16,0.45) 50%, transparent 100%);
+  }
+  .mc-body {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    padding: 28px 26px;
+  }
+  .mc-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.45rem; font-weight: 300;
+    color: #F5F2EC; margin: 0 0 5px;
+  }
+  .mc-desc {
+    font-size: 0.75rem; color: rgba(245,242,236,0.58);
+    line-height: 1.6; margin: 0 0 12px;
+  }
+  .mc-foot {
+    display: flex; align-items: flex-end; justify-content: space-between; gap: 12px;
+  }
+  .mc-opts { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; }
+  .mc-opts + .mc-opts { margin-top: 5px; }
+  .mc-tag-lbl {
+    font-size: 0.55rem; letter-spacing: 0.22em; text-transform: uppercase;
+    color: rgba(245,242,236,0.4); flex-shrink: 0; margin-right: 2px;
+  }
+  .mc-tag {
+    font-size: 0.57rem; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--gold);
+    border: 1px solid rgba(201,169,110,0.5);
+    padding: 3px 9px;
+  }
+  .mc-price {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.25rem; font-weight: 300; color: var(--gold);
+    flex-shrink: 0;
+  }
+  @media (max-width: 1024px) {
+    #dining [style*="grid-template-columns:repeat(4"] { grid-template-columns: 1fr 1fr !important; }
+    #dining [style*="grid-template-columns:1fr 1fr"] { grid-template-columns: 1fr !important; }
+    #dining [style*="padding:0 60px"] { padding-left: 20px !important; padding-right: 20px !important; }
+    #dining [style*="padding:80px 60px"] { padding: 48px 20px 32px !important; }
+  }
+  @media (max-width: 600px) {
+    #dining [style*="grid-template-columns:repeat(4"] { grid-template-columns: 1fr !important; }
+    .mc { height: 340px; }
   }
 
   /* ── OUTDOOR & POOL SECTION ─────────────────────────────────
@@ -764,7 +823,7 @@
   }
   .outdoor-main {
     background: var(--deep);
-    border: 1px solid rgba(184,151,58,0.2);
+    border: 1px solid rgba(201,169,110,0.2);
     padding: 80px 60px;
     position: relative;
     display: flex; flex-direction: column; justify-content: flex-end;
@@ -812,13 +871,13 @@
   .outdoor-features { display: flex; flex-direction: column; gap: 20px; }
   .feature-block {
     background: var(--mid);
-    border: 1px solid rgba(184,151,58,0.15);
+    border: 1px solid rgba(201,169,110,0.15);
     padding: 36px 32px;
     display: flex; align-items: flex-start; gap: 22px;
     transition: border-color 0.3s, background 0.3s, box-shadow 0.3s;
     box-shadow: 0 2px 12px rgba(0,0,0,0.04);
   }
-  .feature-block:hover { border-color: rgba(184,151,58,0.35); background: var(--surface); box-shadow: 0 4px 20px rgba(0,0,0,0.07); }
+  .feature-block:hover { border-color: rgba(201,169,110,0.35); background: var(--surface); box-shadow: 0 4px 20px rgba(0,0,0,0.07); }
   .feature-emoji { font-size: 1.6rem; flex-shrink: 0; margin-top: 2px; }
   .feature-block h4 {
     font-family: 'Cormorant Garamond', serif;
@@ -1020,7 +1079,7 @@
     background: linear-gradient(90deg, transparent 0%, var(--gold) 40%, rgba(201,169,110,0.4) 100%);
   }
   .booking-form-header {
-    background: #0f2318;
+    background: var(--deep);
     padding: 36px 44px 32px;
     border-bottom: 1px solid rgba(201,169,110,0.15);
   }
@@ -1041,7 +1100,7 @@
     display: flex; align-items: center; gap: 16px;
     padding: 0 44px;
     margin: 0;
-    background: #0f2318;
+    background: var(--deep);
     padding-bottom: 0;
   }
   .booking-form-divider span { font-size: 0.58rem; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(201,169,110,0.4); white-space: nowrap; }
@@ -1082,8 +1141,8 @@
      The bottom bar shows the copyright notice and tagline.
      ---------------------------------------------------------- */
   footer {
-    background: #1B3A2A;  /* Deep forest green — matches nav and logo */
-    border-top: 1px solid rgba(184,151,58,0.15);
+    background: var(--deep);  /* Deep forest green — matches nav and logo */
+    border-top: 1px solid rgba(201,169,110,0.15);
     padding: 80px 60px 40px;
     color: rgba(248,245,239,0.8);
   }
@@ -1109,7 +1168,7 @@
   }
   .social-btn {
     width: 36px; height: 36px;
-    border: 1px solid rgba(184,151,58,0.3);
+    border: 1px solid rgba(201,169,110,0.3);
     display: flex; align-items: center; justify-content: center;
     font-size: 0.85rem;
     color: rgba(248,245,239,0.6);
@@ -1289,7 +1348,7 @@
     z-index: 2;
     transition: background 0.2s;
   }
-  .gallery-lb-arrow:hover { background: rgba(184,151,58,0.7); border-color: var(--gold); }
+  .gallery-lb-arrow:hover { background: rgba(201,169,110,0.7); border-color: var(--gold); }
   .gallery-lb-prev { left: 20px; }
   .gallery-lb-next { right: 20px; }
 
@@ -1396,7 +1455,7 @@
     text-transform: uppercase;
     color: var(--gold);
     text-decoration: none;
-    border-bottom: 1px solid rgba(184,151,58,0.4);
+    border-bottom: 1px solid rgba(201,169,110,0.4);
     padding-bottom: 2px;
     transition: color 0.3s, border-color 0.3s;
   }
@@ -1551,6 +1610,8 @@
      On phones:  everything stacks into a single column.
      ---------------------------------------------------------- */
   @media (max-width: 1024px) {
+    #cocktails [style*="grid-template-columns:1fr 1fr"] { grid-template-columns: 1fr !important; }
+    #cocktails [style*="padding:0 60px 80px"] { padding: 0 32px 60px !important; }
     nav { padding: 24px 32px; }
     .nav-links { display: none; }
     .intro, .dining, .booking { grid-template-columns: 1fr; gap: 60px; }
@@ -1690,7 +1751,7 @@
      ═══════════════════════════════════════════════════ -->
 <div style="
   position:fixed; top:0; left:0; right:0; z-index:10000;
-  background:#C9A96E; color:#0a1a10;
+  background:var(--gold); color:var(--deep);
   text-align:center; padding:10px 20px;
   font-family:'Jost',sans-serif; font-size:0.78rem;
   letter-spacing:0.2em; text-transform:uppercase;
@@ -1728,25 +1789,47 @@
   </div>
 </div>
 
-<!-- Gallery carousel lightbox — opens when a gallery item is clicked -->
-<div class="gallery-lb" id="galleryLb">
-  <div class="gallery-lb-backdrop" id="galleryLbBackdrop"></div>
-  <button class="gallery-lb-close" id="galleryLbClose">✕</button>
-  <button class="gallery-lb-arrow gallery-lb-prev" id="galleryLbPrev">&#8592;</button>
-  <button class="gallery-lb-arrow gallery-lb-next" id="galleryLbNext">&#8594;</button>
-  <div class="gallery-lb-box">
-    <img src="" alt="" id="galleryLbImg" class="gallery-lb-img">
-    <div class="gallery-lb-caption" id="galleryLbCaption"></div>
-    <div class="gallery-lb-counter" id="galleryLbCounter"></div>
-  </div>
-</div>
-
 <!-- Menu image lightbox — opens when a dish thumbnail is clicked -->
 <div class="menu-img-modal" id="menuImgModal">
   <div class="menu-img-modal-backdrop" id="menuImgBackdrop"></div>
   <div class="menu-img-modal-box">
     <button class="menu-img-modal-close" id="menuImgClose">✕</button>
     <img src="" alt="" id="menuImgLarge">
+  </div>
+</div>
+
+<!-- Food card pop-out lightbox -->
+<div id="foodPop" style="
+  position:fixed;inset:0;z-index:9999;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(10,25,16,0.88);
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  opacity:0;pointer-events:none;
+  transition:opacity 0.35s ease;
+">
+  <div style="position:relative;max-width:min(700px,90vw);width:100%;text-align:center">
+    <img id="foodPopImg" src="" alt="" style="
+      width:100%;max-height:72vh;object-fit:cover;
+      border-radius:3px;
+      transform:scale(0.88);
+      transition:transform 0.4s cubic-bezier(0.34,1.56,0.64,1);
+      display:block;
+    ">
+    <div id="foodPopName" style="
+      font-family:'Cormorant Garamond',serif;
+      font-size:clamp(1.4rem,3vw,2rem);font-weight:300;
+      color:#F5F2EC;margin-top:16px;letter-spacing:0.04em;
+    "></div>
+    <div id="foodPopBar" style="
+      height:3px;background:rgba(245,242,236,0.15);
+      border-radius:2px;margin:14px auto 0;
+      max-width:300px;overflow:hidden;
+    ">
+      <div id="foodPopProgress" style="
+        height:100%;width:0%;background:var(--gold);
+        transition:width 3s linear;
+      "></div>
+    </div>
   </div>
 </div>
 
@@ -1778,7 +1861,6 @@
       </div>
     </li>
     <li><a href="#dining">Dining</a></li>
-    <li><a href="#gallery">Gallery</a></li>
     <li><a href="#explore">Explore</a></li>
     <li><a href="#rooms">Suites</a></li>
     <li><a href="#outdoor">Outdoor</a></li>
@@ -1978,387 +2060,399 @@
                4 signature dishes with names, details, and prices (₦)
      To update menu items, edit the .menu-item blocks in this section.
      ══════════════════════════════════════════════════════════════ -->
-<section id="dining">
-  <div class="dining">
-    <div class="dining-visual reveal">
-      <div class="dining-bg">
-        <img src="menu/Steak.jpg" alt="Eden 54 Menu" id="diningBgImg">
-        <div class="dining-centerpiece">La<br>Carte</div>
-      </div>
-      <div class="dining-accent">
-        <div class="dining-accent-num">2</div>
-        <div class="dining-accent-text">Course<br>Tasting Menu</div>
-      </div>
-    </div>
-    <div class="dining-content reveal reveal-delay-2">
-      <p class="section-eyebrow">Restaurant & Bar</p>
-      <h2>Fine Dining at <em>Eden</em></h2>
-      <p>Our restaurant is a symphony of flavour, craft, and atmosphere. Helmed by our award-winning executive chef, every dish is a love letter to the finest ingredients the world has to offer.</p>
-      <p>Paired with an exceptional cellar of wines and the intimate glow of candlelight, dinner at Eden 54 is an experience reserved for those who settle for nothing less.</p>
+<section id="dining" style="background:var(--deep);padding:0">
 
-      <div class="menu-preview">
+  <!-- Header -->
+  <div style="padding:80px 60px 52px;text-align:center">
+    <p class="section-eyebrow">Restaurant &amp; Bar</p>
+    <h2 style="font-family:'Cormorant Garamond',serif;font-size:clamp(2.4rem,4vw,3.6rem);font-weight:300;color:#F5F2EC;line-height:1.1;margin-bottom:20px">
+      Fine Dining at <em style="font-style:italic;color:var(--gold)">Eden 54</em>
+    </h2>
+    <p style="color:rgba(245,242,236,0.55);font-size:0.88rem;line-height:1.9;max-width:520px;margin:0 auto">
+      A symphony of flavour, craft and atmosphere. Every dish prepared with the finest ingredients,
+      served with the warmth that defines Eden 54.
+    </p>
+  </div>
 
-        <!-- Starters -->
-        <div class="menu-category">
-          <span class="menu-category-label">Starters</span>
-          <span class="menu-category-line"></span>
-        </div>
+  <!-- ── STARTERS ── -->
+  <div style="display:flex;align-items:center;gap:16px;padding:0 60px;margin-bottom:18px">
+    <span style="font-size:0.6rem;letter-spacing:0.45em;text-transform:uppercase;color:var(--gold);white-space:nowrap">Starters</span>
+    <span style="flex:1;height:1px;background:rgba(201,169,110,0.25)"></span>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;padding:0 60px;margin-bottom:48px">
 
-        <div class="menu-item">
+    <!-- Chicken Skewers -->
+    <div class="mc">
+      <img src="menu/chicken skewers.png" alt="Chicken Skewers" class="mc-img" onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'">
+      <div class="mc-fade"></div>
+      <div class="mc-body">
+        <h3 class="mc-name">Chicken Skewers</h3>
+        <p class="mc-desc">Tender seasoned chicken skewers, grilled to perfection</p>
+        <div class="mc-foot">
           <div>
-            <div class="menu-name">Chicken Skewers</div>
-            <div class="menu-detail">Tender seasoned chicken skewers, grilled to perfection</div>
-            <div class="menu-sides">
-              <span class="menu-sides-label">Sides:</span>
-              <span class="menu-option">Onion Rings or Chips</span>
-            </div>
+            <div class="mc-opts"><span class="mc-tag-lbl">Sides</span><span class="mc-tag">Onion Rings</span><span class="mc-tag">Chips</span></div>
+            <div class="mc-opts"><span class="mc-tag-lbl">Dips</span><span class="mc-tag">Peri Peri</span><span class="mc-tag">Ranch</span></div>
           </div>
-          <div class="menu-price">₦8,000</div>
-          <div class="menu-img-wrapper"><img src="menu/chicken skewers.png" alt="Chicken Skewers"></div>
+          <span class="mc-price">₦8,000</span>
         </div>
-
-        <div class="menu-item">
-          <div>
-            <div class="menu-name">Suya Skewers</div>
-            <div class="menu-detail">Classic spiced suya skewers with sliced tomatoes and onions</div>
-            <div class="menu-sides">
-              <span class="menu-sides-label">Sides:</span>
-              <span class="menu-option">Onion Rings or Chips</span>
-            </div>
-          </div>
-          <div class="menu-price">₦8,500</div>
-          <div class="menu-img-wrapper"><img src="menu/Suya Skewers.png" alt="Suya Skewers"></div>
-        </div>
-
-        <div class="menu-item">
-          <div>
-            <div class="menu-name">Steak Skewers</div>
-            <div class="menu-detail">Juicy grilled steak skewers, seasoned and chargrilled</div>
-            <div class="menu-sides">
-              <span class="menu-sides-label">Sides:</span>
-              <span class="menu-option">Onion Rings or Chips</span>
-            </div>
-          </div>
-          <div class="menu-price">₦10,000</div>
-          <div class="menu-img-wrapper"><img src="menu/Stake Skewers.jpg" alt="Steak Skewers"></div>
-        </div>
-
-        <div class="menu-item">
-          <div>
-            <div class="menu-name">Small Chops</div>
-            <div class="menu-detail">A delightful platter of bite-sized finger foods — perfect to share</div>
-            <div class="menu-sides">
-              <span class="menu-sides-label">Sides:</span>
-              <span class="menu-option">Onion Rings or Chips</span>
-            </div>
-          </div>
-          <div class="menu-price">₦6,500</div>
-          <div class="menu-img-wrapper"><img src="menu/Small chops.jpg" alt="Small Chops"></div>
-        </div>
-
-
-        <!-- Mains -->
-        <div class="menu-category">
-          <span class="menu-category-label">Mains</span>
-          <span class="menu-category-line"></span>
-        </div>
-
-        <div class="menu-item">
-          <div>
-            <div class="menu-name">Suya Tacos</div>
-            <div class="menu-detail">Seasoned suya · warm tortilla · fresh tomatoes</div>
-            <div class="menu-sides">
-              <span class="menu-sides-label">Sauce:</span>
-              <span class="menu-option">Peri Peri</span>
-              <span class="menu-option">Ranch</span>
-            </div>
-            <div class="menu-sides">
-              <span class="menu-sides-label">Sides:</span>
-              <span class="menu-option">Onion Rings or Chips</span>
-            </div>
-          </div>
-          <div class="menu-price">₦12,000</div>
-          <div class="menu-img-wrapper"><img src="menu/Suya Tacos.jpg" alt="Suya Tacos"></div>
-        </div>
-
-        <div class="menu-item">
-          <div>
-            <div class="menu-name">Chipotle Rice Bowl</div>
-            <div class="menu-detail">Chipotle style rice · tomatoes · sweet corn</div>
-            <div class="menu-sides">
-              <span class="menu-sides-label">Protein:</span>
-              <span class="menu-option">Grilled Chicken</span>
-              <span class="menu-option">Suya</span>
-              <span class="menu-option">Steak</span>
-              <span class="menu-option">Asun</span>
-            </div>
-            <div class="menu-sides">
-              <span class="menu-sides-label">Sauce:</span>
-              <span class="menu-option">Peri Peri</span>
-              <span class="menu-option">Ranch</span>
-            </div>
-            <div class="menu-sides">
-              <span class="menu-sides-label">Sides:</span>
-              <span class="menu-option">Onion Rings or Chips</span>
-            </div>
-          </div>
-          <div class="menu-price">₦16,500</div>
-          <div class="menu-img-wrapper"><img src="menu/Chipotle Rice Bowl.jpg" alt="Chipotle Rice Bowl"></div>
-        </div>
-
-        <div class="menu-item">
-          <div>
-            <div class="menu-name">Jollof Rice</div>
-            <div class="menu-detail">Smoky party jollof</div>
-            <div class="menu-sides">
-              <span class="menu-sides-label">Protein:</span>
-              <span class="menu-option">Grilled Chicken</span>
-              <span class="menu-option">Steak</span>
-              <span class="menu-option">Suya</span>
-              <span class="menu-option">Asun</span>
-            </div>
-            <div class="menu-sides">
-              <span class="menu-sides-label">Sauce:</span>
-              <span class="menu-option">Peri Peri</span>
-              <span class="menu-option">Ranch</span>
-            </div>
-            <div class="menu-sides">
-              <span class="menu-sides-label">Sides:</span>
-              <span class="menu-option">Onion Rings or Chips</span>
-            </div>
-          </div>
-          <div class="menu-price">₦14,000</div>
-          <div class="menu-img-wrapper"><img src="menu/Jollof Rice.jpg" alt="Jollof Rice"></div>
-        </div>
-
-        <div class="menu-item">
-          <div>
-            <div class="menu-name">Fried Rice</div>
-            <div class="menu-detail">Seasoned fried rice</div>
-            <div class="menu-sides">
-              <span class="menu-sides-label">Protein:</span>
-              <span class="menu-option">Grilled Chicken</span>
-              <span class="menu-option">Steak</span>
-              <span class="menu-option">Suya</span>
-              <span class="menu-option">Asun</span>
-            </div>
-            <div class="menu-sides">
-              <span class="menu-sides-label">Sauce:</span>
-              <span class="menu-option">Peri Peri</span>
-              <span class="menu-option">Ranch</span>
-            </div>
-            <div class="menu-sides">
-              <span class="menu-sides-label">Sides:</span>
-              <span class="menu-option">Onion Rings or Chips</span>
-            </div>
-          </div>
-          <div class="menu-price">₦13,500</div>
-          <div class="menu-img-wrapper"><img src="menu/Fried Rice.jpg" alt="Fried Rice"></div>
-        </div>
-
-        <div class="menu-item">
-          <div>
-            <div class="menu-name">Chicken & Chips</div>
-            <div class="menu-detail">Crispy fried chicken · golden chips</div>
-            <div class="menu-sides">
-              <span class="menu-sides-label">Sauce:</span>
-              <span class="menu-option">Peri Peri</span>
-              <span class="menu-option">Ranch</span>
-            </div>
-            <div class="menu-sides">
-              <span class="menu-sides-label">Sides:</span>
-              <span class="menu-option">Onion Rings or Chips</span>
-            </div>
-          </div>
-          <div class="menu-price">₦11,000</div>
-          <div class="menu-img-wrapper"><img src="menu/Chicken & Chips.jpg" alt="Chicken & Chips"></div>
-        </div>
-
-        <div class="menu-item">
-          <div>
-            <div class="menu-name">Grilled Catfish</div>
-            <div class="menu-detail">Whole grilled catfish · spiced tomato sauce</div>
-            <div class="menu-sides">
-              <span class="menu-sides-label">Sides 1:</span>
-              <span class="menu-option">Jollof Rice</span>
-              <span class="menu-option">Fried Rice</span>
-              <span class="menu-option">Fried Plantain</span>
-              <span class="menu-option">Fried Yam</span>
-            </div>
-            <div class="menu-sides">
-              <span class="menu-sides-label">Sides 2:</span>
-              <span class="menu-option">Onion Rings or Chips</span>
-            </div>
-            <div class="menu-sides">
-              <span class="menu-sides-label">Sauce:</span>
-              <span class="menu-option">Peri Peri</span>
-              <span class="menu-option">Ranch</span>
-            </div>
-          </div>
-          <div class="menu-price">₦16,000</div>
-          <div class="menu-img-wrapper"><img src="menu/Grilled Cat fish.jpg" alt="Grilled Catfish"></div>
-        </div>
-
-        <div class="menu-item">
-          <div>
-            <div class="menu-name">Grilled Croaker Fish</div>
-            <div class="menu-detail">Seasoned croaker · pepper sauce</div>
-            <div class="menu-sides">
-              <span class="menu-sides-label">Sides 1:</span>
-              <span class="menu-option">Jollof Rice</span>
-              <span class="menu-option">Fried Rice</span>
-              <span class="menu-option">Fried Plantain</span>
-              <span class="menu-option">Fried Yam</span>
-            </div>
-            <div class="menu-sides">
-              <span class="menu-sides-label">Sides 2:</span>
-              <span class="menu-option">Onion Rings or Chips</span>
-            </div>
-            <div class="menu-sides">
-              <span class="menu-sides-label">Sauce:</span>
-              <span class="menu-option">Peri Peri</span>
-              <span class="menu-option">Ranch</span>
-            </div>
-          </div>
-          <div class="menu-price">₦15,000</div>
-          <div class="menu-img-wrapper"><img src="menu/Grilled Croaker Fish.jpg" alt="Grilled Croaker Fish"></div>
-        </div>
-
-        <div class="menu-item">
-          <div>
-            <div class="menu-name">Grilled Tilapia Fish</div>
-            <div class="menu-detail">Fresh tilapia, seasoned and grilled over open flame</div>
-            <div class="menu-sides">
-              <span class="menu-sides-label">Sides 1:</span>
-              <span class="menu-option">Jollof Rice</span>
-              <span class="menu-option">Fried Rice</span>
-              <span class="menu-option">Fried Plantain</span>
-              <span class="menu-option">Fried Yam</span>
-            </div>
-            <div class="menu-sides">
-              <span class="menu-sides-label">Sides 2:</span>
-              <span class="menu-option">Onion Rings or Chips</span>
-            </div>
-            <div class="menu-sides">
-              <span class="menu-sides-label">Sauce:</span>
-              <span class="menu-option">Peri Peri</span>
-              <span class="menu-option">Ranch</span>
-            </div>
-          </div>
-          <div class="menu-price">₦14,000</div>
-          <div class="menu-img-wrapper"><img src="menu/Grilled Tilapia Fish.jpg" alt="Grilled Tilapia Fish"></div>
-        </div>
-
-        <div class="menu-item">
-          <div>
-            <div class="menu-name">Steak</div>
-            <div class="menu-detail">Grilled steak</div>
-            <div class="menu-sides">
-              <span class="menu-sides-label">Chips:</span>
-              <span class="menu-option">Potato</span>
-              <span class="menu-option">Yam</span>
-            </div>
-            <div class="menu-sides">
-              <span class="menu-sides-label">Sides 1:</span>
-              <span class="menu-option">Mashed Potatoes</span>
-              <span class="menu-option">Fried Rice</span>
-              <span class="menu-option">Jollof Rice</span>
-            </div>
-            <div class="menu-sides">
-              <span class="menu-sides-label">Sides 2:</span>
-              <span class="menu-option">Onion Rings or Chips</span>
-            </div>
-            <div class="menu-sides">
-              <span class="menu-sides-label">Sauce:</span>
-              <span class="menu-option">Peri Peri</span>
-              <span class="menu-option">Ranch</span>
-            </div>
-          </div>
-          <div class="menu-price">₦20,000</div>
-          <div class="menu-img-wrapper"><img src="menu/Steak.jpg" alt="Steak"></div>
-        </div>
-
-        <div class="menu-item">
-          <div>
-            <div class="menu-name">Chicken Shawarma</div>
-            <div class="menu-detail">Spiced grilled chicken · soft wrap · garlic sauce · fresh veggies</div>
-            <div class="menu-sides">
-              <span class="menu-sides-label">Sauce:</span>
-              <span class="menu-option">Peri Peri</span>
-              <span class="menu-option">Ranch</span>
-            </div>
-            <div class="menu-sides">
-              <span class="menu-sides-label">Sides:</span>
-              <span class="menu-option">Onion Rings or Chips</span>
-            </div>
-          </div>
-          <div class="menu-price">₦8,500</div>
-          <div class="menu-img-wrapper"><img src="menu/Chicken Shawarma.jpg" alt="Chicken Shawarma"></div>
-        </div>
-
-        <div class="menu-item">
-          <div>
-            <div class="menu-name">Suya Shawarma</div>
-            <div class="menu-detail">Tender suya strips · soft wrap · tomatoes</div>
-            <div class="menu-sides">
-              <span class="menu-sides-label">Sauce:</span>
-              <span class="menu-option">Peri Peri</span>
-              <span class="menu-option">Ranch</span>
-            </div>
-            <div class="menu-sides">
-              <span class="menu-sides-label">Sides:</span>
-              <span class="menu-option">Onion Rings or Chips</span>
-            </div>
-          </div>
-          <div class="menu-price">₦9,500</div>
-          <div class="menu-img-wrapper"><img src="menu/Suya Shawarma.jpg" alt="Suya Shawarma"></div>
-        </div>
-
-        <div class="menu-item">
-          <div>
-            <div class="menu-name">Seafood Broil</div>
-            <div class="menu-detail">Seasoned broiled seafood medley</div>
-            <div class="menu-sides">
-              <span class="menu-sides-label">Sides:</span>
-              <span class="menu-option">Onion Rings or Chips</span>
-            </div>
-            <div class="menu-sides">
-              <span class="menu-sides-label">Sauce:</span>
-              <span class="menu-option">Peri Peri</span>
-              <span class="menu-option">Ranch</span>
-            </div>
-          </div>
-          <div class="menu-price">₦22,000</div>
-          <div class="menu-img-wrapper"><img src="menu/Seafood Broil.jpg" alt="Seafood Broil"></div>
-        </div>
-
-        <div class="menu-item">
-          <div>
-            <div class="menu-name">Lamb Chops</div>
-            <div class="menu-detail">Grilled lamb chops</div>
-            <div class="menu-sides">
-              <span class="menu-sides-label">Sides 1:</span>
-              <span class="menu-option">Mashed Potatoes</span>
-              <span class="menu-option">Fried Yam</span>
-              <span class="menu-option">Jollof Rice</span>
-              <span class="menu-option">Fried Rice</span>
-            </div>
-            <div class="menu-sides">
-              <span class="menu-sides-label">Sides 2:</span>
-              <span class="menu-option">Onion Rings or Chips</span>
-            </div>
-            <div class="menu-sides">
-              <span class="menu-sides-label">Sauce:</span>
-              <span class="menu-option">Peri Peri</span>
-              <span class="menu-option">Ranch</span>
-            </div>
-          </div>
-          <div class="menu-price">₦28,000</div>
-          <div class="menu-img-wrapper"><img src="menu/Lamb Chops.jpg" alt="Lamb Chops"></div>
-        </div>
-
       </div>
     </div>
+
+    <!-- Suya Skewers -->
+    <div class="mc">
+      <img src="menu/Suya Skewers.png" alt="Suya Skewers" class="mc-img" onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'">
+      <div class="mc-fade"></div>
+      <div class="mc-body">
+        <h3 class="mc-name">Suya Skewers</h3>
+        <p class="mc-desc">Classic spiced suya skewers with sliced tomatoes and onions</p>
+        <div class="mc-foot">
+          <div>
+            <div class="mc-opts"><span class="mc-tag-lbl">Sides</span><span class="mc-tag">Onion Rings</span><span class="mc-tag">Chips</span></div>
+            <div class="mc-opts"><span class="mc-tag-lbl">Dips</span><span class="mc-tag">Peri Peri</span><span class="mc-tag">Ranch</span></div>
+          </div>
+          <span class="mc-price">₦8,500</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Steak Skewers -->
+    <div class="mc">
+      <img src="menu/Stake Skewers.jpg" alt="Steak Skewers" class="mc-img" onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'">
+      <div class="mc-fade"></div>
+      <div class="mc-body">
+        <h3 class="mc-name">Steak Skewers</h3>
+        <p class="mc-desc">Juicy grilled steak skewers, seasoned and chargrilled</p>
+        <div class="mc-foot">
+          <div>
+            <div class="mc-opts"><span class="mc-tag-lbl">Sides</span><span class="mc-tag">Onion Rings</span><span class="mc-tag">Chips</span></div>
+            <div class="mc-opts"><span class="mc-tag-lbl">Dips</span><span class="mc-tag">Peri Peri</span><span class="mc-tag">Ranch</span></div>
+          </div>
+          <span class="mc-price">₦10,000</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Small Chops -->
+    <div class="mc">
+      <img src="menu/Small chops.jpg" alt="Small Chops" class="mc-img" onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'">
+      <div class="mc-fade"></div>
+      <div class="mc-body">
+        <h3 class="mc-name">Small Chops</h3>
+        <p class="mc-desc">A delightful platter of bite-sized finger foods — perfect to share</p>
+        <div class="mc-foot">
+          <div>
+            <div class="mc-opts"><span class="mc-tag-lbl">Sides</span><span class="mc-tag">Onion Rings</span><span class="mc-tag">Chips</span></div>
+            <div class="mc-opts"><span class="mc-tag-lbl">Dips</span><span class="mc-tag">Peri Peri</span><span class="mc-tag">Ranch</span></div>
+          </div>
+          <span class="mc-price">₦6,500</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── MAINS ── -->
+  <div style="display:flex;align-items:center;gap:16px;padding:0 60px;margin-bottom:18px">
+    <span style="font-size:0.6rem;letter-spacing:0.45em;text-transform:uppercase;color:var(--gold);white-space:nowrap">Mains</span>
+    <span style="flex:1;height:1px;background:rgba(201,169,110,0.25)"></span>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;padding:0 60px;margin-bottom:16px">
+
+    <!-- Suya Tacos -->
+    <div class="mc">
+      <img src="menu/Suya Tacos.jpg" alt="Suya Tacos" class="mc-img" onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'">
+      <div class="mc-fade"></div>
+      <div class="mc-body">
+        <h3 class="mc-name">Suya Tacos</h3>
+        <p class="mc-desc">Seasoned suya · warm tortilla · fresh tomatoes</p>
+        <div class="mc-foot">
+          <div>
+            <div class="mc-opts"><span class="mc-tag-lbl">Sides</span><span class="mc-tag">Onion Rings</span><span class="mc-tag">Chips</span></div>
+            <div class="mc-opts"><span class="mc-tag-lbl">Dips</span><span class="mc-tag">Peri Peri</span><span class="mc-tag">Ranch</span></div>
+          </div>
+          <span class="mc-price">₦12,000</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chipotle Rice Bowl -->
+    <div class="mc">
+      <img src="menu/Chipotle Rice Bowl.jpg" alt="Chipotle Rice Bowl" class="mc-img" onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'">
+      <div class="mc-fade"></div>
+      <div class="mc-body">
+        <h3 class="mc-name">Chipotle Rice Bowl</h3>
+        <p class="mc-desc">Chipotle style rice · tomatoes · sweet corn</p>
+        <div class="mc-foot">
+          <div>
+            <div class="mc-opts"><span class="mc-tag-lbl">Protein</span><span class="mc-tag">Chicken</span><span class="mc-tag">Suya</span><span class="mc-tag">Steak</span><span class="mc-tag">Asun</span></div>
+            <div class="mc-opts"><span class="mc-tag-lbl">Dips</span><span class="mc-tag">Peri Peri</span><span class="mc-tag">Ranch</span></div>
+          </div>
+          <span class="mc-price">₦16,500</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Jollof Rice -->
+    <div class="mc">
+      <img src="menu/Jollof Rice.jpg" alt="Jollof Rice" class="mc-img" onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'">
+      <div class="mc-fade"></div>
+      <div class="mc-body">
+        <h3 class="mc-name">Jollof Rice</h3>
+        <p class="mc-desc">Smoky party jollof, cooked to perfection</p>
+        <div class="mc-foot">
+          <div>
+            <div class="mc-opts"><span class="mc-tag-lbl">Protein</span><span class="mc-tag">Chicken</span><span class="mc-tag">Steak</span><span class="mc-tag">Suya</span><span class="mc-tag">Asun</span></div>
+            <div class="mc-opts"><span class="mc-tag-lbl">Dips</span><span class="mc-tag">Peri Peri</span><span class="mc-tag">Ranch</span></div>
+          </div>
+          <span class="mc-price">₦14,000</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Fried Rice -->
+    <div class="mc">
+      <img src="menu/Fried Rice.jpg" alt="Fried Rice" class="mc-img" onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'">
+      <div class="mc-fade"></div>
+      <div class="mc-body">
+        <h3 class="mc-name">Fried Rice</h3>
+        <p class="mc-desc">Seasoned fried rice with your choice of protein</p>
+        <div class="mc-foot">
+          <div>
+            <div class="mc-opts"><span class="mc-tag-lbl">Protein</span><span class="mc-tag">Chicken</span><span class="mc-tag">Steak</span><span class="mc-tag">Suya</span><span class="mc-tag">Asun</span></div>
+            <div class="mc-opts"><span class="mc-tag-lbl">Dips</span><span class="mc-tag">Peri Peri</span><span class="mc-tag">Ranch</span></div>
+          </div>
+          <span class="mc-price">₦13,500</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chicken & Chips -->
+    <div class="mc">
+      <img src="menu/Chicken & Chips.jpg" alt="Chicken & Chips" class="mc-img" onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'">
+      <div class="mc-fade"></div>
+      <div class="mc-body">
+        <h3 class="mc-name">Chicken &amp; Chips</h3>
+        <p class="mc-desc">Crispy fried chicken · golden chips</p>
+        <div class="mc-foot">
+          <div>
+            <div class="mc-opts"><span class="mc-tag-lbl">Sides</span><span class="mc-tag">Onion Rings</span><span class="mc-tag">Chips</span></div>
+            <div class="mc-opts"><span class="mc-tag-lbl">Dips</span><span class="mc-tag">Peri Peri</span><span class="mc-tag">Ranch</span></div>
+          </div>
+          <span class="mc-price">₦11,000</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Grilled Catfish -->
+    <div class="mc">
+      <img src="menu/Grilled Cat fish.jpg" alt="Grilled Catfish" class="mc-img" onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'">
+      <div class="mc-fade"></div>
+      <div class="mc-body">
+        <h3 class="mc-name">Grilled Catfish</h3>
+        <p class="mc-desc">Whole grilled catfish · spiced tomato sauce</p>
+        <div class="mc-foot">
+          <div>
+            <div class="mc-opts"><span class="mc-tag-lbl">With</span><span class="mc-tag">Jollof Rice</span><span class="mc-tag">Fried Rice</span><span class="mc-tag">Plantain</span><span class="mc-tag">Fried Yam</span></div>
+            <div class="mc-opts"><span class="mc-tag-lbl">Dips</span><span class="mc-tag">Peri Peri</span><span class="mc-tag">Ranch</span></div>
+          </div>
+          <span class="mc-price">₦16,000</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Grilled Croaker -->
+    <div class="mc">
+      <img src="menu/Grilled Croaker Fish.jpg" alt="Grilled Croaker Fish" class="mc-img" onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'">
+      <div class="mc-fade"></div>
+      <div class="mc-body">
+        <h3 class="mc-name">Grilled Croaker</h3>
+        <p class="mc-desc">Seasoned croaker fish · pepper sauce</p>
+        <div class="mc-foot">
+          <div>
+            <div class="mc-opts"><span class="mc-tag-lbl">With</span><span class="mc-tag">Jollof Rice</span><span class="mc-tag">Fried Rice</span><span class="mc-tag">Plantain</span><span class="mc-tag">Fried Yam</span></div>
+            <div class="mc-opts"><span class="mc-tag-lbl">Dips</span><span class="mc-tag">Peri Peri</span><span class="mc-tag">Ranch</span></div>
+          </div>
+          <span class="mc-price">₦15,000</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Grilled Tilapia -->
+    <div class="mc">
+      <img src="menu/Grilled Tilapia Fish.jpg" alt="Grilled Tilapia Fish" class="mc-img" onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'">
+      <div class="mc-fade"></div>
+      <div class="mc-body">
+        <h3 class="mc-name">Grilled Tilapia</h3>
+        <p class="mc-desc">Fresh tilapia, seasoned and grilled over open flame</p>
+        <div class="mc-foot">
+          <div>
+            <div class="mc-opts"><span class="mc-tag-lbl">With</span><span class="mc-tag">Jollof Rice</span><span class="mc-tag">Fried Rice</span><span class="mc-tag">Plantain</span><span class="mc-tag">Fried Yam</span></div>
+            <div class="mc-opts"><span class="mc-tag-lbl">Dips</span><span class="mc-tag">Peri Peri</span><span class="mc-tag">Ranch</span></div>
+          </div>
+          <span class="mc-price">₦14,000</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chicken Shawarma -->
+    <div class="mc">
+      <img src="menu/Chicken Shawarma.jpg" alt="Chicken Shawarma" class="mc-img" onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'">
+      <div class="mc-fade"></div>
+      <div class="mc-body">
+        <h3 class="mc-name">Chicken Shawarma</h3>
+        <p class="mc-desc">Spiced grilled chicken · soft wrap · garlic sauce · fresh veggies</p>
+        <div class="mc-foot">
+          <div>
+            <div class="mc-opts"><span class="mc-tag-lbl">Sides</span><span class="mc-tag">Onion Rings</span><span class="mc-tag">Chips</span></div>
+            <div class="mc-opts"><span class="mc-tag-lbl">Dips</span><span class="mc-tag">Peri Peri</span><span class="mc-tag">Ranch</span></div>
+          </div>
+          <span class="mc-price">₦8,500</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Suya Shawarma -->
+    <div class="mc">
+      <img src="menu/Suya Shawarma.jpg" alt="Suya Shawarma" class="mc-img" onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'">
+      <div class="mc-fade"></div>
+      <div class="mc-body">
+        <h3 class="mc-name">Suya Shawarma</h3>
+        <p class="mc-desc">Tender suya strips · soft wrap · tomatoes</p>
+        <div class="mc-foot">
+          <div>
+            <div class="mc-opts"><span class="mc-tag-lbl">Sides</span><span class="mc-tag">Onion Rings</span><span class="mc-tag">Chips</span></div>
+            <div class="mc-opts"><span class="mc-tag-lbl">Dips</span><span class="mc-tag">Peri Peri</span><span class="mc-tag">Ranch</span></div>
+          </div>
+          <span class="mc-price">₦9,500</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Steak -->
+    <div class="mc">
+      <img src="menu/Steak.jpg" alt="Steak" class="mc-img" onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'">
+      <div class="mc-fade"></div>
+      <div class="mc-body">
+        <h3 class="mc-name">Steak</h3>
+        <p class="mc-desc">Char-grilled steak with your choice of sides and sauce</p>
+        <div class="mc-foot">
+          <div>
+            <div class="mc-opts"><span class="mc-tag-lbl">Sides</span><span class="mc-tag">Mashed Potatoes</span><span class="mc-tag">Jollof Rice</span><span class="mc-tag">Fried Rice</span></div>
+            <div class="mc-opts"><span class="mc-tag-lbl">Dips</span><span class="mc-tag">Peri Peri</span><span class="mc-tag">Ranch</span></div>
+          </div>
+          <span class="mc-price">₦20,000</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Premium row: Seafood Broil + Lamb Chops full width -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:0 60px 80px">
+
+    <!-- Seafood Broil -->
+    <div class="mc" style="height:480px">
+      <img src="menu/Seafood Broil.jpg" alt="Seafood Broil" class="mc-img" onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'">
+      <div class="mc-fade"></div>
+      <div class="mc-body">
+        <p style="font-size:0.6rem;letter-spacing:0.3em;text-transform:uppercase;color:var(--gold);margin-bottom:8px">Chef's Selection</p>
+        <h3 class="mc-name" style="font-size:1.9rem">Seafood Broil</h3>
+        <p class="mc-desc">Seasoned broiled seafood medley — the ocean's finest on one plate</p>
+        <div class="mc-foot">
+          <div>
+            <div class="mc-opts"><span class="mc-tag-lbl">Sides</span><span class="mc-tag">Onion Rings</span><span class="mc-tag">Chips</span></div>
+            <div class="mc-opts"><span class="mc-tag-lbl">Dips</span><span class="mc-tag">Peri Peri</span><span class="mc-tag">Ranch</span></div>
+          </div>
+          <span class="mc-price" style="font-size:1.5rem">₦22,000</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lamb Chops -->
+    <div class="mc" style="height:480px">
+      <img src="menu/Lamb Chops.jpg" alt="Lamb Chops" class="mc-img" onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'">
+      <div class="mc-fade"></div>
+      <div class="mc-body">
+        <p style="font-size:0.6rem;letter-spacing:0.3em;text-transform:uppercase;color:var(--gold);margin-bottom:8px">Signature</p>
+        <h3 class="mc-name" style="font-size:1.9rem">Lamb Chops</h3>
+        <p class="mc-desc">Grilled lamb chops — tender, rich, and served with premium sides</p>
+        <div class="mc-foot">
+          <div>
+            <div class="mc-opts"><span class="mc-tag-lbl">Sides</span><span class="mc-tag">Mashed Potatoes</span><span class="mc-tag">Jollof Rice</span><span class="mc-tag">Fried Rice</span><span class="mc-tag">Fried Yam</span></div>
+            <div class="mc-opts"><span class="mc-tag-lbl">Dips</span><span class="mc-tag">Peri Peri</span><span class="mc-tag">Ranch</span></div>
+          </div>
+          <span class="mc-price" style="font-size:1.5rem">₦28,000</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</section>
+
+<!-- COCKTAIL SESSIONS -->
+<section id="cocktails" style="background:var(--deep);padding:0">
+  <div style="padding:80px 60px 56px;text-align:center">
+    <p class="section-eyebrow" style="color:var(--gold-light)">Bar &amp; Lounge</p>
+    <h2 style="font-family:'Cormorant Garamond',serif;font-size:clamp(2.4rem,4vw,3.6rem);font-weight:300;color:#F5F2EC;line-height:1.1;margin-bottom:20px">
+      Cocktail <em style="font-style:italic;color:var(--gold)">Sessions</em>
+    </h2>
+    <p style="color:rgba(245,242,236,0.55);font-size:0.88rem;line-height:1.9;max-width:520px;margin:0 auto">
+      When the kitchen closes and the evening deepens, our bar takes over.
+      Crafted cocktails built for the night &mdash; each one a conversation in a glass.
+    </p>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;max-width:1400px;margin:0 auto;padding:0 60px 80px;gap:24px">
+
+    <!-- Zesty Cinnamon Splash -->
+    <div style="position:relative;overflow:hidden;border-radius:2px;min-height:580px">
+      <img src="/drinks/zesty-cinnamon-splash.jpg" alt="Zesty Cinnamon Splash" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform 0.6s ease" onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
+      <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(10,25,16,0.92) 0%,rgba(10,25,16,0.3) 50%,transparent 100%)"></div>
+      <div style="position:absolute;bottom:0;left:0;right:0;padding:44px 40px">
+        <p style="font-size:0.62rem;letter-spacing:0.38em;text-transform:uppercase;color:var(--gold);margin-bottom:10px">Signature Cocktail</p>
+        <h3 style="font-family:'Cormorant Garamond',serif;font-size:2.2rem;font-weight:300;color:#F5F2EC;line-height:1.1;margin-bottom:12px">
+          Zesty Cinnamon <em style="font-style:italic;color:var(--gold)">Splash</em>
+        </h3>
+        <p style="font-size:0.8rem;color:rgba(245,242,236,0.65);line-height:1.75;max-width:360px;margin-bottom:18px">
+          Fresh lime &middot; hand-crafted cinnamon syrup &middot; premium spirit &middot; sparkling tonic.
+          Served in a crystal-cut highball over crystal ice, garnished with a cinnamon-dusted lime wheel.
+        </p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <span style="font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:rgba(245,242,236,0.55);border:1px solid rgba(245,242,236,0.18);padding:4px 12px">Lime</span>
+          <span style="font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:rgba(245,242,236,0.55);border:1px solid rgba(245,242,236,0.18);padding:4px 12px">Cinnamon</span>
+          <span style="font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:rgba(245,242,236,0.55);border:1px solid rgba(245,242,236,0.18);padding:4px 12px">Tonic</span>
+          <span style="font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:rgba(245,242,236,0.55);border:1px solid rgba(245,242,236,0.18);padding:4px 12px">Spirit</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Ruby Spark -->
+    <div style="position:relative;overflow:hidden;border-radius:2px;min-height:580px">
+      <img src="/drinks/ruby-spark.jpg" alt="Ruby Spark" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform 0.6s ease" onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
+      <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(10,25,16,0.92) 0%,rgba(10,25,16,0.3) 50%,transparent 100%)"></div>
+      <div style="position:absolute;bottom:0;left:0;right:0;padding:44px 40px">
+        <p style="font-size:0.62rem;letter-spacing:0.38em;text-transform:uppercase;color:var(--gold);margin-bottom:10px">Signature Cocktail</p>
+        <h3 style="font-family:'Cormorant Garamond',serif;font-size:2.2rem;font-weight:300;color:#F5F2EC;line-height:1.1;margin-bottom:12px">
+          Ruby <em style="font-style:italic;color:var(--gold)">Spark</em>
+        </h3>
+        <p style="font-size:0.8rem;color:rgba(245,242,236,0.65);line-height:1.75;max-width:360px;margin-bottom:18px">
+          Layered beetroot-pomegranate base beneath a golden orange crown. Served in a crystal coupe,
+          garnished with dried beetroot crisp, edible violet flower, lime wheel and orange peel twist.
+        </p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <span style="font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:rgba(245,242,236,0.55);border:1px solid rgba(245,242,236,0.18);padding:4px 12px">Beetroot</span>
+          <span style="font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:rgba(245,242,236,0.55);border:1px solid rgba(245,242,236,0.18);padding:4px 12px">Pomegranate</span>
+          <span style="font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:rgba(245,242,236,0.55);border:1px solid rgba(245,242,236,0.18);padding:4px 12px">Orange</span>
+          <span style="font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:rgba(245,242,236,0.55);border:1px solid rgba(245,242,236,0.18);padding:4px 12px">Sparkling</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div style="text-align:center;padding-bottom:80px">
+    <a href="#contact" style="display:inline-block;padding:13px 36px;border:1px solid var(--gold);color:var(--gold);font-size:0.72rem;letter-spacing:0.25em;text-transform:uppercase;text-decoration:none;transition:background 0.3s,color 0.3s" onmouseover="this.style.background='var(--gold)';this.style.color='var(--deep)'" onmouseout="this.style.background='transparent';this.style.color='var(--gold)'">Order at the Bar</a>
   </div>
 </section>
 
@@ -2373,39 +2467,6 @@
     <h2>Where Every Dish Tells<br>a <em>Story</em></h2>
   </div>
 </div>
-
-<!-- ══════════════════════════════════════════════════════════════
-     GALLERY SECTION  (anchor: #gallery)
-     Masonry grid of all food and venue photos. Each image opens the
-     shared menu lightbox so visitors can view full-size.
-     ══════════════════════════════════════════════════════════════ -->
-<section class="gallery" id="gallery">
-  <div class="gallery-inner">
-    <div class="section-header reveal">
-      <p class="section-eyebrow">Our Food</p>
-      <h2 class="section-title">A Taste of <em>Eden 54</em></h2>
-    </div>
-    <div class="gallery-grid">
-      <div class="gallery-item reveal"><img src="menu/chicken skewers.png" alt="Chicken Skewers"><span class="gallery-item-label">Chicken Skewers</span></div>
-      <div class="gallery-item reveal"><img src="menu/Suya Skewers.png" alt="Suya Skewers"><span class="gallery-item-label">Suya Skewers</span></div>
-      <div class="gallery-item reveal"><img src="menu/Stake Skewers.jpg" alt="Steak Skewers"><span class="gallery-item-label">Steak Skewers</span></div>
-      <div class="gallery-item reveal"><img src="menu/Small chops.jpg" alt="Small Chops"><span class="gallery-item-label">Small Chops</span></div>
-      <div class="gallery-item reveal"><img src="menu/Suya Tacos.jpg" alt="Suya Tacos"><span class="gallery-item-label">Suya Tacos</span></div>
-      <div class="gallery-item reveal"><img src="menu/Chipotle Rice Bowl.jpg" alt="Chipotle Rice Bowl"><span class="gallery-item-label">Chipotle Rice Bowl</span></div>
-      <div class="gallery-item reveal"><img src="menu/Jollof Rice.jpg" alt="Jollof Rice"><span class="gallery-item-label">Jollof Rice</span></div>
-      <div class="gallery-item reveal"><img src="menu/Fried Rice.jpg" alt="Fried Rice"><span class="gallery-item-label">Fried Rice</span></div>
-      <div class="gallery-item reveal"><img src="menu/Chicken & Chips.jpg" alt="Chicken & Chips"><span class="gallery-item-label">Chicken &amp; Chips</span></div>
-      <div class="gallery-item reveal"><img src="menu/Grilled Cat fish.jpg" alt="Grilled Catfish"><span class="gallery-item-label">Grilled Catfish</span></div>
-      <div class="gallery-item reveal"><img src="menu/Grilled Croaker Fish.jpg" alt="Grilled Croaker Fish"><span class="gallery-item-label">Grilled Croaker Fish</span></div>
-      <div class="gallery-item reveal"><img src="menu/Grilled Tilapia Fish.jpg" alt="Grilled Tilapia Fish"><span class="gallery-item-label">Grilled Tilapia Fish</span></div>
-      <div class="gallery-item reveal"><img src="menu/Steak.jpg" alt="Steak"><span class="gallery-item-label">Steak</span></div>
-      <div class="gallery-item reveal"><img src="menu/Chicken Shawarma.jpg" alt="Chicken Shawarma"><span class="gallery-item-label">Chicken Shawarma</span></div>
-      <div class="gallery-item reveal"><img src="menu/Suya Shawarma.jpg" alt="Suya Shawarma"><span class="gallery-item-label">Suya Shawarma</span></div>
-      <div class="gallery-item reveal"><img src="menu/Seafood Broil.jpg" alt="Seafood Broil"><span class="gallery-item-label">Seafood Broil</span></div>
-      <div class="gallery-item reveal"><img src="menu/Lamb Chops.jpg" alt="Lamb Chops"><span class="gallery-item-label">Lamb Chops</span></div>
-    </div>
-  </div>
-</section>
 
 <!-- ══════════════════════════════════════════════════════════════
      EXPLORE / TOUR SECTION  (anchor: #explore)
@@ -2696,7 +2757,7 @@
         </div>
       </div>
       <div style="margin-top:36px; border:1px solid rgba(201,169,110,0.2); overflow:hidden; box-shadow: 0 8px 32px rgba(0,0,0,0.3);">
-        <div style="background:#0f2318; padding:12px 16px; border-bottom:1px solid rgba(201,169,110,0.15); display:flex; align-items:center; gap:10px;">
+        <div style="background:var(--deep); padding:12px 16px; border-bottom:1px solid rgba(201,169,110,0.15); display:flex; align-items:center; gap:10px;">
           <span style="font-size:0.7rem; color:var(--gold); letter-spacing:0.2em; text-transform:uppercase;">📍 Find Us</span>
         </div>
         <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d7909.195256894762!2d4.705409339470755!3d7.618684919586597!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x103823e0b10a1f61%3A0x6be10db0bd5614fa!2sEden54%20luxury%20Apartment%20and%20Lounge!5e0!3m2!1sen!2sus!4v1781476033262!5m2!1sen!2sus" width="100%" height="260" style="border:0;display:block;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
@@ -2990,98 +3051,6 @@
     });
   });
 
-  /* ── GALLERY CAROUSEL ────────────────────────────────────────
-     Collects all gallery images into an array; clicking any item
-     opens the carousel at that index. Arrows and keyboard ← →
-     navigate between images.
-     ---------------------------------------------------------- */
-  const galleryLb        = document.getElementById('galleryLb');
-  const galleryLbImg     = document.getElementById('galleryLbImg');
-  const galleryLbCaption = document.getElementById('galleryLbCaption');
-  const galleryLbCounter = document.getElementById('galleryLbCounter');
-  const galleryLbClose   = document.getElementById('galleryLbClose');
-  const galleryLbBackdrop= document.getElementById('galleryLbBackdrop');
-  const galleryLbPrev    = document.getElementById('galleryLbPrev');
-  const galleryLbNext    = document.getElementById('galleryLbNext');
-
-  const galleryItems = Array.from(document.querySelectorAll('.gallery-item'));
-  let galleryIndex = 0;
-
-  let galleryZoom = 1;
-
-  function resetGalleryZoom() {
-    galleryZoom = 1;
-    galleryLbImg.style.transform = 'scale(1)';
-    galleryLbImg.style.cursor = 'zoom-in';
-  }
-
-  function showGallerySlide(index) {
-    galleryIndex = (index + galleryItems.length) % galleryItems.length;
-    const img = galleryItems[galleryIndex].querySelector('img');
-    resetGalleryZoom();
-    galleryLbImg.style.opacity = '0';
-    setTimeout(() => {
-      galleryLbImg.src = img.src;
-      galleryLbImg.alt = img.alt;
-      galleryLbCaption.textContent = img.alt;
-      galleryLbCounter.textContent = (galleryIndex + 1) + ' / ' + galleryItems.length;
-      galleryLbImg.style.opacity = '1';
-    }, 150);
-  }
-
-  function openGalleryLb(index) {
-    galleryLb.classList.add('open');
-    showGallerySlide(index);
-  }
-
-  function closeGalleryLb() {
-    galleryLb.classList.remove('open');
-    resetGalleryZoom();
-  }
-
-  galleryItems.forEach((item, i) => {
-    item.addEventListener('click', () => openGalleryLb(i));
-  });
-
-  /* Mouse-wheel zoom in gallery lightbox */
-  galleryLb.addEventListener('wheel', e => {
-    e.preventDefault();
-    galleryZoom = Math.min(Math.max(galleryZoom + (e.deltaY < 0 ? 0.15 : -0.15), 0.5), 5);
-    galleryLbImg.style.transform = `scale(${galleryZoom})`;
-    galleryLbImg.style.cursor = galleryZoom > 1 ? 'zoom-out' : 'zoom-in';
-  }, { passive: false });
-
-  /* Click image to cycle 1× → 2× → 3× → 1× */
-  galleryLbImg.addEventListener('click', e => {
-    e.stopPropagation();
-    galleryZoom = galleryZoom >= 3 ? 1 : galleryZoom + 1;
-    galleryLbImg.style.transform = `scale(${galleryZoom})`;
-    galleryLbImg.style.cursor = galleryZoom > 1 ? 'zoom-out' : 'zoom-in';
-  });
-
-  galleryLbPrev.addEventListener('click', () => showGallerySlide(galleryIndex - 1));
-  galleryLbNext.addEventListener('click', () => showGallerySlide(galleryIndex + 1));
-  galleryLbClose.addEventListener('click', closeGalleryLb);
-  galleryLbBackdrop.addEventListener('click', closeGalleryLb);
-
-  /* Keyboard: ← → navigate · + / - zoom · Escape close */
-  document.addEventListener('keydown', e => {
-    if (!galleryLb.classList.contains('open')) return;
-    if (e.key === 'ArrowLeft')       showGallerySlide(galleryIndex - 1);
-    if (e.key === 'ArrowRight')      showGallerySlide(galleryIndex + 1);
-    if (e.key === 'Escape')          closeGalleryLb();
-    if (e.key === '+' || e.key === '=') {
-      galleryZoom = Math.min(galleryZoom + 0.25, 5);
-      galleryLbImg.style.transform = `scale(${galleryZoom})`;
-      galleryLbImg.style.cursor = galleryZoom > 1 ? 'zoom-out' : 'zoom-in';
-    }
-    if (e.key === '-') {
-      galleryZoom = Math.max(galleryZoom - 0.25, 0.5);
-      galleryLbImg.style.transform = `scale(${galleryZoom})`;
-      galleryLbImg.style.cursor = galleryZoom > 1 ? 'zoom-out' : 'zoom-in';
-    }
-  });
-
   /* Mouse-wheel zoom inside the lightbox */
   menuImgModal.addEventListener('wheel', e => {
     e.preventDefault();
@@ -3102,25 +3071,59 @@
   menuImgBackdrop.addEventListener('click', closeMenuImg);
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeMenuImg(); });
 
-  /* ── DINING PANEL IMAGE SLIDESHOW ── */
-  const diningBgImg = document.getElementById('diningBgImg');
-  const diningSlides = [
-    'menu/Steak.jpg','menu/Seafood Broil.jpg','menu/Lamb Chops.jpg',
-    'menu/Chipotle Rice Bowl.jpg','menu/Jollof Rice.jpg','menu/Fried Rice.jpg',
-    'menu/Chicken & Chips.jpg','menu/Grilled Cat fish.jpg','menu/Grilled Croaker Fish.jpg',
-    'menu/Grilled Tilapia Fish.jpg','menu/Chicken Shawarma.jpg','menu/Suya Shawarma.jpg',
-    'menu/Suya Tacos.jpg','menu/Small chops.jpg','menu/chicken skewers.png',
-    'menu/Suya Skewers.png','menu/Stake Skewers.jpg'
-  ];
-  let diningSlideIndex = 0;
-  setInterval(() => {
-    diningBgImg.classList.add('fade');
-    setTimeout(() => {
-      diningSlideIndex = (diningSlideIndex + 1) % diningSlides.length;
-      diningBgImg.src = diningSlides[diningSlideIndex];
-      diningBgImg.classList.remove('fade');
-    }, 800);
-  }, 3500);
+  /* ── FOOD CARD POP-OUT ───────────────────────────────────────
+     Click any .mc card → image zooms up, holds 3 s, auto-closes.
+     Click anywhere or press Escape to close early.
+     ---------------------------------------------------------- */
+  (function () {
+    const pop      = document.getElementById('foodPop');
+    const popImg   = document.getElementById('foodPopImg');
+    const popName  = document.getElementById('foodPopName');
+    const popBar   = document.getElementById('foodPopProgress');
+    let   autoTimer = null;
+
+    function openPop(src, name) {
+      clearTimeout(autoTimer);
+      popImg.src       = src;
+      popName.textContent = name;
+      popImg.style.transform  = 'scale(0.88)';
+      popBar.style.transition = 'none';
+      popBar.style.width      = '0%';
+
+      pop.style.opacity       = '1';
+      pop.style.pointerEvents = 'all';
+
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          popImg.style.transform  = 'scale(1)';
+          popBar.style.transition = 'width 3s linear';
+          popBar.style.width      = '100%';
+        });
+      });
+
+      autoTimer = setTimeout(closePop, 3000);
+    }
+
+    function closePop() {
+      clearTimeout(autoTimer);
+      pop.style.opacity       = '0';
+      pop.style.pointerEvents = 'none';
+      popImg.style.transform  = 'scale(0.88)';
+      popBar.style.transition = 'none';
+      popBar.style.width      = '0%';
+    }
+
+    document.querySelectorAll('.mc').forEach(card => {
+      card.addEventListener('click', () => {
+        const img  = card.querySelector('.mc-img');
+        const name = card.querySelector('.mc-name').textContent;
+        openPop(img.src, name);
+      });
+    });
+
+    pop.addEventListener('click', closePop);
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closePop(); });
+  })();
 
   /* ── CUSTOM RESERVATION FORM ────────────────────────────────
      Submits directly to Google Forms via fetch (no-cors).
