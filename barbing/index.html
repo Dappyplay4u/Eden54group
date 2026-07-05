@@ -203,7 +203,7 @@
     <li><a href="#gallery">Gallery</a></li>
     <li><a href="/games">Games</a></li>
     <li><a href="/car-rental">Car Rental</a></li>
-    <li><a href="/#contact" class="btn-gold">Reserve</a></li>
+    <li><a href="/#contact" class="btn-gold" onclick="openBarbingModal(event)">Reserve</a></li>
   </ul>
 </nav>
 
@@ -487,7 +487,7 @@
   <p class="section-eyebrow">Appointments</p>
   <h2>Ready for Your <em>Cut?</em></h2>
   <p>Walk-ins are welcome. For VIP sessions or group bookings, contact us in advance to secure your slot.</p>
-  <a href="tel:[salon-phone]" class="btn-gold-lg">Call to Book</a>
+  <a href="tel:[salon-phone]" class="btn-gold-lg" onclick="openBarbingModal(event)">Book a Slot</a>
 </section>
 
 <!-- FOOTER -->
@@ -514,6 +514,66 @@ function closeLB() {
   document.body.style.overflow = '';
 }
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLB(); });
+</script>
+
+<!-- BOOKING MODAL -->
+<div id="barbingModal" style="position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:rgba(10,25,16,0.93);backdrop-filter:blur(10px);opacity:0;pointer-events:none;transition:opacity 0.3s;padding:20px">
+  <div style="background:#0f2318;border:1px solid rgba(201,169,110,0.3);border-radius:3px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;position:relative">
+    <button onclick="closeBarbingModal()" style="position:absolute;top:14px;right:18px;background:none;border:none;color:rgba(245,242,236,0.45);font-size:1.6rem;cursor:pointer;line-height:1">×</button>
+    <div style="padding:32px 36px 20px">
+      <p style="font-size:0.6rem;letter-spacing:0.38em;text-transform:uppercase;color:#C9A96E;margin-bottom:8px">Barbing Salon · Eden 54</p>
+      <h2 style="font-family:'Cormorant Garamond',serif;font-size:1.9rem;font-weight:300;color:#F5F2EC;margin-bottom:4px">Book a Slot</h2>
+      <p style="font-size:0.78rem;color:rgba(245,242,236,0.45)">Reserve your chair — we'll confirm your slot by phone.</p>
+    </div>
+    <form id="barbingForm" style="padding:0 36px 36px" onsubmit="submitBarbingForm(event)">
+      <input type="hidden" name="_subject" value="Barbing Salon Booking — Eden 54">
+      <input type="hidden" name="_captcha" value="false">
+      <div style="margin-bottom:14px">
+        <label style="display:block;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:rgba(245,242,236,0.45);margin-bottom:6px">Full Name *</label>
+        <input name="name" required placeholder="Your full name" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(201,169,110,0.22);padding:11px 14px;color:#F5F2EC;font-family:'Jost',sans-serif;font-size:0.88rem;outline:none;border-radius:2px" onfocus="this.style.borderColor='rgba(201,169,110,0.6)'" onblur="this.style.borderColor='rgba(201,169,110,0.22)'">
+      </div>
+      <div style="margin-bottom:14px">
+        <label style="display:block;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:rgba(245,242,236,0.45);margin-bottom:6px">Phone Number *</label>
+        <input name="phone" type="tel" required placeholder="e.g. 08012345678" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(201,169,110,0.22);padding:11px 14px;color:#F5F2EC;font-family:'Jost',sans-serif;font-size:0.88rem;outline:none;border-radius:2px" onfocus="this.style.borderColor='rgba(201,169,110,0.6)'" onblur="this.style.borderColor='rgba(201,169,110,0.22)'">
+      </div>
+      <div style="margin-bottom:14px">
+        <label style="display:block;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:rgba(245,242,236,0.45);margin-bottom:6px">Service Required *</label>
+        <select name="service" required style="width:100%;background:#0f2318;border:1px solid rgba(201,169,110,0.22);padding:11px 14px;color:#F5F2EC;font-family:'Jost',sans-serif;font-size:0.88rem;outline:none;border-radius:2px">
+          <option value="">Select a service…</option>
+          <option>Haircut</option><option>Beard Trim</option><option>Haircut + Beard</option><option>Hair Styling</option><option>Full Grooming Package</option><option>Kids Haircut</option>
+        </select>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+        <div>
+          <label style="display:block;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:rgba(245,242,236,0.45);margin-bottom:6px">Preferred Date</label>
+          <input name="date" type="date" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(201,169,110,0.22);padding:11px 14px;color:#F5F2EC;font-family:'Jost',sans-serif;font-size:0.88rem;outline:none;border-radius:2px">
+        </div>
+        <div>
+          <label style="display:block;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:rgba(245,242,236,0.45);margin-bottom:6px">Preferred Time</label>
+          <select name="time" style="width:100%;background:#0f2318;border:1px solid rgba(201,169,110,0.22);padding:11px 14px;color:#F5F2EC;font-family:'Jost',sans-serif;font-size:0.88rem;outline:none;border-radius:2px">
+            <option>Morning (9am–12pm)</option><option>Afternoon (12pm–3pm)</option><option>Evening (3pm–6pm)</option>
+          </select>
+        </div>
+      </div>
+      <div style="margin-bottom:20px">
+        <label style="display:block;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:rgba(245,242,236,0.45);margin-bottom:6px">Special Requests (optional)</label>
+        <textarea name="notes" rows="3" placeholder="Any specific style or requirements…" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(201,169,110,0.22);padding:11px 14px;color:#F5F2EC;font-family:'Jost',sans-serif;font-size:0.88rem;outline:none;border-radius:2px;resize:vertical"></textarea>
+      </div>
+      <button type="submit" id="barbingSubmitBtn" style="width:100%;background:#C9A96E;color:#0f2318;border:none;padding:14px;font-family:'Jost',sans-serif;font-size:0.78rem;letter-spacing:0.22em;text-transform:uppercase;cursor:pointer;border-radius:2px">Reserve My Slot →</button>
+    </form>
+    <div id="barbingSuccess" style="display:none;padding:60px 36px;text-align:center">
+      <div style="font-size:2.5rem;color:#C9A96E;margin-bottom:16px">✓</div>
+      <h3 style="font-family:'Cormorant Garamond',serif;font-size:1.6rem;font-weight:300;color:#F5F2EC;margin-bottom:8px">Booking Received</h3>
+      <p style="font-size:0.82rem;color:rgba(245,242,236,0.5)">We'll confirm your slot via call or WhatsApp shortly.</p>
+    </div>
+  </div>
+</div>
+<script>
+function openBarbingModal(e){ if(e) e.preventDefault(); document.getElementById('barbingModal').style.opacity='1'; document.getElementById('barbingModal').style.pointerEvents='all'; }
+function closeBarbingModal(){ const m=document.getElementById('barbingModal'); m.style.opacity='0'; m.style.pointerEvents='none'; document.getElementById('barbingForm').style.display=''; document.getElementById('barbingSuccess').style.display='none'; document.getElementById('barbingForm').reset(); }
+async function submitBarbingForm(e){ e.preventDefault(); const btn=document.getElementById('barbingSubmitBtn'); btn.textContent='Sending…'; btn.disabled=true; const data={}; new FormData(e.target).forEach((v,k)=>data[k]=v); try{ const r=await fetch('https://formsubmit.co/ajax/jegede.oladapo@ymail.com',{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify(data)}); if(r.ok){ document.getElementById('barbingForm').style.display='none'; document.getElementById('barbingSuccess').style.display='block'; setTimeout(closeBarbingModal,4000); }else throw 0; }catch{ btn.textContent='Reserve My Slot →'; btn.disabled=false; alert('Something went wrong — please try again.'); } }
+document.getElementById('barbingModal').addEventListener('click',function(e){ if(e.target===this) closeBarbingModal(); });
+document.addEventListener('keydown', e => { if(e.key==='Escape') closeBarbingModal(); });
 </script>
 </body>
 </html>

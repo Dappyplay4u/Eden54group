@@ -217,7 +217,7 @@
     <li><a href="/games">Games</a></li>
     <li><a href="/car-rental" class="active">Car Rental</a></li>
     <li><a href="#car-gallery">Gallery</a></li>
-    <li><a href="/#contact" class="btn-gold" style="padding:10px 22px;">Reserve</a></li>
+    <li><a href="/#contact" class="btn-gold" style="padding:10px 22px;" onclick="openCarModal(event)">Reserve</a></li>
   </ul>
 </nav>
 
@@ -466,7 +466,7 @@
   <p class="section-eyebrow">Book a Ride</p>
   <h2>Where Are We<br>Taking You <em>Today?</em></h2>
   <p>Every booking includes a dedicated driver. Just tell us your destination and preferred time — we handle everything from there. Available to Eden 54 guests; booking at least 24 hours in advance is recommended.</p>
-  <a href="/#contact" class="btn-gold">Book Now</a>
+  <a href="/#contact" class="btn-gold" onclick="openCarModal(event)">Book Now</a>
 </section>
 
 <!-- FOOTER -->
@@ -531,6 +531,63 @@
     if (e.key === 'ArrowLeft')  navigate(-1);
     if (e.key === 'ArrowRight') navigate(1);
   });
+</script>
+
+<!-- BOOKING MODAL -->
+<div id="carModal" style="position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:rgba(10,25,16,0.93);backdrop-filter:blur(10px);opacity:0;pointer-events:none;transition:opacity 0.3s;padding:20px">
+  <div style="background:#0f2318;border:1px solid rgba(201,169,110,0.3);border-radius:3px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;position:relative">
+    <button onclick="closeCarModal()" style="position:absolute;top:14px;right:18px;background:none;border:none;color:rgba(245,242,236,0.45);font-size:1.6rem;cursor:pointer;line-height:1">×</button>
+    <div style="padding:32px 36px 20px">
+      <p style="font-size:0.6rem;letter-spacing:0.38em;text-transform:uppercase;color:#C9A96E;margin-bottom:8px">Car Rental · Eden 54</p>
+      <h2 style="font-family:'Cormorant Garamond',serif;font-size:1.9rem;font-weight:300;color:#F5F2EC;margin-bottom:4px">Book a Ride</h2>
+      <p style="font-size:0.78rem;color:rgba(245,242,236,0.45)">Tell us your plans — we'll arrange a dedicated driver for you.</p>
+    </div>
+    <form id="carForm" style="padding:0 36px 36px" onsubmit="submitCarForm(event)">
+      <input type="hidden" name="_subject" value="Car Rental Booking — Eden 54">
+      <input type="hidden" name="_captcha" value="false">
+      <div style="margin-bottom:14px">
+        <label style="display:block;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:rgba(245,242,236,0.45);margin-bottom:6px">Full Name *</label>
+        <input name="name" required placeholder="Your full name" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(201,169,110,0.22);padding:11px 14px;color:#F5F2EC;font-family:'Jost',sans-serif;font-size:0.88rem;outline:none;border-radius:2px" onfocus="this.style.borderColor='rgba(201,169,110,0.6)'" onblur="this.style.borderColor='rgba(201,169,110,0.22)'">
+      </div>
+      <div style="margin-bottom:14px">
+        <label style="display:block;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:rgba(245,242,236,0.45);margin-bottom:6px">Phone Number *</label>
+        <input name="phone" type="tel" required placeholder="e.g. 08012345678" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(201,169,110,0.22);padding:11px 14px;color:#F5F2EC;font-family:'Jost',sans-serif;font-size:0.88rem;outline:none;border-radius:2px" onfocus="this.style.borderColor='rgba(201,169,110,0.6)'" onblur="this.style.borderColor='rgba(201,169,110,0.22)'">
+      </div>
+      <div style="margin-bottom:14px">
+        <label style="display:block;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:rgba(245,242,236,0.45);margin-bottom:6px">Destination *</label>
+        <input name="destination" required placeholder="Where are you going?" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(201,169,110,0.22);padding:11px 14px;color:#F5F2EC;font-family:'Jost',sans-serif;font-size:0.88rem;outline:none;border-radius:2px" onfocus="this.style.borderColor='rgba(201,169,110,0.6)'" onblur="this.style.borderColor='rgba(201,169,110,0.22)'">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+        <div>
+          <label style="display:block;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:rgba(245,242,236,0.45);margin-bottom:6px">Date Required</label>
+          <input name="date" type="date" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(201,169,110,0.22);padding:11px 14px;color:#F5F2EC;font-family:'Jost',sans-serif;font-size:0.88rem;outline:none;border-radius:2px">
+        </div>
+        <div>
+          <label style="display:block;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:rgba(245,242,236,0.45);margin-bottom:6px">Passengers</label>
+          <select name="passengers" style="width:100%;background:#0f2318;border:1px solid rgba(201,169,110,0.22);padding:11px 14px;color:#F5F2EC;font-family:'Jost',sans-serif;font-size:0.88rem;outline:none;border-radius:2px">
+            <option>1</option><option>2</option><option>3</option><option>4</option><option>5+</option>
+          </select>
+        </div>
+      </div>
+      <div style="margin-bottom:20px">
+        <label style="display:block;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:rgba(245,242,236,0.45);margin-bottom:6px">Additional Notes (optional)</label>
+        <textarea name="notes" rows="3" placeholder="Pick-up time, return trip, specific requirements…" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(201,169,110,0.22);padding:11px 14px;color:#F5F2EC;font-family:'Jost',sans-serif;font-size:0.88rem;outline:none;border-radius:2px;resize:vertical"></textarea>
+      </div>
+      <button type="submit" id="carSubmitBtn" style="width:100%;background:#C9A96E;color:#0f2318;border:none;padding:14px;font-family:'Jost',sans-serif;font-size:0.78rem;letter-spacing:0.22em;text-transform:uppercase;cursor:pointer;border-radius:2px">Book My Ride →</button>
+    </form>
+    <div id="carSuccess" style="display:none;padding:60px 36px;text-align:center">
+      <div style="font-size:2.5rem;color:#C9A96E;margin-bottom:16px">✓</div>
+      <h3 style="font-family:'Cormorant Garamond',serif;font-size:1.6rem;font-weight:300;color:#F5F2EC;margin-bottom:8px">Booking Confirmed</h3>
+      <p style="font-size:0.82rem;color:rgba(245,242,236,0.5)">Your driver will be arranged. We'll call to confirm details.</p>
+    </div>
+  </div>
+</div>
+<script>
+function openCarModal(e){ if(e) e.preventDefault(); document.getElementById('carModal').style.opacity='1'; document.getElementById('carModal').style.pointerEvents='all'; }
+function closeCarModal(){ const m=document.getElementById('carModal'); m.style.opacity='0'; m.style.pointerEvents='none'; document.getElementById('carForm').style.display=''; document.getElementById('carSuccess').style.display='none'; document.getElementById('carForm').reset(); }
+async function submitCarForm(e){ e.preventDefault(); const btn=document.getElementById('carSubmitBtn'); btn.textContent='Sending…'; btn.disabled=true; const data={}; new FormData(e.target).forEach((v,k)=>data[k]=v); try{ const r=await fetch('https://formsubmit.co/ajax/jegede.oladapo@ymail.com',{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify(data)}); if(r.ok){ document.getElementById('carForm').style.display='none'; document.getElementById('carSuccess').style.display='block'; setTimeout(closeCarModal,4000); }else throw 0; }catch{ btn.textContent='Book My Ride →'; btn.disabled=false; alert('Something went wrong — please try again.'); } }
+document.getElementById('carModal').addEventListener('click',function(e){ if(e.target===this) closeCarModal(); });
+document.addEventListener('keydown', e => { if(e.key==='Escape') closeCarModal(); });
 </script>
 </body>
 </html>

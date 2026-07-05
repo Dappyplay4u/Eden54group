@@ -150,7 +150,7 @@
     <li><a href="/barbing">Barbing Salon</a></li>
     <li><a href="/games" class="active">Games</a></li>
     <li><a href="/car-rental">Car Rental</a></li>
-    <li><a href="/#contact" class="btn-gold" style="padding:10px 22px;">Reserve</a></li>
+    <li><a href="/#contact" class="btn-gold" style="padding:10px 22px;" onclick="openGamesModal(event)">Reserve</a></li>
   </ul>
 </nav>
 
@@ -235,7 +235,7 @@
     <div class="divider"></div>
     <p>Our swimming pool isn't just for relaxing — it's a competitive arena. We host organised pool tournaments and water games for groups, with the pergola bar right alongside to keep the energy going.</p>
     <p>Available for private hire for birthday parties, corporate events, and group outings.</p>
-    <a href="/#contact" class="btn-gold" style="display:inline-block; margin-top:12px;">Book the Pool</a>
+    <a href="/#contact" class="btn-gold" style="display:inline-block; margin-top:12px;" onclick="openGamesModal(event)">Book the Pool</a>
   </div>
   <div class="pool-img">
     <img src="/pool/poolside.jpg" alt="Eden 54 Pool">
@@ -305,7 +305,7 @@
   <p class="section-eyebrow">Book Your Session</p>
   <h2>Ready to <em>Play?</em></h2>
   <p>Reserve your gaming session, pool slot, or private event space. Walk-ins welcome subject to availability.</p>
-  <a href="/#contact" class="btn-gold">Get in Touch</a>
+  <a href="/#contact" class="btn-gold" onclick="openGamesModal(event)">Get in Touch</a>
 </section>
 
 <!-- FOOTER -->
@@ -319,5 +319,64 @@
   <div class="footer-copy">&copy; 2026 Eden 54 &middot; Ilesa, Osun State</div>
 </footer>
 
+<!-- BOOKING MODAL -->
+<div id="gamesModal" style="position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:rgba(10,25,16,0.93);backdrop-filter:blur(10px);opacity:0;pointer-events:none;transition:opacity 0.3s;padding:20px">
+  <div style="background:#0f2318;border:1px solid rgba(201,169,110,0.3);border-radius:3px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;position:relative">
+    <button onclick="closeGamesModal()" style="position:absolute;top:14px;right:18px;background:none;border:none;color:rgba(245,242,236,0.45);font-size:1.6rem;cursor:pointer;line-height:1">×</button>
+    <div style="padding:32px 36px 20px">
+      <p style="font-size:0.6rem;letter-spacing:0.38em;text-transform:uppercase;color:#C9A96E;margin-bottom:8px">Games &amp; Pool · Eden 54</p>
+      <h2 style="font-family:'Cormorant Garamond',serif;font-size:1.9rem;font-weight:300;color:#F5F2EC;margin-bottom:4px">Book Your Session</h2>
+      <p style="font-size:0.78rem;color:rgba(245,242,236,0.45)">Reserve your spot — walk-ins welcome, advance booking guaranteed.</p>
+    </div>
+    <form id="gamesForm" style="padding:0 36px 36px" onsubmit="submitGamesForm(event)">
+      <input type="hidden" name="_subject" value="Games &amp; Pool Booking — Eden 54">
+      <input type="hidden" name="_captcha" value="false">
+      <div style="margin-bottom:14px">
+        <label style="display:block;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:rgba(245,242,236,0.45);margin-bottom:6px">Full Name *</label>
+        <input name="name" required placeholder="Your full name" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(201,169,110,0.22);padding:11px 14px;color:#F5F2EC;font-family:'Jost',sans-serif;font-size:0.88rem;outline:none;border-radius:2px" onfocus="this.style.borderColor='rgba(201,169,110,0.6)'" onblur="this.style.borderColor='rgba(201,169,110,0.22)'">
+      </div>
+      <div style="margin-bottom:14px">
+        <label style="display:block;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:rgba(245,242,236,0.45);margin-bottom:6px">Phone Number *</label>
+        <input name="phone" type="tel" required placeholder="e.g. 08012345678" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(201,169,110,0.22);padding:11px 14px;color:#F5F2EC;font-family:'Jost',sans-serif;font-size:0.88rem;outline:none;border-radius:2px" onfocus="this.style.borderColor='rgba(201,169,110,0.6)'" onblur="this.style.borderColor='rgba(201,169,110,0.22)'">
+      </div>
+      <div style="margin-bottom:14px">
+        <label style="display:block;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:rgba(245,242,236,0.45);margin-bottom:6px">Activity *</label>
+        <select name="activity" required style="width:100%;background:#0f2318;border:1px solid rgba(201,169,110,0.22);padding:11px 14px;color:#F5F2EC;font-family:'Jost',sans-serif;font-size:0.88rem;outline:none;border-radius:2px">
+          <option value="">Select activity…</option>
+          <option>Swimming Pool</option><option>Games Room</option><option>Table Tennis</option><option>Snooker</option><option>Darts</option><option>Private Event / Full Hire</option>
+        </select>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+        <div>
+          <label style="display:block;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:rgba(245,242,236,0.45);margin-bottom:6px">Preferred Date</label>
+          <input name="date" type="date" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(201,169,110,0.22);padding:11px 14px;color:#F5F2EC;font-family:'Jost',sans-serif;font-size:0.88rem;outline:none;border-radius:2px">
+        </div>
+        <div>
+          <label style="display:block;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:rgba(245,242,236,0.45);margin-bottom:6px">No. of Guests</label>
+          <select name="guests" style="width:100%;background:#0f2318;border:1px solid rgba(201,169,110,0.22);padding:11px 14px;color:#F5F2EC;font-family:'Jost',sans-serif;font-size:0.88rem;outline:none;border-radius:2px">
+            <option>1</option><option>2</option><option>3–5</option><option>6–10</option><option>10+</option>
+          </select>
+        </div>
+      </div>
+      <div style="margin-bottom:20px">
+        <label style="display:block;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:rgba(245,242,236,0.45);margin-bottom:6px">Additional Notes (optional)</label>
+        <textarea name="notes" rows="3" placeholder="Event type, time preference, special requirements…" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(201,169,110,0.22);padding:11px 14px;color:#F5F2EC;font-family:'Jost',sans-serif;font-size:0.88rem;outline:none;border-radius:2px;resize:vertical"></textarea>
+      </div>
+      <button type="submit" id="gamesSubmitBtn" style="width:100%;background:#C9A96E;color:#0f2318;border:none;padding:14px;font-family:'Jost',sans-serif;font-size:0.78rem;letter-spacing:0.22em;text-transform:uppercase;cursor:pointer;border-radius:2px">Reserve My Session →</button>
+    </form>
+    <div id="gamesSuccess" style="display:none;padding:60px 36px;text-align:center">
+      <div style="font-size:2.5rem;color:#C9A96E;margin-bottom:16px">✓</div>
+      <h3 style="font-family:'Cormorant Garamond',serif;font-size:1.6rem;font-weight:300;color:#F5F2EC;margin-bottom:8px">Session Booked</h3>
+      <p style="font-size:0.82rem;color:rgba(245,242,236,0.5)">We'll confirm your reservation via call or WhatsApp.</p>
+    </div>
+  </div>
+</div>
+<script>
+function openGamesModal(e){ if(e) e.preventDefault(); document.getElementById('gamesModal').style.opacity='1'; document.getElementById('gamesModal').style.pointerEvents='all'; }
+function closeGamesModal(){ const m=document.getElementById('gamesModal'); m.style.opacity='0'; m.style.pointerEvents='none'; document.getElementById('gamesForm').style.display=''; document.getElementById('gamesSuccess').style.display='none'; document.getElementById('gamesForm').reset(); }
+async function submitGamesForm(e){ e.preventDefault(); const btn=document.getElementById('gamesSubmitBtn'); btn.textContent='Sending…'; btn.disabled=true; const data={}; new FormData(e.target).forEach((v,k)=>data[k]=v); try{ const r=await fetch('https://formsubmit.co/ajax/jegede.oladapo@ymail.com',{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify(data)}); if(r.ok){ document.getElementById('gamesForm').style.display='none'; document.getElementById('gamesSuccess').style.display='block'; setTimeout(closeGamesModal,4000); }else throw 0; }catch{ btn.textContent='Reserve My Session →'; btn.disabled=false; alert('Something went wrong — please try again.'); } }
+document.getElementById('gamesModal').addEventListener('click',function(e){ if(e.target===this) closeGamesModal(); });
+document.addEventListener('keydown', e => { if(e.key==='Escape') closeGamesModal(); });
+</script>
 </body>
 </html>
