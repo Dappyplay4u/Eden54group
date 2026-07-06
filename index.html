@@ -29,12 +29,12 @@
     --gold-light:  #E0BE8A;  /* Lighter gold — hover states */
     --gold-dark:   #9A7A3A;  /* Darker gold — subtle text and shadows */
     --deep:        #0f2318;  /* Deep forest green — hero, nav, footer (matches logo) */
-    --dark:        #F0EBE0;  /* Warm cream — alternate section backgrounds */
+    --dark:        #E3E2DF;  /* Cool grey-white — alternate section backgrounds */
     --mid:         #FFFFFF;  /* White — card backgrounds and form panels */
-    --surface:     #EDE6D8;  /* Slightly deeper cream — card hover surfaces */
+    --surface:     #D9D8D5;  /* Cool grey — card hover surfaces */
     --text:        #1A1A18;  /* Near-black — headings and body text on light sections */
-    --muted:       #6A6B62;  /* Warm grey — secondary descriptions and labels */
-    --cream:       #F8F5EF;  /* Pure cream — reserved for subtle accents */
+    --muted:       #5E5F5C;  /* Cool grey — secondary descriptions and labels */
+    --cream:       #EDEDEB;  /* Cool grey-white — subtle accents */
   }
 
   /* Removes default browser spacing from every element */
@@ -45,7 +45,7 @@
   html { scroll-behavior: smooth; scroll-padding-top: 160px; }
 
   body {
-    background: #F8F4EE;           /* Warm cream page background */
+    background: #ECEAE8;           /* Cool grey-white page background */
     color: var(--text);            /* Near-black text for light sections */
     font-family: 'Jost', sans-serif;
     font-weight: 300;
@@ -1634,7 +1634,7 @@
   }
 
   /* ── CUSTOM RESERVATION FORM ───────────────────────────────── */
-  #rfFormWrap { background: #FDFCFA; padding: 36px 44px 44px; }
+  #rfFormWrap { background: #F5F4F2; padding: 36px 44px 44px; }
   #rfFormWrap .rf-form-body.hide { display: none; }
   #rfFormWrap .rf-section { margin-bottom: 22px; }
   #rfFormWrap .rf-section-label {
@@ -1661,7 +1661,7 @@
   #rfFormWrap textarea {
     width: 100%; padding: 11px 14px;
     font-size: 0.85rem; font-family: 'Jost', sans-serif;
-    color: #1A1A1A; background: #F4F1EC;
+    color: #1A1A1A; background: #ECEAE8;
     border: 1px solid #DDD9D1; border-radius: 3px;
     outline: none; transition: border-color 0.2s, box-shadow 0.2s;
     appearance: none; -webkit-appearance: none;
@@ -1677,7 +1677,7 @@
   #rfFormWrap select {
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23888580' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
     background-repeat: no-repeat; background-position: right 12px center;
-    background-color: #F4F1EC; padding-right: 36px; cursor: pointer;
+    background-color: #ECEAE8; padding-right: 36px; cursor: pointer;
   }
   #rfFormWrap textarea { resize: vertical; min-height: 88px; line-height: 1.6; }
   #rfFormWrap .rf-divider { border: none; border-top: 1px solid rgba(201,169,110,0.15); margin: 24px 0; }
@@ -1712,7 +1712,7 @@
   .rf-msg.rf-error-msg { background: #FEF2F2; color: #B91C1C; border: 1px solid #FECACA; }
   .rf-success-screen {
     display: none; text-align: center; padding: 60px 32px;
-    background: #FDFCFA;
+    background: #F5F4F2;
   }
   .rf-success-screen.show { display: block; }
   .rf-success-icon {
@@ -2070,15 +2070,15 @@
                4 signature dishes with names, details, and prices (₦)
      To update menu items, edit the .menu-item blocks in this section.
      ══════════════════════════════════════════════════════════════ -->
-<section id="dining" style="background:var(--deep);padding:0">
+<section id="dining" style="background:#ECEAE8;padding:0">
 
   <!-- Header -->
   <div style="padding:80px 60px 52px;text-align:center">
     <p class="section-eyebrow">Restaurant &amp; Bar</p>
-    <h2 style="font-family:'Cormorant Garamond',serif;font-size:clamp(2.4rem,4vw,3.6rem);font-weight:300;color:#F5F2EC;line-height:1.1;margin-bottom:20px">
+    <h2 style="font-family:'Cormorant Garamond',serif;font-size:clamp(2.4rem,4vw,3.6rem);font-weight:300;color:#1A1A18;line-height:1.1;margin-bottom:20px">
       Fine Dining at <em style="font-style:italic;color:var(--gold)">Eden 54</em>
     </h2>
-    <p style="color:rgba(245,242,236,0.55);font-size:0.88rem;line-height:1.9;max-width:520px;margin:0 auto">
+    <p style="color:rgba(26,26,24,0.6);font-size:0.88rem;line-height:1.9;max-width:520px;margin:0 auto">
       A symphony of flavour, craft and atmosphere. Every dish prepared with the finest ingredients,
       served with the warmth that defines Eden 54.
     </p>
@@ -2495,6 +2495,23 @@
       </div>
     </div>
 
+    <!-- Ofada Jambalaya -->
+    <div class="mc">
+      <img src="menu/ofada jambalaya.jpg" alt="Ofada Jambalaya" class="mc-img" onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'">
+      <div class="mc-fade"></div>
+      <div class="mc-body">
+        <h3 class="mc-name">Ofada Jambalaya</h3>
+        <p class="mc-desc">Native Ofada rice cooked jambalaya-style — smoky, spiced and deeply satisfying</p>
+        <div class="mc-foot">
+          <div>
+            <div class="mc-opts"><span class="mc-tag-lbl">Protein</span><span class="mc-tag">Chicken</span><span class="mc-tag">Beef</span><span class="mc-tag">Seafood</span></div>
+            <div class="mc-opts"><span class="mc-tag-lbl">Dips</span><span class="mc-tag">Peri Peri</span><span class="mc-tag">Ranch</span><span class="mc-tag">BBQ Sauce</span><span class="mc-tag">Ketchup</span></div>
+          </div>
+          <span class="mc-price">₦13,500</span>
+        </div>
+      </div>
+    </div>
+
   </div>
 
   <!-- Section separator -->
@@ -2590,13 +2607,13 @@
 </section>
 
 <!-- COCKTAIL SESSIONS -->
-<section id="cocktails" style="background:var(--deep);padding:0">
+<section id="cocktails" style="background:#ECEAE8;padding:0">
   <div style="padding:80px 60px 56px;text-align:center">
-    <p class="section-eyebrow" style="color:var(--gold-light)">Bar &amp; Lounge</p>
-    <h2 style="font-family:'Cormorant Garamond',serif;font-size:clamp(2.4rem,4vw,3.6rem);font-weight:300;color:#F5F2EC;line-height:1.1;margin-bottom:20px">
+    <p class="section-eyebrow" style="color:var(--gold)">Bar &amp; Lounge</p>
+    <h2 style="font-family:'Cormorant Garamond',serif;font-size:clamp(2.4rem,4vw,3.6rem);font-weight:300;color:#1A1A18;line-height:1.1;margin-bottom:20px">
       Cocktail <em style="font-style:italic;color:var(--gold)">Sessions</em>
     </h2>
-    <p style="color:rgba(245,242,236,0.55);font-size:0.88rem;line-height:1.9;max-width:520px;margin:0 auto">
+    <p style="color:rgba(26,26,24,0.6);font-size:0.88rem;line-height:1.9;max-width:520px;margin:0 auto">
       When the kitchen closes and the evening deepens, our bar takes over.
       Crafted cocktails built for the night &mdash; each one a conversation in a glass.
     </p>
