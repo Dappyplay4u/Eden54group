@@ -154,8 +154,13 @@ select.fc option{background:var(--deep)}
 
 /* Mobile */
 @media(max-width:720px){
-  .pos-body{grid-template-columns:1fr;grid-template-rows:1fr auto}
-  .cart-panel{border-left:none;border-top:1px solid var(--border);max-height:45vh;min-height:260px}
+  #posScreen{height:auto;min-height:100vh;overflow-y:auto}
+  .pos-body{grid-template-columns:1fr;grid-template-rows:auto auto;overflow:visible;flex:none}
+  .items-panel{overflow-y:visible}
+  .cart-panel{border-left:none;border-top:1px solid var(--border);overflow:visible;max-height:none;min-height:unset}
+  .cart-items{overflow-y:visible;max-height:none}
+  .cart-foot{padding-bottom:76px}
+  .btn-complete{position:fixed;bottom:0;left:0;right:0;z-index:150;border-radius:0;padding:16px;font-size:0.92rem;letter-spacing:0.12em}
   .item-grid{grid-template-columns:repeat(auto-fill,minmax(110px,1fr))}
   .custom-row{grid-template-columns:1fr;gap:8px}
   .pos-brand-name{display:none}
