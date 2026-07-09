@@ -534,6 +534,17 @@ let editingData = {};
 async function openEdit(id) {
   const snap = await db.collection('staff').doc(id).get();
   const s = snap.data();
+
+  // Block anyone below CEO from editing a CEO/superadmin record
+  const myLevel     = (staff.accessLevel || staff.role || '').toLowerCase().replace(/\s+/g,'');
+  const iAmCEO      = myLevel === 'ceo' || myLevel === 'superadmin';
+  const targetLevel = (s.accessLevel || s.role || '').toLowerCase().replace(/\s+/g,'');
+  const targetIsCEO = targetLevel === 'ceo' || targetLevel === 'superadmin';
+  if (targetIsCEO && !iAmCEO) {
+    showAlert('alertBox', 'Only a CEO can edit another CEO\'s record.', 'alert-error');
+    return;
+  }
+
   editingData = { id, ...s };
   document.getElementById('editId').value = id;
   document.getElementById('editName').textContent = s.name;
@@ -566,6 +577,17 @@ async function saveEdit() {
   const id      = document.getElementById('editId').value;
   const newName = document.getElementById('editDisplayName').value.trim();
   if (!newName) { showAlert('alertBox','Display name cannot be empty.','alert-error'); return; }
+
+  // Re-check: prevent non-CEO from saving changes to a CEO record
+  const myLevel     = (staff.accessLevel || staff.role || '').toLowerCase().replace(/\s+/g,'');
+  const iAmCEO      = myLevel === 'ceo' || myLevel === 'superadmin';
+  const targetLevel = (editingData.accessLevel || editingData.role || '').toLowerCase().replace(/\s+/g,'');
+  const targetIsCEO = targetLevel === 'ceo' || targetLevel === 'superadmin';
+  if (targetIsCEO && !iAmCEO) {
+    showAlert('alertBox', 'Only a CEO can edit another CEO\'s record.', 'alert-error');
+    return;
+  }
+
   const btn = document.getElementById('saveEditBtn');
   btn.disabled = true; btn.textContent = 'Saving…';
   try {
@@ -613,6 +635,16 @@ async function saveEdit() {
 }
 
 async function deleteStaff(id, name) {
+  // Fetch target record to check access level before deleting
+  const snap = await db.collection('staff').doc(id).get();
+  const targetData  = snap.data() || {};
+  const myLevel     = (staff.accessLevel || staff.role || '').toLowerCase().replace(/\s+/g,'');
+  const iAmCEO      = myLevel === 'ceo' || myLevel === 'superadmin';
+  const targetLevel = (targetData.accessLevel || targetData.role || '').toLowerCase().replace(/\s+/g,'');
+  if ((targetLevel === 'ceo' || targetLevel === 'superadmin') && !iAmCEO) {
+    showAlert('alertBox', 'Only a CEO can delete another CEO\'s record.', 'alert-error');
+    return;
+  }
   if (!confirm(`Delete ${name}? This cannot be undone.`)) return;
   try {
     await db.collection('staff').doc(id).delete();
