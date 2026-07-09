@@ -27,12 +27,29 @@ body{font-family:'Jost',sans-serif;font-weight:300;background:#0f2318;min-height
 .divider{height:1px;background:rgba(201,169,110,0.1);margin:24px 0;}
 .loading{text-align:center;color:rgba(245,242,236,0.3);font-size:0.85rem;padding:40px;}
 
-/* Manager bar — always visible */
 .mgr-bar{border-top:1px solid rgba(201,169,110,0.12);padding-top:24px;margin-top:8px;text-align:center;}
 .mgr-bar-label{font-size:0.6rem;letter-spacing:0.25em;text-transform:uppercase;color:rgba(201,169,110,0.35);margin-bottom:14px;}
 .mgr-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
 .mgr-btn{padding:10px 24px;border:1px solid rgba(201,169,110,0.3);border-radius:4px;font-family:'Jost',sans-serif;font-size:0.72rem;letter-spacing:0.15em;text-transform:uppercase;color:rgba(201,169,110,0.65);text-decoration:none;transition:all 0.2s;background:transparent;}
 .mgr-btn:hover{border-color:rgba(201,169,110,0.7);color:#C9A96E;background:rgba(201,169,110,0.08);}
+
+/* ── Password modal ── */
+.pw-ov{position:fixed;inset:0;background:rgba(10,26,18,0.85);display:none;align-items:center;justify-content:center;z-index:200;padding:20px;backdrop-filter:blur(3px)}
+.pw-ov.show{display:flex}
+.pw-card{background:#162d1f;border:1px solid rgba(201,169,110,0.22);border-radius:14px;padding:36px 32px;width:100%;max-width:380px;text-align:center}
+.pw-avatar{width:60px;height:60px;border-radius:50%;background:#C9A96E;color:#0f2318;display:flex;align-items:center;justify-content:center;font-size:1.1rem;font-weight:500;margin:0 auto 12px;overflow:hidden}
+.pw-avatar img{width:100%;height:100%;object-fit:cover}
+.pw-name{font-size:1rem;color:rgba(245,242,236,0.9);font-weight:400;margin-bottom:2px}
+.pw-dept{font-size:0.65rem;letter-spacing:0.14em;text-transform:uppercase;color:rgba(245,242,236,0.3);margin-bottom:22px}
+.pw-input{width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(201,169,110,0.2);border-radius:6px;padding:12px 14px;font-family:'Jost',sans-serif;font-size:0.9rem;color:rgba(245,242,236,0.92);outline:none;text-align:center;letter-spacing:0.1em;transition:border-color .2s;margin-bottom:6px}
+.pw-input:focus{border-color:rgba(201,169,110,0.5)}
+.pw-input::placeholder{color:rgba(245,242,236,0.25);letter-spacing:0}
+.pw-err{font-size:0.76rem;color:#fca5a5;min-height:20px;margin-bottom:12px;text-align:center}
+.pw-btn{width:100%;padding:13px;background:#C9A96E;color:#0f2318;border:none;border-radius:6px;font-family:'Jost',sans-serif;font-size:0.82rem;font-weight:500;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer;transition:background .2s;margin-bottom:10px}
+.pw-btn:hover{background:#E0BE8A}
+.pw-btn:disabled{opacity:0.5;cursor:not-allowed}
+.pw-cancel{background:none;border:none;font-family:'Jost',sans-serif;font-size:0.76rem;color:rgba(245,242,236,0.3);cursor:pointer;padding:4px 8px}
+.pw-cancel:hover{color:rgba(245,242,236,0.6)}
 
 @media(max-width:480px){.staff-grid{grid-template-columns:repeat(2,1fr);}.header h1{font-size:1.3rem;}}
 </style>
@@ -46,7 +63,6 @@ body{font-family:'Jost',sans-serif;font-weight:300;background:#0f2318;min-height
     <div class="sub">Select your profile to continue</div>
   </div>
 
-  <!-- Staff sections -->
   <div id="salonSection" style="display:none">
     <div class="section-label">Barbing Salon</div>
     <div class="staff-grid" id="salonGrid"></div>
@@ -67,11 +83,10 @@ body{font-family:'Jost',sans-serif;font-weight:300;background:#0f2318;min-height
     No staff added yet — use "Manage Staff" below to add your team.
   </div>
   <div id="errorBox" style="display:none;background:rgba(220,38,38,0.1);border:1px solid rgba(220,38,38,0.2);border-radius:8px;padding:16px 18px;text-align:center;margin-bottom:8px">
-    <div style="color:#fca5a5;font-size:0.83rem;margin-bottom:8px">Unable to connect. Firestore rules may not be published yet.</div>
+    <div style="color:#fca5a5;font-size:0.83rem;margin-bottom:8px">Unable to connect. Check your internet connection.</div>
     <button onclick="window.location.reload()" style="padding:7px 18px;background:rgba(201,169,110,0.15);border:1px solid rgba(201,169,110,0.3);color:#C9A96E;border-radius:4px;cursor:pointer;font-family:'Jost',sans-serif;font-size:0.75rem">Retry</button>
   </div>
 
-  <!-- Quick access links -->
   <div class="mgr-bar">
     <div class="mgr-bar-label">Quick Access</div>
     <div class="mgr-btns">
@@ -82,37 +97,52 @@ body{font-family:'Jost',sans-serif;font-weight:300;background:#0f2318;min-height
   </div>
 </div>
 
+<!-- Password prompt modal -->
+<div class="pw-ov" id="pwOv">
+  <div class="pw-card">
+    <div class="pw-avatar" id="pwAvatar"></div>
+    <div class="pw-name"  id="pwName">—</div>
+    <div class="pw-dept"  id="pwDept">—</div>
+    <form onsubmit="submitPassword(event)">
+      <input type="password" id="pwInput" class="pw-input" placeholder="Enter your password" autocomplete="current-password" required>
+      <div class="pw-err" id="pwErr"></div>
+      <button type="submit" class="pw-btn" id="pwBtn">Sign In</button>
+    </form>
+    <button class="pw-cancel" onclick="closeModal()">Cancel</button>
+  </div>
+</div>
+
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
 <script src="/portal/firebase-init.js"></script>
 <script>
-// ?switch in the URL always forces the picker to show — clears current session
+const auth = firebase.auth();
+
+// ?switch clears session and forces picker
 if (new URLSearchParams(window.location.search).has('switch')) {
   localStorage.removeItem('eden54_staff');
   history.replaceState(null, '', '/portal/');
 }
 
-// If staff already selected, redirect straight to their page
+// Already signed in — go straight through
 const saved = localStorage.getItem('eden54_staff');
 if (saved) {
   try {
     const s = JSON.parse(saved);
-    const lvl2 = (s.accessLevel || s.role || '').toLowerCase().replace(/\s+/g,'');
-    window.location.href = ['ceo','superadmin','manager'].includes(lvl2) || lvl2.includes('manager') ? '/portal/dashboard/' : '/portal/home/';
+    const lvl = (s.accessLevel || s.role || '').toLowerCase().replace(/\s+/g,'');
+    window.location.href = ['ceo','superadmin','manager'].includes(lvl) || lvl.includes('manager')
+      ? '/portal/dashboard/' : '/portal/home/';
   } catch(e) { localStorage.removeItem('eden54_staff'); }
 }
 
+/* ── Staff loading ── */
 async function loadStaff() {
   try {
-    // Simple query — no inequality filter to avoid index issues
     const snap = await db.collection('staff').orderBy('name').get();
     document.getElementById('loadingEl').style.display = 'none';
-
-    if (snap.empty) {
-      document.getElementById('emptyEl').style.display = 'block';
-      return;
-    }
+    if (snap.empty) { document.getElementById('emptyEl').style.display = 'block'; return; }
 
     const salon = [], others = [], managers = [];
     snap.forEach(d => {
@@ -138,11 +168,9 @@ async function loadStaff() {
       document.getElementById('managerSection').style.display = 'block';
       document.getElementById('managerGrid').innerHTML = managers.map(s => cardHTML(s, true)).join('');
     }
-
     if (!salon.length && !others.length && !managers.length) {
       document.getElementById('emptyEl').style.display = 'block';
     }
-
   } catch(e) {
     document.getElementById('loadingEl').style.display = 'none';
     document.getElementById('errorBox').style.display = 'block';
@@ -151,26 +179,116 @@ async function loadStaff() {
 }
 
 function cardHTML(s, isManager = false) {
+  // Store full staff data including posUsername so password modal can use it
   const data = encodeURIComponent(JSON.stringify({
-    id: s.id, name: s.name, department: s.department,
-    role: s.role || 'staff', accessLevel: s.accessLevel || ''
+    id:          s.id,
+    name:        s.name,
+    department:  s.department,
+    role:        s.role || 'staff',
+    accessLevel: s.accessLevel || '',
+    posUsername: s.posUsername || '',
+    photoURL:    s.photoURL   || '',
   }));
   const avatarHTML = s.photoURL
     ? `<div class="avatar"><img src="${s.photoURL}" alt="${s.name}"></div>`
     : `<div class="avatar">${avatarInitials(s.name)}</div>`;
-  return `<div class="staff-card${isManager ? ' mgr' : ''}" onclick="selectStaff('${data}')">
+  return `<div class="staff-card${isManager ? ' mgr' : ''}" onclick="openModal('${data}')">
     ${avatarHTML}
     <div class="staff-name">${s.name}</div>
     <div class="staff-dept" style="${isManager ? 'color:rgba(201,169,110,0.5)' : ''}">${isManager ? 'Manager' : s.department}</div>
   </div>`;
 }
 
-function selectStaff(encoded) {
-  const data = JSON.parse(decodeURIComponent(encoded));
-  setStaff(data);
-  const lvl = (data.accessLevel || data.role || '').toLowerCase().replace(/\s+/g,'');
-  const isPriv = ['ceo', 'superadmin', 'manager'].includes(lvl);
-  window.location.href = isPriv ? '/portal/dashboard/' : '/portal/home/';
+/* ── Modal ── */
+let pendingStaff = null;
+
+function openModal(encoded) {
+  pendingStaff = JSON.parse(decodeURIComponent(encoded));
+  const s = pendingStaff;
+
+  // Avatar
+  const avatarEl = document.getElementById('pwAvatar');
+  avatarEl.innerHTML = s.photoURL
+    ? `<img src="${s.photoURL}" alt="${s.name}">`
+    : avatarInitials(s.name);
+
+  document.getElementById('pwName').textContent = s.name;
+  document.getElementById('pwDept').textContent = s.department || s.role || '';
+  document.getElementById('pwInput').value = '';
+  document.getElementById('pwErr').textContent  = '';
+  document.getElementById('pwBtn').disabled = false;
+  document.getElementById('pwBtn').textContent  = 'Sign In';
+  document.getElementById('pwOv').classList.add('show');
+
+  // Focus after transition
+  setTimeout(() => document.getElementById('pwInput').focus(), 80);
+}
+
+function closeModal() {
+  document.getElementById('pwOv').classList.remove('show');
+  pendingStaff = null;
+}
+
+// Close on backdrop click
+document.getElementById('pwOv').addEventListener('click', e => {
+  if (e.target === document.getElementById('pwOv')) closeModal();
+});
+
+// Close on Escape
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeModal();
+});
+
+async function submitPassword(e) {
+  e.preventDefault();
+  if (!pendingStaff) return;
+
+  const s        = pendingStaff;
+  const password = document.getElementById('pwInput').value;
+  const errEl    = document.getElementById('pwErr');
+  const btn      = document.getElementById('pwBtn');
+
+  if (!s.posUsername) {
+    errEl.textContent = 'No POS account linked. Ask your manager to set one up.';
+    return;
+  }
+
+  errEl.textContent = '';
+  btn.disabled = true;
+  btn.textContent = 'Verifying…';
+
+  const email = s.posUsername.trim().toLowerCase().replace(/\s+/g,'_') + '@eden54.pos';
+
+  try {
+    await auth.signInWithEmailAndPassword(email, password);
+    // Verified — immediately sign out of Firebase Auth (portal uses localStorage, not Auth sessions)
+    await auth.signOut();
+
+    // Store staff profile and redirect
+    setStaff({
+      id:          s.id,
+      name:        s.name,
+      department:  s.department,
+      role:        s.role,
+      accessLevel: s.accessLevel,
+      photoURL:    s.photoURL,
+    });
+    const lvl = (s.accessLevel || s.role || '').toLowerCase().replace(/\s+/g,'');
+    const isPriv = ['ceo','superadmin','manager'].includes(lvl) || lvl.includes('manager');
+    window.location.href = isPriv ? '/portal/dashboard/' : '/portal/home/';
+
+  } catch(ex) {
+    const map = {
+      'auth/wrong-password':     'Incorrect password. Try again.',
+      'auth/user-not-found':     'No POS account found. Ask your manager.',
+      'auth/too-many-requests':  'Too many attempts. Wait a moment and try again.',
+      'auth/invalid-credential': 'Incorrect password. Try again.',
+    };
+    errEl.textContent = map[ex.code] || 'Sign in failed. Please try again.';
+    btn.disabled = false;
+    btn.textContent = 'Sign In';
+    document.getElementById('pwInput').select();
+  }
 }
 
 loadStaff();
