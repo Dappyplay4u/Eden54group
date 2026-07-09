@@ -103,6 +103,14 @@ function fmtT(ts) {
   return ts.toDate().toLocaleTimeString('en-NG',{hour:'2-digit',minute:'2-digit'});
 }
 
+/* ── Unified sale helpers (manual reports use totalSales; POS uses amount) ── */
+function saleTotal(s)    { return s.source === 'pos' ? (s.amount || 0)      : (s.totalSales    || 0); }
+function saleCash(s)     { return s.source === 'pos' ? (s.paymentMethod === 'cash'     ? s.amount : 0) : (s.cashSales     || 0); }
+function saleTransfer(s) { return s.source === 'pos' ? (s.paymentMethod === 'transfer' ? s.amount : 0) : (s.transferSales || 0); }
+function salePOS(s)      { return s.source === 'pos' ? (s.paymentMethod === 'pos'      ? s.amount : 0) : (s.posSales      || 0); }
+function saleDept(s)     { return s.department || (s.source === 'pos' ? s.section : '') || '—'; }
+function saleName(s)     { return s.staffName || '—'; }
+
 async function load() {
   const today = todayStr();
 
@@ -110,15 +118,18 @@ async function load() {
   const salesSnap = await db.collection('sales').where('date','==',today).get();
   let todayTotal = 0, deptMap = {};
   salesSnap.forEach(d => {
-    const s = d.data(); todayTotal += s.totalSales || 0;
-    deptMap[s.department] = (deptMap[s.department] || 0) + (s.totalSales || 0);
+    const s = d.data();
+    const amt = saleTotal(s);
+    todayTotal += amt;
+    const dept = saleDept(s);
+    if (dept && dept !== '—') deptMap[dept] = (deptMap[dept] || 0) + amt;
   });
   document.getElementById('statSales').textContent = fmtNaira(todayTotal);
   document.getElementById('statSubs').textContent  = salesSnap.size;
 
   const monthStart = today.slice(0,7) + '-01';
   const monthSnap = await db.collection('sales').where('date','>=',monthStart).where('date','<=',today).get();
-  let monthTotal = 0; monthSnap.forEach(d => monthTotal += d.data().totalSales || 0);
+  let monthTotal = 0; monthSnap.forEach(d => monthTotal += saleTotal(d.data()));
   document.getElementById('statMonth').textContent = fmtNaira(monthTotal);
 
   // ── Clocking & Attendance ─────────────────────────────
@@ -212,13 +223,13 @@ async function load() {
       </div>`;
   }
 
-  const recentSnap = await db.collection('sales').orderBy('submittedAt','desc').limit(20).get();
+  const recentSnap = await db.collection('sales').orderBy('date','desc').limit(20).get();
   const tbody = document.getElementById('salesTable');
   tbody.innerHTML = recentSnap.empty
     ? '<tr><td colspan="7" style="text-align:center;padding:24px;color:#6a6b62">No sales recorded yet.</td></tr>'
     : recentSnap.docs.map(d => {
         const s = d.data();
-        return `<tr><td>${s.date}</td><td class="fw4">${s.staffName}</td><td><span class="badge badge-info">${s.department}</span></td><td>${fmtNaira(s.cashSales)}</td><td>${fmtNaira(s.transferSales)}</td><td>${fmtNaira(s.posSales)}</td><td class="fw4 text-gold">${fmtNaira(s.totalSales)}</td></tr>`;
+        return `<tr><td>${s.date}</td><td class="fw4">${saleName(s)}</td><td><span class="badge badge-info">${saleDept(s)}</span></td><td>${fmtNaira(saleCash(s))}</td><td>${fmtNaira(saleTransfer(s))}</td><td>${fmtNaira(salePOS(s))}</td><td class="fw4 text-gold">${fmtNaira(saleTotal(s))}</td></tr>`;
       }).join('');
 
   const days = [], sales7 = [];
@@ -227,7 +238,7 @@ async function load() {
     const ds = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
     days.push(ds.slice(5));
     const snap = await db.collection('sales').where('date','==',ds).get();
-    let t = 0; snap.forEach(x => t += x.data().totalSales || 0);
+    let t = 0; snap.forEach(x => t += saleTotal(x.data()));
     sales7.push(t);
   }
   new Chart(document.getElementById('chartWeek'), {
