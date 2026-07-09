@@ -71,10 +71,11 @@ body{font-family:'Jost',sans-serif;font-weight:300;background:#0f2318;min-height
     <button onclick="window.location.reload()" style="padding:7px 18px;background:rgba(201,169,110,0.15);border:1px solid rgba(201,169,110,0.3);color:#C9A96E;border-radius:4px;cursor:pointer;font-family:'Jost',sans-serif;font-size:0.75rem">Retry</button>
   </div>
 
-  <!-- Manager access — always visible so manager can set up the portal -->
+  <!-- Quick access links -->
   <div class="mgr-bar">
-    <div class="mgr-bar-label">Manager Access</div>
+    <div class="mgr-bar-label">Quick Access</div>
     <div class="mgr-btns">
+      <a href="/portal/pos/" class="mgr-btn">🖥️ POS Terminal</a>
       <a href="/portal/staff/" class="mgr-btn">Manage Staff</a>
       <a href="/portal/dashboard/" class="mgr-btn">Dashboard</a>
     </div>
@@ -97,7 +98,8 @@ const saved = localStorage.getItem('eden54_staff');
 if (saved) {
   try {
     const s = JSON.parse(saved);
-    window.location.href = s.role === 'manager' ? '/portal/dashboard/' : '/portal/home/';
+    const lvl2 = (s.accessLevel || s.role || '').toLowerCase().replace(/\s+/g,'');
+    window.location.href = ['ceo','superadmin','manager'].includes(lvl2) || lvl2.includes('manager') ? '/portal/dashboard/' : '/portal/home/';
   } catch(e) { localStorage.removeItem('eden54_staff'); }
 }
 
@@ -115,8 +117,9 @@ async function loadStaff() {
     const salon = [], others = [], managers = [];
     snap.forEach(d => {
       const s = { id: d.id, ...d.data() };
-      if (s.active === false) return; // skip inactive (filter client-side)
-      if (s.role === 'manager') managers.push(s);
+      if (s.active === false) return;
+      const lvl = (s.accessLevel || s.role || '').toLowerCase().replace(/\s+/g,'');
+      if (['ceo','superadmin','manager','hr'].includes(lvl)) managers.push(s);
       else if (s.department === 'salon') salon.push(s);
       else others.push(s);
     });
@@ -148,7 +151,10 @@ async function loadStaff() {
 }
 
 function cardHTML(s, isManager = false) {
-  const data = encodeURIComponent(JSON.stringify({ id: s.id, name: s.name, department: s.department, role: s.role || 'staff' }));
+  const data = encodeURIComponent(JSON.stringify({
+    id: s.id, name: s.name, department: s.department,
+    role: s.role || 'staff', accessLevel: s.accessLevel || ''
+  }));
   const avatarHTML = s.photoURL
     ? `<div class="avatar"><img src="${s.photoURL}" alt="${s.name}"></div>`
     : `<div class="avatar">${avatarInitials(s.name)}</div>`;
@@ -162,7 +168,9 @@ function cardHTML(s, isManager = false) {
 function selectStaff(encoded) {
   const data = JSON.parse(decodeURIComponent(encoded));
   setStaff(data);
-  window.location.href = data.role === 'manager' ? '/portal/dashboard/' : '/portal/home/';
+  const lvl = (data.accessLevel || data.role || '').toLowerCase().replace(/\s+/g,'');
+  const isPriv = ['ceo', 'superadmin', 'manager'].includes(lvl);
+  window.location.href = isPriv ? '/portal/dashboard/' : '/portal/home/';
 }
 
 loadStaff();

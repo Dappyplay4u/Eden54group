@@ -21,6 +21,25 @@
 .btn-cin:hover{background:#166534;}
 .btn-cout:hover{background:#991b1b;}
 
+/* ── My Sales ── */
+.sales-summary{background:var(--deep);border-radius:8px;padding:14px 18px;margin-bottom:16px}
+.sales-summary-lbl{font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:rgba(245,242,236,0.35);margin-bottom:4px}
+.sales-summary-val{font-size:1.4rem;font-weight:400;color:var(--gold)}
+.sales-breakdown{display:flex;gap:16px;margin-top:8px;flex-wrap:wrap}
+.sales-bd-item{font-size:0.75rem;color:rgba(245,242,236,0.5)}
+.sales-bd-item strong{color:rgba(245,242,236,0.85);font-weight:400}
+.sale-row{padding:10px 0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.sale-row:last-of-type{border-bottom:none}
+.sale-tag{font-size:0.68rem;padding:2px 8px;border-radius:3px;letter-spacing:0.06em}
+.sale-tag.pos{background:rgba(201,169,110,0.15);color:#C9A96E}
+.sale-tag.manual{background:rgba(255,255,255,0.06);color:var(--muted)}
+.sale-items{font-size:0.74rem;color:var(--muted);margin-top:4px}
+.sale-cust{font-size:0.71rem;color:var(--muted);margin-top:2px}
+.sale-time{font-size:0.67rem;color:var(--muted)}
+.sale-amt{font-size:0.9rem;color:var(--gold);font-weight:400}
+.sale-method{font-size:0.67rem;color:var(--muted)}
+.sales-footer{display:flex;justify-content:space-between;font-size:0.82rem;padding:10px 0 2px;border-top:2px solid var(--border);margin-top:4px}
+
 /* ── Report form ── */
 .report-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:24px;margin-bottom:24px;}
 .report-card h2{font-size:0.85rem;font-weight:400;letter-spacing:0.1em;text-transform:uppercase;color:var(--gold);margin-bottom:18px;}
@@ -102,15 +121,25 @@
     <!-- ── 3. TODAY'S STATS ── -->
     <div class="g2" style="margin-bottom:24px">
       <div class="card">
-        <div class="card-label">My Reports Today</div>
-        <div class="card-value" id="myReports">—</div>
-        <div class="card-sub">Updates submitted</div>
+        <div class="card-label">My Sales Today</div>
+        <div class="card-value" id="mySalesTotEl">—</div>
+        <div class="card-sub" id="mySalesCountEl">Loading…</div>
       </div>
       <div class="card">
         <div class="card-label">Hours Worked</div>
         <div class="card-value" id="hoursWorked">—</div>
         <div class="card-sub">Today's session</div>
       </div>
+    </div>
+
+    <!-- ── 4. MY SALES DETAIL ── -->
+    <div class="report-card" id="mySalesCard" style="display:none">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:10px">
+        <h2 style="margin-bottom:0">My Sales</h2>
+        <input type="date" id="salesDate" class="form-control" style="width:auto"
+               onchange="loadMySales(this.value)">
+      </div>
+      <div id="mySalesBody"></div>
     </div>
 
   </div>
@@ -420,7 +449,6 @@ async function submitReport() {
     document.getElementById('addPhotoBtn').style.display = 'flex';
 
     showAlert('alertBox','Report submitted successfully!','alert-success');
-    loadMyReports();
   } catch(e) {
     console.error(e);
     showAlert('alertBox','Submission failed: ' + e.message,'alert-error');
@@ -430,26 +458,106 @@ async function submitReport() {
 }
 
 /* ═══════════════════════════════
-   STATS
+   MY SALES
 ═══════════════════════════════ */
-async function loadMyReports() {
+async function loadMySales(date) {
+  const card    = document.getElementById('mySalesCard');
+  const body    = document.getElementById('mySalesBody');
+  const totEl   = document.getElementById('mySalesTotEl');
+  const countEl = document.getElementById('mySalesCountEl');
+
+  card.style.display = 'block';
+  body.innerHTML = '<div style="color:var(--muted);font-size:0.82rem;padding:6px 0">Loading…</div>';
+
   try {
-    // Count today's updates from this staff member
-    const snap = await db.collection('updates')
-      .where('staffId','==',staff.id)
-      .get();
-    // Filter today client-side (avoid composite index requirement)
-    const todayUpdates = snap.docs.filter(doc => {
-      const ts = doc.data().createdAt;
-      if (!ts) return false;
-      const dt = ts.toDate();
-      const ds = dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0');
-      return ds === today;
+    // Query by staffId only, filter date client-side to avoid needing a composite index
+    const snap  = await db.collection('sales').where('staffId','==',staff.id).get();
+    const sales = snap.docs.map(d => d.data()).filter(r => r.date === date);
+
+    // Normalize POS docs to totalSales/cashSales/transferSales/posSales
+    sales.forEach(r => {
+      if (r.source === 'pos') {
+        const amt = r.amount || 0;
+        const pm  = (r.paymentMethod || '').toLowerCase();
+        r.totalSales    = amt;
+        r.cashSales     = pm === 'cash'     ? amt : 0;
+        r.transferSales = pm === 'transfer' ? amt : 0;
+        r.posSales      = pm === 'pos'      ? amt : 0;
+      }
     });
-    document.getElementById('myReports').textContent = todayUpdates.length;
+
+    const total    = sales.reduce((s,r) => s + (r.totalSales||0), 0);
+    const cash     = sales.reduce((s,r) => s + (r.cashSales||0), 0);
+    const transfer = sales.reduce((s,r) => s + (r.transferSales||0), 0);
+    const posAmt   = sales.reduce((s,r) => s + (r.posSales||0), 0);
+    const posCount = sales.filter(r => r.source === 'pos').length;
+    const manCount = sales.filter(r => r.source !== 'pos').length;
+
+    // Update the summary card at top
+    totEl.textContent   = fmtNaira(total);
+    countEl.textContent = sales.length + ' transaction' + (sales.length !== 1 ? 's' : '');
+
+    if (!sales.length) {
+      body.innerHTML = `<div style="color:var(--muted);font-size:0.82rem;padding:8px 0">No sales recorded for ${date}.</div>`;
+      return;
+    }
+
+    let html = `<div class="sales-summary">
+      <div class="sales-summary-lbl">Total</div>
+      <div class="sales-summary-val">${fmtNaira(total)}</div>
+      <div class="sales-breakdown">
+        ${cash     ? `<span class="sales-bd-item">💵 Cash <strong>${fmtNaira(cash)}</strong></span>`         : ''}
+        ${transfer ? `<span class="sales-bd-item">📲 Transfer <strong>${fmtNaira(transfer)}</strong></span>` : ''}
+        ${posAmt   ? `<span class="sales-bd-item">💳 POS <strong>${fmtNaira(posAmt)}</strong></span>`        : ''}
+      </div>
+    </div>`;
+
+    // Sort: most recent first (POS has createdAt; manual may not)
+    sales.sort((a,b) => {
+      const at = a.createdAt && a.createdAt.toDate ? a.createdAt.toDate().getTime() : 0;
+      const bt = b.createdAt && b.createdAt.toDate ? b.createdAt.toDate().getTime() : 0;
+      return bt - at;
+    });
+
+    html += sales.map(r => {
+      const isPos    = r.source === 'pos';
+      const itemList = isPos && r.items && r.items.length
+        ? r.items.map(i => `${i.qty}× ${i.name}`).join(', ')
+        : '';
+      const timeStr  = r.createdAt && r.createdAt.toDate
+        ? r.createdAt.toDate().toLocaleTimeString('en-NG', {hour:'2-digit', minute:'2-digit'})
+        : '';
+      const section  = isPos ? (' · ' + (r.section || '').toUpperCase()) : '';
+      return `<div class="sale-row">
+        <div>
+          <span class="sale-tag ${isPos ? 'pos' : 'manual'}">${isPos ? 'POS'+section : 'MANUAL'}</span>
+          ${itemList  ? `<div class="sale-items">${itemList}</div>` : ''}
+          ${r.customerName ? `<div class="sale-cust">👤 ${r.customerName}${r.customerPhone ? ' · '+r.customerPhone : ''}</div>` : ''}
+        </div>
+        <div style="text-align:right;flex-shrink:0">
+          ${timeStr ? `<div class="sale-time">${timeStr}</div>` : ''}
+          <div class="sale-amt">${fmtNaira(r.totalSales||0)}</div>
+          <div class="sale-method">${(r.paymentMethod||'').toUpperCase() || '—'}</div>
+        </div>
+      </div>`;
+    }).join('');
+
+    html += `<div class="sales-footer">
+      <span style="color:var(--muted)">${posCount} POS · ${manCount} manual</span>
+      <strong style="color:var(--gold)">${fmtNaira(total)}</strong>
+    </div>`;
+
+    body.innerHTML = html;
   } catch(e) {
-    document.getElementById('myReports').textContent = '—';
+    body.innerHTML = '<div style="color:#fca5a5;font-size:0.82rem">Failed to load sales.</div>';
+    totEl.textContent   = '—';
+    countEl.textContent = 'Error';
+    console.error(e);
   }
+}
+
+async function loadMyReports() {
+  // kept for reference — updates count now replaced by sales summary in card
 }
 
 function escHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
@@ -459,7 +567,8 @@ function closeLB(e){ if(e.target===document.getElementById('lb')) document.getEl
 
 /* ── Run ── */
 loadClockStatus();
-loadMyReports();
+document.getElementById('salesDate').value = today;
+loadMySales(today);
 </script>
 </body>
 </html>

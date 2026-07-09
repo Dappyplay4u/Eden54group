@@ -74,11 +74,9 @@
         </div>
         <div class="fg2" style="margin-bottom:14px">
           <div class="form-group">
-            <label class="form-label">Role</label>
+            <label class="form-label">Job Role</label>
             <select id="sRole" class="form-control">
-              <option value="staff">Staff</option>
-              <option value="manager">Manager</option>
-              <option value="superadmin">Super Admin (HR)</option>
+              <option value="">Loading roles…</option>
             </select>
           </div>
           <div class="form-group">
@@ -89,7 +87,11 @@
               <option value="bar">Bar</option>
               <option value="kitchen">Kitchen</option>
               <option value="apartment">Apartment</option>
+              <option value="games">Games &amp; Entertainment</option>
               <option value="pool">Pool</option>
+              <option value="front desk">Front Desk</option>
+              <option value="receptionist">Receptionist</option>
+              <option value="hr">HR</option>
               <option value="management">Management</option>
             </select>
           </div>
@@ -104,6 +106,22 @@
             <input type="tel" id="sPhone" class="form-control" placeholder="+234…">
           </div>
         </div>
+        <div class="form-group" style="margin-bottom:12px">
+          <label class="form-label">POS Username</label>
+          <input type="text" id="sPosUsername" class="form-control" placeholder="e.g. john, mary_apt (no spaces)" spellcheck="false" autocapitalize="none">
+          <span style="font-size:0.7rem;color:var(--muted);margin-top:4px;display:block">Required if the staff member will use the POS terminal. Keep it short and simple.</span>
+        </div>
+        <div id="posLoginBox" style="margin-bottom:16px;padding:12px 14px;background:rgba(201,169,110,0.04);border:1px solid rgba(201,169,110,0.12);border-radius:6px">
+          <label style="display:flex;align-items:center;gap:9px;cursor:pointer;font-size:0.83rem;color:var(--text)">
+            <input type="checkbox" id="sCreateLogin" onchange="document.getElementById('posPassRow').style.display=this.checked?'block':'none'">
+            Create POS login for this staff member
+          </label>
+          <div id="posPassRow" style="display:none;margin-top:10px">
+            <label class="form-label">Temporary Password</label>
+            <input type="password" id="sTempPass" class="form-control" placeholder="Minimum 6 characters">
+            <span style="font-size:0.7rem;color:var(--muted);margin-top:4px;display:block">Share this with the staff member — they'll use it to sign in to the POS.</span>
+          </div>
+        </div>
         <button class="btn btn-gold" id="addBtn" onclick="addStaff()" style="width:100%">Add Staff Member</button>
       </div>
 
@@ -112,12 +130,36 @@
         <div class="section-head"><h2>All Staff</h2></div>
         <div class="tbl-wrap">
           <table>
-            <thead><tr><th></th><th>Name</th><th>Dept</th><th>Role</th><th>Status</th><th></th></tr></thead>
-            <tbody id="staffTable"><tr><td colspan="6" style="text-align:center;padding:16px;color:#6a6b62">Loading…</td></tr></tbody>
+            <thead><tr><th></th><th>Name</th><th>Dept</th><th>Role</th><th>POS Login</th><th>Status</th><th></th></tr></thead>
+            <tbody id="staffTable"><tr><td colspan="7" style="text-align:center;padding:16px;color:#6a6b62">Loading…</td></tr></tbody>
           </table>
         </div>
       </div>
     </div>
+
+    <!-- Manage Roles -->
+    <div class="card" style="margin-top:24px">
+      <div class="section-head"><h2>Manage Job Roles</h2><span style="font-size:0.72rem;color:var(--muted)">HR can add or remove roles at any time</span></div>
+      <div id="rolesList" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px"></div>
+      <div class="divider"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:10px;align-items:flex-end;margin-top:14px;flex-wrap:wrap">
+        <div class="form-group" style="margin:0">
+          <label class="form-label">New Role Name</label>
+          <input type="text" id="newRoleName" class="form-control" placeholder="e.g. Chef, Security, Cashier">
+        </div>
+        <div class="form-group" style="margin:0">
+          <label class="form-label">Access Level</label>
+          <select id="newRoleLevel" class="form-control">
+            <option value="staff">Staff — own dept only</option>
+            <option value="hr">HR — staff, payroll &amp; reports</option>
+            <option value="manager">Manager — full access + reports</option>
+            <option value="ceo">CEO — unrestricted superpower access</option>
+          </select>
+        </div>
+        <button class="btn btn-gold" onclick="addRole()" style="white-space:nowrap">+ Add Role</button>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -145,11 +187,9 @@
     </div>
     <div class="fg2" style="margin-bottom:14px">
       <div class="form-group">
-        <label class="form-label">Role</label>
+        <label class="form-label">Job Role</label>
         <select id="editRole" class="form-control">
-          <option value="staff">Staff</option>
-          <option value="manager">Manager</option>
-          <option value="superadmin">Super Admin (HR)</option>
+          <option value="">Loading roles…</option>
         </select>
       </div>
       <div class="form-group">
@@ -160,7 +200,11 @@
           <option value="bar">Bar</option>
           <option value="kitchen">Kitchen</option>
           <option value="apartment">Apartment</option>
+          <option value="games">Games &amp; Entertainment</option>
           <option value="pool">Pool</option>
+          <option value="front desk">Front Desk</option>
+          <option value="receptionist">Receptionist</option>
+          <option value="hr">HR</option>
           <option value="management">Management</option>
         </select>
       </div>
@@ -175,6 +219,27 @@
         <input type="tel" id="editPhone" class="form-control">
       </div>
     </div>
+    <div class="form-group" style="margin-bottom:12px">
+      <label class="form-label">POS Username</label>
+      <input type="text" id="editPosUsername" class="form-control" placeholder="e.g. john, mary_apt" spellcheck="false" autocapitalize="none"
+        oninput="document.getElementById('editPosBox').style.display=this.value?'block':'none'">
+    </div>
+    <div id="editPosBox" style="margin-bottom:14px;padding:12px 14px;background:rgba(201,169,110,0.04);border:1px solid rgba(201,169,110,0.12);border-radius:6px;display:none">
+      <!-- New login (no existing account) -->
+      <label style="display:flex;align-items:center;gap:9px;cursor:pointer;font-size:0.83rem;color:var(--text)" id="eCreateLoginRow">
+        <input type="checkbox" id="eCreateLogin" onchange="document.getElementById('editPassRow').style.display=this.checked?'block':'none'">
+        Create POS Login
+      </label>
+      <div id="editPassRow" style="display:none;margin-top:10px">
+        <label class="form-label">Set Password</label>
+        <input type="password" id="eTempPass" class="form-control" placeholder="Minimum 6 characters">
+      </div>
+      <!-- Reset existing account -->
+      <div id="resetPOSRow" style="display:none;margin-top:10px;padding-top:10px;border-top:1px solid rgba(201,169,110,0.12)">
+        <div style="font-size:0.75rem;color:var(--muted);margin-bottom:8px">Account already exists</div>
+        <button type="button" onclick="openResetPOSModal()" class="btn btn-outline btn-sm" style="width:100%">🔑 Reset POS Password</button>
+      </div>
+    </div>
     <div class="form-group" style="margin-bottom:18px">
       <label class="form-label">Status</label>
       <select id="editActive" class="form-control"><option value="true">Active</option><option value="false">Inactive</option></select>
@@ -186,9 +251,43 @@
   </div>
 </div>
 
+<!-- ── Reset POS Password Modal ── -->
+<div id="resetPOSModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:1100;align-items:center;justify-content:center;padding:20px">
+  <div style="background:var(--card-bg,#1a2e1a);border:1px solid var(--border);border-radius:12px;padding:28px;width:100%;max-width:440px;max-height:90vh;overflow-y:auto">
+    <h3 style="font-size:0.95rem;font-weight:400;margin-bottom:6px;color:var(--gold)">🔑 Reset POS Password</h3>
+    <p style="font-size:0.78rem;color:var(--muted);margin-bottom:20px">Follow the steps below to set a new password for <strong id="resetPOSName" style="color:var(--text)"></strong>.</p>
+
+    <div style="background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:20px">
+      <div style="font-size:0.68rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--muted);margin-bottom:10px">Step 1 — Delete the old account</div>
+      <p style="font-size:0.8rem;color:var(--text);margin-bottom:8px;line-height:1.55">Open Firebase Console Authentication, find the account for <code id="resetPOSEmail" style="background:rgba(255,255,255,0.07);padding:2px 6px;border-radius:3px;font-size:0.78rem"></code> and <strong>delete it</strong>.</p>
+      <a id="resetPOSConsoleLink" href="https://console.firebase.google.com/project/eden54/authentication/users" target="_blank"
+         style="display:inline-flex;align-items:center;gap:6px;font-size:0.78rem;color:var(--gold);border:1px solid rgba(201,169,110,0.3);border-radius:4px;padding:7px 14px;text-decoration:none">
+        🔗 Open Firebase Console →
+      </a>
+      <p style="font-size:0.72rem;color:var(--muted);margin-top:10px">Tip: search for the username in the search box at the top of the Users list.</p>
+    </div>
+
+    <div style="background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:20px">
+      <div style="font-size:0.68rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--muted);margin-bottom:10px">Step 2 — Set new password</div>
+      <label class="form-label">New Password</label>
+      <input type="password" id="resetNewPass" class="form-control" placeholder="Minimum 6 characters" style="margin-bottom:8px">
+      <label class="form-label">Confirm Password</label>
+      <input type="password" id="resetConfirmPass" class="form-control" placeholder="Repeat password">
+    </div>
+
+    <div id="resetPOSAlert" style="display:none;padding:10px 14px;border-radius:6px;font-size:0.8rem;margin-bottom:14px"></div>
+
+    <div style="display:flex;gap:10px;justify-content:flex-end">
+      <button class="btn btn-outline" onclick="closeResetPOSModal()">Cancel</button>
+      <button class="btn btn-gold" id="resetPOSBtn" onclick="confirmResetPOS()">Set New Password</button>
+    </div>
+  </div>
+</div>
+
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="/portal/firebase-init.js"></script>
 <script>
 const staff = getStaff();
@@ -196,6 +295,94 @@ requireAccess(staff, 'staff');
 populateSidebar(staff);
 buildNav(staff, 'staff');
 document.getElementById('topDate').textContent = new Date().toLocaleDateString('en-NG',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+
+/* ── Role management ── */
+let allRoles = [];
+
+const DEFAULT_ROLES = [
+  { name: 'CEO',          accessLevel: 'ceo'        },
+  { name: 'Manager',      accessLevel: 'manager'    },
+  { name: 'HR',           accessLevel: 'hr'         },
+  { name: 'Front Desk',   accessLevel: 'staff'      },
+  { name: 'Stylist',      accessLevel: 'staff'      },
+  { name: 'Bartender',    accessLevel: 'staff'      },
+  { name: 'Receptionist', accessLevel: 'staff'      },
+  { name: 'Waiter',       accessLevel: 'staff'      },
+  { name: 'Kitchen Staff',accessLevel: 'staff'      },
+];
+
+async function loadRoles() {
+  const snap = await db.collection('portalRoles').orderBy('name').get();
+  if (snap.empty) {
+    const batch = db.batch();
+    DEFAULT_ROLES.forEach(r => batch.set(db.collection('portalRoles').doc(), r));
+    await batch.commit();
+    return loadRoles();
+  }
+  allRoles = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+  // Patch any default roles missing from Firestore (e.g. CEO added after initial seed)
+  const existingNames = new Set(allRoles.map(r => r.name.toLowerCase()));
+  const missing = DEFAULT_ROLES.filter(r => !existingNames.has(r.name.toLowerCase()));
+  if (missing.length) {
+    const batch = db.batch();
+    missing.forEach(r => batch.set(db.collection('portalRoles').doc(), r));
+    await batch.commit();
+    return loadRoles();
+  }
+
+  populateRoleSelect('sRole',    '');
+  populateRoleSelect('editRole', '');
+  renderRolesList();
+}
+
+function populateRoleSelect(selectId, currentRole) {
+  const sel = document.getElementById(selectId);
+  if (!sel) return;
+  sel.innerHTML = '<option value="">Select role…</option>' +
+    allRoles.map(r =>
+      `<option value="${r.name}" data-level="${r.accessLevel}" ${r.name === currentRole ? 'selected' : ''}>${r.name}</option>`
+    ).join('');
+}
+
+function renderRolesList() {
+  const el = document.getElementById('rolesList');
+  if (!el) return;
+  const SYSTEM = ['CEO', 'Manager', 'HR'];
+  el.innerHTML = allRoles.map(r => {
+    const levelBadge = (r.accessLevel === 'ceo' || r.accessLevel === 'superadmin') ? '#C9A96E'
+      : r.accessLevel === 'manager' ? '#7c3aed'
+      : r.accessLevel === 'hr'      ? '#059669'
+      : '#3b82f6';
+    const canDel = !SYSTEM.includes(r.name);
+    return `<div style="display:inline-flex;align-items:center;gap:6px;background:var(--card);border:1px solid var(--border);border-radius:20px;padding:5px 12px;font-size:0.78rem">
+      <span style="width:7px;height:7px;border-radius:50%;background:${levelBadge};flex-shrink:0"></span>
+      <span>${r.name}</span>
+      <span style="font-size:0.65rem;color:var(--muted)">(${r.accessLevel})</span>
+      ${canDel ? `<button onclick="deleteRole('${r.id}','${r.name.replace(/'/g,"\\'")}')}" style="background:none;border:none;cursor:pointer;color:#dc2626;font-size:0.75rem;padding:0 0 0 4px;line-height:1">✕</button>` : ''}
+    </div>`;
+  }).join('');
+}
+
+async function addRole() {
+  const name  = document.getElementById('newRoleName').value.trim();
+  const level = document.getElementById('newRoleLevel').value;
+  if (!name) { showAlert('alertBox','Enter a role name.','alert-error'); return; }
+  if (allRoles.find(r => r.name.toLowerCase() === name.toLowerCase())) {
+    showAlert('alertBox', `"${name}" already exists.`, 'alert-error'); return;
+  }
+  await db.collection('portalRoles').add({ name, accessLevel: level });
+  document.getElementById('newRoleName').value = '';
+  showAlert('alertBox', `Role "${name}" added.`, 'alert-success');
+  loadRoles();
+}
+
+async function deleteRole(id, name) {
+  if (!confirm(`Remove the "${name}" role?`)) return;
+  await db.collection('portalRoles').doc(id).delete();
+  showAlert('alertBox', `"${name}" removed.`, 'alert-success');
+  loadRoles();
+}
 
 function updateInitials(name, targetId) {
   const el = document.getElementById(targetId);
@@ -229,52 +416,116 @@ async function uploadPhoto(file, staffId, progressBarId, fillId) {
   });
 }
 
+/* ── POS Login creation (secondary app so HR stays signed in) ── */
+function posEmail(username) {
+  return username.trim().toLowerCase().replace(/\s+/g,'_') + '@eden54.pos';
+}
+
+async function createPOSLogin(posUsername, password, staffId) {
+  const email  = posEmail(posUsername);
+  const config = firebase.app().options;
+  let secApp;
+  try { secApp = firebase.app('pos_sec'); }
+  catch(e) { secApp = firebase.initializeApp(config, 'pos_sec'); }
+  const secAuth = secApp.auth();
+  try {
+    const cred = await secAuth.createUserWithEmailAndPassword(email, password);
+    await secAuth.signOut();
+    await db.collection('staff').doc(staffId).update({ posUsername: posUsername.trim().toLowerCase().replace(/\s+/g,'_') });
+    return cred.user.uid;
+  } catch(err) {
+    await secAuth.signOut().catch(()=>{});
+    if (err.code === 'auth/email-already-in-use') {
+      throw new Error(`POS account for username "${posUsername}" already exists. The username is saved — if you need to reset the password, go to Firebase Console → Authentication → Users.`);
+    }
+    throw err;
+  }
+}
+
 async function addStaff() {
-  const name = document.getElementById('sName').value.trim();
-  if (!name) { showAlert('alertBox','Name is required.','alert-error'); return; }
+  const name    = document.getElementById('sName').value.trim();
+  const roleSel = document.getElementById('sRole');
+  const roleName = roleSel.value;
+  if (!name)     { showAlert('alertBox','Name is required.','alert-error'); return; }
+  if (!roleName) { showAlert('alertBox','Please select a role.','alert-error'); return; }
+  const accessLevel   = roleSel.selectedOptions[0]?.dataset.level || 'staff';
+  const posUsername   = document.getElementById('sPosUsername').value.trim().toLowerCase().replace(/\s+/g,'_');
+  const createLogin   = document.getElementById('sCreateLogin').checked;
+  const tempPass      = document.getElementById('sTempPass').value;
+
+  if (createLogin && !posUsername) { showAlert('alertBox','POS Username is required to create a login.','alert-error'); return; }
+  if (createLogin && tempPass.length < 6) { showAlert('alertBox','Password must be at least 6 characters.','alert-error'); return; }
+
   const btn = document.getElementById('addBtn');
   btn.disabled = true; btn.textContent = 'Adding…';
   try {
-    const docRef = await db.collection('staff').add({
-      name, role: document.getElementById('sRole').value,
-      department: document.getElementById('sDept').value,
+    const docData = {
+      name,
+      role:        roleName,
+      accessLevel: accessLevel,
+      department:  document.getElementById('sDept').value,
       basicSalary: +document.getElementById('sSalary').value || 0,
-      phone: document.getElementById('sPhone').value.trim(),
-      photoURL: '', active: true,
-      addedAt: firebase.firestore.FieldValue.serverTimestamp()
-    });
+      phone:       document.getElementById('sPhone').value.trim(),
+      photoURL:    '', active: true,
+      addedAt:     firebase.firestore.FieldValue.serverTimestamp()
+    };
+    if (posUsername) docData.posUsername = posUsername;
+    const docRef = await db.collection('staff').add(docData);
+
     const file = document.getElementById('sPhoto').files[0];
     if (file) {
       const url = await uploadPhoto(file, docRef.id, 'addProgress', 'addFill');
       await docRef.update({ photoURL: url });
     }
-    showAlert('alertBox', name + ' added!', 'alert-success');
-    document.getElementById('sName').value = '';
-    document.getElementById('sSalary').value = '';
-    document.getElementById('sPhone').value = '';
-    document.getElementById('sPhoto').value = '';
+
+    if (createLogin && posUsername && tempPass) {
+      btn.textContent = 'Creating login…';
+      await createPOSLogin(posUsername, tempPass, docRef.id);
+      showAlert('alertBox', `${name} added! POS login: username "${posUsername}"`, 'alert-success');
+    } else {
+      showAlert('alertBox', name + ' added!', 'alert-success');
+    }
+
+    document.getElementById('sName').value        = '';
+    document.getElementById('sSalary').value       = '';
+    document.getElementById('sPhone').value        = '';
+    document.getElementById('sPosUsername').value  = '';
+    document.getElementById('sTempPass').value     = '';
+    document.getElementById('sCreateLogin').checked = false;
+    document.getElementById('posPassRow').style.display = 'none';
+    document.getElementById('sPhoto').value   = '';
     document.getElementById('addPreview').innerHTML = '<span id="addInitials">?</span>';
     loadStaff();
-  } catch(e) { showAlert('alertBox','Error adding staff: ' + e.message,'alert-error'); }
+  } catch(e) { showAlert('alertBox','Error: ' + e.message,'alert-error'); }
   btn.disabled = false; btn.textContent = 'Add Staff Member';
 }
 
 async function loadStaff() {
   const snap = await db.collection('staff').orderBy('name').get();
   const tbody = document.getElementById('staffTable');
-  if (snap.empty) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;color:#6a6b62">No staff yet. Add your first team member.</td></tr>'; return; }
+  if (snap.empty) { tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;color:#6a6b62">No staff yet. Add your first team member.</td></tr>'; return; }
   tbody.innerHTML = snap.docs.map(d => {
     const s = d.data();
     const avatar = s.photoURL
       ? `<img class="staff-avatar" src="${s.photoURL}" alt="${s.name}">`
       : `<span class="staff-initials">${avatarInitials(s.name)}</span>`;
+    const posStatus = s.posUsername
+      ? `<span class="badge badge-ok" title="Username: ${s.posUsername}">${s.posUsername}</span>`
+      : `<span class="badge" style="background:rgba(255,255,255,0.06);color:var(--muted)">—</span>`;
     return `<tr>
       <td style="width:44px">${avatar}</td>
       <td class="fw4">${s.name}</td>
       <td>${s.department}</td>
-      <td><span class="badge badge-${s.role==='superadmin'?'gold':s.role==='manager'?'purple':'info'}">${s.role==='superadmin'?'Super Admin':s.role||'staff'}</span></td>
+      <td>
+        <div style="font-size:0.83rem;font-weight:400">${s.role||'—'}</div>
+        <span class="badge badge-${['ceo','superadmin'].includes(s.accessLevel||s.role)?'gold':(s.accessLevel||s.role)==='manager'?'purple':(s.accessLevel||s.role)==='hr'?'ok':'info'}" style="font-size:0.6rem;margin-top:2px">${['ceo','superadmin'].includes(s.accessLevel||s.role)?'CEO':(s.accessLevel||s.role)==='manager'?'Manager':(s.accessLevel||s.role)==='hr'?'HR':'Staff'}</span>
+      </td>
+      <td>${posStatus}</td>
       <td><span class="badge badge-${s.active!==false?'ok':'err'}">${s.active!==false?'Active':'Inactive'}</span></td>
-      <td><button class="btn btn-outline btn-sm" onclick="openEdit('${d.id}')">Edit</button></td>
+      <td style="display:flex;gap:6px;padding:10px 0">
+        <button class="btn btn-outline btn-sm" onclick="openEdit('${d.id}')">Edit</button>
+        <button class="btn btn-sm" style="background:rgba(220,38,38,0.1);color:#dc2626;border:1px solid rgba(220,38,38,0.25)" onclick="deleteStaff('${d.id}','${s.name.replace(/'/g,"\\'")}')">Delete</button>
+      </td>
     </tr>`;
   }).join('');
 }
@@ -288,11 +539,21 @@ async function openEdit(id) {
   document.getElementById('editName').textContent = s.name;
   document.getElementById('editCurrentPhoto').value = s.photoURL || '';
   document.getElementById('editDisplayName').value = s.name || '';
-  document.getElementById('editRole').value         = s.role || 'staff';
+  populateRoleSelect('editRole', s.role || '');
   document.getElementById('editDept').value         = s.department;
   document.getElementById('editSalary').value       = s.basicSalary || 0;
   document.getElementById('editPhone').value        = s.phone || '';
+  document.getElementById('editPosUsername').value  = s.posUsername || '';
   document.getElementById('editActive').value       = String(s.active !== false);
+  // Show POS login creation box if username is set
+  const hasPOS = !!s.posUsername;
+  document.getElementById('editPosBox').style.display    = hasPOS ? 'block' : 'none';
+  // If account already exists, show reset button instead of create checkbox
+  document.getElementById('eCreateLoginRow').style.display = hasPOS ? 'none' : 'flex';
+  document.getElementById('resetPOSRow').style.display     = hasPOS ? 'block' : 'none';
+  document.getElementById('eCreateLogin').checked          = false;
+  document.getElementById('editPassRow').style.display     = 'none';
+  document.getElementById('eTempPass').value               = '';
   document.getElementById('ePhoto').value = '';
   const prev = document.getElementById('editPreview');
   prev.innerHTML = s.photoURL
@@ -308,14 +569,20 @@ async function saveEdit() {
   const btn = document.getElementById('saveEditBtn');
   btn.disabled = true; btn.textContent = 'Saving…';
   try {
+    const editRoleSel  = document.getElementById('editRole');
+    const editRoleName = editRoleSel.value;
+    const editLevel    = editRoleSel.selectedOptions[0]?.dataset.level || 'staff';
+    const editPosUsername = document.getElementById('editPosUsername').value.trim().toLowerCase().replace(/\s+/g,'_');
     const updates = {
       name:        newName,
-      role:        document.getElementById('editRole').value,
+      role:        editRoleName,
+      accessLevel: editLevel,
       department:  document.getElementById('editDept').value,
       basicSalary: +document.getElementById('editSalary').value || 0,
       phone:       document.getElementById('editPhone').value.trim(),
       active:      document.getElementById('editActive').value === 'true'
     };
+    if (editPosUsername) updates.posUsername = editPosUsername;
     const file = document.getElementById('ePhoto').files[0];
     if (file) {
       updates.photoURL = await uploadPhoto(file, id, 'editProgress', 'editFill');
@@ -324,9 +591,18 @@ async function saveEdit() {
 
     // If editing own profile, update localStorage so sidebar reflects new name immediately
     if (staff && staff.id === id) {
-      const updated = { ...staff, name: newName, role: updates.role, department: updates.department };
+      const updated = { ...staff, name: newName, role: updates.role, accessLevel: updates.accessLevel, department: updates.department };
       setStaff(updated);
       populateSidebar(updated);
+    }
+
+    // Create / reset POS login if requested
+    const eCreateLogin = document.getElementById('eCreateLogin').checked;
+    const eTempPass    = document.getElementById('eTempPass').value;
+    if (eCreateLogin && updates.posUsername) {
+      if (eTempPass.length < 6) { showAlert('alertBox','Password must be at least 6 characters.','alert-error'); btn.disabled=false; btn.textContent='Save Changes'; return; }
+      btn.textContent = 'Creating login…';
+      await createPOSLogin(updates.posUsername, eTempPass, id);
     }
 
     document.getElementById('editModal').classList.remove('show');
@@ -336,6 +612,68 @@ async function saveEdit() {
   btn.disabled = false; btn.textContent = 'Save Changes';
 }
 
+async function deleteStaff(id, name) {
+  if (!confirm(`Delete ${name}? This cannot be undone.`)) return;
+  try {
+    await db.collection('staff').doc(id).delete();
+    showAlert('alertBox', name + ' removed.', 'alert-success');
+    loadStaff();
+  } catch(e) { showAlert('alertBox', 'Error: ' + e.message, 'alert-error'); }
+}
+
+/* ── Reset POS Password ── */
+function openResetPOSModal() {
+  const username = document.getElementById('editPosUsername').value.trim().toLowerCase().replace(/\s+/g,'_');
+  const name     = document.getElementById('editDisplayName').value.trim() || editingData.name || 'this staff member';
+  const email    = username + '@eden54.pos';
+  document.getElementById('resetPOSName').textContent  = name;
+  document.getElementById('resetPOSEmail').textContent = email;
+  document.getElementById('resetNewPass').value        = '';
+  document.getElementById('resetConfirmPass').value    = '';
+  document.getElementById('resetPOSAlert').style.display = 'none';
+  document.getElementById('resetPOSModal').style.display = 'flex';
+}
+
+function closeResetPOSModal() {
+  document.getElementById('resetPOSModal').style.display = 'none';
+}
+
+async function confirmResetPOS() {
+  const username = document.getElementById('editPosUsername').value.trim().toLowerCase().replace(/\s+/g,'_');
+  const newPass  = document.getElementById('resetNewPass').value;
+  const confirm2 = document.getElementById('resetConfirmPass').value;
+  const alertEl  = document.getElementById('resetPOSAlert');
+  const btn      = document.getElementById('resetPOSBtn');
+
+  function showResetAlert(msg, isError) {
+    alertEl.textContent = msg;
+    alertEl.style.display = 'block';
+    alertEl.style.background = isError ? 'rgba(220,38,38,0.1)' : 'rgba(34,197,94,0.1)';
+    alertEl.style.border     = isError ? '1px solid rgba(220,38,38,0.25)' : '1px solid rgba(34,197,94,0.25)';
+    alertEl.style.color      = isError ? '#fca5a5' : '#86efac';
+  }
+
+  if (newPass.length < 6)     { showResetAlert('Password must be at least 6 characters.', true); return; }
+  if (newPass !== confirm2)   { showResetAlert('Passwords do not match.', true); return; }
+  if (!username)              { showResetAlert('No POS username found — save the staff record first.', true); return; }
+
+  btn.disabled = true; btn.textContent = 'Creating…';
+  try {
+    await createPOSLogin(username, newPass, editingData.id);
+    showResetAlert('✓ Password set successfully! Staff can now sign in with the new password.', false);
+    btn.textContent = 'Done ✓';
+    setTimeout(closeResetPOSModal, 2500);
+  } catch(err) {
+    if (err.message && err.message.includes('already exists')) {
+      showResetAlert('Old account still exists in Firebase. Please delete it from the Firebase Console (Step 1) first, then try again.', true);
+    } else {
+      showResetAlert('Error: ' + err.message, true);
+    }
+    btn.disabled = false; btn.textContent = 'Set New Password';
+  }
+}
+
+loadRoles();
 loadStaff();
 </script>
 </body>

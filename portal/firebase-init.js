@@ -7,8 +7,9 @@ const firebaseConfig = {
   appId: "1:643222824531:web:dc643654a672c1cd0d48a6"
 };
 firebase.initializeApp(firebaseConfig);
-const db      = firebase.firestore();
-const storage = firebase.storage();
+const db = firebase.firestore();
+let storage = null;
+try { storage = firebase.storage(); } catch(e) {}
 
 /* ── Identity ── */
 function getStaff() {
@@ -68,18 +69,25 @@ async function captureLocation() {
   });
 }
 
-function buildNav(staff, active) {
-  const isManager    = staff.role === 'manager' || staff.role === 'superadmin';
-  const isSuperAdmin = staff.role === 'superadmin';
-  const dept         = (staff.department || '').toLowerCase();
+let _navActive  = '';
+let _navFetched = false;
 
-  // What each department is allowed to see in the Reports section
+function buildNav(staff, active) {
+  _navActive = active;
+  const _raw      = (staff.accessLevel || staff.role || 'staff').toLowerCase().replace(/\s+/g,'');
+  const isCEO     = _raw === 'ceo' || _raw === 'superadmin';
+  const isManager = isCEO || _raw === 'manager';
+  const dept      = (staff.department || '').toLowerCase();
+  const isHR      = !isManager && (_raw === 'hr' || dept === 'hr' || dept.includes('human resource'));
+  const isFrontDesk = dept === 'front desk' || dept === 'receptionist' || dept === 'lounge' || dept === 'apartments';
+
   const canReport = {
-    sales:   true,
-    bar:     isManager || dept === 'bar',
-    kitchen: isManager || dept === 'kitchen',
-    barbing: isManager || dept === 'salon',
-    pool:    isManager || dept === 'pool',
+    sales:      true,
+    bar:        isManager || dept === 'bar',
+    kitchen:    isManager || dept === 'kitchen',
+    barbing:    isManager || dept === 'salon',
+    pool:       isManager || dept === 'pool',
+    apartments: isManager || isHR || isFrontDesk,
   };
 
   const a = (href, icon, label, page) => {
@@ -89,29 +97,41 @@ function buildNav(staff, active) {
   const sec = label => `<div class="sb-section">${label}</div>`;
 
   let html = sec('Main');
-  html += a('/portal/home/',      '🏠', 'My Home',   'home');
-  html += a('/portal/updates/',   '📸', 'Updates',   'updates');
+  html += a('/portal/home/',    '🏠', 'My Home',   'home');
+  html += a('/portal/updates/', '📸', 'Updates',   'updates');
   if (isManager) html += a('/portal/dashboard/', '📊', 'Dashboard', 'dashboard');
 
   if (isManager) {
-    // Managers & HR see the collated overview — not individual submission pages
     html += sec('Reports');
-    html += a('/portal/reports/', '📋', 'All Reports', 'reports');
-    html += sec('HR');
-    html += a('/portal/attendance/', '👥', 'Attendance',   'attendance');
-    html += a('/portal/payroll/',    '💵', 'Payroll',      'payroll');
+    html += a('/portal/reports/',    '📋', 'All Reports',    'reports');
+    html += sec('HR & Operations');
+    html += a('/portal/attendance/', '👥', 'Attendance',     'attendance');
+    html += a('/portal/payroll/',    '💵', 'Payroll',        'payroll');
     html += a('/portal/activity/',   '🕵️', 'Staff Activity', 'activity');
-    html += a('/portal/expenses/',   '🧾', 'Expenses',     'expenses');
+    html += a('/portal/expenses/',   '🧾', 'Expenses',       'expenses');
     html += sec('Admin');
-    html += a('/portal/staff/',      '👤', 'Manage Staff', 'staff');
+    html += a('/portal/staff/',      '👤', 'Manage Staff',   'staff');
+    html += sec('Apartments');
+    html += a('/portal/apartments/', '🏨', 'Apartment Rentals', 'apartments');
+  } else if (isHR) {
+    html += sec('Reports');
+    html += a('/portal/reports/',    '📋', 'All Reports',    'reports');
+    html += sec('HR');
+    html += a('/portal/attendance/', '👥', 'Attendance',     'attendance');
+    html += a('/portal/payroll/',    '💵', 'Payroll',        'payroll');
+    html += a('/portal/expenses/',   '🧾', 'Expenses',       'expenses');
+    html += sec('Admin');
+    html += a('/portal/staff/',      '👤', 'Manage Staff',   'staff');
+    html += sec('Apartments');
+    html += a('/portal/apartments/', '🏨', 'Apartment Rentals', 'apartments');
   } else {
-    // Regular staff see only their own department submission pages
     const reportLinks = [
-      canReport.sales   && a('/portal/sales/',   '💰', 'Daily Sales', 'sales'),
-      canReport.bar     && a('/portal/bar/',     '🍺', 'Bar Stock',   'bar'),
-      canReport.kitchen && a('/portal/kitchen/', '🍽️', 'Kitchen',     'kitchen'),
-      canReport.barbing && a('/portal/barbing/', '💈', 'Barbing',     'barbing'),
-      canReport.pool    && a('/portal/pool/',    '🏊', 'Pool',        'pool'),
+      canReport.sales      && a('/portal/sales/',      '💰', 'Daily Sales', 'sales'),
+      canReport.bar        && a('/portal/bar/',        '🍺', 'Bar Stock',   'bar'),
+      canReport.kitchen    && a('/portal/kitchen/',    '🍽️', 'Kitchen',     'kitchen'),
+      canReport.barbing    && a('/portal/barbing/',    '💈', 'Barbing',     'barbing'),
+      canReport.pool       && a('/portal/pool/',       '🏊', 'Pool',        'pool'),
+      canReport.apartments && a('/portal/apartments/', '🏨', 'Apartments',  'apartments'),
       a('/portal/expenses/', '🧾', 'Expenses', 'expenses'),
     ].filter(Boolean);
     if (reportLinks.length) {
@@ -120,12 +140,57 @@ function buildNav(staff, active) {
     }
   }
 
+  const isPOSStaff = isManager || isHR || isFrontDesk
+    || dept.includes('game') || dept.includes('bar') || dept.includes('bartend') || dept.includes('lounge')
+    || dept.includes('salon') || dept.includes('barbing');
+  if (isPOSStaff) {
+    html += sec('POS');
+    html += a('/portal/pos/', '🖥️', 'POS Terminal', 'pos');
+  }
+
   const nav = document.getElementById('sbNav');
   if (nav) nav.innerHTML = html;
 
-  // Only managers can switch profiles — regular staff stay locked to their own portal
+  const canSeeApts = isManager || isHR || isFrontDesk;
+  if (canSeeApts && typeof db !== 'undefined') {
+    db.collection('apartmentBookings')
+      .where('status', '==', 'new')
+      .onSnapshot(snap => {
+        const count = snap.size;
+        const aptLink = document.querySelector('#sbNav a[href="/portal/apartments/"]');
+        if (!aptLink) return;
+        let badge = aptLink.querySelector('.sb-notif-badge');
+        if (!badge) {
+          badge = document.createElement('span');
+          badge.className = 'sb-notif-badge';
+          badge.style.cssText = 'display:inline-flex;align-items:center;justify-content:center;background:#dc2626;color:#fff;border-radius:50%;width:18px;height:18px;font-size:0.6rem;font-weight:600;margin-left:auto;flex-shrink:0';
+          aptLink.style.display = 'flex';
+          aptLink.style.alignItems = 'center';
+          aptLink.appendChild(badge);
+        }
+        badge.textContent  = count;
+        badge.style.display = count > 0 ? 'inline-flex' : 'none';
+      }, () => {});
+  }
+
   const switchBtn = document.querySelector('.sb-foot a[onclick]');
-  if (switchBtn) switchBtn.style.display = isManager ? '' : 'none';
+  if (switchBtn) switchBtn.style.display = (isManager || isHR) ? '' : 'none';
+
+  // Always fetch live Firestore data once per page load so nav reflects real access level
+  if (!_navFetched && staff && staff.id && typeof db !== 'undefined') {
+    _navFetched = true;
+    db.collection('staff').doc(staff.id).get().then(doc => {
+      if (!doc.exists) return;
+      const fresh = { id: doc.id, ...doc.data() };
+      setStaff(fresh);
+      const oldKey = (staff.accessLevel || staff.role || '') + '|' + (staff.department || '');
+      const newKey = (fresh.accessLevel || fresh.role || '') + '|' + (fresh.department || '');
+      if (oldKey !== newKey) {
+        buildNav(fresh, _navActive);
+        populateSidebar(fresh);
+      }
+    }).catch(() => {});
+  }
 }
 
 /**
@@ -133,21 +198,26 @@ function buildNav(staff, active) {
  * Returns false and redirects if access is denied.
  */
 function requireAccess(staff, page) {
-  const isManager    = staff.role === 'manager' || staff.role === 'superadmin';
-  const isSuperAdmin = staff.role === 'superadmin';
-  const dept         = (staff.department || '').toLowerCase();
+  const _raw      = (staff.accessLevel || staff.role || 'staff').toLowerCase().replace(/\s+/g,'');
+  const isCEO     = _raw === 'ceo' || _raw === 'superadmin';
+  if (isCEO) return true; // CEO has unrestricted access to all pages
+  const isManager = _raw === 'manager';
+  const dept      = (staff.department || '').toLowerCase();
+  const isHR      = _raw === 'hr' || dept === 'hr' || dept.includes('human resource');
   const rules = {
     dashboard:  isManager,
-    staff:      isManager,
-    attendance: isManager,
-    payroll:    isManager,
-    reports:    isManager,
+    staff:      isManager || isHR,
+    attendance: isManager || isHR,
+    payroll:    isManager || isHR,
+    reports:    isManager || isHR,
     activity:   isManager,
     expenses:   true,
     bar:        isManager || dept === 'bar',
     kitchen:    isManager || dept === 'kitchen',
     barbing:    isManager || dept === 'salon',
     pool:       isManager || dept === 'pool',
+    apartments: isManager || isHR || dept === 'front desk' || dept === 'receptionist' || dept === 'lounge' || dept === 'apartments',
+    pos:        true,
     sales:      true,
     home:       true,
     updates:    true,

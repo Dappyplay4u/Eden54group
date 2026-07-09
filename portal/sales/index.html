@@ -48,6 +48,47 @@
           <div id="svcGrid" style="display:grid;gap:4px"></div>
         </div>
 
+        <!-- Apartment details — shown only for Apartment dept -->
+        <div id="aptSection" style="display:none;margin-bottom:14px">
+          <div class="divider"></div>
+          <p style="font-size:0.7rem;color:#6a6b62;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:10px">Apartment Details</p>
+          <div class="fg2" style="margin-bottom:10px">
+            <div class="form-group">
+              <label class="form-label">Unit Type</label>
+              <select id="aptUnit" class="form-control">
+                <option value="">Select unit…</option>
+                <option>1-Bedroom Suite</option>
+                <option>2-Bedroom Suite</option>
+                <option>3-Bedroom Suite</option>
+                <option>Studio</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">No. of Bedrooms</label>
+              <select id="aptBedrooms" class="form-control">
+                <option value="">Select…</option>
+                <option value="1">1 Bedroom</option>
+                <option value="2">2 Bedrooms</option>
+                <option value="3">3 Bedrooms</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group" style="margin-bottom:10px">
+            <label class="form-label">Guest Name</label>
+            <input type="text" id="aptGuest" class="form-control" placeholder="Guest full name">
+          </div>
+          <div class="fg2">
+            <div class="form-group">
+              <label class="form-label">Check-in Date</label>
+              <input type="date" id="aptCheckin" class="form-control">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Check-out Date</label>
+              <input type="date" id="aptCheckout" class="form-control">
+            </div>
+          </div>
+        </div>
+
         <div class="divider"></div>
         <div class="fg3" style="margin-bottom:14px">
           <div class="form-group">
@@ -104,23 +145,28 @@ document.getElementById('topDate').textContent = new Date().toLocaleDateString('
 /* ── Department options ── */
 const ALL_DEPTS = ['Restaurant & Lounge','Bar','Apartment','Barbing Salon','Pool','Car Rental','Games'];
 const SALON_DEPTS = ['Barbing Salon','Pool','Games'];
-const isSalon = (staff.department || '').toLowerCase() === 'salon';
+const APT_DEPTS   = ['Apartment'];
+const dept_key    = (staff.department || '').toLowerCase();
+const isSalon = dept_key === 'salon';
+const isApt   = dept_key === 'apartment';
 
 const SALON_SERVICES = ['Haircut', 'Games', 'Pool'];
 
 function buildDeptOptions() {
   const sel = document.getElementById('saleDept');
-  const opts = isSalon ? SALON_DEPTS : ALL_DEPTS;
+  const opts = isSalon ? SALON_DEPTS : isApt ? APT_DEPTS : ALL_DEPTS;
   sel.innerHTML = '<option value="">Select…</option>' +
-    opts.map(d => `<option${isSalon && d==='Barbing Salon'?' selected':''}>${d}</option>`).join('');
-  if (isSalon) onDeptChange();
+    opts.map(d => `<option${(isSalon && d==='Barbing Salon') || (isApt && d==='Apartment') ? ' selected' : ''}>${d}</option>`).join('');
+  if (isSalon || isApt) onDeptChange();
 }
 
 function onDeptChange() {
   const dept = document.getElementById('saleDept').value;
-  const show = dept === 'Barbing Salon';
-  document.getElementById('svcSection').style.display = show ? 'block' : 'none';
-  if (show) buildSvcGrid();
+  const showSvc = dept === 'Barbing Salon';
+  const showApt = dept === 'Apartment';
+  document.getElementById('svcSection').style.display = showSvc ? 'block' : 'none';
+  document.getElementById('aptSection').style.display = showApt ? 'block' : 'none';
+  if (showSvc) buildSvcGrid();
   calcTotal();
 }
 
@@ -165,16 +211,25 @@ async function submitSales() {
   const pos   = +document.getElementById('posSales').value || 0;
   const notes = document.getElementById('saleNotes').value.trim();
   const services = dept === 'Barbing Salon' ? getSvcBreakdown() : [];
+  const aptDetails = dept === 'Apartment' ? {
+    aptUnit:     document.getElementById('aptUnit').value,
+    aptBedrooms: document.getElementById('aptBedrooms').value,
+    aptGuest:    document.getElementById('aptGuest').value.trim(),
+    aptCheckin:  document.getElementById('aptCheckin').value,
+    aptCheckout: document.getElementById('aptCheckout').value,
+  } : {};
   const btn = document.getElementById('submitBtn');
   btn.disabled = true; btn.textContent = 'Submitting…';
   try {
     await db.collection('sales').add({
       date, department: dept, staffId: staff.id, staffName: staff.name,
       cashSales: cash, transferSales: trans, posSales: pos, totalSales: cash + trans + pos,
-      services, notes, submittedAt: firebase.firestore.FieldValue.serverTimestamp()
+      services, notes, ...aptDetails,
+      submittedAt: firebase.firestore.FieldValue.serverTimestamp()
     });
     showAlert('alertBox','Sales report submitted!','alert-success');
-    ['cashSales','transferSales','posSales','saleNotes'].forEach(id => document.getElementById(id).value = '');
+    ['cashSales','transferSales','posSales','saleNotes','aptUnit','aptBedrooms','aptGuest','aptCheckin','aptCheckout']
+      .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
     document.getElementById('totalDisplay').textContent = '₦0.00';
     if (dept === 'Barbing Salon') { buildSvcGrid(); }
     loadToday(); loadHistory();
@@ -183,21 +238,65 @@ async function submitSales() {
 }
 
 async function loadToday() {
-  const isManager = staff.role === 'manager';
-  // Managers see all staff; regular staff see only their own
-  let query = db.collection('sales').where('date','==',today);
-  if (!isManager) query = query.where('staffId','==',staff.id);
-  if (isManager) document.getElementById('todayTitle').textContent = "Today's Submissions — All Staff";
-  const snap = await query.get();
+  const lvl       = (staff.accessLevel || staff.role || '').toLowerCase().replace(/\s+/g,'');
+  const isManager = ['ceo','superadmin','manager'].includes(lvl);
+  const isHR      = lvl === 'hr' || (staff.department || '').toLowerCase() === 'hr';
+  const seeAll    = isManager || isHR;
+
+  if (seeAll) document.getElementById('todayTitle').textContent = "Today's Activity — All Staff";
+
+  // Fetch both manual sales reports and POS transactions for today
+  const queries = seeAll
+    ? [db.collection('sales').where('date','==',today).get(),
+       db.collection('sales').where('date','==',today).where('source','==','pos').get()]
+    : [db.collection('sales').where('date','==',today).where('staffId','==',staff.id).get(),
+       db.collection('sales').where('date','==',today).where('source','==','pos').where('staffId','==',staff.id).get()];
+
+  const [manualSnap, posSnap] = await Promise.all(queries);
   const el = document.getElementById('todaySales');
-  if (snap.empty) { el.textContent = 'No submissions yet today.'; return; }
-  let html = '', grand = 0;
-  snap.forEach(d => {
-    const s = d.data(); grand += s.totalSales || 0;
-    const label = isManager ? `<strong>${s.staffName}</strong> · ${s.department}` : s.department;
-    html += `<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #e4e4df;font-size:0.84rem"><span>${label}</span><span class="text-gold fw4">${fmtNaira(s.totalSales)}</span></div>`;
-  });
-  if (isManager) html += `<div style="display:flex;justify-content:space-between;padding:9px 0;font-weight:400;font-size:0.88rem"><span>Grand Total</span><span class="text-gold">${fmtNaira(grand)}</span></div>`;
+
+  // Manual reports (exclude pos-sourced ones to avoid double-counting)
+  const manualDocs = manualSnap.docs.filter(d => d.data().source !== 'pos');
+  // POS transactions — deduplicate with posSnap
+  const posDocs    = posSnap.docs;
+
+  if (!manualDocs.length && !posDocs.length) { el.textContent = 'No submissions yet today.'; return; }
+
+  let html = '', grandManual = 0, grandPOS = 0;
+
+  if (manualDocs.length) {
+    html += `<div style="font-size:0.65rem;letter-spacing:0.15em;text-transform:uppercase;color:#C9A96E;margin:6px 0 4px">Manual Reports</div>`;
+    manualDocs.forEach(d => {
+      const s = d.data(); grandManual += s.totalSales || 0;
+      const label = seeAll ? `<strong>${s.staffName}</strong> · ${s.department}` : s.department;
+      html += `<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #e4e4df;font-size:0.84rem"><span>${label}</span><span class="text-gold fw4">${fmtNaira(s.totalSales)}</span></div>`;
+    });
+    if (seeAll) html += `<div style="display:flex;justify-content:space-between;padding:6px 0;font-size:0.82rem;color:#6a6b62"><span>Subtotal</span><span>${fmtNaira(grandManual)}</span></div>`;
+  }
+
+  if (posDocs.length) {
+    html += `<div style="font-size:0.65rem;letter-spacing:0.15em;text-transform:uppercase;color:#C9A96E;margin:12px 0 4px">POS Transactions</div>`;
+    posDocs.forEach(d => {
+      const s = d.data(); grandPOS += s.amount || 0;
+      const time = s.createdAt?.toDate ? s.createdAt.toDate().toLocaleTimeString('en-NG',{hour:'2-digit',minute:'2-digit'}) : '';
+      const who  = seeAll ? `<strong>${s.staffName}</strong> · ${s.section || s.department}` : (s.section || s.department);
+      const recv = s.receivedBy ? `<span style="font-size:0.72rem;color:#6a6b62"> · Rcvd: ${s.receivedBy}</span>` : '';
+      const items = (s.items||[]).map(i=>`${i.qty}× ${i.name}`).join(', ');
+      html += `<div style="padding:7px 0;border-bottom:1px solid #e4e4df;font-size:0.83rem">
+        <div style="display:flex;justify-content:space-between">
+          <span>${who}${recv}</span>
+          <span class="text-gold fw4">${fmtNaira(s.amount)}</span>
+        </div>
+        <div style="font-size:0.72rem;color:#6a6b62;margin-top:2px">${items}${time ? ' · '+time : ''} · ${(s.paymentMethod||'').toUpperCase()}</div>
+      </div>`;
+    });
+    if (seeAll) html += `<div style="display:flex;justify-content:space-between;padding:6px 0;font-size:0.82rem;color:#6a6b62"><span>Subtotal</span><span>${fmtNaira(grandPOS)}</span></div>`;
+  }
+
+  if (seeAll && (manualDocs.length || posDocs.length)) {
+    html += `<div style="display:flex;justify-content:space-between;padding:9px 0;font-weight:400;font-size:0.88rem;border-top:1px solid #C9A96E;margin-top:4px"><span>Grand Total</span><span class="text-gold">${fmtNaira(grandManual + grandPOS)}</span></div>`;
+  }
+
   el.innerHTML = html;
 }
 

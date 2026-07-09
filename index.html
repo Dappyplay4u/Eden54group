@@ -2089,7 +2089,7 @@
     <span style="font-size:1rem;letter-spacing:0.35em;text-transform:uppercase;color:var(--gold);white-space:nowrap;font-family:'Cormorant Garamond',serif;font-weight:600">Starters</span>
     <span style="flex:1;height:1px;background:rgba(201,169,110,0.25)"></span>
   </div>
-  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;padding:0 60px;margin-bottom:48px">
+  <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:16px;padding:0 60px;margin-bottom:48px">
 
     <!-- Chicken Skewers -->
     <div class="mc">
@@ -2240,6 +2240,23 @@
             <div class="mc-opts"><span class="mc-tag-lbl">Dips</span><span class="mc-tag">Peri Peri</span><span class="mc-tag">Ranch</span><span class="mc-tag">BBQ Sauce</span><span class="mc-tag">Ketchup</span></div>
           </div>
           <span class="mc-price">₦9,500</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chicken Wings -->
+    <div class="mc">
+      <img src="menu/Chicken Wings.jpg" alt="Chicken Wings" class="mc-img" onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'">
+      <div class="mc-fade"></div>
+      <div class="mc-body">
+        <h3 class="mc-name">Chicken Wings</h3>
+        <p class="mc-desc">Crispy, saucy chicken wings — glazed and grilled to sticky perfection</p>
+        <div class="mc-foot">
+          <div>
+            <div class="mc-opts"><span class="mc-tag-lbl">Sides</span><span class="mc-tag">Onion Rings</span><span class="mc-tag">Chips</span><span class="mc-tag">Sweet Corn</span></div>
+            <div class="mc-opts"><span class="mc-tag-lbl">Dips</span><span class="mc-tag">Peri Peri</span><span class="mc-tag">Ranch</span><span class="mc-tag">BBQ Sauce</span><span class="mc-tag">Ketchup</span></div>
+          </div>
+          <span class="mc-price">₦8,500</span>
         </div>
       </div>
     </div>
@@ -2856,7 +2873,7 @@
           <h3 class="room-name">One-Bedroom Suite</h3>
           <p class="room-desc">Elegantly appointed living space with a fully equipped kitchenette, king bed, ensuite bathroom, and garden views.</p>
           <div class="room-price">
-            <span class="price-num">₦45,000</span>
+            <span class="price-num" id="apt-price-1">₦45,000</span>
             <span class="price-unit">per night</span>
           </div>
         </div>
@@ -2869,7 +2886,7 @@
           <h3 class="room-name">Two-Bedroom Suite</h3>
           <p class="room-desc">Separate living and dining areas, two marble-clad ensuites, walk-in wardrobes, and a private balcony.</p>
           <div class="room-price">
-            <span class="price-num">₦85,000</span>
+            <span class="price-num" id="apt-price-2">₦85,000</span>
             <span class="price-unit">per night</span>
           </div>
         </div>
@@ -2882,7 +2899,7 @@
           <h3 class="room-name">Three-Bedroom Suite</h3>
           <p class="room-desc">Three bedrooms, spacious living and dining areas, fully equipped kitchen, and premium amenities throughout.</p>
           <div class="room-price">
-            <span class="price-num">₦120,000</span>
+            <span class="price-num" id="apt-price-3">₦120,000</span>
             <span class="price-unit">per night</span>
           </div>
         </div>
@@ -3490,6 +3507,30 @@
     emailData.append('Apartment Unit',  document.getElementById('rfUnit').value);
     emailData.append('Special Requests',document.getElementById('rfRequests').value);
     fetch('https://formsubmit.co/eden54group@gmail.com', { method: 'POST', body: emailData }).catch(() => {});
+
+    /* Also write to Firestore so portal shows it as a notification */
+    (function saveBooking() {
+      try {
+        if (typeof firebase === 'undefined') { console.warn('[RF] Firebase SDK not loaded'); return; }
+        if (!firebase.apps || !firebase.apps.length) { console.warn('[RF] Firebase not initialised'); return; }
+        firebase.firestore().collection('apartmentBookings').add({
+          firstName:   document.getElementById('rfFirstName').value,
+          lastName:    document.getElementById('rfLastName').value,
+          email:       document.getElementById('rfEmail').value,
+          phone:       document.getElementById('rfPhone').value,
+          checkin:     document.getElementById('rfCheckin').value,
+          checkout:    document.getElementById('rfCheckout').value,
+          guests:      document.getElementById('rfGuests').value,
+          unit:        document.getElementById('rfUnit').value,
+          requests:    document.getElementById('rfRequests').value,
+          status:      'new',
+          source:      'website',
+          createdAt:   firebase.firestore.FieldValue.serverTimestamp()
+        })
+        .then(function() { console.log('[RF] ✅ Booking saved to portal'); })
+        .catch(function(e) { console.error('[RF] ❌ Firestore write failed:', e.code, e.message); });
+      } catch(e) { console.error('[RF] Firebase sync error:', e); }
+    })();
   }
 
   function rfResetForm() {
@@ -3611,6 +3652,42 @@
   dots.forEach(d => d.addEventListener('click', () => showTestimonial(+d.dataset.index)));
   tQ.style.transition = tA.style.transition = tO.style.transition = 'opacity 0.4s';
   setInterval(() => showTestimonial((current + 1) % testimonials.length), 6000); // auto-rotate
+</script>
+
+<!-- Firebase (for apartment booking notifications to portal) -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script>
+  try {
+    if (!firebase.apps.length) {
+      firebase.initializeApp({
+        apiKey: "AIzaSyAexUjhTx1iBiivwB8rUdK52ANleN1DFAg",
+        authDomain: "eden54.firebaseapp.com",
+        projectId: "eden54",
+        storageBucket: "eden54.firebasestorage.app",
+        messagingSenderId: "643222824531",
+        appId: "1:643222824531:web:dc643654a672c1cd0d48a6"
+      });
+    }
+  } catch(e) {}
+</script>
+<script>
+  // Sync apartment prices from Firestore aptRates so website always matches POS settings
+  (function() {
+    try {
+      const db = firebase.firestore();
+      db.collection('aptRates').get().then(snap => {
+        snap.forEach(doc => {
+          const r = doc.data();
+          const beds = parseInt(r.bedrooms) || 0;
+          const el = document.getElementById('apt-price-' + beds);
+          if (el && r.nightlyRate) {
+            el.textContent = '₦' + Number(r.nightlyRate).toLocaleString('en-NG');
+          }
+        });
+      }).catch(() => {});
+    } catch(e) {}
+  })();
 </script>
 </body>
 </html>

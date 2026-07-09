@@ -141,14 +141,12 @@
     </div>
 
     <!-- Department cards (rendered dynamically) -->
-    <div id="salesCard"></div>
-    <div id="barbingCard"></div>
-    <div id="barCard"></div>
-    <div id="kitchenCard"></div>
-    <div id="poolCard"></div>
-    <div id="loungeCard"></div>
+    <div id="gamesCard"></div>
+    <div id="drinksCard"></div>
+    <div id="foodCard"></div>
     <div id="apartmentCard"></div>
-    <div id="otherCard"></div>
+    <div id="eventsCard"></div>
+    <div id="barbingCard"></div>
     <div id="expensesCard"></div>
   </div>
 </div>
@@ -184,19 +182,39 @@ function deptCard(id, icon, title, sub, body, badge='') {
   </div>`;
 }
 
-/*
-  Sales page stores department as its dropdown text, e.g. "Barbing Salon", "Bar", "Pool".
-  Staff records store department as a key, e.g. "salon", "bar", "pool".
-  This map routes sales records to the correct report section.
-*/
-function salesSection(dept) {
+/* Map manual-report department labels → POS section key */
+function deptToSection(dept) {
   const d = (dept||'').toLowerCase().trim();
   if (d === 'barbing salon' || d === 'salon' || d === 'barbing') return 'barbing';
-  if (d === 'bar')                                                 return 'bar';
-  if (d === 'pool')                                               return 'pool';
-  if (d === 'restaurant & lounge' || d === 'lounge')              return 'lounge';
-  if (d === 'apartment')                                          return 'apartment';
-  return 'other'; // car rental, games, etc.
+  if (d === 'bar')                                                return 'drinks';
+  if (d === 'pool' || d === 'games' || d === 'game')             return 'games';
+  if (d === 'restaurant & lounge' || d === 'lounge')             return 'food';
+  if (d === 'apartment')                                         return 'apt';
+  if (d === 'car rental' || d === 'event' || d === 'events')     return 'events';
+  return 'other';
+}
+
+/* Aggregate item sales across POS transactions → sorted by revenue */
+function topItems(sales) {
+  const map = {};
+  sales.forEach(s => (s.items||[]).forEach(i => {
+    const key = i.name || '—';
+    if (!map[key]) map[key] = { qty:0, revenue:0, icon: i.icon||'' };
+    map[key].qty     += (i.qty || 1);
+    map[key].revenue += (i.total || (i.unitPrice||0) * (i.qty||1));
+  }));
+  return Object.entries(map).sort((a,b) => b[1].revenue - a[1].revenue);
+}
+
+function itemBreakdown(sales, unit) {
+  const items = topItems(sales);
+  if (!items.length) return '';
+  const chips = items.map(([name, d], idx) =>
+    `<span class="item-chip" style="${idx===0?'background:rgba(201,169,110,0.18);color:#92400e;font-weight:500':''}">
+      ${esc(name)}: ${d.qty} ${unit||'sold'} · ${N(d.revenue)}
+    </span>`
+  ).join('');
+  return `<div style="margin-top:10px"><div class="sub-label" style="margin-bottom:6px">Top Sellers</div><div class="bar-items">${chips}</div></div>`;
 }
 
 /* ── Load All ── */
@@ -204,88 +222,283 @@ async function loadAll() {
   const date = document.getElementById('reportDate').value;
   document.getElementById('printDate').textContent = 'Date: ' + date;
   document.getElementById('grandBar').style.display = 'none';
-  ['salesCard','barbingCard','barCard','kitchenCard','poolCard','loungeCard','apartmentCard','otherCard','expensesCard']
+  ['gamesCard','drinksCard','foodCard','apartmentCard','eventsCard','barbingCard','expensesCard']
     .forEach(id => { const el = document.getElementById(id); if(el) el.innerHTML=''; });
   loadMonthlySummary();
 
-  const [allSales, barbReports, barStock, kitStock, poolComps, allExpenses] = await Promise.all([
-    db.collection('sales').where('date','==',date).get().then(s=>s.docs.map(d=>d.data())),
+  const [allSales, barbReports, barStock, kitStock, poolComps, allExpenses, aptRentals] = await Promise.all([
+    db.collection('sales').where('date','==',date).get().then(s=>s.docs.map(d=>{
+      const r = d.data();
+      if (r.source === 'pos') {
+        const amt = r.amount || 0;
+        const pm  = (r.paymentMethod || '').toLowerCase();
+        r.totalSales    = amt;
+        r.cashSales     = pm === 'cash'     ? amt : 0;
+        r.transferSales = pm === 'transfer' ? amt : 0;
+        r.posSales      = pm === 'pos'      ? amt : 0;
+      }
+      return r;
+    })),
     db.collection('barbing_reports').where('date','==',date).get().then(s=>s.docs.map(d=>d.data())),
     db.collection('bar_stock').where('date','==',date).get().then(s=>s.docs.map(d=>d.data())),
     db.collection('kitchen_inventory').where('date','==',date).get().then(s=>s.docs.map(d=>d.data())),
     db.collection('pool_competitions').where('date','==',date).get().then(s=>s.docs.map(d=>d.data())),
     db.collection('expenses').where('date','==',date).get().then(s=>s.docs.map(d=>d.data())),
+    (()=>{
+      const dayStart = new Date(date + 'T00:00:00');
+      const dayEnd   = new Date(date + 'T23:59:59');
+      return db.collection('apartmentRentals')
+        .where('createdAt','>=',dayStart)
+        .where('createdAt','<=',dayEnd)
+        .get().then(s=>s.docs.map(d=>({id:d.id,...d.data()}))).catch(()=>[]);
+    })(),
   ]);
 
-  // Group sales by section
-  const bySection = { barbing:[], bar:[], pool:[], lounge:[], apartment:[], other:[] };
-  allSales.forEach(r => bySection[salesSection(r.department)].push(r));
+  // Split POS sales by section field; manual sales by mapped department
+  const pos = { games:[], drinks:[], food:[], apt:[], events:[], barbing:[] };
+  const manual = { games:[], drinks:[], food:[], apt:[], barbing:[], other:[] };
+  allSales.forEach(r => {
+    if (r.source === 'pos') {
+      const sec = (r.section||'events').toLowerCase();
+      (pos[sec] || pos.events).push(r);
+    } else {
+      const sec = deptToSection(r.department);
+      (manual[sec] || manual.other).push(r);
+    }
+  });
 
-  renderSales(date, allSales);
-  renderBarbing(date, barbReports, bySection.barbing);
-  renderBar(date, barStock, bySection.bar);
-  renderKitchen(date, kitStock);
-  renderPool(date, poolComps, bySection.pool);
-  renderSalesOnly('loungeCard',    '🍽️', 'Restaurant & Lounge', date, bySection.lounge);
-  renderSalesOnly('apartmentCard', '🏠', 'Apartment',           date, bySection.apartment);
-  renderSalesOnly('otherCard',     '🎮', 'Other Revenue',       date, bySection.other);
+  renderGames(date, pos.games, poolComps, manual.games);
+  renderDrinks(date, pos.drinks, barStock, manual.drinks);
+  renderFood(date, pos.food, kitStock, manual.food);
+  renderApartments(date, pos.apt, manual.apt, aptRentals);
+  renderEvents(date, pos.events, manual.other);
+  renderBarbing(date, barbReports, pos.barbing, manual.barbing);
   renderExpenses(date, allExpenses);
-  renderGrandTotal(allSales, poolComps, bySection, allExpenses);
+  renderGrandTotal(allSales, poolComps, allExpenses, aptRentals);
 }
 
 /* ── Shared: sales revenue rows ── */
 function salesRows(rows) {
-  return rows.map(r=>`
+  return rows.map(r => {
+    const isPos = r.source === 'pos';
+    const itemList = isPos && r.items && r.items.length
+      ? r.items.map(i=>`${i.qty}× ${esc(i.name)}`).join(', ')
+      : '';
+    const custLine = isPos && (r.customerName || r.customerPhone)
+      ? `<div class="cash-breakdown" style="color:var(--muted)">👤 ${esc(r.customerName||'Guest')}${r.customerPhone ? ' · '+esc(r.customerPhone) : ''}</div>`
+      : '';
+    const auditLine = isPos
+      ? `<div class="cash-breakdown">${(r.paymentMethod||'').toUpperCase()}${r.receivedBy ? ' · Rcvd: '+esc(r.receivedBy) : ''}${itemList ? ' · '+itemList : ''}</div>`
+      : `<div class="cash-breakdown">Cash ${N(r.cashSales)} · Trans ${N(r.transferSales)} · POS ${N(r.posSales)}</div>`;
+    return `
     <div class="rev-row">
-      <div><strong style="font-weight:400">${esc(r.staffName)}</strong></div>
+      <div>
+        <strong style="font-weight:400">${esc(r.staffName)}</strong>
+        ${isPos ? '<span style="font-size:0.68rem;background:rgba(201,169,110,0.15);color:#C9A96E;padding:1px 6px;border-radius:3px;margin-left:6px;letter-spacing:0.06em">POS</span>' : ''}
+        ${custLine}
+      </div>
       <div style="text-align:right">
-        <div class="cash-breakdown">Cash ${N(r.cashSales)} · Trans ${N(r.transferSales)} · POS ${N(r.posSales)}</div>
+        ${auditLine}
         <div style="font-size:0.88rem;font-weight:400">${N(r.totalSales)}</div>
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 function salesTotal(rows) {
   const tot = rows.reduce((s,r)=>s+(r.totalSales||0),0);
   return `<div class="rev-total"><span>Total</span><span class="text-gold">${N(tot)}</span></div>`;
 }
 
-/* ── DAILY SALES (overview of ALL departments) ── */
-function renderSales(date, rows) {
-  if (!rows.length) {
-    deptCard('salesCard','💰','Daily Sales','Revenue across all departments',
-      `<div class="no-sub">No sales submissions for ${date}</div>`);
+/* ── GAMES ── */
+function renderGames(date, posSales, poolComps, manualSales) {
+  const hasPOS   = posSales.length > 0;
+  const hasComps = poolComps.length > 0;
+  const hasManual= manualSales.length > 0;
+  if (!hasPOS && !hasComps && !hasManual) {
+    deptCard('gamesCard','🎮','Games','Sessions · Revenue',
+      `<div class="no-sub">No game activity for ${date}</div>`);
     return;
   }
-  // Group by department for clarity
-  const byDept = {};
-  rows.forEach(r => {
-    const k = r.department||'Unknown';
-    if (!byDept[k]) byDept[k] = [];
-    byDept[k].push(r);
-  });
   let html = '';
-  Object.entries(byDept).forEach(([dept, dRows]) => {
-    const dTot = dRows.reduce((s,r)=>s+(r.totalSales||0),0);
-    html += `<div class="sub-label">${esc(dept)}</div>`;
-    html += salesRows(dRows);
-    html += `<div style="display:flex;justify-content:flex-end;font-size:0.8rem;color:var(--gold);padding:5px 0 10px;border-bottom:1px solid var(--border);margin-bottom:8px">${N(dTot)}</div>`;
-  });
-  const grandTot = rows.reduce((s,r)=>s+(r.totalSales||0),0);
-  html += `<div class="rev-total" style="margin-top:0"><span>Grand Total — All Departments</span><span class="text-gold">${N(grandTot)}</span></div>`;
-  deptCard('salesCard','💰','Daily Sales',`${rows.length} submission${rows.length!==1?'s':''}`,
-    html, pill(true, rows.length+' filed'));
+  if (hasPOS) {
+    const tot = posSales.reduce((s,r)=>s+(r.totalSales||0),0);
+    html += `<div class="sub-label">POS Transactions</div>`;
+    html += salesRows(posSales);
+    html += `<div class="rev-total"><span>POS Total</span><span class="text-gold">${N(tot)}</span></div>`;
+    html += itemBreakdown(posSales, 'session');
+  }
+  if (hasComps) {
+    if (hasPOS) html += '<div class="divider"></div>';
+    const grandNet = poolComps.reduce((s,r)=>s+(r.netRevenue||0),0);
+    html += `<div class="sub-label">Competition Records</div>`;
+    html += poolComps.map(r=>{
+      const matchList = (r.matches||[]).map(m=>
+        `<div class="match-row"><span style="color:var(--muted)">${esc(m.player1||'')} vs ${esc(m.player2||'')}</span>
+         <span style="margin-left:auto">${N(m.stake||0)}</span></div>`
+      ).join('');
+      return `<div class="rev-row" style="flex-direction:column;align-items:flex-start;gap:6px">
+        <div style="display:flex;width:100%;justify-content:space-between">
+          <span><strong style="font-weight:400">${esc(r.type||'Competition')}</strong> · ${r.players||0} players</span>
+          <span class="cash-breakdown">by ${esc(r.staffName)}</span>
+        </div>
+        ${matchList}
+        <div style="display:flex;gap:18px;font-size:0.78rem">
+          <span>Cash <strong class="text-ok">${N(r.cashCollected)}</strong></span>
+          <span>Prize <strong style="color:var(--err)">${N(r.prizePaid)}</strong></span>
+          <span>Net <strong class="text-gold">${N(r.netRevenue)}</strong></span>
+        </div>
+      </div>`;
+    }).join('');
+    html += `<div class="rev-total"><span>Competition Net</span><span class="text-gold">${N(grandNet)}</span></div>`;
+  }
+  if (hasManual) {
+    if (hasPOS || hasComps) html += '<div class="divider"></div>';
+    html += `<div class="sub-label">Manual Reports</div>`;
+    html += salesRows(manualSales) + salesTotal(manualSales);
+  }
+  const posTot  = posSales.reduce((s,r)=>s+(r.totalSales||0),0);
+  const compTot = poolComps.reduce((s,r)=>s+(r.netRevenue||0),0);
+  const manTot  = manualSales.reduce((s,r)=>s+(r.totalSales||0),0);
+  const total   = posTot + compTot + manTot;
+  deptCard('gamesCard','🎮','Games',`${posSales.length} POS · ${poolComps.length} comp · ${manualSales.length} manual`,
+    html, `<span class="pill-status pill-ok">${N(total)}</span>`);
+}
+
+/* ── DRINKS & BAR ── */
+function renderDrinks(date, posSales, barStock, manualSales) {
+  const hasPOS    = posSales.length > 0;
+  const hasStock  = barStock.length > 0;
+  const hasManual = manualSales.length > 0;
+  if (!hasPOS && !hasStock && !hasManual) {
+    deptCard('drinksCard','🍺','Drinks & Bar','Stock · Revenue',
+      `<div class="no-sub">No bar activity for ${date}</div>`);
+    return;
+  }
+  let html = '';
+  if (hasPOS) {
+    const tot = posSales.reduce((s,r)=>s+(r.totalSales||0),0);
+    html += `<div class="sub-label">POS Transactions</div>`;
+    html += salesRows(posSales);
+    html += `<div class="rev-total"><span>POS Total</span><span class="text-gold">${N(tot)}</span></div>`;
+    html += itemBreakdown(posSales, 'served');
+  }
+  if (hasStock) {
+    if (hasPOS) html += '<div class="divider"></div>';
+    html += `<div class="sub-label">Stock Inventory</div>`;
+    html += barStock.map(r => {
+      const low = r.lowItems||[];
+      const chips = (r.items||[]).map(it=>
+        `<span class="item-chip${it.lowAlert?' low':''}">${esc(it.name)}: ${it.closing}${it.unit||''}</span>`
+      ).join('');
+      return `<div style="margin-bottom:14px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <span style="font-size:0.84rem;font-weight:400">${esc(r.staffName)}</span>
+          ${low.length?`<span class="pill-status pill-warn">${low.length} low</span>`:`<span class="pill-status pill-ok">All OK</span>`}
+        </div>
+        <div class="bar-items">${chips}</div>
+        ${r.notes?`<p style="font-size:0.75rem;color:var(--muted);margin-top:6px">Note: ${esc(r.notes)}</p>`:''}
+      </div>`;
+    }).join('<div class="divider"></div>');
+  }
+  if (hasManual) {
+    if (hasPOS || hasStock) html += '<div class="divider"></div>';
+    html += `<div class="sub-label">Manual Reports</div>`;
+    html += salesRows(manualSales) + salesTotal(manualSales);
+  }
+  const total = posSales.reduce((s,r)=>s+(r.totalSales||0),0) + manualSales.reduce((s,r)=>s+(r.totalSales||0),0);
+  deptCard('drinksCard','🍺','Drinks & Bar',`${posSales.length} POS · ${barStock.length} stock · ${manualSales.length} manual`,
+    html, total > 0 ? `<span class="pill-status pill-ok">${N(total)}</span>` : pill(false,'0 filed'));
+}
+
+/* ── FOOD & RESTAURANT ── */
+function renderFood(date, posSales, kitStock, manualSales) {
+  const hasPOS    = posSales.length > 0;
+  const hasStock  = kitStock.length > 0;
+  const hasManual = manualSales.length > 0;
+  if (!hasPOS && !hasStock && !hasManual) {
+    deptCard('foodCard','🍽️','Food & Restaurant','Kitchen · Revenue',
+      `<div class="no-sub">No food activity for ${date}</div>`);
+    return;
+  }
+  let html = '';
+  if (hasPOS) {
+    const tot = posSales.reduce((s,r)=>s+(r.totalSales||0),0);
+    html += `<div class="sub-label">POS Transactions</div>`;
+    html += salesRows(posSales);
+    html += `<div class="rev-total"><span>POS Total</span><span class="text-gold">${N(tot)}</span></div>`;
+    html += itemBreakdown(posSales, 'served');
+  }
+  if (hasStock) {
+    if (hasPOS) html += '<div class="divider"></div>';
+    html += `<div class="sub-label">Kitchen Inventory</div>`;
+    html += kitStock.map(r => {
+      const low = r.lowItems||[];
+      const chips = (r.items||[]).map(it=>
+        `<span class="item-chip${it.lowAlert?' low':''}">${esc(it.name)}: ${it.closing}${it.unit||''}</span>`
+      ).join('');
+      return `<div style="margin-bottom:14px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <div>
+            <span style="font-size:0.84rem;font-weight:400">${esc(r.staffName)}</span>
+            <span style="font-size:0.75rem;color:var(--muted);margin-left:10px">${r.meals||0} meals prepared</span>
+          </div>
+          ${low.length?`<span class="pill-status pill-warn">${low.length} low</span>`:`<span class="pill-status pill-ok">All OK</span>`}
+        </div>
+        <div class="bar-items">${chips}</div>
+        ${r.notes?`<p style="font-size:0.75rem;color:var(--muted);margin-top:6px">Note: ${esc(r.notes)}</p>`:''}
+      </div>`;
+    }).join('<div class="divider"></div>');
+  }
+  if (hasManual) {
+    if (hasPOS || hasStock) html += '<div class="divider"></div>';
+    html += `<div class="sub-label">Manual Reports</div>`;
+    html += salesRows(manualSales) + salesTotal(manualSales);
+  }
+  const total = posSales.reduce((s,r)=>s+(r.totalSales||0),0) + manualSales.reduce((s,r)=>s+(r.totalSales||0),0);
+  deptCard('foodCard','🍽️','Food & Restaurant',`${posSales.length} POS · ${kitStock.length} kitchen · ${manualSales.length} manual`,
+    html, total > 0 ? `<span class="pill-status pill-ok">${N(total)}</span>` : pill(false,'0 filed'));
+}
+
+/* ── EVENTS & CUSTOM ── */
+function renderEvents(date, posSales, otherManual) {
+  const hasPOS    = posSales.length > 0;
+  const hasManual = otherManual.length > 0;
+  if (!hasPOS && !hasManual) return;
+  let html = '';
+  if (hasPOS) {
+    const tot = posSales.reduce((s,r)=>s+(r.totalSales||0),0);
+    html += `<div class="sub-label">POS — Events & Custom</div>`;
+    html += salesRows(posSales);
+    html += `<div class="rev-total"><span>Total</span><span class="text-gold">${N(tot)}</span></div>`;
+  }
+  if (hasManual) {
+    if (hasPOS) html += '<div class="divider"></div>';
+    html += `<div class="sub-label">Other Revenue</div>`;
+    html += salesRows(otherManual) + salesTotal(otherManual);
+  }
+  const total = posSales.reduce((s,r)=>s+(r.totalSales||0),0) + otherManual.reduce((s,r)=>s+(r.totalSales||0),0);
+  deptCard('eventsCard','🎪','Events & Custom',`${posSales.length + otherManual.length} record${(posSales.length+otherManual.length)!==1?'s':''}`,
+    html, `<span class="pill-status pill-ok">${N(total)}</span>`);
 }
 
 /* ── BARBING SALON ── */
-function renderBarbing(date, reports, salonSales) {
-  const hasRep = reports.length > 0, hasSales = salonSales.length > 0;
-  if (!hasRep && !hasSales) {
+function renderBarbing(date, reports, posSales, salonSales) {
+  const hasRep = reports.length > 0, hasPOS = posSales.length > 0, hasSales = salonSales.length > 0;
+  if (!hasRep && !hasPOS && !hasSales) {
     deptCard('barbingCard','💈','Barbing Salon','Services · Revenue',
       `<div class="no-sub">No salon submissions for ${date}</div>`);
     return;
   }
   let html = '';
+  if (hasPOS) {
+    const tot = posSales.reduce((s,r)=>s+(r.totalSales||0),0);
+    html += `<div class="sub-label">POS Transactions</div>`;
+    html += salesRows(posSales);
+    html += `<div class="rev-total"><span>POS Total</span><span class="text-gold">${N(tot)}</span></div>`;
+    html += itemBreakdown(posSales, 'served');
+  }
   if (hasRep) {
+    if (hasPOS) html += '<div class="divider"></div>';
     const grandRev = reports.reduce((s,r)=>s+(r.totalRevenue||0),0);
     const grandSvcs= reports.reduce((s,r)=>s+(r.clientsServed||0),0);
     html += `<div class="sub-label">Service Reports</div>`;
@@ -306,131 +519,85 @@ function renderBarbing(date, reports, salonSales) {
     html += `<div class="rev-total"><span>Services — ${grandSvcs} clients</span><span class="text-gold">${N(grandRev)}</span></div>`;
   }
   if (hasSales) {
-    if (hasRep) html += '<div class="divider"></div>';
-    html += `<div class="sub-label">Cash Sales</div>`;
+    if (hasRep || hasPOS) html += '<div class="divider"></div>';
+    html += `<div class="sub-label">Manual Reports</div>`;
     html += salesRows(salonSales);
     html += salesTotal(salonSales);
   }
-  const count = reports.length + salonSales.length;
+  const posTot = posSales.reduce((s,r)=>s+(r.totalSales||0),0);
+  const repTot = reports.reduce((s,r)=>s+(r.totalRevenue||0),0);
+  const manTot = salonSales.reduce((s,r)=>s+(r.totalSales||0),0);
+  const total  = posTot + repTot + manTot;
+  const count  = reports.length + posSales.length + salonSales.length;
   deptCard('barbingCard','💈','Barbing Salon',`${count} submission${count!==1?'s':''}`,
-    html, pill(true, count+' filed'));
+    html, total > 0 ? `<span class="pill-status pill-ok">${N(total)}</span>` : pill(false, count+' filed'));
 }
 
-/* ── BAR ── */
-function renderBar(date, stockRows, barSales) {
-  const hasStock = stockRows.length > 0, hasSales = barSales.length > 0;
-  if (!hasStock && !hasSales) {
-    deptCard('barCard','🍺','Bar','Stock · Revenue',
-      `<div class="no-sub">No bar reports for ${date}</div>`);
-    return;
-  }
+/* ── APARTMENT RENTALS ── */
+function aptNights(cin, cout) {
+  try { return Math.max(1, Math.round((new Date(cout) - new Date(cin)) / 86400000)); } catch { return 1; }
+}
+function renderApartments(date, posSales, manualSales, rentals) {
+  const hasPOS     = posSales.length > 0;
+  const hasManual  = manualSales.length > 0;
+  const hasRentals = rentals.length > 0;
+  if (!hasPOS && !hasManual && !hasRentals) return;
+
   let html = '';
-  if (hasStock) {
-    html += `<div class="sub-label">Stock Inventory</div>`;
-    html += stockRows.map(r => {
-      const low = (r.lowItems||[]);
-      const chips = (r.items||[]).map(it=>
-        `<span class="item-chip${it.lowAlert?' low':''}">${esc(it.name)}: ${it.closing}${it.unit||''}</span>`
-      ).join('');
-      return `<div style="margin-bottom:14px">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-          <span style="font-size:0.84rem;font-weight:400">${esc(r.staffName)}</span>
-          ${low.length?`<span class="pill-status pill-warn">${low.length} low</span>`:`<span class="pill-status pill-ok">All OK</span>`}
-        </div>
-        <div class="bar-items">${chips}</div>
-        ${r.notes?`<p style="font-size:0.75rem;color:var(--muted);margin-top:6px">Note: ${esc(r.notes)}</p>`:''}
-      </div>`;
-    }).join('<div class="divider"></div>');
+  if (hasPOS) {
+    const tot = posSales.reduce((s,r)=>s+(r.totalSales||0),0);
+    html += `<div class="sub-label">POS Transactions</div>`;
+    html += salesRows(posSales);
+    html += `<div class="rev-total"><span>POS Total</span><span class="text-gold">${N(tot)}</span></div>`;
   }
-  if (hasSales) {
-    if (hasStock) html += '<div class="divider"></div>';
-    html += `<div class="sub-label">Revenue</div>`;
-    html += salesRows(barSales);
-    html += salesTotal(barSales);
-  }
-  const count = stockRows.length + barSales.length;
-  deptCard('barCard','🍺','Bar',`${count} submission${count!==1?'s':''}`,
-    html, pill(true, count+' filed'));
-}
-
-/* ── KITCHEN ── */
-function renderKitchen(date, rows) {
-  if (!rows.length) {
-    deptCard('kitchenCard','🍽️','Kitchen','Inventory · Meals',
-      `<div class="no-sub">No kitchen report for ${date}</div>`);
-    return;
-  }
-  const body = rows.map(r => {
-    const low = (r.lowItems||[]);
-    const chips = (r.items||[]).map(it=>
-      `<span class="item-chip${it.lowAlert?' low':''}">${esc(it.name)}: ${it.closing}${it.unit||''}</span>`
-    ).join('');
-    return `<div style="margin-bottom:14px">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+  if (hasRentals) {
+    if (hasPOS) html += '<div class="divider"></div>';
+    const totalPaid    = rentals.reduce((s,r)=>s+(r.paid||0), 0);
+    const totalBalance = rentals.reduce((s,r)=>s+(r.balance||0), 0);
+    html += `<div class="sub-label">Rental Bookings</div>`;
+    html += rentals.map(r => {
+      const nights = r.nights || aptNights(r.checkin, r.checkout);
+      const sCls   = r.payStatus==='paid' ? 'pill-ok' : r.payStatus==='partial' ? 'pill-warn' : 'pill-none';
+      return `<div class="rev-row">
         <div>
-          <span style="font-size:0.84rem;font-weight:400">${esc(r.staffName)}</span>
-          <span style="font-size:0.75rem;color:var(--muted);margin-left:10px">${r.meals||0} meals prepared</span>
+          <strong style="font-weight:400">${esc(r.guestName)}</strong>
+          <div class="cash-breakdown">Unit ${esc(r.unit||'—')}${r.bedrooms?' · '+r.bedrooms+' Bed':''} · ${nights} night${nights!==1?'s':''} · out ${esc(r.checkout||'—')}</div>
+          ${r.notes?`<div class="cash-breakdown">Note: ${esc(r.notes)}</div>`:''}
         </div>
-        ${low.length?`<span class="pill-status pill-warn">${low.length} low</span>`:`<span class="pill-status pill-ok">All OK</span>`}
-      </div>
-      <div class="bar-items">${chips}</div>
-      ${r.notes?`<p style="font-size:0.75rem;color:var(--muted);margin-top:6px">Note: ${esc(r.notes)}</p>`:''}
-    </div>`;
-  }).join('<div class="divider"></div>');
-  deptCard('kitchenCard','🍳','Kitchen',`${rows.length} report${rows.length!==1?'s':''}`,
-    body, pill(true, rows.length+' filed'));
-}
-
-/* ── POOL ── */
-function renderPool(date, comps, poolSales) {
-  const hasComps = comps.length > 0, hasSales = poolSales.length > 0;
-  if (!hasComps && !hasSales) {
-    deptCard('poolCard','🏊','Pool / Snooker','Competitions · Revenue',
-      `<div class="no-sub">No pool report for ${date}</div>`);
-    return;
-  }
-  let html = '';
-  if (hasComps) {
-    const grandNet = comps.reduce((s,r)=>s+(r.netRevenue||0),0);
-    html += `<div class="sub-label">Competition Records</div>`;
-    html += comps.map(r=>{
-      const matchList = (r.matches||[]).map(m=>
-        `<div class="match-row"><span style="color:var(--muted)">${esc(m.player1||'')} vs ${esc(m.player2||'')}</span>
-         <span style="margin-left:auto">${N(m.stake||0)}</span></div>`
-      ).join('');
-      return `<div class="rev-row" style="flex-direction:column;align-items:flex-start;gap:6px">
-        <div style="display:flex;width:100%;justify-content:space-between">
-          <span><strong style="font-weight:400">${esc(r.type||'Competition')}</strong> · ${r.players||0} players</span>
-          <span class="cash-breakdown">by ${esc(r.staffName)}</span>
+        <div style="text-align:right">
+          <span class="pill-status ${sCls}" style="margin-bottom:4px">${r.payStatus||'pending'}</span>
+          <div class="cash-breakdown">Total ${N(r.total)} · Paid ${N(r.paid)}</div>
+          ${r.balance>0?`<div class="cash-breakdown" style="color:#fca5a5">Bal ${N(r.balance)}</div>`:''}
         </div>
-        ${matchList}
-        <div style="display:flex;gap:18px;font-size:0.78rem">
-          <span>Cash <strong class="text-ok">${N(r.cashCollected)}</strong></span>
-          <span>Prize <strong style="color:var(--err)">${N(r.prizePaid)}</strong></span>
-          <span>Net <strong class="text-gold">${N(r.netRevenue)}</strong></span>
-        </div>
-        ${r.notes?`<div class="cash-breakdown">Note: ${esc(r.notes)}</div>`:''}
       </div>`;
     }).join('');
-    html += `<div class="rev-total"><span>Net Revenue</span><span class="text-gold">${N(grandNet)}</span></div>`;
+    html += `<div class="rev-total"><span>Rentals Paid — ${rentals.length} guest${rentals.length!==1?'s':''}</span><span class="text-gold">${N(totalPaid)}</span></div>`;
+    if (totalBalance > 0) html += `<div style="display:flex;justify-content:space-between;font-size:0.8rem;color:#fca5a5;padding:4px 0 2px"><span>Outstanding Balance</span><span>${N(totalBalance)}</span></div>`;
   }
-  if (hasSales) {
-    if (hasComps) html += '<div class="divider"></div>';
-    html += `<div class="sub-label">Cash Sales</div>`;
-    html += salesRows(poolSales);
-    html += salesTotal(poolSales);
+  if (hasManual) {
+    if (hasPOS || hasRentals) html += '<div class="divider"></div>';
+    html += `<div class="sub-label">Manual Reports</div>`;
+    html += manualSales.map(r=>`
+      <div class="rev-row">
+        <div>
+          <strong style="font-weight:400">${esc(r.staffName)}</strong>
+          ${r.aptUnit?`<div class="cash-breakdown">🏨 ${esc(r.aptUnit)}${r.aptBedrooms?' · '+r.aptBedrooms+' Bed':''}${r.aptGuest?' · '+esc(r.aptGuest):''}</div>`:''}
+          ${r.aptCheckin?`<div class="cash-breakdown">📅 ${esc(r.aptCheckin)} → ${esc(r.aptCheckout||'—')}</div>`:''}
+        </div>
+        <div style="text-align:right">
+          <div class="cash-breakdown">Cash ${N(r.cashSales)} · Trans ${N(r.transferSales)} · POS ${N(r.posSales)}</div>
+          <div style="font-size:0.88rem;font-weight:400">${N(r.totalSales)}</div>
+        </div>
+      </div>`).join('');
+    html += salesTotal(manualSales);
   }
-  const count = comps.length + poolSales.length;
-  deptCard('poolCard','🏊','Pool / Snooker',`${count} submission${count!==1?'s':''}`,
-    html, pill(true, count+' filed'));
-}
-
-/* ── SALES-ONLY SECTIONS (lounge, apartment, other) ── */
-function renderSalesOnly(cardId, icon, title, date, rows) {
-  if (!rows.length) return; // hide entirely if no submissions
-  let html = salesRows(rows) + salesTotal(rows);
-  deptCard(cardId, icon, title, `${rows.length} submission${rows.length!==1?'s':''}`,
-    html, pill(true, rows.length+' filed'));
+  const aptRev = posSales.reduce((s,r)=>s+(r.totalSales||0),0)
+               + rentals.reduce((s,r)=>s+(r.paid||0),0)
+               + manualSales.reduce((s,r)=>s+(r.totalSales||0),0);
+  const count  = posSales.length + rentals.length + manualSales.length;
+  deptCard('apartmentCard','🏠','Apartment Rentals',
+    `${count} record${count!==1?'s':''}`, html,
+    aptRev > 0 ? `<span class="pill-status pill-ok">${N(aptRev)}</span>` : '');
 }
 
 /* ── EXPENSES ── */
@@ -502,38 +669,43 @@ function renderExpenses(date, rows) {
 }
 
 /* ── GRAND TOTAL ── */
-function renderGrandTotal(allSales, poolComps, bySection, allExpenses) {
-  const salesTot    = allSales.reduce((s,r)=>s+(r.totalSales||0),0);
-  const poolCompNet = poolComps.reduce((s,r)=>s+(r.netRevenue||0),0);
-  const poolSaleTot = bySection.pool.reduce((s,r)=>s+(r.totalSales||0),0);
-  const poolNet     = poolCompNet || poolSaleTot;
-  const gross       = salesTot - poolSaleTot + poolNet;
+function renderGrandTotal(allSales, poolComps, allExpenses, aptRentals) {
+  const salesTot     = allSales.reduce((s,r)=>s+(r.totalSales||0),0);
+  const compNet      = poolComps.reduce((s,r)=>s+(r.netRevenue||0),0);
+  const aptRentalRev = (aptRentals||[]).reduce((s,r)=>s+(r.paid||0),0);
+  const gross        = salesTot + compNet + aptRentalRev;
   if (!gross) return;
 
-  const totalExp  = (allExpenses||[]).reduce((s,e)=>s+(e.amount||0),0);
-  const netDay    = gross - totalExp;
-  const isProfit  = netDay >= 0;
+  const totalExp = (allExpenses||[]).reduce((s,e)=>s+(e.amount||0),0);
+  const netDay   = gross - totalExp;
+  const isProfit = netDay >= 0;
 
-  // Per-department chips
-  const byDept = {};
-  allSales.forEach(r => { const k = r.department||'Other'; byDept[k] = (byDept[k]||0) + (r.totalSales||0); });
-  const chips = Object.entries(byDept)
-    .map(([d,t]) => `<div class="gt-chip">${esc(d)} <strong>${N(t)}</strong></div>`)
+  // Chips by POS section + manual category
+  const bySec = {};
+  allSales.forEach(r => {
+    const key = r.source === 'pos'
+      ? ({ games:'🎮 Games', drinks:'🍺 Drinks', food:'🍽️ Food', apt:'🏠 Apartment', events:'🎪 Events', barbing:'💈 Salon' }[r.section] || '🎪 Events')
+      : (r.department || 'Other');
+    bySec[key] = (bySec[key]||0) + (r.totalSales||0);
+  });
+  if (compNet > 0)      bySec['🏊 Competitions'] = compNet;
+  if (aptRentalRev > 0) bySec['🏠 Apt Rentals']  = aptRentalRev;
+
+  const chips = Object.entries(bySec)
+    .filter(([,t])=>t>0)
+    .map(([k,t])=>`<div class="gt-chip">${esc(k)} <strong>${N(t)}</strong></div>`)
     .join('');
 
   document.getElementById('grandTotal').textContent = N(gross);
   document.getElementById('grandChips').innerHTML   = chips;
   document.getElementById('grandBar').style.display = 'flex';
 
-  // Daily net strip
   const netEl = document.getElementById('grandNet');
   if (netEl && totalExp > 0) {
     netEl.innerHTML = `
       <div class="gn-item">Expenses <strong style="color:#fca5a5">${N(totalExp)}</strong></div>
       <div class="gn-item">Daily Net <strong style="color:${isProfit?'#86efac':'#fca5a5'}">${isProfit?'+':''}${N(netDay)}</strong></div>`;
-  } else if (netEl) {
-    netEl.innerHTML = '';
-  }
+  } else if (netEl) { netEl.innerHTML = ''; }
 }
 
 /* ── MONTHLY FINANCIAL SUMMARY ── */
@@ -547,17 +719,25 @@ async function loadMonthlySummary() {
   const monthName  = new Date(+yr, +mo - 1, 1).toLocaleDateString('en-NG', {month:'long', year:'numeric'});
 
   try {
-    const [salesSnap, expSnap] = await Promise.all([
+    const [salesSnap, expSnap, aptSnap] = await Promise.all([
       db.collection('sales').where('date','>=',monthStart).where('date','<=',monthEnd).get(),
       db.collection('expenses').where('date','>=',monthStart).where('date','<=',monthEnd).get(),
+      db.collection('apartmentRentals').where('checkin','>=',monthStart).where('checkin','<=',monthEnd).get().catch(()=>({docs:[]})),
     ]);
 
-    const mSales = salesSnap.docs.map(d => d.data());
-    const mExp   = expSnap.docs.map(d => d.data());
+    const mSales   = salesSnap.docs.map(d => {
+      const r = d.data();
+      if (r.source === 'pos') r.totalSales = r.amount || 0;
+      return r;
+    });
+    const mExp     = expSnap.docs.map(d => d.data());
+    const mAptRent = aptSnap.docs.map(d => d.data());
 
-    const totalSales = mSales.reduce((s,r) => s + (r.totalSales||0), 0);
-    const totalExp   = mExp.reduce((s,r)   => s + (r.amount||0),    0);
-    const net        = totalSales - totalExp;
+    const totalSales  = mSales.reduce((s,r)   => s + (r.totalSales||0), 0);
+    const aptRentRev  = mAptRent.reduce((s,r) => s + (r.paid||0),       0);
+    const totalRev    = totalSales + aptRentRev;
+    const totalExp    = mExp.reduce((s,r)     => s + (r.amount||0),     0);
+    const net         = totalRev - totalExp;
 
     // Top expense categories
     const byCat = {};
@@ -576,8 +756,9 @@ async function loadMonthlySummary() {
     const isProfit = net >= 0;
 
     document.getElementById('msRevenueLabel').textContent = monthName + ' — Revenue';
-    document.getElementById('msRevenue').textContent      = N(totalSales);
-    document.getElementById('msRevenueSub').textContent   = mSales.length + ' submission' + (mSales.length!==1?'s':'');
+    document.getElementById('msRevenue').textContent      = N(totalRev);
+    document.getElementById('msRevenueSub').textContent   = mSales.length + ' submission' + (mSales.length!==1?'s':'')
+      + (aptRentRev > 0 ? ' · Apt Rentals ' + N(aptRentRev) : '');
 
     document.getElementById('msExpLabel').textContent     = monthName + ' — Expenses';
     document.getElementById('msExpenses').textContent     = N(totalExp);
