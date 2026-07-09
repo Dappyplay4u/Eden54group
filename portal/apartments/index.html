@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Apartment Rentals · Eden 54 Portal</title>
+<link rel="icon" type="image/jpeg" href="/logo/eden 54 logo.jpeg">
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/portal/portal.css">
+<style>
+.notif-badge{display:inline-flex;align-items:center;justify-content:center;background:#dc2626;color:#fff;border-radius:50%;width:20px;height:20px;font-size:0.65rem;font-weight:500;margin-left:6px;vertical-align:middle;}
+.notif-row{display:flex;align-items:flex-start;gap:14px;padding:14px 0;border-bottom:1px solid var(--border);}
+.notif-row:last-child{border-bottom:none;}
+.notif-dot{width:9px;height:9px;border-radius:50%;background:#dc2626;margin-top:5px;flex-shrink:0;}
+.notif-dot.seen{background:var(--border);}
+.notif-body{flex:1;}
+.notif-name{font-size:0.9rem;font-weight:400;color:var(--text);margin-bottom:3px;}
+.notif-meta{font-size:0.75rem;color:var(--muted);line-height:1.6;}
+.notif-time{font-size:0.68rem;color:var(--muted);white-space:nowrap;margin-left:auto;}
+.notif-actions{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;}
+.status-pill{display:inline-block;padding:2px 10px;border-radius:20px;font-size:0.65rem;letter-spacing:0.08em;text-transform:uppercase;font-weight:500;}
+.pill-new{background:rgba(220,38,38,0.12);color:#dc2626;border:1px solid rgba(220,38,38,0.25);}
+.pill-confirmed{background:rgba(21,128,61,0.12);color:#15803d;border:1px solid rgba(21,128,61,0.25);}
+.pill-checked-in{background:rgba(201,169,110,0.15);color:#9A7A3A;border:1px solid rgba(201,169,110,0.3);}
+.pill-checked-out{background:rgba(107,114,128,0.12);color:#6b7280;border:1px solid rgba(107,114,128,0.2);}
+.pill-pending{background:rgba(234,179,8,0.12);color:#b45309;border:1px solid rgba(234,179,8,0.25);}
+.pill-paid{background:rgba(21,128,61,0.12);color:#15803d;border:1px solid rgba(21,128,61,0.25);}
+.pill-partial{background:rgba(234,179,8,0.12);color:#b45309;border:1px solid rgba(234,179,8,0.25);}
+.nights-display{background:rgba(201,169,110,0.08);border:1px solid rgba(201,169,110,0.2);border-radius:6px;padding:12px 16px;text-align:center;margin-bottom:14px;}
+.nights-display .n-val{font-size:1.6rem;font-weight:300;color:var(--gold);}
+.nights-display .n-lbl{font-size:0.65rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);}
+.balance-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-top:1px solid var(--border);margin-top:8px;}
+.balance-row .b-lbl{font-size:0.75rem;color:var(--muted);}
+.balance-row .b-val{font-size:0.95rem;font-weight:400;color:var(--gold);}
+.balance-row .b-val.red{color:#dc2626;}
+.empty-state{text-align:center;padding:32px 16px;color:var(--muted);font-size:0.85rem;}
+/* Calendar */
+.cal-day-hdr{text-align:center;font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);padding:4px 0;}
+.cal-day{min-height:62px;border-radius:6px;border:1px solid var(--border);padding:4px 5px;font-size:0.72rem;background:var(--card);position:relative;cursor:default;}
+.cal-day.today{border-color:var(--gold);background:rgba(201,169,110,0.07);}
+.cal-day.other-month{opacity:0.35;}
+.cal-day .cal-num{font-size:0.8rem;font-weight:400;margin-bottom:3px;color:var(--text);}
+.cal-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin:1px 2px;vertical-align:middle;}
+.cal-dot.checkin{background:#15803d;}
+.cal-dot.checkout{background:#dc2626;}
+.cal-dot.occupied{background:rgba(201,169,110,0.55);}
+.cal-dot.reservation{background:#3b82f6;}
+.cal-event{font-size:0.62rem;line-height:1.35;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:1px 3px;border-radius:3px;margin-top:2px;}
+.cal-event.ev-in{background:rgba(21,128,61,0.12);color:#15803d;}
+.cal-event.ev-out{background:rgba(220,38,38,0.1);color:#dc2626;}
+.cal-event.ev-res{background:rgba(59,130,246,0.1);color:#3b82f6;}
+</style>
+</head>
+<body>
+<div class="sb-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+<aside class="sidebar" id="sidebar">
+  <div class="sb-brand"><div class="sb-brand-name">Eden 54</div><div class="sb-brand-sub">Staff Portal</div></div>
+  <nav class="sb-nav" id="sbNav"></nav>
+  <div class="sb-foot">
+    <div id="sidebarUser"></div>
+    <a class="sb-item" onclick="switchProfile()" style="cursor:pointer"><i class="sb-icon">🔄</i> Switch Profile</a>
+  </div>
+</aside>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <button class="hamburger" onclick="toggleSidebar()"><div></div><div></div><div></div></button>
+      <h1>Apartment Rentals <span id="notifCount" class="notif-badge" style="display:none">0</span></h1>
+    </div>
+    <div class="topbar-date" id="topDate"></div>
+  </div>
+
+  <div class="content">
+    <div id="alertBox" class="alert"></div>
+
+    <!-- ── WEBSITE BOOKING NOTIFICATIONS ── -->
+    <div class="card" style="margin-bottom:24px">
+      <div class="section-head">
+        <h2>Website Reservations <span id="notifBadge2" class="notif-badge" style="display:none">0</span></h2>
+        <button class="btn btn-outline btn-sm" onclick="markAllSeen()">Mark All Seen</button>
+      </div>
+      <div id="notifList"><div class="empty-state">No new reservation requests.</div></div>
+    </div>
+
+    <div class="g2">
+
+      <!-- ── LOG NEW RENTAL (front desk only) ── -->
+      <div class="card" id="logRentalPanel">
+        <div class="section-head"><h2>Log New Rental</h2></div>
+
+        <div class="fg2" style="margin-bottom:14px">
+          <div class="form-group">
+            <label class="form-label">Guest Full Name *</label>
+            <input type="text" id="apGuestName" class="form-control" placeholder="e.g. Adebayo Okonkwo">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Phone Number *</label>
+            <input type="tel" id="apPhone" class="form-control" placeholder="e.g. 08012345678">
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom:14px">
+          <label class="form-label">Email Address</label>
+          <input type="email" id="apEmail" class="form-control" placeholder="guest@email.com">
+        </div>
+
+        <div class="fg2" style="margin-bottom:14px">
+          <div class="form-group">
+            <label class="form-label">Apartment Type *</label>
+            <select id="apUnit" class="form-control">
+              <option value="">Select unit…</option>
+              <option>1-Bedroom Suite</option>
+              <option>2-Bedroom Suite</option>
+              <option>3-Bedroom Suite</option>
+              <option>Studio</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">No. of Bedrooms *</label>
+            <select id="apBedrooms" class="form-control">
+              <option value="">Select…</option>
+              <option value="1">1 Bedroom</option>
+              <option value="2">2 Bedrooms</option>
+              <option value="3">3 Bedrooms</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom:14px">
+          <label class="form-label">No. of Guests</label>
+          <select id="apGuests" class="form-control">
+            <option>1</option><option>2</option><option>3</option>
+            <option>4</option><option>5</option><option>6+</option>
+          </select>
+        </div>
+
+        <div class="fg2" style="margin-bottom:14px">
+          <div class="form-group">
+            <label class="form-label">Check-in Date *</label>
+            <input type="date" id="apCheckin" class="form-control" onchange="calcNights()">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Check-out Date *</label>
+            <input type="date" id="apCheckout" class="form-control" onchange="calcNights()">
+          </div>
+        </div>
+
+        <div class="nights-display" id="nightsDisplay" style="display:none">
+          <div class="n-val" id="nightsVal">0</div>
+          <div class="n-lbl">Nights</div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="fg2" style="margin-bottom:14px">
+          <div class="form-group">
+            <label class="form-label">Rate per Night (₦) *</label>
+            <input type="number" id="apRate" class="form-control" placeholder="0" min="0" oninput="calcTotal()">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Total Amount (₦)</label>
+            <input type="number" id="apTotal" class="form-control" placeholder="0" min="0" oninput="calcBalance()">
+          </div>
+        </div>
+
+        <div class="fg2" style="margin-bottom:14px">
+          <div class="form-group">
+            <label class="form-label">Amount Paid (₦) *</label>
+            <input type="number" id="apPaid" class="form-control" placeholder="0" min="0" oninput="calcBalance()">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Payment Method *</label>
+            <select id="apPayMethod" class="form-control">
+              <option value="">Select…</option>
+              <option>Cash</option>
+              <option>Transfer</option>
+              <option>POS</option>
+              <option>Mixed</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom:14px">
+          <label class="form-label">Payment Status *</label>
+          <select id="apPayStatus" class="form-control">
+            <option value="">Select…</option>
+            <option value="paid">Fully Paid</option>
+            <option value="partial">Partial Payment</option>
+            <option value="pending">Pending</option>
+          </select>
+        </div>
+
+        <!-- Balance display -->
+        <div id="balanceDisplay" style="display:none">
+          <div class="balance-row">
+            <span class="b-lbl">Total Amount</span>
+            <span class="b-val" id="bTotal">₦0</span>
+          </div>
+          <div class="balance-row">
+            <span class="b-lbl">Amount Paid</span>
+            <span class="b-val" id="bPaid">₦0</span>
+          </div>
+          <div class="balance-row" style="border-top:2px solid var(--gold);margin-top:0">
+            <span class="b-lbl" style="font-weight:500">Balance</span>
+            <span class="b-val" id="bBalance">₦0</span>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin:14px 0">
+          <label class="form-label">Notes</label>
+          <textarea id="apNotes" class="form-control" rows="2" placeholder="Special requests, access instructions, remarks…"></textarea>
+        </div>
+
+        <button class="btn btn-gold" style="width:100%" onclick="submitRental()">Log Rental</button>
+      </div>
+
+      <!-- ── RIGHT PANEL ── -->
+      <div>
+
+        <!-- Active Guests -->
+        <div class="card" style="margin-bottom:24px">
+          <div class="section-head">
+            <h2>Active Guests</h2>
+            <span id="activeCount" style="font-size:0.75rem;color:var(--muted)"></span>
+          </div>
+          <div id="activeList"><div class="empty-state">No active rentals.</div></div>
+        </div>
+
+        <!-- Today's Summary -->
+        <div class="card">
+          <div class="card-label">Revenue Today</div>
+          <div class="card-value gold" id="revenueToday">₦0</div>
+          <div class="card-sub" id="rentalsToday">0 rentals logged today</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── BOOKING CALENDAR ── -->
+    <div class="card" style="margin-top:24px">
+      <div class="section-head">
+        <h2>Booking Calendar</h2>
+        <div style="display:flex;align-items:center;gap:10px">
+          <button class="btn btn-outline btn-sm" onclick="calPrev()">&#8249;</button>
+          <span id="calMonthLabel" style="font-size:0.85rem;font-weight:400;min-width:130px;text-align:center"></span>
+          <button class="btn btn-outline btn-sm" onclick="calNext()">&#8250;</button>
+        </div>
+      </div>
+      <div style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:12px;font-size:0.72rem">
+        <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:50%;background:#15803d;display:inline-block"></span>Check-in</span>
+        <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:50%;background:#dc2626;display:inline-block"></span>Check-out</span>
+        <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:50%;background:rgba(201,169,110,0.35);display:inline-block"></span>Occupied</span>
+        <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:50%;background:#3b82f6;display:inline-block"></span>Reservation</span>
+      </div>
+      <div id="calGrid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px"></div>
+    </div>
+
+    <!-- ── RENTAL HISTORY ── -->
+    <div class="card" style="margin-top:24px">
+      <div class="section-head">
+        <h2>Rental History</h2>
+        <select id="histFilter" class="form-control" style="width:auto;font-size:0.78rem;padding:6px 10px" onchange="loadHistory()">
+          <option value="all">All</option>
+          <option value="paid">Fully Paid</option>
+          <option value="partial">Partial</option>
+          <option value="pending">Pending</option>
+        </select>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Guest</th>
+              <th>Unit</th>
+              <th>Beds</th>
+              <th>Check-in</th>
+              <th>Check-out</th>
+              <th>Nights</th>
+              <th>Total</th>
+              <th>Paid</th>
+              <th>Balance</th>
+              <th>Method</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="histTable">
+            <tr><td colspan="12" style="text-align:center;padding:20px;color:var(--muted)">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="/portal/firebase-init.js"></script>
+<script>
+document.getElementById('topDate').textContent = new Date().toLocaleDateString('en-NG',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+const staff = getStaff();
+requireAccess(staff, 'apartments');
+populateSidebar(staff);
+buildNav(staff, 'apartments');
+
+/* Role-aware UI — hide Log New Rental for managers and HR */
+const _dept = (staff.department || '').toLowerCase();
+const _isManager  = staff.role === 'manager' || staff.role === 'superadmin';
+const _isHR       = _dept === 'hr';
+const _canLog     = !_isManager && !_isHR;
+if (!_canLog) {
+  const panel = document.getElementById('logRentalPanel');
+  if (panel) panel.style.display = 'none';
+}
+
+/* ── Helpers ── */
+function fmt(n) { return '₦' + Number(n||0).toLocaleString('en-NG',{minimumFractionDigits:0}); }
+function fmtDate(str) {
+  if (!str) return '—';
+  const d = new Date(str + 'T00:00:00');
+  return d.toLocaleDateString('en-NG',{day:'2-digit',month:'short',year:'numeric'});
+}
+function nightsBetween(cin, cout) {
+  if (!cin || !cout) return 0;
+  const ms = new Date(cout) - new Date(cin);
+  return Math.max(0, Math.round(ms / 86400000));
+}
+function timeAgo(ts) {
+  if (!ts) return '';
+  const sec = Math.floor((Date.now() - ts.toDate()) / 1000);
+  if (sec < 60) return 'just now';
+  if (sec < 3600) return Math.floor(sec/60) + 'm ago';
+  if (sec < 86400) return Math.floor(sec/3600) + 'h ago';
+  return Math.floor(sec/86400) + 'd ago';
+}
+function pillHtml(status) {
+  const map = { new:'pill-new', confirmed:'pill-confirmed', 'checked-in':'pill-checked-in', 'checked-out':'pill-checked-out', paid:'pill-paid', partial:'pill-partial', pending:'pill-pending' };
+  return `<span class="status-pill ${map[status]||''}">${status}</span>`;
+}
+
+/* ── Nights + total calculation ── */
+function calcNights() {
+  const cin  = document.getElementById('apCheckin').value;
+  const cout = document.getElementById('apCheckout').value;
+  const n    = nightsBetween(cin, cout);
+  if (n > 0) {
+    document.getElementById('nightsDisplay').style.display = 'block';
+    document.getElementById('nightsVal').textContent = n;
+  } else {
+    document.getElementById('nightsDisplay').style.display = 'none';
+  }
+  calcTotal();
+}
+function calcTotal() {
+  const n    = parseInt(document.getElementById('nightsVal').textContent) || 0;
+  const rate = parseFloat(document.getElementById('apRate').value) || 0;
+  if (n > 0 && rate > 0) document.getElementById('apTotal').value = n * rate;
+  calcBalance();
+}
+function calcBalance() {
+  const total = parseFloat(document.getElementById('apTotal').value) || 0;
+  const paid  = parseFloat(document.getElementById('apPaid').value)  || 0;
+  if (total > 0 || paid > 0) {
+    document.getElementById('balanceDisplay').style.display = 'block';
+    document.getElementById('bTotal').textContent   = fmt(total);
+    document.getElementById('bPaid').textContent    = fmt(paid);
+    const bal = total - paid;
+    const balEl = document.getElementById('bBalance');
+    balEl.textContent  = fmt(bal);
+    balEl.className    = 'b-val' + (bal > 0 ? ' red' : '');
+  }
+}
+
+/* ── Submit rental ── */
+async function submitRental() {
+  const guestName = document.getElementById('apGuestName').value.trim();
+  const phone     = document.getElementById('apPhone').value.trim();
+  const unit      = document.getElementById('apUnit').value;
+  const bedrooms  = document.getElementById('apBedrooms').value;
+  const checkin   = document.getElementById('apCheckin').value;
+  const checkout  = document.getElementById('apCheckout').value;
+  const rate      = parseFloat(document.getElementById('apRate').value) || 0;
+  const total     = parseFloat(document.getElementById('apTotal').value) || 0;
+  const paid      = parseFloat(document.getElementById('apPaid').value) || 0;
+  const payMethod = document.getElementById('apPayMethod').value;
+  const payStatus = document.getElementById('apPayStatus').value;
+
+  if (!guestName || !phone || !unit || !bedrooms || !checkin || !checkout || !payMethod || !payStatus) {
+    return showAlert('alertBox', 'Please fill all required fields.', 'alert-error');
+  }
+
+  const nights  = nightsBetween(checkin, checkout);
+  const balance = total - paid;
+
+  try {
+    await db.collection('apartmentRentals').add({
+      guestName, phone,
+      email:     document.getElementById('apEmail').value.trim(),
+      unit,
+      bedrooms:  +bedrooms,
+      guests:    document.getElementById('apGuests').value,
+      checkin, checkout, nights, rate, total, paid, balance,
+      payMethod, payStatus,
+      notes:     document.getElementById('apNotes').value.trim(),
+      loggedBy:  staff.name,
+      status:    'checked-in',
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    showAlert('alertBox', `Rental logged for ${guestName} ✓`, 'alert-success');
+    // Reset form
+    ['apGuestName','apPhone','apEmail','apUnit','apBedrooms','apGuests','apCheckin','apCheckout','apRate','apTotal','apPaid','apPayMethod','apPayStatus','apNotes'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = el.tagName === 'SELECT' ? '' : '';
+    });
+    document.getElementById('nightsDisplay').style.display = 'none';
+    document.getElementById('balanceDisplay').style.display = 'none';
+    loadActive();
+    loadHistory();
+    loadTodaySummary();
+  } catch(e) {
+    showAlert('alertBox', 'Error saving rental: ' + e.message, 'alert-error');
+  }
+}
+
+/* ── Load website booking notifications ── */
+function loadNotifications() {
+  db.collection('apartmentBookings')
+    .limit(50)
+    .onSnapshot(snap => {
+      /* Sort client-side — avoids needing a Firestore createdAt index */
+      const docs = snap.docs
+        .map(d => ({ id: d.id, ...d.data() }))
+        .sort((a, b) => {
+          const ta = a.createdAt ? a.createdAt.toMillis() : 0;
+          const tb = b.createdAt ? b.createdAt.toMillis() : 0;
+          return tb - ta;
+        });
+
+      const newCount = docs.filter(d => d.status === 'new').length;
+      document.getElementById('notifCount').textContent  = newCount;
+      document.getElementById('notifBadge2').textContent = newCount;
+      document.getElementById('notifCount').style.display  = newCount > 0 ? 'inline-flex' : 'none';
+      document.getElementById('notifBadge2').style.display = newCount > 0 ? 'inline-flex' : 'none';
+
+      if (!docs.length) {
+        document.getElementById('notifList').innerHTML = '<div class="empty-state">No reservation requests yet.</div>';
+        return;
+      }
+
+      let html = '';
+      docs.forEach(b => {
+        const isNew = b.status === 'new';
+        html += `
+          <div class="notif-row" id="nr-${b.id}">
+            <div class="notif-dot ${isNew ? '' : 'seen'}"></div>
+            <div class="notif-body">
+              <div class="notif-name">${b.firstName} ${b.lastName} ${pillHtml(b.status)}</div>
+              <div class="notif-meta">
+                📱 ${b.phone} &nbsp;|&nbsp; 📧 ${b.email}<br>
+                🏨 ${b.unit || '—'} &nbsp;|&nbsp; 👥 ${b.guests} guest(s)<br>
+                📅 Check-in: <strong>${fmtDate(b.checkin)}</strong> &nbsp;→&nbsp; Check-out: <strong>${fmtDate(b.checkout)}</strong>
+                ${b.requests ? `<br>📝 <em>${b.requests}</em>` : ''}
+              </div>
+              <div class="notif-actions">
+                ${isNew ? `<button class="btn btn-gold btn-sm" onclick="confirmBooking('${b.id}')">✓ Confirm</button>` : ''}
+                <button class="btn btn-outline btn-sm" onclick="convertToRental('${b.id}')">+ Log as Rental</button>
+              </div>
+            </div>
+            <div class="notif-time">${timeAgo(b.createdAt)}</div>
+          </div>`;
+      });
+      document.getElementById('notifList').innerHTML = html;
+    }, err => {
+      console.error('[Apartments] Notification load error:', err);
+      document.getElementById('notifList').innerHTML = '<div class="empty-state" style="color:#dc2626">Failed to load — check console for details.</div>';
+    });
+}
+
+async function confirmBooking(id) {
+  await db.collection('apartmentBookings').doc(id).update({ status: 'confirmed' });
+}
+
+async function markAllSeen() {
+  const snap = await db.collection('apartmentBookings').where('status','==','new').get();
+  const batch = db.batch();
+  snap.forEach(d => batch.update(d.ref, { status: 'confirmed' }));
+  await batch.commit();
+}
+
+function convertToRental(id) {
+  db.collection('apartmentBookings').doc(id).get().then(doc => {
+    const b = doc.data();
+    document.getElementById('apGuestName').value = `${b.firstName} ${b.lastName}`;
+    document.getElementById('apPhone').value     = b.phone;
+    document.getElementById('apEmail').value     = b.email;
+    document.getElementById('apCheckin').value   = b.checkin;
+    document.getElementById('apCheckout').value  = b.checkout;
+    document.getElementById('apNotes').value     = b.requests || '';
+    calcNights();
+    document.getElementById('apGuestName').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    showAlert('alertBox', 'Booking details pre-filled — add payment info and click Log Rental.', 'alert-success');
+  });
+}
+
+/* ── Active rentals ── */
+function loadActive() {
+  db.collection('apartmentRentals')
+    .where('status', 'in', ['checked-in', 'confirmed'])
+    .get()
+    .then(snap => {
+      const active = snap.docs
+        .map(d => ({ id: d.id, ...d.data() }))
+        .sort((a, b) => (a.checkin || '').localeCompare(b.checkin || ''));
+      document.getElementById('activeCount').textContent = active.length + ' guest(s)';
+      if (!active.length) {
+        document.getElementById('activeList').innerHTML = '<div class="empty-state">No active guests.</div>';
+        return;
+      }
+      let html = '';
+      active.forEach(r => {
+        const bal = (r.total||0) - (r.paid||0);
+        html += `
+          <div class="notif-row">
+            <div class="notif-body">
+              <div class="notif-name">${r.guestName} ${pillHtml(r.payStatus||'pending')}</div>
+              <div class="notif-meta">
+                🏨 ${r.unit}${r.bedrooms ? ` · ${r.bedrooms} Bed` : ''} &nbsp;|&nbsp; 📅 ${fmtDate(r.checkin)} → ${fmtDate(r.checkout)} (${r.nights} night${r.nights!==1?'s':''})
+                <br>💰 Total: ${fmt(r.total)} &nbsp;|&nbsp; Paid: ${fmt(r.paid)} &nbsp;|&nbsp; <span style="color:${bal>0?'#dc2626':'#15803d'}">Balance: ${fmt(bal)}</span>
+              </div>
+              <div class="notif-actions">
+                <button class="btn btn-outline btn-sm" onclick="checkOut('${r.id}')">Check Out</button>
+                ${bal > 0 ? `<button class="btn btn-gold btn-sm" onclick="logPayment('${r.id}', ${r.total}, ${r.paid})">Record Payment</button>` : ''}
+              </div>
+            </div>
+          </div>`;
+      });
+      document.getElementById('activeList').innerHTML = html;
+    });
+}
+
+/* ── Check out ── */
+async function checkOut(id) {
+  if (!confirm('Mark this guest as checked out?')) return;
+  await db.collection('apartmentRentals').doc(id).update({ status: 'checked-out', checkedOutAt: firebase.firestore.FieldValue.serverTimestamp() });
+  showAlert('alertBox', 'Guest checked out ✓', 'alert-success');
+  loadActive(); loadHistory();
+}
+
+/* ── Record additional payment ── */
+async function logPayment(id, total, currentPaid) {
+  const amount = parseFloat(prompt('Enter amount received (₦):'));
+  if (!amount || isNaN(amount)) return;
+  const newPaid    = currentPaid + amount;
+  const newBalance = total - newPaid;
+  const newStatus  = newBalance <= 0 ? 'paid' : 'partial';
+  await db.collection('apartmentRentals').doc(id).update({
+    paid: newPaid,
+    balance: newBalance,
+    payStatus: newStatus
+  });
+  showAlert('alertBox', `Payment of ${fmt(amount)} recorded ✓`, 'alert-success');
+  loadActive(); loadHistory();
+}
+
+/* ── Rental history ── */
+function loadHistory() {
+  const filter = document.getElementById('histFilter').value;
+  let query = db.collection('apartmentRentals').orderBy('createdAt', 'desc').limit(50);
+
+  query.get().then(snap => {
+    const tbody = document.getElementById('histTable');
+    if (snap.empty) {
+      tbody.innerHTML = '<tr><td colspan="12" style="text-align:center;padding:20px;color:var(--muted)">No rentals logged yet.</td></tr>';
+      return;
+    }
+    let rows = '';
+    snap.forEach(doc => {
+      const r = doc.data();
+      if (filter !== 'all' && r.payStatus !== filter) return;
+      const bal = (r.total||0) - (r.paid||0);
+      rows += `<tr>
+        <td><strong>${r.guestName}</strong><br><span style="font-size:0.72rem;color:var(--muted)">${r.phone}</span></td>
+        <td>${r.unit||'—'}</td>
+        <td style="text-align:center">${r.bedrooms ? r.bedrooms + ' Bed' : '—'}</td>
+        <td>${fmtDate(r.checkin)}</td>
+        <td>${fmtDate(r.checkout)}</td>
+        <td style="text-align:center">${r.nights||0}</td>
+        <td>${fmt(r.total)}</td>
+        <td>${fmt(r.paid)}</td>
+        <td style="color:${bal>0?'#dc2626':'#15803d'}">${fmt(bal)}</td>
+        <td>${r.payMethod||'—'}</td>
+        <td>${pillHtml(r.payStatus||'pending')}</td>
+        <td>
+          ${r.status !== 'checked-out' ? `<button class="btn btn-outline btn-sm" style="white-space:nowrap" onclick="checkOut('${doc.id}')">Check Out</button>` : '<span style="color:var(--muted);font-size:0.75rem">Checked out</span>'}
+        </td>
+      </tr>`;
+    });
+    tbody.innerHTML = rows || '<tr><td colspan="11" style="text-align:center;padding:20px;color:var(--muted)">No matching records.</td></tr>';
+  });
+}
+
+/* ── Today's summary ── */
+function loadTodaySummary() {
+  const today = todayStr();
+  db.collection('apartmentRentals')
+    .where('createdAt', '>=', new Date(today))
+    .get()
+    .then(snap => {
+      let total = 0;
+      snap.forEach(d => total += (d.data().paid || 0));
+      document.getElementById('revenueToday').textContent = fmt(total);
+      document.getElementById('rentalsToday').textContent = snap.size + ' rental' + (snap.size!==1?'s':'') + ' logged today';
+    }).catch(() => {});
+}
+
+/* ── Booking Calendar ── */
+let calYear  = new Date().getFullYear();
+let calMonth = new Date().getMonth(); // 0-based
+let calEvents = {}; // key: 'YYYY-MM-DD', value: array of event objects
+
+function calKey(d) { return d; } // d is already 'YYYY-MM-DD'
+
+function calAddEvent(dateStr, evt) {
+  if (!dateStr) return;
+  if (!calEvents[dateStr]) calEvents[dateStr] = [];
+  calEvents[dateStr].push(evt);
+}
+
+function eachDay(start, end, fn) {
+  if (!start || !end) return;
+  const s = new Date(start + 'T00:00:00');
+  const e = new Date(end   + 'T00:00:00');
+  for (let d = new Date(s); d < e; d.setDate(d.getDate() + 1)) {
+    fn(d.toISOString().slice(0, 10));
+  }
+}
+
+async function loadCalendar() {
+  calEvents = {};
+  const yr  = calYear;
+  const mo  = String(calMonth + 1).padStart(2, '0');
+  const monthStart = `${yr}-${mo}-01`;
+  const lastDay    = new Date(yr, calMonth + 1, 0).getDate();
+  const monthEnd   = `${yr}-${mo}-${String(lastDay).padStart(2,'0')}`;
+
+  // Pull rentals and reservations that touch this month
+  const [rentSnap, resSnap] = await Promise.all([
+    db.collection('apartmentRentals').get().catch(() => ({ docs: [] })),
+    db.collection('apartmentBookings').get().catch(() => ({ docs: [] })),
+  ]);
+
+  rentSnap.docs.forEach(d => {
+    const r = d.data();
+    if (!r.checkin || !r.checkout) return;
+    // Only include if it overlaps with the visible month
+    if (r.checkout < monthStart || r.checkin > monthEnd) return;
+    calAddEvent(r.checkin,  { type: 'in',  label: r.guestName, unit: r.unit });
+    calAddEvent(r.checkout, { type: 'out', label: r.guestName, unit: r.unit });
+    eachDay(r.checkin, r.checkout, day => {
+      if (day !== r.checkin) calAddEvent(day, { type: 'occ', label: r.guestName });
+    });
+  });
+
+  resSnap.docs.forEach(d => {
+    const b = d.data();
+    if (!b.checkin) return;
+    if (b.checkin < monthStart || b.checkin > monthEnd) return;
+    calAddEvent(b.checkin, { type: 'res', label: `${b.firstName} ${b.lastName}` });
+  });
+
+  renderCal();
+}
+
+function renderCal() {
+  const DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const todayStr2 = todayStr();
+  const firstDay  = new Date(calYear, calMonth, 1).getDay(); // 0=Sun
+  const daysInMon = new Date(calYear, calMonth + 1, 0).getDate();
+  const prevDays  = new Date(calYear, calMonth, 0).getDate();
+  const monthName = new Date(calYear, calMonth, 1).toLocaleDateString('en-NG', { month: 'long', year: 'numeric' });
+
+  document.getElementById('calMonthLabel').textContent = monthName;
+
+  let html = DAYS.map(d => `<div class="cal-day-hdr">${d}</div>`).join('');
+
+  // Leading blank cells (prev month)
+  for (let i = 0; i < firstDay; i++) {
+    const day = prevDays - firstDay + 1 + i;
+    html += `<div class="cal-day other-month"><div class="cal-num">${day}</div></div>`;
+  }
+
+  // Current month cells
+  for (let d = 1; d <= daysInMon; d++) {
+    const mo  = String(calMonth + 1).padStart(2, '0');
+    const dd  = String(d).padStart(2, '0');
+    const key = `${calYear}-${mo}-${dd}`;
+    const isToday = key === todayStr2;
+    const evts = calEvents[key] || [];
+
+    const eventHtml = evts.slice(0, 3).map(ev => {
+      if (ev.type === 'in')  return `<div class="cal-event ev-in">↓ ${ev.label||''}</div>`;
+      if (ev.type === 'out') return `<div class="cal-event ev-out">↑ ${ev.label||''}</div>`;
+      if (ev.type === 'res') return `<div class="cal-event ev-res">✦ ${ev.label||''}</div>`;
+      return '';
+    }).join('');
+    const moreHtml = evts.length > 3 ? `<div style="font-size:0.6rem;color:var(--muted)">+${evts.length-3} more</div>` : '';
+
+    const hasOcc = evts.some(e => e.type === 'occ');
+    const occStyle = hasOcc ? 'background:rgba(201,169,110,0.1);' : '';
+
+    html += `<div class="cal-day${isToday?' today':''}" style="${occStyle}">
+      <div class="cal-num">${d}</div>
+      ${eventHtml}${moreHtml}
+    </div>`;
+  }
+
+  // Trailing blank cells
+  const total = firstDay + daysInMon;
+  const trailing = total % 7 === 0 ? 0 : 7 - (total % 7);
+  for (let i = 1; i <= trailing; i++) {
+    html += `<div class="cal-day other-month"><div class="cal-num">${i}</div></div>`;
+  }
+
+  document.getElementById('calGrid').innerHTML = html;
+}
+
+function calPrev() { calMonth--; if (calMonth < 0) { calMonth = 11; calYear--; } loadCalendar(); }
+function calNext() { calMonth++; if (calMonth > 11) { calMonth = 0; calYear++; } loadCalendar(); }
+
+/* ── Init ── */
+loadNotifications();
+loadActive();
+loadHistory();
+loadTodaySummary();
+loadCalendar();
+</script>
+</body>
+</html>

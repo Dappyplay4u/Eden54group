@@ -154,14 +154,27 @@ select.fc option{background:var(--deep)}
 
 /* Mobile */
 @media(max-width:720px){
-  /* Let the page body scroll; remove the viewport-lock so position:fixed works */
-  #posScreen{height:auto;min-height:100dvh;overflow:visible}
-  .pos-body{grid-template-columns:1fr;grid-template-rows:auto auto;overflow:visible;flex:none;min-height:0}
-  .items-panel{overflow:visible;height:auto}
-  .cart-panel{border-left:none;border-top:1px solid var(--border);overflow:visible;max-height:none;min-height:unset}
-  .cart-items{overflow:visible;max-height:none}
-  .cart-foot{padding-bottom:14px}
-  .item-grid{grid-template-columns:repeat(auto-fill,minmax(110px,1fr))}
+  #posScreen{height:100vh;overflow:hidden}
+  .pos-body{display:block;height:100%;overflow:hidden}
+  .items-panel{height:100%;overflow-y:auto;padding-bottom:76px}
+  /* Cart panel hidden on mobile by default; shown as full-screen sheet */
+  .cart-panel{display:none}
+  .cart-panel.mob-open{
+    display:flex;position:fixed;inset:0;z-index:500;
+    flex-direction:column;overflow:hidden;border-left:none;border-top:none;
+  }
+  .cart-panel.mob-open .cart-hdr{flex-shrink:0}
+  .cart-panel.mob-open .cart-items{flex:1;overflow-y:auto}
+  .cart-panel.mob-open .cart-foot{flex-shrink:0}
+  #mobileBack{display:inline-flex !important}
+  /* Mobile floating cart bar */
+  #mobBar{
+    display:none;position:fixed;bottom:0;left:0;right:0;z-index:400;
+    background:var(--deep2);border-top:1px solid rgba(201,169,110,0.3);
+    padding:11px 16px;align-items:center;justify-content:space-between;gap:12px;
+  }
+  #mobBar.show{display:flex}
+  .item-grid{grid-template-columns:repeat(3,1fr)}
   .custom-row{grid-template-columns:1fr;gap:8px}
   .pos-brand-name{display:none}
   .mgr-add-row{grid-template-columns:1fr 1fr;gap:8px}
@@ -231,9 +244,10 @@ select.fc option{background:var(--deep)}
     </div>
 
     <!-- Cart -->
-    <div class="cart-panel">
+    <div class="cart-panel" id="cartPanel">
       <div class="cart-hdr">
-        <h3>Current Order</h3>
+        <button id="mobileBack" onclick="closeMobileCart()" style="display:none;background:none;border:none;color:var(--gold);font-family:'Jost',sans-serif;font-size:0.82rem;cursor:pointer;padding:0;margin-right:10px">← Menu</button>
+        <h3 style="flex:1">Current Order</h3>
         <button class="btn-clear" onclick="clearCart()">Clear</button>
       </div>
       <div class="cart-items" id="cartItems">
@@ -258,6 +272,18 @@ select.fc option{background:var(--deep)}
         <input type="text"  class="fc cart-cust" id="receivedBy" placeholder="Received by" readonly style="opacity:0.65;cursor:default" title="Auto-set to the logged-in POS user">
       </div>
     </div>
+  </div>
+
+  <!-- Mobile: floating cart bar (shown when cart has items) -->
+  <div id="mobBar">
+    <div>
+      <div style="font-size:0.6rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-bottom:2px">Current Order</div>
+      <div style="display:flex;align-items:baseline;gap:8px">
+        <span id="mobBarCount" style="font-size:0.8rem;color:var(--text)"></span>
+        <span id="mobBarAmt" style="font-size:1rem;color:var(--gold);font-weight:500">₦0.00</span>
+      </div>
+    </div>
+    <button onclick="openMobileCart()" style="padding:11px 20px;background:var(--gold);color:#0f2318;border:none;border-radius:6px;font-family:'Jost',sans-serif;font-size:0.8rem;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;white-space:nowrap">View Order →</button>
   </div>
 </div>
 
@@ -666,6 +692,13 @@ function clearCart() {
   updateCartUI();
 }
 
+function openMobileCart() {
+  document.getElementById('cartPanel').classList.add('mob-open');
+}
+function closeMobileCart() {
+  document.getElementById('cartPanel').classList.remove('mob-open');
+}
+
 function updateCartUI() {
   const rowsEl = document.getElementById('cartRows');
   const empty  = document.getElementById('cartEmpty');
@@ -685,6 +718,19 @@ function updateCartUI() {
       <button class="cart-rm" onclick="removeItem(${i})">✕</button>
     </div>`
   ).join('');
+
+  // Mobile cart bar
+  const mobBar = document.getElementById('mobBar');
+  if (mobBar) {
+    if (cart.length > 0) {
+      mobBar.classList.add('show');
+      document.getElementById('mobBarCount').textContent = cart.length + (cart.length === 1 ? ' item' : ' items') + ' ·';
+      document.getElementById('mobBarAmt').textContent   = fmtN(total);
+    } else {
+      mobBar.classList.remove('show');
+      closeMobileCart();
+    }
+  }
 }
 
 function selPay(method) {
