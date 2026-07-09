@@ -85,7 +85,7 @@ function buildNav(staff, active) {
     sales:      true,
     bar:        isManager || dept === 'bar',
     kitchen:    isManager || dept === 'kitchen',
-    barbing:    isManager || dept === 'salon',
+    barbing:    isManager,   // salon staff use POS — only managers submit barbing reports
     pool:       isManager || dept === 'pool',
     apartments: isManager || isHR || isFrontDesk,
   };
@@ -214,7 +214,7 @@ function requireAccess(staff, page) {
     expenses:   true,
     bar:        isManager || dept === 'bar',
     kitchen:    isManager || dept === 'kitchen',
-    barbing:    isManager || dept === 'salon',
+    barbing:    isManager,   // salon staff use POS only
     pool:       isManager || dept === 'pool',
     apartments: isManager || isHR || dept === 'front desk' || dept === 'receptionist' || dept === 'lounge' || dept === 'apartments',
     pos:        true,

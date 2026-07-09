@@ -489,7 +489,25 @@ function renderBarbing(date, reports, posSales, salonSales) {
       `<div class="no-sub">No salon submissions for ${date}</div>`);
     return;
   }
+
+  // Detect duplicate: staff who already have POS sales should not also count in service reports
+  const posStaffIds = new Set(posSales.map(r => r.staffId).filter(Boolean));
+  const posStaffNames = new Set(posSales.map(r => (r.staffName||'').toLowerCase()).filter(Boolean));
+  const isDuplicate = r => posStaffIds.has(r.staffId) || posStaffNames.has((r.staffName||'').toLowerCase());
+  const dupReports  = reports.filter(r => isDuplicate(r));
+  const realReports = reports.filter(r => !isDuplicate(r));
+
   let html = '';
+
+  // Duplicate warning banner
+  if (dupReports.length > 0) {
+    const names = [...new Set(dupReports.map(r=>r.staffName))].join(', ');
+    html += `<div style="background:rgba(234,179,8,0.1);border:1px solid rgba(234,179,8,0.35);border-radius:6px;padding:10px 14px;margin-bottom:12px;font-size:0.78rem;color:#ca8a04">
+      ⚠️ <strong>Duplicate detected</strong> — ${esc(names)} submitted a manual service report AND logged POS sales for this date.
+      The service report has been excluded from totals. Staff should use POS only.
+    </div>`;
+  }
+
   if (hasPOS) {
     const tot = posSales.reduce((s,r)=>s+(r.totalSales||0),0);
     html += `<div class="sub-label">POS Transactions</div>`;
@@ -497,12 +515,14 @@ function renderBarbing(date, reports, posSales, salonSales) {
     html += `<div class="rev-total"><span>POS Total</span><span class="text-gold">${N(tot)}</span></div>`;
     html += itemBreakdown(posSales, 'served');
   }
-  if (hasRep) {
+
+  // Only show non-duplicate service reports
+  if (realReports.length > 0) {
     if (hasPOS) html += '<div class="divider"></div>';
-    const grandRev = reports.reduce((s,r)=>s+(r.totalRevenue||0),0);
-    const grandSvcs= reports.reduce((s,r)=>s+(r.clientsServed||0),0);
+    const grandRev  = realReports.reduce((s,r)=>s+(r.totalRevenue||0),0);
+    const grandSvcs = realReports.reduce((s,r)=>s+(r.clientsServed||0),0);
     html += `<div class="sub-label">Service Reports</div>`;
-    html += reports.map(r=>{
+    html += realReports.map(r=>{
       const svcs = (r.services||[]).map(s=>`${s.type} ${N(s.amount)}`).join(' · ');
       return `<div class="rev-row">
         <div>
@@ -518,14 +538,33 @@ function renderBarbing(date, reports, posSales, salonSales) {
     }).join('');
     html += `<div class="rev-total"><span>Services — ${grandSvcs} clients</span><span class="text-gold">${N(grandRev)}</span></div>`;
   }
+
+  // Show duplicate reports collapsed with a strikethrough note
+  if (dupReports.length > 0) {
+    html += `<div class="divider"></div>`;
+    html += `<div class="sub-label" style="color:#ca8a04">⚠️ Excluded (Duplicate Service Reports)</div>`;
+    html += dupReports.map(r=>{
+      const svcs = (r.services||[]).map(s=>`${s.type} ${N(s.amount)}`).join(' · ');
+      return `<div class="rev-row" style="opacity:0.45">
+        <div>
+          <strong style="font-weight:400;text-decoration:line-through">${esc(r.staffName)}</strong>
+          <div class="cash-breakdown">${svcs||'No services listed'}</div>
+        </div>
+        <div style="text-align:right;text-decoration:line-through;color:var(--gold)">${N(r.totalRevenue)}</div>
+      </div>`;
+    }).join('');
+  }
+
   if (hasSales) {
     if (hasRep || hasPOS) html += '<div class="divider"></div>';
     html += `<div class="sub-label">Manual Reports</div>`;
     html += salesRows(salonSales);
     html += salesTotal(salonSales);
   }
+
+  // Total excludes duplicate service reports
   const posTot = posSales.reduce((s,r)=>s+(r.totalSales||0),0);
-  const repTot = reports.reduce((s,r)=>s+(r.totalRevenue||0),0);
+  const repTot = realReports.reduce((s,r)=>s+(r.totalRevenue||0),0);
   const manTot = salonSales.reduce((s,r)=>s+(r.totalSales||0),0);
   const total  = posTot + repTot + manTot;
   const count  = reports.length + posSales.length + salonSales.length;

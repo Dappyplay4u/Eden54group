@@ -98,7 +98,7 @@ select.fc option{background:var(--deep)}
 .cart-rm{background:none;border:none;color:var(--muted);cursor:pointer;padding:2px 4px;font-size:0.85rem;flex-shrink:0}
 .cart-rm:hover{color:#fca5a5}
 .cart-foot{border-top:1px solid var(--border);padding:14px 16px;flex-shrink:0}
-.cart-total-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.cart-total-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:10px}
 .cart-total-lbl{font-size:0.72rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--muted)}
 .cart-total-amt{font-size:1.28rem;font-weight:500;color:var(--gold)}
 .pay-btns{display:flex;gap:8px;margin-bottom:12px}
@@ -106,7 +106,7 @@ select.fc option{background:var(--deep)}
 .pay-btn.active{border-color:var(--gold);color:var(--gold);background:rgba(201,169,110,0.1);font-weight:500}
 .pay-btn:hover:not(.active){border-color:rgba(201,169,110,0.3)}
 .cart-cust{width:100%;margin-bottom:12px}
-.btn-complete{width:100%;padding:13px;background:var(--gold);color:#0f2318;border:none;border-radius:7px;font-family:'Jost',sans-serif;font-size:0.87rem;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;transition:background .2s}
+.btn-complete{padding:11px 18px;background:var(--gold);color:#0f2318;border:none;border-radius:7px;font-family:'Jost',sans-serif;font-size:0.78rem;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;transition:background .2s;white-space:nowrap;flex-shrink:0}
 .btn-complete:hover{background:var(--gold-l)}
 .btn-complete:disabled{opacity:0.45;cursor:not-allowed}
 
@@ -160,9 +160,7 @@ select.fc option{background:var(--deep)}
   .items-panel{overflow:visible;height:auto}
   .cart-panel{border-left:none;border-top:1px solid var(--border);overflow:visible;max-height:none;min-height:unset}
   .cart-items{overflow:visible;max-height:none}
-  /* 76px gap so content clears the fixed Complete Sale bar */
-  .cart-foot{padding-bottom:76px}
-  .btn-complete{position:fixed;bottom:0;left:0;right:0;z-index:9999;border-radius:0;padding:16px;font-size:0.92rem;letter-spacing:0.12em;box-shadow:0 -2px 12px rgba(0,0,0,0.4)}
+  .cart-foot{padding-bottom:14px}
   .item-grid{grid-template-columns:repeat(auto-fill,minmax(110px,1fr))}
   .custom-row{grid-template-columns:1fr;gap:8px}
   .pos-brand-name{display:none}
@@ -244,8 +242,11 @@ select.fc option{background:var(--deep)}
       </div>
       <div class="cart-foot">
         <div class="cart-total-row">
-          <span class="cart-total-lbl">Total</span>
-          <span class="cart-total-amt" id="cartTotal">₦0.00</span>
+          <div>
+            <div class="cart-total-lbl">Total</div>
+            <div class="cart-total-amt" id="cartTotal">₦0.00</div>
+          </div>
+          <button class="btn-complete" id="btnComplete" onclick="completeSale()" disabled>Complete Sale</button>
         </div>
         <div class="pay-btns">
           <button class="pay-btn active" id="payBtnCash"     onclick="selPay('cash')">💵 Cash</button>
@@ -255,7 +256,6 @@ select.fc option{background:var(--deep)}
         <input type="text"  class="fc cart-cust" id="custName"  placeholder="Customer name (optional)">
         <input type="tel"   class="fc cart-cust" id="custPhone" placeholder="Phone number (optional)" inputmode="tel">
         <input type="text"  class="fc cart-cust" id="receivedBy" placeholder="Received by" readonly style="opacity:0.65;cursor:default" title="Auto-set to the logged-in POS user">
-        <button class="btn-complete" id="btnComplete" onclick="completeSale()" disabled>Complete Sale</button>
       </div>
     </div>
   </div>
