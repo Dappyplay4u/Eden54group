@@ -15,7 +15,7 @@
 }
 body{font-family:'Jost',sans-serif;font-weight:300;background:var(--deep);color:var(--text);min-height:100vh;overflow:hidden}
 
-/* AUTH */
+/* ── Auth ── */
 #authScreen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
 .auth-card{background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:14px;padding:40px 36px;width:100%;max-width:400px;text-align:center}
 .auth-logo{width:72px;height:72px;border-radius:50%;object-fit:cover;margin-bottom:18px;border:2px solid rgba(201,169,110,0.3)}
@@ -29,10 +29,10 @@ body{font-family:'Jost',sans-serif;font-weight:300;background:var(--deep);color:
 .auth-btn:disabled{opacity:0.55;cursor:not-allowed}
 .auth-err{background:rgba(220,38,38,0.1);border:1px solid rgba(220,38,38,0.2);border-radius:6px;padding:10px 14px;font-size:0.8rem;color:#fca5a5;margin-top:10px;text-align:left;display:none}
 
-/* POS SHELL */
+/* ── POS shell ── */
 #posScreen{display:none;flex-direction:column;height:100vh;overflow:hidden}
 
-/* Header */
+/* ── Header ── */
 .pos-hdr{background:var(--deep2);border-bottom:1px solid var(--border);padding:0 18px;height:54px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-shrink:0}
 .pos-brand{display:flex;align-items:center;gap:9px;flex-shrink:0}
 .pos-brand img{width:30px;height:30px;border-radius:50%;object-fit:cover}
@@ -46,30 +46,30 @@ body{font-family:'Jost',sans-serif;font-weight:300;background:var(--deep);color:
 .btn-hdr.danger{border-color:rgba(220,38,38,0.3);color:rgba(220,38,38,0.65)}
 .btn-hdr.danger:hover{background:rgba(220,38,38,0.08);border-color:rgba(220,38,38,0.5);color:#fca5a5}
 
-/* Tabs */
+/* ── Category tabs ── */
 .cat-tabs{padding:10px 16px;background:var(--deep2);border-bottom:1px solid var(--border);display:flex;gap:8px;flex-shrink:0;overflow-x:auto;scrollbar-width:none}
 .cat-tabs::-webkit-scrollbar{display:none}
 .cat-tab{padding:7px 18px;border:1px solid var(--border);border-radius:20px;font-family:'Jost',sans-serif;font-size:0.76rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);cursor:pointer;background:transparent;transition:all .2s;white-space:nowrap;flex-shrink:0}
 .cat-tab.active,.cat-tab:hover{border-color:var(--gold);color:var(--gold);background:rgba(201,169,110,0.08)}
 .cat-tab.active{background:rgba(201,169,110,0.14);font-weight:500}
 
-/* Body */
+/* ── Body ── */
 .pos-body{display:grid;grid-template-columns:1fr 340px;flex:1;min-height:0;overflow:hidden}
 
-/* Items */
-.items-panel{padding:16px;overflow-y:auto}
+/* ── Items panel ── */
+.items-panel{padding:16px;overflow-y:auto;position:relative}
 .panel-lbl{font-size:0.62rem;letter-spacing:0.22em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;font-weight:400}
 .item-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(128px,1fr));gap:12px}
 .item-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px 10px;text-align:center;cursor:pointer;transition:all .18s;user-select:none;-webkit-tap-highlight-color:transparent}
 .item-card:hover{background:var(--card2);border-color:rgba(201,169,110,0.35);transform:translateY(-1px)}
-.item-card:active{transform:scale(0.96)}
+.item-card:active,.item-card.tapped{background:rgba(201,169,110,0.15);border-color:rgba(201,169,110,0.5);transform:scale(0.96)}
 .ic-icon{font-size:1.9rem;margin-bottom:8px;line-height:1}
 .ic-name{font-size:0.82rem;font-weight:400;margin-bottom:4px}
 .ic-price{font-size:0.7rem;color:var(--gold)}
 .no-items{color:var(--muted);font-size:0.82rem;padding:12px 0}
 .item-section-lbl{font-size:0.6rem;letter-spacing:0.24em;text-transform:uppercase;color:var(--gold);margin:16px 0 8px;font-weight:500;padding-bottom:6px;border-bottom:1px solid rgba(201,169,110,0.18)}
 
-/* Custom entry */
+/* ── Custom entry ── */
 .custom-entry{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;margin-top:16px;display:none}
 .custom-entry h4{font-size:0.65rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;font-weight:400}
 .custom-row{display:grid;grid-template-columns:1fr 130px auto;gap:10px;align-items:flex-end}
@@ -80,11 +80,11 @@ select.fc option{background:var(--deep)}
 .btn-gold-s{padding:9px 14px;background:var(--gold);color:#0f2318;border:none;border-radius:5px;font-family:'Jost',sans-serif;font-size:0.75rem;font-weight:500;letter-spacing:0.08em;cursor:pointer;white-space:nowrap}
 .btn-gold-s:hover{background:var(--gold-l)}
 
-/* Cart */
+/* ── Cart panel ── */
 .cart-panel{background:var(--deep2);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;flex-shrink:0}
-.cart-hdr{padding:13px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
-.cart-hdr h3{font-size:0.85rem;font-weight:500}
-.btn-clear{background:none;border:1px solid rgba(220,38,38,0.25);color:rgba(220,38,38,0.6);border-radius:4px;padding:4px 10px;font-family:'Jost',sans-serif;font-size:0.68rem;cursor:pointer}
+.cart-hdr{padding:13px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;flex-shrink:0;gap:8px}
+.cart-hdr h3{flex:1;font-size:0.85rem;font-weight:500}
+.btn-clear{background:none;border:1px solid rgba(220,38,38,0.25);color:rgba(220,38,38,0.6);border-radius:4px;padding:4px 10px;font-family:'Jost',sans-serif;font-size:0.68rem;cursor:pointer;flex-shrink:0}
 .btn-clear:hover{background:rgba(220,38,38,0.08)}
 .cart-items{flex:1;overflow-y:auto;padding:4px 0}
 .cart-empty{text-align:center;padding:40px 16px;color:var(--muted);font-size:0.82rem;line-height:1.6}
@@ -110,8 +110,15 @@ select.fc option{background:var(--deep)}
 .btn-complete:hover{background:var(--gold-l)}
 .btn-complete:disabled{opacity:0.45;cursor:not-allowed}
 
-/* Success overlay */
-.success-ov{position:fixed;inset:0;background:rgba(15,35,24,0.88);display:none;align-items:center;justify-content:center;z-index:200}
+/* ── Mobile-only elements (hidden on desktop) ── */
+#mobileBack{display:none;background:none;border:none;color:var(--gold);font-family:'Jost',sans-serif;font-size:0.82rem;cursor:pointer;padding:0;flex-shrink:0}
+#mobCartActions{display:none;justify-content:center;gap:20px;padding:10px 0 2px;border-top:1px solid var(--border);margin-top:4px}
+#mobBar{display:none;position:fixed;bottom:0;left:0;right:0;z-index:400;background:var(--deep2);border-top:1px solid rgba(201,169,110,0.3);padding:11px 16px;align-items:center;justify-content:space-between;gap:12px}
+#mobBar.show{display:flex}
+#mobMenuBtn{display:none;position:absolute;top:10px;right:12px;z-index:50;background:var(--card2);border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:6px 12px;font-family:'Jost',sans-serif;font-size:0.72rem;letter-spacing:0.08em;cursor:pointer}
+
+/* ── Success overlay ── */
+.success-ov{position:fixed;inset:0;background:rgba(15,35,24,0.88);display:none;align-items:center;justify-content:center;z-index:600}
 .success-card{background:var(--deep2);border:1px solid rgba(201,169,110,0.22);border-radius:14px;padding:36px;text-align:center;max-width:360px;width:90%}
 .suc-icon{font-size:3rem;margin-bottom:14px}
 .suc-title{font-size:1.1rem;color:var(--gold);margin-bottom:6px;font-weight:400}
@@ -122,8 +129,8 @@ select.fc option{background:var(--deep)}
 .btn-ol.gold{border-color:var(--gold);color:var(--gold)}
 .btn-ol.gold:hover{background:rgba(201,169,110,0.1)}
 
-/* Menu Manager (modal) */
-.mgr-ov{position:fixed;inset:0;background:rgba(15,35,24,0.88);display:none;align-items:flex-start;justify-content:center;z-index:300;padding:20px;overflow-y:auto}
+/* ── Menu manager modal ── */
+.mgr-ov{position:fixed;inset:0;background:rgba(15,35,24,0.88);display:none;align-items:flex-start;justify-content:center;z-index:550;padding:20px;overflow-y:auto}
 .mgr-card{background:var(--deep2);border:1px solid var(--border);border-radius:14px;padding:28px;width:100%;max-width:620px;margin:auto}
 .mgr-card h2{font-size:1rem;font-weight:400;color:var(--gold);margin-bottom:20px;display:flex;justify-content:space-between;align-items:center}
 .mgr-close{background:none;border:none;color:var(--muted);font-size:1.4rem;cursor:pointer;padding:0;line-height:1}
@@ -138,11 +145,8 @@ select.fc option{background:var(--deep)}
 .mgr-item-del:hover{color:#fca5a5}
 .mgr-add-row{display:grid;grid-template-columns:1fr 110px 90px auto;gap:8px;align-items:flex-end;margin-top:14px}
 
-/* Receipt – print only */
-@media print{
-  body>*{display:none!important}
-  #receiptArea{display:block!important;color:#000!important;background:#fff!important}
-}
+/* ── Receipt (print only) ── */
+@media print{body>*{display:none!important}#receiptArea{display:block!important;color:#000!important;background:#fff!important}}
 #receiptArea{display:none;padding:20px;font-family:'Courier New',monospace;font-size:12px;max-width:300px;margin:0 auto;color:#000;background:#fff}
 .rh{text-align:center;border-bottom:1px dashed #000;padding-bottom:10px;margin-bottom:10px}
 .rh h2{font-size:15px;font-weight:bold}
@@ -152,46 +156,53 @@ select.fc option{background:var(--deep)}
 .rt{font-weight:bold;font-size:13px}
 .rf{text-align:center;border-top:1px dashed #000;padding-top:8px;margin-top:8px;font-size:10px}
 
-/* Mobile */
+/* ── Mobile layout ─────────────────────────────────────────────────────────
+   Strategy: items panel fills full screen; cart is a fixed full-screen
+   sheet (triggered by floating bar); header moves into cart sheet footer.
+─────────────────────────────────────────────────────────────────────────── */
 @media(max-width:720px){
+  /* Lock the shell to viewport height */
   #posScreen{height:100vh;overflow:hidden}
+  /* Hide desktop header — portal/signout live in the cart sheet footer */
+  .pos-hdr{display:none}
+  /* Single-column body; items fill all available height */
   .pos-body{display:block;height:100%;overflow:hidden}
-  .items-panel{height:100%;overflow-y:auto;padding-bottom:76px}
-  /* Cart panel hidden on mobile by default; shown as full-screen sheet */
+  .items-panel{height:100%;overflow-y:auto;padding-bottom:72px}
+  /* 3-column item grid on mobile */
+  .item-grid{grid-template-columns:repeat(3,1fr)}
+  /* Cart panel: hidden until opened as full-screen sheet */
   .cart-panel{display:none}
   .cart-panel.mob-open{
-    display:flex;position:fixed;inset:0;z-index:500;
-    flex-direction:column;overflow:hidden;border-left:none;border-top:none;
+    display:flex;
+    position:fixed;inset:0;z-index:500;
+    flex-direction:column;overflow:hidden;
+    border-left:none;border-top:none;
   }
-  .cart-panel.mob-open .cart-hdr{flex-shrink:0}
+  .cart-panel.mob-open .cart-hdr{flex-shrink:0;position:sticky;top:0;z-index:1}
   .cart-panel.mob-open .cart-items{flex:1;overflow-y:auto}
   .cart-panel.mob-open .cart-foot{flex-shrink:0}
-  #mobileBack{display:inline-flex !important}
-  /* Mobile floating cart bar */
-  #mobBar{
-    display:none;position:fixed;bottom:0;left:0;right:0;z-index:400;
-    background:var(--deep2);border-top:1px solid rgba(201,169,110,0.3);
-    padding:11px 16px;align-items:center;justify-content:space-between;gap:12px;
-  }
-  #mobBar.show{display:flex}
-  .item-grid{grid-template-columns:repeat(3,1fr)}
+  /* Mobile-only UI elements */
+  #mobileBack{display:inline-flex}
+  #mobCartActions{display:flex}
+  /* Floating menu button — only shown via JS .visible class */
+  #mobMenuBtn.visible{display:flex}
+  /* Custom entry / add-row adjustments */
   .custom-row{grid-template-columns:1fr;gap:8px}
-  .pos-brand-name{display:none}
   .mgr-add-row{grid-template-columns:1fr 1fr;gap:8px}
 }
 </style>
 </head>
 <body>
 
-<!-- ============ AUTH ============ -->
+<!-- ════════════════ AUTH ════════════════ -->
 <div id="authScreen">
   <div class="auth-card">
     <img src="/logo/eden 54 logo.jpeg" alt="Eden 54" class="auth-logo">
     <div class="auth-title">Eden 54 POS</div>
     <div class="auth-sub">Staff Sign In</div>
     <form onsubmit="signIn(event)">
-      <input type="text" id="posUsername" class="ai" placeholder="Username" required autocomplete="username" spellcheck="false" autocapitalize="none">
-      <input type="password" id="authPass" class="ai" placeholder="Password" required autocomplete="current-password">
+      <input type="text"     id="posUsername" class="ai" placeholder="Username" required autocomplete="username" spellcheck="false" autocapitalize="none">
+      <input type="password" id="authPass"    class="ai" placeholder="Password" required autocomplete="current-password">
       <div id="authErr" class="auth-err"></div>
       <button type="submit" id="signInBtn" class="auth-btn">Sign In to POS</button>
     </form>
@@ -199,9 +210,10 @@ select.fc option{background:var(--deep)}
   </div>
 </div>
 
-<!-- ============ POS ============ -->
+<!-- ════════════════ POS ════════════════ -->
 <div id="posScreen">
-  <!-- Header -->
+
+  <!-- Desktop header -->
   <div class="pos-hdr">
     <div class="pos-brand">
       <img src="/logo/eden 54 logo.jpeg" alt="Eden 54">
@@ -223,8 +235,11 @@ select.fc option{background:var(--deep)}
 
   <!-- Body -->
   <div class="pos-body">
-    <!-- Items -->
+
+    <!-- Items panel -->
     <div class="items-panel">
+      <!-- Mobile-only: ⚙️ Menu button (shown only for managers via JS) -->
+      <button id="mobMenuBtn" onclick="openMgrPanel()">⚙️ Menu</button>
       <div class="panel-lbl" id="panelLbl">Items</div>
       <div id="itemGrid"></div>
       <div class="custom-entry" id="customEntry">
@@ -243,14 +258,14 @@ select.fc option{background:var(--deep)}
       </div>
     </div>
 
-    <!-- Cart -->
+    <!-- Cart panel -->
     <div class="cart-panel" id="cartPanel">
       <div class="cart-hdr">
-        <button id="mobileBack" onclick="closeMobileCart()" style="display:none;background:none;border:none;color:var(--gold);font-family:'Jost',sans-serif;font-size:0.82rem;cursor:pointer;padding:0;margin-right:10px">← Menu</button>
-        <h3 style="flex:1">Current Order</h3>
+        <button id="mobileBack" onclick="closeMobileCart()">← Menu</button>
+        <h3>Current Order</h3>
         <button class="btn-clear" onclick="clearCart()">Clear</button>
       </div>
-      <div class="cart-items" id="cartItems">
+      <div class="cart-items">
         <div class="cart-empty" id="cartEmpty">No items yet.<br>Tap an item to add it.</div>
         <div id="cartRows"></div>
       </div>
@@ -267,23 +282,30 @@ select.fc option{background:var(--deep)}
           <button class="pay-btn"        id="payBtnTransfer" onclick="selPay('transfer')">📲 Transfer</button>
           <button class="pay-btn"        id="payBtnPOS"      onclick="selPay('pos')">💳 POS</button>
         </div>
-        <input type="text"  class="fc cart-cust" id="custName"  placeholder="Customer name (optional)">
-        <input type="tel"   class="fc cart-cust" id="custPhone" placeholder="Phone number (optional)" inputmode="tel">
-        <input type="text"  class="fc cart-cust" id="receivedBy" placeholder="Received by" readonly style="opacity:0.65;cursor:default" title="Auto-set to the logged-in POS user">
+        <input type="text" class="fc cart-cust" id="custName"  placeholder="Customer name (optional)">
+        <input type="tel"  class="fc cart-cust" id="custPhone" placeholder="Phone number (optional)" inputmode="tel">
+        <input type="text" class="fc cart-cust" id="receivedBy" placeholder="Received by" readonly style="opacity:0.65;cursor:default">
+        <!-- Mobile-only: portal & signout links -->
+        <div id="mobCartActions">
+          <a href="/portal/home/" style="font-size:0.75rem;color:var(--muted);text-decoration:none">🏠 My Portal</a>
+          <button onclick="doSignOut()" style="background:none;border:none;font-size:0.75rem;color:rgba(220,38,38,0.55);cursor:pointer;font-family:'Jost',sans-serif;padding:0">Sign Out</button>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- Mobile: floating cart bar (shown when cart has items) -->
+  <!-- Mobile floating cart bar (appears when items are in cart) -->
   <div id="mobBar">
     <div>
       <div style="font-size:0.6rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-bottom:2px">Current Order</div>
       <div style="display:flex;align-items:baseline;gap:8px">
         <span id="mobBarCount" style="font-size:0.8rem;color:var(--text)"></span>
-        <span id="mobBarAmt" style="font-size:1rem;color:var(--gold);font-weight:500">₦0.00</span>
+        <span id="mobBarAmt"   style="font-size:1rem;color:var(--gold);font-weight:500">₦0.00</span>
       </div>
     </div>
-    <button onclick="openMobileCart()" style="padding:11px 20px;background:var(--gold);color:#0f2318;border:none;border-radius:6px;font-family:'Jost',sans-serif;font-size:0.8rem;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;white-space:nowrap">View Order →</button>
+    <button onclick="openMobileCart()" style="padding:11px 20px;background:var(--gold);color:#0f2318;border:none;border-radius:6px;font-family:'Jost',sans-serif;font-size:0.8rem;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;white-space:nowrap">
+      View Order →
+    </button>
   </div>
 </div>
 
@@ -323,19 +345,19 @@ select.fc option{background:var(--deep)}
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="/portal/firebase-init.js"></script>
 <script>
-/* ─── state ─── */
-const auth   = firebase.auth();
-let staff    = null;
-let menuItems  = [];
-let aptRates   = [];
-let gameItems  = [];
-let cart       = [];
-let payMethod  = 'cash';
-let activeCat  = '';
-let lastSale   = null;
+/* ════ State ════ */
+const auth = firebase.auth();
+let staff        = null;
+let menuItems    = [];
+let aptRates     = [];
+let gameItems    = [];
+let cart         = [];
+let payMethod    = 'cash';
+let activeCat    = '';
+let lastSale     = null;
 let mgrActiveCat = 'food';
 
-/* ─── default data ─── */
+/* ════ Default data ════ */
 const DEFAULT_GAMES = [
   { id:'snooker', name:'Snooker',       price:2000, unit:'game',    icon:'🎱' },
   { id:'tt',      name:'Table Tennis',  price:5000, unit:'hour',    icon:'🏓' },
@@ -344,7 +366,6 @@ const DEFAULT_GAMES = [
   { id:'simcar',  name:'Sim Car Race',  price:5000, unit:'session', icon:'🚗' },
 ];
 const DEFAULT_MENU = [
-  /* ── Drinks ── */
   { name:'Water',                 price:300,   category:'drinks', icon:'💧' },
   { name:'Soft Drink',            price:500,   category:'drinks', icon:'🥤' },
   { name:'Juice',                 price:700,   category:'drinks', icon:'🧃' },
@@ -358,7 +379,6 @@ const DEFAULT_MENU = [
   { name:'Spirit (Double)',       price:4500,  category:'drinks', icon:'🥃' },
   { name:'Wine (Glass)',          price:3000,  category:'drinks', icon:'🍷' },
   { name:'Wine (Bottle)',         price:14000, category:'drinks', icon:'🍷' },
-  /* ── Food – Starters ── */
   { name:'Chicken Skewers',       price:8000,  category:'food', section:'Starters', icon:'🍢' },
   { name:'Suya Skewers',          price:8500,  category:'food', section:'Starters', icon:'🍢' },
   { name:'Steak Skewers',         price:10000, category:'food', section:'Starters', icon:'🍢' },
@@ -369,24 +389,21 @@ const DEFAULT_MENU = [
   { name:'Asun',                  price:9000,  category:'food', section:'Starters', icon:'🥩' },
   { name:'Snail Skewers',         price:9500,  category:'food', section:'Starters', icon:'🍢' },
   { name:'Chicken Wings',         price:8500,  category:'food', section:'Starters', icon:'🍗' },
-  /* ── Food – Salads ── */
-  { name:'Chicken Salad',         price:8500,  category:'food', section:'Salads', icon:'🥗' },
-  { name:'Goat Meat Salad',       price:10000, category:'food', section:'Salads', icon:'🥗' },
-  { name:'Potato Salad',          price:7000,  category:'food', section:'Salads', icon:'🥗' },
-  /* ── Food – Mains ── */
-  { name:'Suya Tacos',            price:12000, category:'food', section:'Mains', icon:'🌮' },
-  { name:'Chipotle Rice Bowl',    price:16500, category:'food', section:'Mains', icon:'🍛' },
-  { name:'Jollof Rice',           price:14000, category:'food', section:'Mains', icon:'🍛' },
-  { name:'Fried Rice',            price:13500, category:'food', section:'Mains', icon:'🍛' },
-  { name:'Chicken & Chips',       price:11000, category:'food', section:'Mains', icon:'🍗' },
-  { name:'Grilled Catfish',       price:16000, category:'food', section:'Mains', icon:'🐟' },
-  { name:'Grilled Croaker',       price:15000, category:'food', section:'Mains', icon:'🐟' },
-  { name:'Grilled Tilapia',       price:14000, category:'food', section:'Mains', icon:'🐟' },
-  { name:'Chicken Shawarma',      price:8500,  category:'food', section:'Mains', icon:'🌯' },
-  { name:'Suya Shawarma',         price:9500,  category:'food', section:'Mains', icon:'🌯' },
-  { name:'Pasta',                 price:12000, category:'food', section:'Mains', icon:'🍝' },
-  { name:'Ofada Jambalaya',       price:13500, category:'food', section:'Mains', icon:'🍛' },
-  /* ── Food – Specials ── */
+  { name:'Chicken Salad',         price:8500,  category:'food', section:'Salads',   icon:'🥗' },
+  { name:'Goat Meat Salad',       price:10000, category:'food', section:'Salads',   icon:'🥗' },
+  { name:'Potato Salad',          price:7000,  category:'food', section:'Salads',   icon:'🥗' },
+  { name:'Suya Tacos',            price:12000, category:'food', section:'Mains',    icon:'🌮' },
+  { name:'Chipotle Rice Bowl',    price:16500, category:'food', section:'Mains',    icon:'🍛' },
+  { name:'Jollof Rice',           price:14000, category:'food', section:'Mains',    icon:'🍛' },
+  { name:'Fried Rice',            price:13500, category:'food', section:'Mains',    icon:'🍛' },
+  { name:'Chicken & Chips',       price:11000, category:'food', section:'Mains',    icon:'🍗' },
+  { name:'Grilled Catfish',       price:16000, category:'food', section:'Mains',    icon:'🐟' },
+  { name:'Grilled Croaker',       price:15000, category:'food', section:'Mains',    icon:'🐟' },
+  { name:'Grilled Tilapia',       price:14000, category:'food', section:'Mains',    icon:'🐟' },
+  { name:'Chicken Shawarma',      price:8500,  category:'food', section:'Mains',    icon:'🌯' },
+  { name:'Suya Shawarma',         price:9500,  category:'food', section:'Mains',    icon:'🌯' },
+  { name:'Pasta',                 price:12000, category:'food', section:'Mains',    icon:'🍝' },
+  { name:'Ofada Jambalaya',       price:13500, category:'food', section:'Mains',    icon:'🍛' },
   { name:'Seafood Broil',         price:22000, category:'food', section:'Specials', icon:'🦞' },
   { name:'Steak',                 price:20000, category:'food', section:'Specials', icon:'🥩' },
   { name:'Lamb Chops',            price:28000, category:'food', section:'Specials', icon:'🍖' },
@@ -403,21 +420,19 @@ const DEFAULT_BARBING = [
   { name:'Beard Trim & Shape',     price:1000, category:'barbing', icon:'🪒' },
   { name:'Full Groom Package',     price:3000, category:'barbing', icon:'💈' },
   { name:'Scalp & Hair Treatment', price:1500, category:'barbing', icon:'🧴' },
-  { name:"Kids' Cut",              price:1500, category:'barbing', icon:'👦' },
+  { name:'Kids Cut',               price:1500, category:'barbing', icon:'👦' },
   { name:'VIP Session',            price:3000, category:'barbing', icon:'⭐' },
   { name:'Special Cut',            price:2000, category:'barbing', icon:'💇' },
 ];
 
-/* ─── auth ─── */
-auth.onAuthStateChanged(async user => {
-  if (user) {
-    await resolveStaff(user);
-  } else {
-    showAuth();
-  }
-});
+/* ════ Helpers ════ */
+function fmtN(n) { return '₦' + Number(n||0).toLocaleString('en-NG',{minimumFractionDigits:2}); }
+function escHtml(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function escAttr(s) { return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
 
-/* Username → email: "john" becomes "john@eden54.pos" (hidden from staff) */
+/* ════ Auth ════ */
+auth.onAuthStateChanged(async user => { user ? await resolveStaff(user) : showAuth(); });
+
 function toAuthEmail(username) {
   return username.trim().toLowerCase().replace(/\s+/g,'_') + '@eden54.pos';
 }
@@ -427,13 +442,12 @@ async function signIn(e) {
   const username = document.getElementById('posUsername').value.trim();
   const pass     = document.getElementById('authPass').value;
   const btn      = document.getElementById('signInBtn');
-  const err      = document.getElementById('authErr');
-  if (!username) { err.textContent='Enter your username.'; err.style.display='block'; return; }
-  err.style.display = 'none';
+  const errEl    = document.getElementById('authErr');
+  if (!username) { errEl.textContent = 'Enter your username.'; errEl.style.display = 'block'; return; }
+  errEl.style.display = 'none';
   btn.disabled = true; btn.textContent = 'Signing in…';
   try {
     await auth.signInWithEmailAndPassword(toAuthEmail(username), pass);
-    // onAuthStateChanged handles the rest
   } catch(ex) {
     const map = {
       'auth/user-not-found':    'Username not found. Check with your manager.',
@@ -441,28 +455,26 @@ async function signIn(e) {
       'auth/too-many-requests': 'Too many attempts. Try again later.',
       'auth/invalid-credential':'Incorrect username or password.',
     };
-    err.textContent = map[ex.code] || ('Sign in failed: ' + ex.message);
-    err.style.display = 'block';
+    errEl.textContent = map[ex.code] || ('Sign in failed: ' + ex.message);
+    errEl.style.display = 'block';
   }
   btn.disabled = false; btn.textContent = 'Sign In to POS';
 }
 
 async function resolveStaff(user) {
   try {
-    // Extract username from the synthetic email (e.g. "john@eden54.pos" → "john")
     const username = user.email.replace('@eden54.pos','');
     const snap = await db.collection('staff').where('posUsername','==',username).limit(1).get();
     if (snap.empty) {
-      document.getElementById('authErr').textContent =
-        `No staff record linked to username "${username}". Ask your manager to set up your POS account.`;
-      document.getElementById('authErr').style.display = 'block';
+      const errEl = document.getElementById('authErr');
+      errEl.textContent = `No staff record linked to "${username}". Ask your manager to set up your POS account.`;
+      errEl.style.display = 'block';
       document.getElementById('authScreen').style.display = 'flex';
       document.getElementById('posScreen').style.display  = 'none';
       await auth.signOut();
       return;
     }
-    const doc = snap.docs[0];
-    staff = { id: doc.id, ...doc.data() };
+    staff = { id: snap.docs[0].id, ...snap.docs[0].data() };
     await loadAllData();
     initPOS();
   } catch(ex) {
@@ -478,14 +490,14 @@ async function doSignOut() {
 }
 
 function showAuth() {
-  document.getElementById('authScreen').style.display  = 'flex';
-  document.getElementById('posScreen').style.display   = 'none';
+  document.getElementById('authScreen').style.display = 'flex';
+  document.getElementById('posScreen').style.display  = 'none';
   document.getElementById('posUsername').value = '';
   document.getElementById('authPass').value    = '';
   document.getElementById('authErr').style.display = 'none';
 }
 
-/* ─── data ─── */
+/* ════ Data loading ════ */
 async function loadAllData() {
   const [menuSnap, aptSnap, gameSnap] = await Promise.all([
     db.collection('menuItems').get(),
@@ -493,50 +505,49 @@ async function loadAllData() {
     db.collection('gamePrices').get(),
   ]);
 
-  // Menu items — seed then re-fetch for real Firestore IDs
+  // Menu items
   if (menuSnap.empty) {
     const b = db.batch();
     DEFAULT_MENU.forEach(i => b.set(db.collection('menuItems').doc(), { ...i, active:true }));
     await b.commit();
-    const refetch = await db.collection('menuItems').get();
-    menuItems = refetch.docs.map(d=>({id:d.id,...d.data()})).filter(i=>i.active!==false);
+    const r = await db.collection('menuItems').get();
+    menuItems = r.docs.map(d=>({id:d.id,...d.data()})).filter(i=>i.active!==false);
   } else {
     menuItems = menuSnap.docs.map(d=>({id:d.id,...d.data()})).filter(i=>i.active!==false);
   }
 
-  // Seed barbing services if none exist yet
+  // Barbing services — seed if missing, then patch any new defaults
   const hasBarbing = menuItems.some(i => i.category === 'barbing');
   if (!hasBarbing) {
     const b = db.batch();
     DEFAULT_BARBING.forEach(i => b.set(db.collection('menuItems').doc(), { ...i, active:true }));
     await b.commit();
-    const refetch = await db.collection('menuItems').get();
-    menuItems = refetch.docs.map(d=>({id:d.id,...d.data()})).filter(i=>i.active!==false);
+    const r = await db.collection('menuItems').get();
+    menuItems = r.docs.map(d=>({id:d.id,...d.data()})).filter(i=>i.active!==false);
+  } else {
+    const existing = new Set(menuItems.filter(i=>i.category==='barbing').map(i=>i.name.toLowerCase()));
+    const missing  = DEFAULT_BARBING.filter(i => !existing.has(i.name.toLowerCase()));
+    if (missing.length) {
+      const b = db.batch();
+      missing.forEach(i => b.set(db.collection('menuItems').doc(), { ...i, active:true }));
+      await b.commit();
+      const r = await db.collection('menuItems').get();
+      menuItems = r.docs.map(d=>({id:d.id,...d.data()})).filter(i=>i.active!==false);
+    }
   }
 
-  // Patch: add any DEFAULT_BARBING items missing from Firestore
-  const existingBarbingNames = new Set(menuItems.filter(i=>i.category==='barbing').map(i=>i.name.toLowerCase()));
-  const missingBarbing = DEFAULT_BARBING.filter(i => !existingBarbingNames.has(i.name.toLowerCase()));
-  if (missingBarbing.length) {
-    const pb = db.batch();
-    missingBarbing.forEach(i => pb.set(db.collection('menuItems').doc(), { ...i, active:true }));
-    await pb.commit();
-    const refetch2 = await db.collection('menuItems').get();
-    menuItems = refetch2.docs.map(d=>({id:d.id,...d.data()})).filter(i=>i.active!==false);
-  }
-
-  // Apartment rates — seed then re-fetch for real Firestore IDs
+  // Apartment rates
   if (aptSnap.empty) {
     const b = db.batch();
     DEFAULT_APT.forEach(r => b.set(db.collection('aptRates').doc(), r));
     await b.commit();
-    const refetch = await db.collection('aptRates').get();
-    aptRates = refetch.docs.map(d=>({id:d.id,...d.data()}));
+    const r = await db.collection('aptRates').get();
+    aptRates = r.docs.map(d=>({id:d.id,...d.data()}));
   } else {
     aptRates = aptSnap.docs.map(d=>({id:d.id,...d.data()}));
   }
 
-  // Game prices — use named doc IDs matching game.id so they are stable
+  // Game prices (named doc IDs = stable references)
   if (gameSnap.empty) {
     const b = db.batch();
     DEFAULT_GAMES.forEach(g => b.set(db.collection('gamePrices').doc(g.id), g));
@@ -547,40 +558,40 @@ async function loadAllData() {
   }
 }
 
-/* ─── init POS ─── */
+/* ════ POS init ════ */
 function initPOS() {
-  document.getElementById('authScreen').style.display  = 'none';
-  document.getElementById('posScreen').style.display   = 'flex';
+  document.getElementById('authScreen').style.display     = 'none';
+  document.getElementById('posScreen').style.display      = 'flex';
   document.getElementById('posScreen').style.flexDirection = 'column';
 
-  document.getElementById('posName').textContent    = staff.name || '—';
-  document.getElementById('posDept').textContent    = (staff.department || staff.role || '').replace(/\b\w/g,c=>c.toUpperCase());
-  document.getElementById('receivedBy').value       = staff.name || '';
+  document.getElementById('posName').textContent  = staff.name || '—';
+  document.getElementById('posDept').textContent  = (staff.department || staff.role || '').replace(/\b\w/g, c=>c.toUpperCase());
+  document.getElementById('receivedBy').value     = staff.name || '';
 
-  const dept      = (staff.department || '').toLowerCase();
-  const level     = (staff.accessLevel || staff.role || 'staff').toLowerCase().replace(/\s+/g,'');
+  const dept  = (staff.department || '').toLowerCase();
+  const level = (staff.accessLevel || staff.role || 'staff').toLowerCase().replace(/\s+/g,'');
 
-  // Privileged: normalize to catch "Super Admin", "superadmin", "CEO" etc.
   const isPriv = ['ceo','superadmin','manager','hr'].includes(level)
     || ['hr','management','admin'].includes(dept)
     || level.includes('manager') || level.includes('admin');
 
-  // Price management (⚙️ Menu) — CEO and Manager only, not HR
   const canManagePrices = ['ceo','superadmin','manager'].includes(level)
     || level.includes('manager') || level.includes('admin');
 
-  // Dept-specific flags (don't inherit isPriv — check separately below)
   const isGame  = dept.includes('game');
   const isBar   = dept.includes('bar') || dept.includes('bartend') || dept.includes('lounge');
   const isFood  = dept.includes('food') || dept.includes('kitchen') || dept.includes('restaurant') || dept.includes('chef');
   const isFD    = dept.includes('front') || dept.includes('recept') || dept.includes('apartment');
   const isSalon = dept.includes('salon') || dept.includes('barbing') || dept.includes('hair');
-
-  // Show all tabs for privileged users OR anyone with no recognised department
   const showAll = isPriv || (!isGame && !isBar && !isFood && !isFD && !isSalon);
 
-  if (canManagePrices) document.getElementById('mgrMenuBtn').style.display = '';
+  // ⚙️ Menu buttons — desktop and mobile
+  if (canManagePrices) {
+    document.getElementById('mgrMenuBtn').style.display = '';
+    document.getElementById('mobMenuBtn').classList.add('visible');
+  }
 
+  // Build category tabs
   const cats = [];
   if (isGame            || showAll) cats.push({ id:'games',   label:'🎮 Games' });
   if (isBar  || isGame  || showAll) cats.push({ id:'drinks',  label:'🍺 Drinks' });
@@ -590,6 +601,8 @@ function initPOS() {
   if (isFD              || showAll) cats.push({ id:'events',  label:'🎪 Events' });
 
   const tabsEl = document.getElementById('catTabs');
+  // Hide tab bar when only one category (e.g. salon staff)
+  tabsEl.style.display = cats.length <= 1 ? 'none' : '';
   tabsEl.innerHTML = cats.map((c,i) =>
     `<button class="cat-tab${i===0?' active':''}" data-cat="${c.id}" onclick="switchCat('${c.id}')">${c.label}</button>`
   ).join('');
@@ -598,89 +611,67 @@ function initPOS() {
   updateCartUI();
 }
 
-/* ─── categories ─── */
+/* ════ Category switching ════ */
 function switchCat(cat) {
   activeCat = cat;
   document.querySelectorAll('.cat-tab').forEach(t =>
     t.classList.toggle('active', t.dataset.cat === cat)
   );
-  const lbl = { games:'Games', drinks:'Drinks & Bar', food:'Food', barbing:'Salon Services', apt:'Apartment Rates', events:'Events & Custom' };
-  document.getElementById('panelLbl').textContent = lbl[cat] || cat;
-  document.getElementById('customEntry').style.display = (cat === 'events') ? 'block' : 'none';
+  const labels = { games:'Games', drinks:'Drinks & Bar', food:'Food', barbing:'Salon Services', apt:'Apartment Rates', events:'Events & Custom' };
+  document.getElementById('panelLbl').textContent = labels[cat] || cat;
+  document.getElementById('customEntry').style.display = cat === 'events' ? 'block' : 'none';
   renderItems(cat);
+}
+
+/* ════ Item rendering — data attributes, no inline JSON ════ */
+function ic(id, name, price, icon, sub) {
+  return `<div class="item-card" data-item-id="${escAttr(id)}" data-item-name="${escAttr(name)}" data-item-price="${price}">
+    <div class="ic-icon">${icon}</div>
+    <div class="ic-name">${escHtml(name)}</div>
+    <div class="ic-price">${fmtN(price)}${sub ? ` · ${sub}` : ''}</div>
+  </div>`;
 }
 
 function renderItems(cat) {
   const grid = document.getElementById('itemGrid');
   if (cat === 'games') {
-    const cards = gameItems.map(g =>
-      ic(JSON.stringify({id:g.id,name:g.name,price:g.price}), g.icon||'🎮', g.name, g.price, `per ${g.unit||'game'}`)
-    ).join('');
+    const cards = gameItems.map(g => ic(g.id, g.name, g.price, g.icon||'🎮', `per ${g.unit||'game'}`)).join('');
     grid.innerHTML = cards ? `<div class="item-grid">${cards}</div>` : '<p class="no-items">No games configured.</p>';
   } else if (cat === 'drinks') {
     const items = menuItems.filter(i=>i.category==='drinks');
     if (!items.length) { grid.innerHTML = '<p class="no-items">No drinks configured. Use ⚙️ Menu to add items.</p>'; return; }
-    grid.innerHTML = `<div class="item-grid">${items.map(i => ic(JSON.stringify({id:i.id,name:i.name,price:i.price}), i.icon||'🥤', i.name, i.price, '')).join('')}</div>`;
+    grid.innerHTML = `<div class="item-grid">${items.map(i=>ic(i.id,i.name,i.price,i.icon||'🥤','')).join('')}</div>`;
   } else if (cat === 'food') {
     const items = menuItems.filter(i=>i.category==='food');
     if (!items.length) { grid.innerHTML = '<p class="no-items">No food items configured. Use ⚙️ Menu to add items.</p>'; return; }
     const SECTIONS = ['Starters','Salads','Mains','Specials'];
     let html = '';
     SECTIONS.forEach(sec => {
-      const secItems = items.filter(i => i.section === sec);
-      if (!secItems.length) return;
-      html += `<div class="item-section-lbl">${sec}</div><div class="item-grid">`;
-      html += secItems.map(i => ic(JSON.stringify({id:i.id,name:i.name,price:i.price}), i.icon||'🍽️', i.name, i.price, '')).join('');
-      html += '</div>';
+      const si = items.filter(i=>i.section===sec);
+      if (!si.length) return;
+      html += `<div class="item-section-lbl">${sec}</div><div class="item-grid">${si.map(i=>ic(i.id,i.name,i.price,i.icon||'🍽️','')).join('')}</div>`;
     });
-    const other = items.filter(i => !i.section || !SECTIONS.includes(i.section));
-    if (other.length) {
-      html += `<div class="item-section-lbl">Other</div><div class="item-grid">`;
-      html += other.map(i => ic(JSON.stringify({id:i.id,name:i.name,price:i.price}), i.icon||'🍽️', i.name, i.price, '')).join('');
-      html += '</div>';
-    }
+    const other = items.filter(i=>!i.section||!SECTIONS.includes(i.section));
+    if (other.length) html += `<div class="item-section-lbl">Other</div><div class="item-grid">${other.map(i=>ic(i.id,i.name,i.price,i.icon||'🍽️','')).join('')}</div>`;
     grid.innerHTML = html;
   } else if (cat === 'apt') {
     if (!aptRates.length) { grid.innerHTML = '<p class="no-items">No apartment rates configured. Use ⚙️ Menu to add rates.</p>'; return; }
-    const cards = [...aptRates].sort((a,b) => (a.bedrooms||0) - (b.bedrooms||0)).map(r => {
-      const lbl = r.unitType;
-      return ic(JSON.stringify({id:r.id||r.unitType,name:r.unitType,price:r.nightlyRate}), '🏨', lbl, r.nightlyRate, 'per night');
-    }).join('');
+    const cards = [...aptRates].sort((a,b)=>(a.bedrooms||0)-(b.bedrooms||0)).map(r=>ic(r.id||r.unitType,r.unitType,r.nightlyRate,'🏨','per night')).join('');
     grid.innerHTML = `<div class="item-grid">${cards}</div>`;
   } else if (cat === 'barbing') {
     const items = menuItems.filter(i=>i.category==='barbing');
     if (!items.length) { grid.innerHTML = '<p class="no-items">No salon services configured. Use ⚙️ Menu to add services.</p>'; return; }
-    grid.innerHTML = `<div class="item-grid">${items.map(i => ic(JSON.stringify({id:i.id,name:i.name,price:i.price}), i.icon||'✂️', i.name, i.price, '')).join('')}</div>`;
+    grid.innerHTML = `<div class="item-grid">${items.map(i=>ic(i.id,i.name,i.price,i.icon||'✂️','')).join('')}</div>`;
   } else if (cat === 'events') {
     grid.innerHTML = '';
   }
 }
 
-function ic(dataJson, icon, name, price, sub) {
-  const safe = dataJson.replace(/"/g,'&quot;');
-  return `<div class="item-card" onclick='addItem(${safe})'>
-    <div class="ic-icon">${icon}</div>
-    <div class="ic-name">${name}</div>
-    <div class="ic-price">${fmtN(price)}${sub ? ` · ${sub}` : ''}</div>
-  </div>`;
-}
-
-/* ─── cart ─── */
+/* ════ Cart ════ */
 function addItem(item) {
   const ex = cart.find(c => c.id === item.id && c.name === item.name);
   if (ex) ex.qty++;
   else cart.push({ ...item, qty:1 });
-  updateCartUI();
-}
-
-function changeQty(i, d) {
-  cart[i].qty += d;
-  if (cart[i].qty <= 0) cart.splice(i, 1);
-  updateCartUI();
-}
-
-function removeItem(i) {
-  cart.splice(i, 1);
   updateCartUI();
 }
 
@@ -692,44 +683,37 @@ function clearCart() {
   updateCartUI();
 }
 
-function openMobileCart() {
-  document.getElementById('cartPanel').classList.add('mob-open');
-}
-function closeMobileCart() {
-  document.getElementById('cartPanel').classList.remove('mob-open');
-}
+function openMobileCart()  { document.getElementById('cartPanel').classList.add('mob-open'); }
+function closeMobileCart() { document.getElementById('cartPanel').classList.remove('mob-open'); }
 
 function updateCartUI() {
-  const rowsEl = document.getElementById('cartRows');
-  const empty  = document.getElementById('cartEmpty');
-  const total  = cart.reduce((s,c) => s + c.price * c.qty, 0);
-  document.getElementById('cartTotal').textContent = fmtN(total);
-  document.getElementById('btnComplete').disabled  = cart.length === 0;
-  empty.style.display  = cart.length ? 'none' : 'block';
-  rowsEl.innerHTML = cart.map((c,i) => `
+  const total = cart.reduce((s,c) => s + c.price * c.qty, 0);
+  document.getElementById('cartTotal').textContent  = fmtN(total);
+  document.getElementById('btnComplete').disabled   = cart.length === 0;
+  document.getElementById('cartEmpty').style.display = cart.length ? 'none' : 'block';
+
+  document.getElementById('cartRows').innerHTML = cart.map((c,i) => `
     <div class="cart-row">
-      <div class="cart-name">${c.name}</div>
+      <div class="cart-name">${escHtml(c.name)}</div>
       <div class="cart-qty">
-        <button class="qty-btn" onclick="changeQty(${i},-1)">−</button>
+        <button class="qty-btn" data-action="dec" data-idx="${i}">−</button>
         <span class="qty-num">${c.qty}</span>
-        <button class="qty-btn" onclick="changeQty(${i},1)">+</button>
+        <button class="qty-btn" data-action="inc" data-idx="${i}">+</button>
       </div>
       <div class="cart-price">${fmtN(c.price * c.qty)}</div>
-      <button class="cart-rm" onclick="removeItem(${i})">✕</button>
+      <button class="cart-rm" data-action="rm" data-idx="${i}">✕</button>
     </div>`
   ).join('');
 
-  // Mobile cart bar
-  const mobBar = document.getElementById('mobBar');
-  if (mobBar) {
-    if (cart.length > 0) {
-      mobBar.classList.add('show');
-      document.getElementById('mobBarCount').textContent = cart.length + (cart.length === 1 ? ' item' : ' items') + ' ·';
-      document.getElementById('mobBarAmt').textContent   = fmtN(total);
-    } else {
-      mobBar.classList.remove('show');
-      closeMobileCart();
-    }
+  // Mobile floating bar
+  const bar = document.getElementById('mobBar');
+  if (cart.length > 0) {
+    bar.classList.add('show');
+    document.getElementById('mobBarCount').textContent = cart.length + (cart.length===1?' item':' items') + ' ·';
+    document.getElementById('mobBarAmt').textContent   = fmtN(total);
+  } else {
+    bar.classList.remove('show');
+    closeMobileCart();
   }
 }
 
@@ -743,20 +727,20 @@ function selPay(method) {
 function addCustomItem() {
   const name  = document.getElementById('customName').value.trim();
   const price = parseFloat(document.getElementById('customPrice').value);
-  if (!name)          { alert('Please enter a description.'); return; }
-  if (!price || price<=0) { alert('Please enter a valid amount.'); return; }
+  if (!name)           { alert('Please enter a description.'); return; }
+  if (!price||price<=0){ alert('Please enter a valid amount.'); return; }
   addItem({ id:'custom_'+Date.now(), name, price });
   document.getElementById('customName').value  = '';
   document.getElementById('customPrice').value = '';
 }
 
-/* ─── sale ─── */
+/* ════ Sale ════ */
 async function completeSale() {
   if (!cart.length) return;
   const btn = document.getElementById('btnComplete');
   btn.disabled = true; btn.textContent = 'Processing…';
 
-  const total      = cart.reduce((s,c) => s + c.price*c.qty, 0);
+  const total      = cart.reduce((s,c)=>s+c.price*c.qty, 0);
   const customer   = document.getElementById('custName').value.trim();
   const custPhone  = document.getElementById('custPhone').value.trim();
   const receivedBy = document.getElementById('receivedBy').value.trim();
@@ -764,45 +748,37 @@ async function completeSale() {
   const dateStr    = now.toISOString().slice(0,10);
 
   const saleDoc = {
-    staffId:        staff.id,
-    staffName:      staff.name,
-    department:     staff.department || staff.role || '',
-    section:        activeCat,
-    date:           dateStr,
-    items:          cart.map(c=>({ name:c.name, qty:c.qty, unitPrice:c.price, total:c.price*c.qty })),
-    amount:         total,
-    paymentMethod:  payMethod,
-    customerName:   customer,
-    customerPhone:  custPhone,
-    receivedBy:     receivedBy,
-    source:         'pos',
-    createdAt:      firebase.firestore.FieldValue.serverTimestamp(),
+    staffId:       staff.id,
+    staffName:     staff.name,
+    department:    staff.department || staff.role || '',
+    section:       activeCat,
+    date:          dateStr,
+    items:         cart.map(c=>({ name:c.name, qty:c.qty, unitPrice:c.price, total:c.price*c.qty })),
+    amount:        total,
+    paymentMethod: payMethod,
+    customerName:  customer,
+    customerPhone: custPhone,
+    receivedBy,
+    source:        'pos',
+    createdAt:     firebase.firestore.FieldValue.serverTimestamp(),
   };
 
   try {
     const ref = await db.collection('sales').add(saleDoc);
-    lastSale  = { ...saleDoc, id: ref.id, createdAt: now };
+    lastSale  = { ...saleDoc, id:ref.id, createdAt:now };
 
-    // Upsert customer contact record if a phone number was given
     if (custPhone) {
-      const phoneKey = custPhone.replace(/\D/g, '');
+      const phoneKey = custPhone.replace(/\D/g,'');
       if (phoneKey.length >= 7) {
         const custRef = db.collection('customers').doc(phoneKey);
-        await custRef.set({
-          name:      customer || 'Guest',
-          phone:     custPhone,
-          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-        }, { merge: true });
-        await custRef.update({
-          lastVisit:  dateStr,
-          visitCount: firebase.firestore.FieldValue.increment(1),
-          totalSpend: firebase.firestore.FieldValue.increment(total),
-        });
+        await custRef.set({ name:customer||'Guest', phone:custPhone, createdAt:firebase.firestore.FieldValue.serverTimestamp() }, { merge:true });
+        await custRef.update({ lastVisit:dateStr, visitCount:firebase.firestore.FieldValue.increment(1), totalSpend:firebase.firestore.FieldValue.increment(total) });
       }
     }
+
     buildReceipt(lastSale);
-    document.getElementById('sucSub').textContent =
-      `${fmtN(total)} received · ${payMethod.toUpperCase()}`;
+    document.getElementById('sucSub').textContent = `${fmtN(total)} received · ${payMethod.toUpperCase()}`;
+    closeMobileCart(); // close sheet before showing overlay
     document.getElementById('successOv').style.display = 'flex';
   } catch(ex) {
     alert('Error saving sale: ' + ex.message);
@@ -815,36 +791,28 @@ function newSale() {
   cart = [];
   document.getElementById('custName').value  = '';
   document.getElementById('custPhone').value = '';
+  selPay('cash'); // always reset to cash for next transaction
   updateCartUI();
 }
 
-/* ─── receipt ─── */
+/* ════ Receipt ════ */
 function buildReceipt(sale) {
   const dt = sale.createdAt instanceof Date
     ? sale.createdAt.toLocaleString('en-NG',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})
     : new Date().toLocaleString('en-NG',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
-  const rows = (sale.items||[]).map(it =>
-    `<div class="rr"><span>${it.name} ×${it.qty}</span><span>${fmtN(it.total)}</span></div>`
-  ).join('');
+  const rows = (sale.items||[]).map(it=>`<div class="rr"><span>${escHtml(it.name)} ×${it.qty}</span><span>${fmtN(it.total)}</span></div>`).join('');
   document.getElementById('receiptArea').innerHTML = `
     <div class="rh">
-      <h2>EDEN 54 GROUP</h2>
-      <p>Official Receipt</p>
-      <p>${dt}</p>
-      <p>Served by: ${sale.staffName}</p>
-      ${sale.customerName  ? `<p>Customer: ${sale.customerName}</p>`  : ''}
-      ${sale.customerPhone ? `<p>Tel: ${sale.customerPhone}</p>`       : ''}
-      ${sale.receivedBy    ? `<p>Received by: ${sale.receivedBy}</p>` : ''}
+      <h2>EDEN 54 GROUP</h2><p>Official Receipt</p><p>${dt}</p>
+      <p>Served by: ${escHtml(sale.staffName)}</p>
+      ${sale.customerName  ? `<p>Customer: ${escHtml(sale.customerName)}</p>`  : ''}
+      ${sale.customerPhone ? `<p>Tel: ${escHtml(sale.customerPhone)}</p>`       : ''}
+      ${sale.receivedBy    ? `<p>Received by: ${escHtml(sale.receivedBy)}</p>` : ''}
     </div>
-    <div class="rd"></div>
-    ${rows}
-    <div class="rd"></div>
+    <div class="rd"></div>${rows}<div class="rd"></div>
     <div class="rr rt"><span>TOTAL</span><span>${fmtN(sale.amount)}</span></div>
     <div class="rr"><span>Payment</span><span>${(sale.paymentMethod||'cash').toUpperCase()}</span></div>
-    <div class="rf">
-      <p>Thank you for visiting Eden 54!</p>
-      <p>Your comfort is our priority.</p>
-    </div>`;
+    <div class="rf"><p>Thank you for visiting Eden 54!</p><p>Your comfort is our priority.</p></div>`;
 }
 
 function printReceipt() {
@@ -853,53 +821,44 @@ function printReceipt() {
   window.print();
 }
 
-/* ─── menu manager (managers only) ─── */
-function openMgrPanel() {
-  document.getElementById('mgrOv').style.display = 'flex';
-  mgrTab('food');
-}
-function closeMgrPanel() {
-  document.getElementById('mgrOv').style.display = 'none';
-}
+/* ════ Menu manager ════ */
+function openMgrPanel()  { document.getElementById('mgrOv').style.display = 'flex'; mgrTab('food'); }
+function closeMgrPanel() { document.getElementById('mgrOv').style.display = 'none'; }
+
 function mgrTab(tab) {
   mgrActiveCat = tab;
-  document.querySelectorAll('.mgr-tab').forEach((t,i) => {
-    const tabs = ['food','drinks','games','barbing','apt'];
-    t.classList.toggle('active', tabs[i] === tab);
-  });
+  const tabs = ['food','drinks','games','barbing','apt'];
+  document.querySelectorAll('.mgr-tab').forEach((t,i) => t.classList.toggle('active', tabs[i]===tab));
   renderMgrContent();
 }
 
 function renderMgrContent() {
   const el = document.getElementById('mgrContent');
+
   if (mgrActiveCat === 'games') {
-    const rows = gameItems.map(g =>
-      `<div class="mgr-item-row">
-        <span class="mgr-item-name">${g.icon||'🎮'} ${g.name}</span>
+    el.innerHTML = gameItems.map(g=>`
+      <div class="mgr-item-row">
+        <span class="mgr-item-name">${g.icon||'🎮'} ${escHtml(g.name)}</span>
         <span class="mgr-item-price">${fmtN(g.price)} / ${g.unit||'game'}</span>
         <div style="display:flex;gap:8px;align-items:center">
           <input type="number" value="${g.price}" class="fc" style="width:100px" id="gp_${g.id}" min="0">
-          <button class="btn-gold-s" onclick="saveGamePrice('${g.id}')">Save</button>
+          <button class="btn-gold-s" onclick="saveGamePrice('${escAttr(g.id)}')">Save</button>
         </div>
-      </div>`
-    ).join('');
-    el.innerHTML = rows || '<p class="no-items">No game items found.</p>';
+      </div>`).join('') || '<p class="no-items">No game items found.</p>';
     return;
   }
 
   if (mgrActiveCat === 'apt') {
-    const rows = aptRates.map((r,i) =>
-      `<div class="mgr-item-row">
-        <span class="mgr-item-name">🏨 ${r.unitType}</span>
+    el.innerHTML = aptRates.map((r,i)=>`
+      <div class="mgr-item-row">
+        <span class="mgr-item-name">🏨 ${escHtml(r.unitType)}</span>
         <span class="mgr-item-price">${fmtN(r.nightlyRate)} / night</span>
         <div style="display:flex;gap:8px;align-items:center">
           <input type="number" value="${r.nightlyRate}" class="fc" style="width:100px" id="ar_${i}" min="0">
-          <button class="btn-gold-s" onclick="saveAptRate('${r.id}',${i})">Save</button>
-          <button class="mgr-item-del" onclick="delAptRate('${r.id}')">✕</button>
+          <button class="btn-gold-s" onclick="saveAptRate('${escAttr(r.id)}',${i})">Save</button>
+          <button class="mgr-item-del" onclick="delAptRate('${escAttr(r.id)}')">✕</button>
         </div>
-      </div>`
-    ).join('');
-    el.innerHTML = (rows||'<p class="no-items">No rates configured.</p>') + `
+      </div>`).join('') + `
       <div class="mgr-add-row" style="margin-top:14px">
         <div><div style="font-size:0.68rem;color:var(--muted);margin-bottom:4px">Unit Type</div>
           <input type="text" id="newAptType" class="fc" placeholder="e.g. Penthouse"></div>
@@ -911,63 +870,57 @@ function renderMgrContent() {
       </div>
       <div style="margin-top:18px;padding-top:14px;border-top:1px solid var(--border);display:flex;align-items:center;gap:14px;flex-wrap:wrap">
         <button onclick="resetToWebsiteRates()" style="padding:8px 16px;background:rgba(201,169,110,0.1);color:var(--gold-l);border:1px solid rgba(201,169,110,0.25);border-radius:5px;font-family:'Jost',sans-serif;font-size:0.72rem;letter-spacing:0.08em;cursor:pointer">↺ Reset to Website Rates</button>
-        <span style="font-size:0.68rem;color:var(--muted)">Resets to 1 Bed ₦45k · 2 Bed ₦85k · 3 Bed ₦120k and syncs the website.</span>
+        <span style="font-size:0.68rem;color:var(--muted)">Resets to 1 Bed ₦45k · 2 Bed ₦85k · 3 Bed ₦120k</span>
       </div>`;
     return;
   }
 
-  // food, drinks, or barbing
+  // food, drinks, barbing
   const cat   = mgrActiveCat;
-  const items = menuItems.filter(i => i.category === cat);
-  const rows  = items.map(i =>
-    `<div class="mgr-item-row">
-      <span class="mgr-item-name">${i.icon||''} ${i.name}</span>
+  const items = menuItems.filter(i=>i.category===cat);
+  const iconDefault = cat==='barbing'?'✂️':cat==='food'?'🍽️':'🥤';
+  const resetBtn = cat==='barbing'
+    ? `<button onclick="resetToWebsiteBarbing()" style="padding:8px 16px;background:rgba(201,169,110,0.1);color:var(--gold-l);border:1px solid rgba(201,169,110,0.25);border-radius:5px;font-family:'Jost',sans-serif;font-size:0.72rem;letter-spacing:0.08em;cursor:pointer">↺ Reset to Website Prices</button>
+       <span style="font-size:0.68rem;color:var(--muted)">Syncs with the Eden 54 Barbing Salon website.</span>`
+    : `<button onclick="resetToWebsiteMenu()" style="padding:8px 16px;background:rgba(201,169,110,0.1);color:var(--gold-l);border:1px solid rgba(201,169,110,0.25);border-radius:5px;font-family:'Jost',sans-serif;font-size:0.72rem;letter-spacing:0.08em;cursor:pointer">↺ Reset to Website Menu</button>
+       <span style="font-size:0.68rem;color:var(--muted)">Replaces all food &amp; drinks with current Eden 54 menu prices.</span>`;
+  el.innerHTML = (items.map(i=>`
+    <div class="mgr-item-row">
+      <span class="mgr-item-name">${i.icon||''} ${escHtml(i.name)}</span>
       <div style="display:flex;gap:8px;align-items:center">
         <input type="number" value="${i.price}" class="fc" style="width:90px" id="mp_${i.id}" min="0">
-        <button class="btn-gold-s" onclick="saveMenuPrice('${i.id}')">Save</button>
-        <button class="mgr-item-del" onclick="delMenuItem('${i.id}')">✕</button>
+        <button class="btn-gold-s" onclick="saveMenuPrice('${escAttr(i.id)}')">Save</button>
+        <button class="mgr-item-del" onclick="delMenuItem('${escAttr(i.id)}')">✕</button>
       </div>
-    </div>`
-  ).join('');
-  const iconPlaceholder = cat === 'barbing' ? '✂️' : cat === 'food' ? '🍽️' : '🥤';
-  const resetBtn = cat === 'barbing'
-    ? `<button onclick="resetToWebsiteBarbing()" style="padding:8px 16px;background:rgba(201,169,110,0.1);color:var(--gold-l);border:1px solid rgba(201,169,110,0.25);border-radius:5px;font-family:'Jost',sans-serif;font-size:0.72rem;letter-spacing:0.08em;cursor:pointer">↺ Reset to Website Prices</button>
-       <span style="font-size:0.68rem;color:var(--muted)">Syncs with the Eden 54 Barbing Salon website service prices.</span>`
-    : `<button onclick="resetToWebsiteMenu()" style="padding:8px 16px;background:rgba(201,169,110,0.1);color:var(--gold-l);border:1px solid rgba(201,169,110,0.25);border-radius:5px;font-family:'Jost',sans-serif;font-size:0.72rem;letter-spacing:0.08em;cursor:pointer">↺ Reset to Website Menu</button>
-       <span style="font-size:0.68rem;color:var(--muted)">Replaces all food &amp; drinks with the current Eden 54 menu prices.</span>`;
-  el.innerHTML = (rows||`<p class="no-items">No ${cat} items yet.</p>`) + `
+    </div>`).join('') || `<p class="no-items">No ${cat} items yet.</p>`) + `
     <div class="mgr-add-row" style="margin-top:14px">
       <div><div style="font-size:0.68rem;color:var(--muted);margin-bottom:4px">Name</div>
         <input type="text" id="newMenuName" class="fc" placeholder="Item name"></div>
       <div><div style="font-size:0.68rem;color:var(--muted);margin-bottom:4px">Price (₦)</div>
         <input type="number" id="newMenuPrice" class="fc" placeholder="0" min="0"></div>
       <div><div style="font-size:0.68rem;color:var(--muted);margin-bottom:4px">Icon (emoji)</div>
-        <input type="text" id="newMenuIcon" class="fc" placeholder="${iconPlaceholder}" maxlength="4"></div>
+        <input type="text" id="newMenuIcon" class="fc" placeholder="${iconDefault}" maxlength="4"></div>
       <div style="padding-top:18px"><button class="btn-gold-s" onclick="addMenuItem()">+ Add</button></div>
     </div>
-    <div style="margin-top:18px;padding-top:14px;border-top:1px solid var(--border);display:flex;align-items:center;gap:14px;flex-wrap:wrap">
-      ${resetBtn}
-    </div>`;
+    <div style="margin-top:18px;padding-top:14px;border-top:1px solid var(--border);display:flex;align-items:center;gap:14px;flex-wrap:wrap">${resetBtn}</div>`;
 }
 
 async function saveGamePrice(id) {
   const val = parseFloat(document.getElementById('gp_'+id).value);
-  if (!val || val <= 0) { alert('Enter a valid price.'); return; }
-  await db.collection('gamePrices').doc(id).update({ price: val });
-  const g = gameItems.find(x=>x.id===id);
-  if (g) g.price = val;
+  if (!val||val<=0) { alert('Enter a valid price.'); return; }
+  await db.collection('gamePrices').doc(id).update({ price:val });
+  const g = gameItems.find(x=>x.id===id); if (g) g.price = val;
   alert('Game price updated!');
-  if (activeCat === 'games') renderItems('games');
+  if (activeCat==='games') renderItems('games');
 }
 
 async function saveMenuPrice(id) {
   const val = parseFloat(document.getElementById('mp_'+id).value);
-  if (!val || val <= 0) { alert('Enter a valid price.'); return; }
-  await db.collection('menuItems').doc(id).update({ price: val });
-  const m = menuItems.find(x=>x.id===id);
-  if (m) m.price = val;
+  if (!val||val<=0) { alert('Enter a valid price.'); return; }
+  await db.collection('menuItems').doc(id).update({ price:val });
+  const m = menuItems.find(x=>x.id===id); if (m) m.price = val;
   renderMgrContent();
-  if (activeCat === mgrActiveCat) renderItems(activeCat);
+  if (activeCat===mgrActiveCat) renderItems(activeCat);
 }
 
 async function delMenuItem(id) {
@@ -975,28 +928,27 @@ async function delMenuItem(id) {
   await db.collection('menuItems').doc(id).delete();
   menuItems = menuItems.filter(i=>i.id!==id);
   renderMgrContent();
-  if (activeCat === mgrActiveCat) renderItems(activeCat);
+  if (activeCat===mgrActiveCat) renderItems(activeCat);
 }
 
 async function addMenuItem() {
   const name  = document.getElementById('newMenuName').value.trim();
   const price = parseFloat(document.getElementById('newMenuPrice').value);
-  const iconDefault = mgrActiveCat==='food' ? '🍽️' : mgrActiveCat==='barbing' ? '✂️' : '🥤';
-  const icon  = document.getElementById('newMenuIcon').value.trim() || iconDefault;
-  if (!name || !price || price<=0) { alert('Enter name and price.'); return; }
+  const icon  = document.getElementById('newMenuIcon').value.trim() || (mgrActiveCat==='food'?'🍽️':mgrActiveCat==='barbing'?'✂️':'🥤');
+  if (!name||!price||price<=0) { alert('Enter name and price.'); return; }
   const ref = await db.collection('menuItems').add({ name, price, icon, category:mgrActiveCat, active:true });
   menuItems.push({ id:ref.id, name, price, icon, category:mgrActiveCat, active:true });
   renderMgrContent();
-  if (activeCat === mgrActiveCat) renderItems(activeCat);
+  if (activeCat===mgrActiveCat) renderItems(activeCat);
 }
 
 async function saveAptRate(id, idx) {
   const val = parseFloat(document.getElementById('ar_'+idx).value);
-  if (!val || val<=0) { alert('Enter a valid rate.'); return; }
-  await db.collection('aptRates').doc(id).update({ nightlyRate: val });
+  if (!val||val<=0) { alert('Enter a valid rate.'); return; }
+  await db.collection('aptRates').doc(id).update({ nightlyRate:val });
   aptRates[idx].nightlyRate = val;
   alert('Rate updated!');
-  if (activeCat === 'apt') renderItems('apt');
+  if (activeCat==='apt') renderItems('apt');
 }
 
 async function delAptRate(id) {
@@ -1004,64 +956,83 @@ async function delAptRate(id) {
   if (id && !id.startsWith('d')) await db.collection('aptRates').doc(id).delete();
   aptRates = aptRates.filter(r=>r.id!==id);
   renderMgrContent();
-  if (activeCat === 'apt') renderItems('apt');
+  if (activeCat==='apt') renderItems('apt');
 }
 
 async function addAptRate() {
   const unitType    = document.getElementById('newAptType').value.trim();
   const bedrooms    = parseInt(document.getElementById('newAptBed').value);
   const nightlyRate = parseFloat(document.getElementById('newAptRate').value);
-  if (!unitType || !nightlyRate || nightlyRate<=0) { alert('Enter unit type and rate.'); return; }
+  if (!unitType||!nightlyRate||nightlyRate<=0) { alert('Enter unit type and rate.'); return; }
   const ref = await db.collection('aptRates').add({ unitType, bedrooms, nightlyRate });
   aptRates.push({ id:ref.id, unitType, bedrooms, nightlyRate });
   renderMgrContent();
-  if (activeCat === 'apt') renderItems('apt');
+  if (activeCat==='apt') renderItems('apt');
 }
 
 async function resetToWebsiteRates() {
-  if (!confirm('This will replace ALL apartment rates with the website rates:\n• 1 Bedroom — ₦45,000/night\n• 2 Bedroom — ₦85,000/night\n• 3 Bedroom — ₦120,000/night\n\nContinue?')) return;
+  if (!confirm('Replace ALL apartment rates with website defaults?\n• 1 Bedroom — ₦45,000/night\n• 2 Bedroom — ₦85,000/night\n• 3 Bedroom — ₦120,000/night')) return;
   const snap = await db.collection('aptRates').get();
   const b = db.batch();
-  snap.docs.forEach(d => b.delete(d.ref));
-  DEFAULT_APT.forEach(r => b.set(db.collection('aptRates').doc(), r));
+  snap.docs.forEach(d=>b.delete(d.ref));
+  DEFAULT_APT.forEach(r=>b.set(db.collection('aptRates').doc(),r));
   await b.commit();
-  const refetch = await db.collection('aptRates').get();
-  aptRates = refetch.docs.map(d=>({id:d.id,...d.data()}));
+  const r = await db.collection('aptRates').get();
+  aptRates = r.docs.map(d=>({id:d.id,...d.data()}));
   renderMgrContent();
-  if (activeCat === 'apt') renderItems('apt');
-  alert('Apartment rates reset! Website prices are now in sync.');
+  if (activeCat==='apt') renderItems('apt');
+  alert('Apartment rates reset!');
 }
 
 async function resetToWebsiteMenu() {
-  if (!confirm('This will replace ALL food & drink items with the Eden 54 website menu prices.\n\nContinue?')) return;
+  if (!confirm('Replace ALL food & drink items with the Eden 54 website menu prices?')) return;
   const snap = await db.collection('menuItems').get();
   const b = db.batch();
-  snap.docs.forEach(d => b.delete(d.ref));
-  DEFAULT_MENU.forEach(i => b.set(db.collection('menuItems').doc(), { ...i, active:true }));
+  snap.docs.forEach(d=>b.delete(d.ref));
+  DEFAULT_MENU.forEach(i=>b.set(db.collection('menuItems').doc(),{...i,active:true}));
   await b.commit();
-  const refetch = await db.collection('menuItems').get();
-  menuItems = refetch.docs.map(d=>({id:d.id,...d.data()})).filter(i=>i.active!==false);
+  const r = await db.collection('menuItems').get();
+  menuItems = r.docs.map(d=>({id:d.id,...d.data()})).filter(i=>i.active!==false);
   renderMgrContent();
-  if (activeCat === 'food' || activeCat === 'drinks') renderItems(activeCat);
+  if (activeCat==='food'||activeCat==='drinks') renderItems(activeCat);
   alert('Menu reset to website prices!');
 }
 
 async function resetToWebsiteBarbing() {
-  if (!confirm('This will replace ALL salon services with the Eden 54 Barbing Salon website prices:\n• Haircut & Style — ₦2,500\n• Beard Trim & Shape — ₦1,000\n• Full Groom Package — ₦3,000\n• Scalp & Hair Treatment — ₦1,500\n• Kids\' Cut — ₦1,500\n• VIP Session — ₦3,000\n\nContinue?')) return;
+  if (!confirm('Replace ALL salon services with website prices?')) return;
   const snap = await db.collection('menuItems').where('category','==','barbing').get();
   const b = db.batch();
-  snap.docs.forEach(d => b.delete(d.ref));
-  DEFAULT_BARBING.forEach(i => b.set(db.collection('menuItems').doc(), { ...i, active:true }));
+  snap.docs.forEach(d=>b.delete(d.ref));
+  DEFAULT_BARBING.forEach(i=>b.set(db.collection('menuItems').doc(),{...i,active:true}));
   await b.commit();
-  const refetch = await db.collection('menuItems').get();
-  menuItems = refetch.docs.map(d=>({id:d.id,...d.data()})).filter(i=>i.active!==false);
+  const r = await db.collection('menuItems').get();
+  menuItems = r.docs.map(d=>({id:d.id,...d.data()})).filter(i=>i.active!==false);
   renderMgrContent();
-  if (activeCat === 'barbing') renderItems('barbing');
+  if (activeCat==='barbing') renderItems('barbing');
   alert('Salon services reset to website prices!');
 }
 
-/* ─── helpers ─── */
-function fmtN(n) { return '₦' + Number(n||0).toLocaleString('en-NG',{minimumFractionDigits:2}); }
+/* ════ Event delegation ════
+   Item cards: no more inline onclick/JSON — data attributes only.
+   Cart rows:  no more index-based onclick — data-action + data-idx.
+═══════════════════════════ */
+document.getElementById('itemGrid').addEventListener('click', e => {
+  const card = e.target.closest('[data-item-id]');
+  if (!card) return;
+  addItem({ id:card.dataset.itemId, name:card.dataset.itemName, price:parseFloat(card.dataset.itemPrice) });
+  card.classList.add('tapped');
+  setTimeout(() => card.classList.remove('tapped'), 220);
+});
+
+document.getElementById('cartRows').addEventListener('click', e => {
+  const btn = e.target.closest('[data-action]');
+  if (!btn) return;
+  const idx    = parseInt(btn.dataset.idx);
+  const action = btn.dataset.action;
+  if (action === 'inc') { cart[idx].qty++; updateCartUI(); }
+  else if (action === 'dec') { cart[idx].qty--; if (cart[idx].qty <= 0) cart.splice(idx,1); updateCartUI(); }
+  else if (action === 'rm')  { cart.splice(idx,1); updateCartUI(); }
+});
 </script>
 </body>
 </html>
