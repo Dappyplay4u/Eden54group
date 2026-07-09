@@ -2,10 +2,22 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Daily Sales · Eden 54 Portal</title>
+<title>Report · Eden 54 Portal</title>
 <link rel="icon" type="image/jpeg" href="/logo/eden 54 logo.jpeg">
 <link href="https://fonts.googleapis.com/css2?family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/portal/portal.css">
+<style>
+.photo-drop{border:2px dashed rgba(201,169,110,0.35);border-radius:8px;padding:24px 16px;text-align:center;cursor:pointer;transition:border-color 0.2s,background 0.2s}
+.photo-drop:hover{border-color:#C9A96E;background:rgba(201,169,110,0.04)}
+.photo-thumb{position:relative;width:72px;height:72px;flex-shrink:0}
+.photo-thumb img{width:72px;height:72px;object-fit:cover;border-radius:6px;border:1px solid #e4e4df;display:block}
+.photo-thumb .rm{position:absolute;top:-6px;right:-6px;background:#dc2626;color:#fff;border:none;border-radius:50%;width:18px;height:18px;font-size:0.58rem;cursor:pointer;line-height:18px;text-align:center;padding:0}
+.sales-badge-pos{font-size:0.58rem;background:#0f2318;color:#C9A96E;border-radius:3px;padding:2px 6px;letter-spacing:0.05em;text-transform:uppercase}
+.sales-badge-manual{font-size:0.58rem;background:#e4e4df;color:#555;border-radius:3px;padding:2px 6px;letter-spacing:0.05em;text-transform:uppercase}
+.stat-mini{flex:1;min-width:70px;text-align:center;padding:10px 8px;background:#f5f9f5;border-radius:6px}
+.stat-mini .lbl{font-size:0.58rem;color:#6a6b62;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:4px}
+.stat-mini .val{font-size:0.88rem;font-weight:400}
+</style>
 </head>
 <body>
 <div class="sb-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
@@ -19,113 +31,79 @@
   <div class="topbar">
     <div class="topbar-left">
       <button class="hamburger" onclick="toggleSidebar()"><div></div><div></div><div></div></button>
-      <h1>Daily Sales Report</h1>
+      <h1>Report</h1>
     </div>
     <div class="topbar-date" id="topDate"></div>
   </div>
   <div class="content">
     <div id="alertBox" class="alert"></div>
+
+    <!-- POS shortcut banner -->
+    <div style="background:var(--deep,#0f2318);border:1px solid rgba(201,169,110,0.25);border-radius:10px;padding:18px 22px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap">
+      <div>
+        <div style="font-size:0.65rem;letter-spacing:0.2em;text-transform:uppercase;color:rgba(201,169,110,0.55);margin-bottom:4px">Primary Sales Tool</div>
+        <div style="font-size:0.95rem;color:#f5f2ec;font-weight:400">Log all sales through the POS Terminal</div>
+        <div style="font-size:0.78rem;color:rgba(245,242,236,0.4);margin-top:3px">Use the form below only for incidents, exceptions, or offline corrections.</div>
+      </div>
+      <a href="/portal/pos/" style="display:inline-flex;align-items:center;gap:8px;padding:11px 22px;background:#C9A96E;color:#0f2318;border-radius:6px;font-size:0.8rem;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;text-decoration:none;white-space:nowrap;flex-shrink:0">
+        🖥️ Open POS Terminal
+      </a>
+    </div>
+
     <div class="g2">
+      <!-- LEFT: Incident Report -->
       <div class="card">
-        <div class="section-head"><h2>Submit Sales</h2></div>
+        <div class="section-head"><h2>Incident / Exception Report</h2></div>
+        <p style="font-size:0.78rem;color:#6a6b62;margin-bottom:16px;line-height:1.55">For offline payments, manual corrections, customer complaints, or any event that couldn't be captured through the POS.</p>
+
         <div class="fg2" style="margin-bottom:14px">
           <div class="form-group">
             <label class="form-label">Date</label>
-            <input type="date" id="saleDate" class="form-control">
+            <input type="date" id="incDate" class="form-control">
           </div>
           <div class="form-group">
-            <label class="form-label">Department</label>
-            <select id="saleDept" class="form-control" onchange="onDeptChange()">
-              <option value="">Select…</option>
+            <label class="form-label">Category</label>
+            <select id="incCategory" class="form-control">
+              <option value="">Select type…</option>
+              <option value="offline_payment">Offline Payment</option>
+              <option value="manual_correction">Manual Correction</option>
+              <option value="customer_complaint">Customer Complaint</option>
+              <option value="equipment_issue">Equipment Issue</option>
+              <option value="staff_incident">Staff Incident</option>
+              <option value="stock_discrepancy">Stock Discrepancy</option>
+              <option value="other">Other</option>
             </select>
           </div>
         </div>
 
-        <!-- Service breakdown — shown only for Barbing Salon -->
-        <div id="svcSection" style="display:none;margin-bottom:14px">
-          <div class="divider"></div>
-          <p style="font-size:0.7rem;color:#6a6b62;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:10px">Services Rendered</p>
-          <div id="svcGrid" style="display:grid;gap:4px"></div>
+        <div class="form-group" style="margin-bottom:14px">
+          <label class="form-label">Description</label>
+          <textarea id="incDescription" class="form-control" rows="4" placeholder="Describe the incident or exception in detail…"></textarea>
         </div>
 
-        <!-- Apartment details — shown only for Apartment dept -->
-        <div id="aptSection" style="display:none;margin-bottom:14px">
-          <div class="divider"></div>
-          <p style="font-size:0.7rem;color:#6a6b62;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:10px">Apartment Details</p>
-          <div class="fg2" style="margin-bottom:10px">
-            <div class="form-group">
-              <label class="form-label">Unit Type</label>
-              <select id="aptUnit" class="form-control">
-                <option value="">Select unit…</option>
-                <option>1-Bedroom Suite</option>
-                <option>2-Bedroom Suite</option>
-                <option>3-Bedroom Suite</option>
-                <option>Studio</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label class="form-label">No. of Bedrooms</label>
-              <select id="aptBedrooms" class="form-control">
-                <option value="">Select…</option>
-                <option value="1">1 Bedroom</option>
-                <option value="2">2 Bedrooms</option>
-                <option value="3">3 Bedrooms</option>
-              </select>
-            </div>
-          </div>
-          <div class="form-group" style="margin-bottom:10px">
-            <label class="form-label">Guest Name</label>
-            <input type="text" id="aptGuest" class="form-control" placeholder="Guest full name">
-          </div>
-          <div class="fg2">
-            <div class="form-group">
-              <label class="form-label">Check-in Date</label>
-              <input type="date" id="aptCheckin" class="form-control">
-            </div>
-            <div class="form-group">
-              <label class="form-label">Check-out Date</label>
-              <input type="date" id="aptCheckout" class="form-control">
-            </div>
-          </div>
-        </div>
-
-        <div class="divider"></div>
-        <div class="fg3" style="margin-bottom:14px">
-          <div class="form-group">
-            <label class="form-label">Cash (₦)</label>
-            <input type="number" id="cashSales" class="form-control" placeholder="0" min="0" oninput="calcTotal()">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Transfer (₦)</label>
-            <input type="number" id="transferSales" class="form-control" placeholder="0" min="0" oninput="calcTotal()">
-          </div>
-          <div class="form-group">
-            <label class="form-label">POS (₦)</label>
-            <input type="number" id="posSales" class="form-control" placeholder="0" min="0" oninput="calcTotal()">
-          </div>
-        </div>
-        <div class="card" style="background:#f5f9f5;border-color:#C9A96E;padding:14px;margin-bottom:16px">
-          <div class="card-label">Total</div>
-          <div class="card-value gold" id="totalDisplay">₦0.00</div>
-        </div>
+        <!-- Photo attachment -->
         <div class="form-group" style="margin-bottom:16px">
-          <label class="form-label">Notes</label>
-          <textarea id="saleNotes" class="form-control" rows="2" placeholder="Any notes…"></textarea>
+          <label class="form-label">Attach Photos <span style="font-weight:300;color:#aaa">(optional)</span></label>
+          <div class="photo-drop" id="photoDropZone" onclick="document.getElementById('photoInput').click()">
+            <div style="font-size:1.5rem;margin-bottom:6px">📷</div>
+            <div style="font-size:0.82rem;color:#6a6b62">Tap to add photos</div>
+            <div style="font-size:0.7rem;color:#aaa;margin-top:3px">JPG · PNG · WEBP — up to 5 MB each</div>
+          </div>
+          <input type="file" id="photoInput" accept="image/*" multiple style="display:none" onchange="handlePhotoSelect(this.files)">
+          <div id="photoPreviews" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"></div>
         </div>
-        <button class="btn btn-gold" id="submitBtn" onclick="submitSales()" style="width:100%">Submit Report</button>
+
+        <div id="uploadProgress" style="display:none;font-size:0.78rem;color:#6a6b62;margin-bottom:10px">Uploading photos…</div>
+        <button class="btn btn-gold" id="submitBtn" onclick="submitIncident()" style="width:100%">Submit Incident Report</button>
       </div>
 
+      <!-- RIGHT: My Sales (date picker) -->
       <div class="card">
-        <div class="section-head"><h2 id="todayTitle">My Sales Today</h2></div>
-        <div id="todaySales" class="text-muted" style="font-size:0.85rem">Loading…</div>
-        <div class="divider"></div>
-        <div class="section-head" style="margin-top:0"><h2>My Recent History</h2></div>
-        <div class="tbl-wrap">
-          <table>
-            <thead><tr><th>Date</th><th>Dept</th><th>Total</th></tr></thead>
-            <tbody id="historyTable"><tr><td colspan="3" style="text-align:center;padding:16px;color:#6a6b62">Loading…</td></tr></tbody>
-          </table>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:10px">
+          <h2 style="margin:0;font-size:1rem;font-weight:400">My Sales</h2>
+          <input type="date" id="salesDate" class="form-control" style="width:auto;font-size:0.8rem;padding:6px 10px" onchange="loadMySales(this.value)">
         </div>
+        <div id="mySalesContent" style="font-size:0.85rem"></div>
       </div>
     </div>
   </div>
@@ -133,182 +111,181 @@
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
 <script src="/portal/firebase-init.js"></script>
 <script>
 const staff = getStaff();
 populateSidebar(staff);
 buildNav(staff, 'sales');
 const today = todayStr();
-document.getElementById('saleDate').value = today;
+document.getElementById('incDate').value = today;
+document.getElementById('salesDate').value = today;
 document.getElementById('topDate').textContent = new Date().toLocaleDateString('en-NG',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
 
-/* ── Department options ── */
-const ALL_DEPTS = ['Restaurant & Lounge','Bar','Apartment','Barbing Salon','Pool','Car Rental','Games'];
-const SALON_DEPTS = ['Barbing Salon','Pool','Games'];
-const APT_DEPTS   = ['Apartment'];
-const dept_key    = (staff.department || '').toLowerCase();
-const isSalon = dept_key === 'salon';
-const isApt   = dept_key === 'apartment';
+/* ── Photo handling ── */
+let selectedFiles = [];
 
-const SALON_SERVICES = ['Haircut', 'Games', 'Pool'];
-
-function buildDeptOptions() {
-  const sel = document.getElementById('saleDept');
-  const opts = isSalon ? SALON_DEPTS : isApt ? APT_DEPTS : ALL_DEPTS;
-  sel.innerHTML = '<option value="">Select…</option>' +
-    opts.map(d => `<option${(isSalon && d==='Barbing Salon') || (isApt && d==='Apartment') ? ' selected' : ''}>${d}</option>`).join('');
-  if (isSalon || isApt) onDeptChange();
+function handlePhotoSelect(files) {
+  selectedFiles = [...selectedFiles, ...Array.from(files)];
+  document.getElementById('photoInput').value = '';
+  renderPreviews();
 }
 
-function onDeptChange() {
-  const dept = document.getElementById('saleDept').value;
-  const showSvc = dept === 'Barbing Salon';
-  const showApt = dept === 'Apartment';
-  document.getElementById('svcSection').style.display = showSvc ? 'block' : 'none';
-  document.getElementById('aptSection').style.display = showApt ? 'block' : 'none';
-  if (showSvc) buildSvcGrid();
-  calcTotal();
+function renderPreviews() {
+  const c = document.getElementById('photoPreviews');
+  c.innerHTML = selectedFiles.map((f, i) => {
+    const url = URL.createObjectURL(f);
+    return `<div class="photo-thumb">
+      <img src="${url}" alt="">
+      <button class="rm" onclick="removePhoto(${i})">✕</button>
+    </div>`;
+  }).join('');
 }
 
-function buildSvcGrid() {
-  const grid = document.getElementById('svcGrid');
-  grid.innerHTML = SALON_SERVICES.map(name =>
-    `<div style="display:flex;align-items:center;gap:12px;padding:10px 12px;background:#f9f9f7;border-radius:6px">
-      <input type="checkbox" class="svc-check" data-type="${name}" id="chk_${name}" onchange="toggleSvcAmt('${name}')" style="width:16px;height:16px;cursor:pointer;accent-color:#C9A96E">
-      <label for="chk_${name}" style="font-size:0.88rem;cursor:pointer;flex:1">${name}</label>
-      <input type="number" class="form-control svc-amt" id="amt_${name}" data-type="${name}" min="0" placeholder="₦ amount" style="width:120px;display:none" oninput="calcTotal()">
-    </div>`
-  ).join('');
+function removePhoto(idx) {
+  selectedFiles.splice(idx, 1);
+  renderPreviews();
 }
 
-function toggleSvcAmt(name) {
-  const checked = document.getElementById('chk_' + name).checked;
-  const amtEl = document.getElementById('amt_' + name);
-  amtEl.style.display = checked ? 'block' : 'none';
-  if (!checked) { amtEl.value = ''; }
-  calcTotal();
-}
+/* ── Submit incident ── */
+async function submitIncident() {
+  const date     = document.getElementById('incDate').value;
+  const category = document.getElementById('incCategory').value;
+  const desc     = document.getElementById('incDescription').value.trim();
 
-function getSvcBreakdown() {
-  return SALON_SERVICES
-    .filter(name => document.getElementById('chk_' + name)?.checked)
-    .map(name => ({ type: name, amount: +document.getElementById('amt_' + name)?.value || 0 }))
-    .filter(s => s.amount > 0);
-}
+  if (!date)     { showAlert('alertBox','Please select a date.','alert-error'); return; }
+  if (!category) { showAlert('alertBox','Please select a category.','alert-error'); return; }
+  if (!desc)     { showAlert('alertBox','Please describe the incident.','alert-error'); return; }
 
-function calcTotal() {
-  const dept = document.getElementById('saleDept').value;
-  const t = (+document.getElementById('cashSales').value||0)+(+document.getElementById('transferSales').value||0)+(+document.getElementById('posSales').value||0);
-  document.getElementById('totalDisplay').textContent = fmtNaira(t);
-}
-
-async function submitSales() {
-  const date = document.getElementById('saleDate').value;
-  const dept = document.getElementById('saleDept').value;
-  if (!date || !dept) { showAlert('alertBox','Please select a date and department.','alert-error'); return; }
-  const cash  = +document.getElementById('cashSales').value || 0;
-  const trans = +document.getElementById('transferSales').value || 0;
-  const pos   = +document.getElementById('posSales').value || 0;
-  const notes = document.getElementById('saleNotes').value.trim();
-  const services = dept === 'Barbing Salon' ? getSvcBreakdown() : [];
-  const aptDetails = dept === 'Apartment' ? {
-    aptUnit:     document.getElementById('aptUnit').value,
-    aptBedrooms: document.getElementById('aptBedrooms').value,
-    aptGuest:    document.getElementById('aptGuest').value.trim(),
-    aptCheckin:  document.getElementById('aptCheckin').value,
-    aptCheckout: document.getElementById('aptCheckout').value,
-  } : {};
   const btn = document.getElementById('submitBtn');
   btn.disabled = true; btn.textContent = 'Submitting…';
+
   try {
-    await db.collection('sales').add({
-      date, department: dept, staffId: staff.id, staffName: staff.name,
-      cashSales: cash, transferSales: trans, posSales: pos, totalSales: cash + trans + pos,
-      services, notes, ...aptDetails,
+    const photoURLs = [];
+    if (selectedFiles.length) {
+      document.getElementById('uploadProgress').style.display = 'block';
+      for (const file of selectedFiles) {
+        if (file.size > 5 * 1024 * 1024) {
+          showAlert('alertBox', `${file.name} exceeds 5 MB — skipped.`, 'alert-error');
+          continue;
+        }
+        try {
+          const path = `incidents/${staff.id}/${date}/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g,'_')}`;
+          const ref = storage.ref(path);
+          await ref.put(file);
+          photoURLs.push(await ref.getDownloadURL());
+        } catch(uploadErr) {
+          console.warn('Photo upload failed:', uploadErr);
+        }
+      }
+      document.getElementById('uploadProgress').style.display = 'none';
+    }
+
+    await db.collection('incidents').add({
+      date,
+      category,
+      description: desc,
+      photoURLs,
+      staffId:    staff.id,
+      staffName:  staff.name,
+      department: staff.department || '',
       submittedAt: firebase.firestore.FieldValue.serverTimestamp()
     });
-    showAlert('alertBox','Sales report submitted!','alert-success');
-    ['cashSales','transferSales','posSales','saleNotes','aptUnit','aptBedrooms','aptGuest','aptCheckin','aptCheckout']
-      .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
-    document.getElementById('totalDisplay').textContent = '₦0.00';
-    if (dept === 'Barbing Salon') { buildSvcGrid(); }
-    loadToday(); loadHistory();
-  } catch(e) { showAlert('alertBox','Error submitting. Try again.','alert-error'); }
-  btn.disabled = false; btn.textContent = 'Submit Report';
+
+    showAlert('alertBox', 'Incident report submitted.', 'alert-success');
+    document.getElementById('incDescription').value = '';
+    document.getElementById('incCategory').value = '';
+    document.getElementById('incDate').value = today;
+    selectedFiles = [];
+    renderPreviews();
+  } catch(e) {
+    console.error(e);
+    showAlert('alertBox', 'Error submitting. Please try again.', 'alert-error');
+  }
+  btn.disabled = false;
+  btn.textContent = 'Submit Incident Report';
 }
 
-async function loadToday() {
-  const lvl       = (staff.accessLevel || staff.role || '').toLowerCase().replace(/\s+/g,'');
-  const isManager = ['ceo','superadmin','manager'].includes(lvl);
-  const isHR      = lvl === 'hr' || (staff.department || '').toLowerCase() === 'hr';
-  const seeAll    = isManager || isHR;
+/* ── My Sales ── */
+async function loadMySales(date) {
+  const el = document.getElementById('mySalesContent');
+  el.innerHTML = '<div style="color:#6a6b62;padding:12px 0 4px">Loading…</div>';
 
-  if (seeAll) document.getElementById('todayTitle').textContent = "Today's Activity — All Staff";
+  try {
+    const snap  = await db.collection('sales').where('staffId','==',staff.id).get();
+    const sales = snap.docs.map(d => d.data()).filter(r => r.date === date);
 
-  // Fetch both manual sales reports and POS transactions for today
-  const queries = seeAll
-    ? [db.collection('sales').where('date','==',today).get(),
-       db.collection('sales').where('date','==',today).where('source','==','pos').get()]
-    : [db.collection('sales').where('date','==',today).where('staffId','==',staff.id).get(),
-       db.collection('sales').where('date','==',today).where('source','==','pos').where('staffId','==',staff.id).get()];
+    if (!sales.length) {
+      el.innerHTML = '<div style="color:#6a6b62;padding:8px 0">No sales on this date.</div>';
+      return;
+    }
 
-  const [manualSnap, posSnap] = await Promise.all(queries);
-  const el = document.getElementById('todaySales');
+    let grandTotal = 0, cashTotal = 0, transTotal = 0, posTotal = 0;
 
-  // Manual reports (exclude pos-sourced ones to avoid double-counting)
-  const manualDocs = manualSnap.docs.filter(d => d.data().source !== 'pos');
-  // POS transactions — deduplicate with posSnap
-  const posDocs    = posSnap.docs;
+    const rows = sales.map(r => {
+      const isPOS = r.source === 'pos';
+      const amt   = isPOS ? (r.amount || 0) : (r.totalSales || 0);
+      grandTotal += amt;
+      if (!isPOS) {
+        cashTotal  += r.cashSales || 0;
+        transTotal += r.transferSales || 0;
+        posTotal   += r.posSales || 0;
+      } else {
+        posTotal += amt;
+      }
 
-  if (!manualDocs.length && !posDocs.length) { el.textContent = 'No submissions yet today.'; return; }
+      const badge = isPOS
+        ? '<span class="sales-badge-pos">POS</span>'
+        : '<span class="sales-badge-manual">Manual</span>';
 
-  let html = '', grandManual = 0, grandPOS = 0;
+      const ts = r.createdAt?.toDate?.() || r.submittedAt?.toDate?.();
+      const time = ts ? ts.toLocaleTimeString('en-NG',{hour:'2-digit',minute:'2-digit'}) : '';
+      const dept = isPOS ? (r.section || r.department || '') : (r.department || '');
 
-  if (manualDocs.length) {
-    html += `<div style="font-size:0.65rem;letter-spacing:0.15em;text-transform:uppercase;color:#C9A96E;margin:6px 0 4px">Manual Reports</div>`;
-    manualDocs.forEach(d => {
-      const s = d.data(); grandManual += s.totalSales || 0;
-      const label = seeAll ? `<strong>${s.staffName}</strong> · ${s.department}` : s.department;
-      html += `<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #e4e4df;font-size:0.84rem"><span>${label}</span><span class="text-gold fw4">${fmtNaira(s.totalSales)}</span></div>`;
+      const itemLine = isPOS && r.items?.length
+        ? `<div style="font-size:0.71rem;color:#6a6b62;margin-top:2px">${r.items.map(i=>`${i.qty}× ${i.name}`).join(', ')}</div>` : '';
+      const custLine = isPOS && (r.customerName || r.customerPhone)
+        ? `<div style="font-size:0.71rem;color:#6a6b62">👤 ${r.customerName||'Guest'}${r.customerPhone ? ' · '+r.customerPhone : ''}</div>` : '';
+
+      return { ts: ts ? ts.getTime() : 0, html:
+        `<div style="padding:10px 0;border-bottom:1px solid #e4e4df">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+            <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+              ${badge}
+              <span style="font-size:0.84rem">${dept}</span>
+              ${time ? `<span style="font-size:0.7rem;color:#aaa">${time}</span>` : ''}
+            </div>
+            <span style="font-weight:400;color:#C9A96E;font-size:0.88rem;white-space:nowrap">${fmtNaira(amt)}</span>
+          </div>
+          ${itemLine}${custLine}
+        </div>`
+      };
     });
-    if (seeAll) html += `<div style="display:flex;justify-content:space-between;padding:6px 0;font-size:0.82rem;color:#6a6b62"><span>Subtotal</span><span>${fmtNaira(grandManual)}</span></div>`;
-  }
 
-  if (posDocs.length) {
-    html += `<div style="font-size:0.65rem;letter-spacing:0.15em;text-transform:uppercase;color:#C9A96E;margin:12px 0 4px">POS Transactions</div>`;
-    posDocs.forEach(d => {
-      const s = d.data(); grandPOS += s.amount || 0;
-      const time = s.createdAt?.toDate ? s.createdAt.toDate().toLocaleTimeString('en-NG',{hour:'2-digit',minute:'2-digit'}) : '';
-      const who  = seeAll ? `<strong>${s.staffName}</strong> · ${s.section || s.department}` : (s.section || s.department);
-      const recv = s.receivedBy ? `<span style="font-size:0.72rem;color:#6a6b62"> · Rcvd: ${s.receivedBy}</span>` : '';
-      const items = (s.items||[]).map(i=>`${i.qty}× ${i.name}`).join(', ');
-      html += `<div style="padding:7px 0;border-bottom:1px solid #e4e4df;font-size:0.83rem">
-        <div style="display:flex;justify-content:space-between">
-          <span>${who}${recv}</span>
-          <span class="text-gold fw4">${fmtNaira(s.amount)}</span>
-        </div>
-        <div style="font-size:0.72rem;color:#6a6b62;margin-top:2px">${items}${time ? ' · '+time : ''} · ${(s.paymentMethod||'').toUpperCase()}</div>
-      </div>`;
-    });
-    if (seeAll) html += `<div style="display:flex;justify-content:space-between;padding:6px 0;font-size:0.82rem;color:#6a6b62"><span>Subtotal</span><span>${fmtNaira(grandPOS)}</span></div>`;
-  }
+    rows.sort((a,b) => b.ts - a.ts);
 
-  if (seeAll && (manualDocs.length || posDocs.length)) {
-    html += `<div style="display:flex;justify-content:space-between;padding:9px 0;font-weight:400;font-size:0.88rem;border-top:1px solid #C9A96E;margin-top:4px"><span>Grand Total</span><span class="text-gold">${fmtNaira(grandManual + grandPOS)}</span></div>`;
-  }
+    const breakdown = [];
+    if (cashTotal  > 0) breakdown.push(`<div class="stat-mini"><div class="lbl">Cash</div><div class="val">${fmtNaira(cashTotal)}</div></div>`);
+    if (transTotal > 0) breakdown.push(`<div class="stat-mini"><div class="lbl">Transfer</div><div class="val">${fmtNaira(transTotal)}</div></div>`);
+    if (posTotal   > 0) breakdown.push(`<div class="stat-mini"><div class="lbl">POS</div><div class="val">${fmtNaira(posTotal)}</div></div>`);
 
-  el.innerHTML = html;
+    let html = `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid #e4e4df;align-items:stretch">
+      <div class="stat-mini" style="background:#0f2318">
+        <div class="lbl" style="color:rgba(201,169,110,0.6)">Total</div>
+        <div class="val" style="color:#C9A96E">${fmtNaira(grandTotal)}</div>
+      </div>
+      ${breakdown.join('')}
+    </div>`;
+
+    html += rows.map(r => r.html).join('');
+    el.innerHTML = html;
+  } catch(e) {
+    console.error(e);
+    el.innerHTML = '<div style="color:#dc2626;padding:8px 0">Failed to load sales.</div>';
+  }
 }
 
-async function loadHistory() {
-  const snap = await db.collection('sales').where('staffId','==',staff.id).orderBy('submittedAt','desc').limit(15).get();
-  const tbody = document.getElementById('historyTable');
-  tbody.innerHTML = snap.empty
-    ? '<tr><td colspan="3" style="text-align:center;padding:16px;color:#6a6b62">No history yet.</td></tr>'
-    : snap.docs.map(d => { const s=d.data(); return `<tr><td>${s.date}</td><td>${s.department}</td><td class="text-gold fw4">${fmtNaira(s.totalSales)}</td></tr>`; }).join('');
-}
-
-buildDeptOptions(); loadToday(); loadHistory();
+loadMySales(today);
 </script>
 </body>
 </html>

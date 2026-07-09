@@ -126,7 +126,7 @@ function buildNav(staff, active) {
     html += a('/portal/apartments/', '🏨', 'Apartment Rentals', 'apartments');
   } else {
     const reportLinks = [
-      canReport.sales      && a('/portal/sales/',      '💰', 'Daily Sales', 'sales'),
+      canReport.sales      && a('/portal/sales/',      '📋', 'Report',      'sales'),
       canReport.bar        && a('/portal/bar/',        '🍺', 'Bar Stock',   'bar'),
       canReport.kitchen    && a('/portal/kitchen/',    '🍽️', 'Kitchen',     'kitchen'),
       canReport.barbing    && a('/portal/barbing/',    '💈', 'Barbing',     'barbing'),
