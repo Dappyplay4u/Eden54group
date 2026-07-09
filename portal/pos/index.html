@@ -372,6 +372,7 @@ const DEFAULT_BARBING = [
   { name:'Scalp & Hair Treatment', price:1500, category:'barbing', icon:'🧴' },
   { name:"Kids' Cut",              price:1500, category:'barbing', icon:'👦' },
   { name:'VIP Session',            price:3000, category:'barbing', icon:'⭐' },
+  { name:'Special Cut',            price:2000, category:'barbing', icon:'💇' },
 ];
 
 /* ─── auth ─── */
@@ -478,6 +479,17 @@ async function loadAllData() {
     await b.commit();
     const refetch = await db.collection('menuItems').get();
     menuItems = refetch.docs.map(d=>({id:d.id,...d.data()})).filter(i=>i.active!==false);
+  }
+
+  // Patch: add any DEFAULT_BARBING items missing from Firestore
+  const existingBarbingNames = new Set(menuItems.filter(i=>i.category==='barbing').map(i=>i.name.toLowerCase()));
+  const missingBarbing = DEFAULT_BARBING.filter(i => !existingBarbingNames.has(i.name.toLowerCase()));
+  if (missingBarbing.length) {
+    const pb = db.batch();
+    missingBarbing.forEach(i => pb.set(db.collection('menuItems').doc(), { ...i, active:true }));
+    await pb.commit();
+    const refetch2 = await db.collection('menuItems').get();
+    menuItems = refetch2.docs.map(d=>({id:d.id,...d.data()})).filter(i=>i.active!==false);
   }
 
   // Apartment rates — seed then re-fetch for real Firestore IDs
