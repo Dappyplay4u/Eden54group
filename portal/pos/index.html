@@ -517,6 +517,7 @@ async function loadAllData() {
   }
 
   // Barbing services — seed if missing, then patch any new defaults
+  // Also remove legacy "Kids' Cut" (with apostrophe) if present alongside the clean "Kids Cut"
   const hasBarbing = menuItems.some(i => i.category === 'barbing');
   if (!hasBarbing) {
     const b = db.batch();
@@ -525,6 +526,17 @@ async function loadAllData() {
     const r = await db.collection('menuItems').get();
     menuItems = r.docs.map(d=>({id:d.id,...d.data()})).filter(i=>i.active!==false);
   } else {
+    // Remove the apostrophe variant if the clean version already exists
+    const barbingItems = menuItems.filter(i => i.category === 'barbing');
+    const hasCleanKids  = barbingItems.some(i => i.name === 'Kids Cut');
+    const legacyKids    = barbingItems.filter(i => i.name === "Kids' Cut");
+    if (hasCleanKids && legacyKids.length) {
+      const b = db.batch();
+      legacyKids.forEach(i => b.delete(db.collection('menuItems').doc(i.id)));
+      await b.commit();
+      menuItems = menuItems.filter(i => !legacyKids.some(l => l.id === i.id));
+    }
+
     const existing = new Set(menuItems.filter(i=>i.category==='barbing').map(i=>i.name.toLowerCase()));
     const missing  = DEFAULT_BARBING.filter(i => !existing.has(i.name.toLowerCase()));
     if (missing.length) {
