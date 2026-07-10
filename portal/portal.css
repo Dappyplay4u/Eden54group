@@ -101,7 +101,9 @@ select.form-control option { background: #fff; }
 .btn:disabled { opacity: 0.45; cursor: not-allowed; }
 
 /* ── TABLE ── */
-.tbl-wrap { overflow-x: auto; }
+.tbl-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+/* Subtle right-edge shadow hints that the table scrolls horizontally */
+.tbl-wrap { background: linear-gradient(to right, var(--card) 30%, rgba(255,255,255,0)), linear-gradient(to left, #e4e4df 0%, rgba(255,255,255,0) 20px); background-attachment: local, scroll; }
 table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
 thead th { padding: 9px 13px; text-align: left; font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--border); font-weight: 400; white-space: nowrap; }
 tbody td { padding: 11px 13px; border-bottom: 1px solid var(--border); }
@@ -146,6 +148,9 @@ tbody tr:hover { background: #fafaf8; }
 .stock-table input:focus { outline: none; border-color: var(--gold); }
 .stock-table .closing { background: #f0f9f0; font-weight: 400; color: var(--ok); }
 .stock-table .low { background: #fff7ed; color: var(--warn); }
+/* Enforce minimum table width so inputs stay tappable when scrolled horizontally */
+.stock-table table { min-width: 640px; }
+.stock-table input { min-height: 38px; }
 
 /* ── ATTENDANCE ── */
 .att-row { display: grid; grid-template-columns: 1fr 120px 100px 100px; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); }
@@ -155,9 +160,9 @@ tbody tr:hover { background: #fafaf8; }
 .att-status input[type=radio] { accent-color: var(--gold); }
 
 /* ── MODAL ── */
-.modal-bg { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 200; align-items: center; justify-content: center; }
+.modal-bg { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 200; align-items: center; justify-content: center; padding: 16px; }
 .modal-bg.show { display: flex; }
-.modal { background: #fff; border-radius: 8px; padding: 28px; width: 100%; max-width: 480px; }
+.modal { background: #fff; border-radius: 8px; padding: 28px; width: 100%; max-width: 480px; max-height: 90vh; overflow-y: auto; }
 .modal h3 { font-size: 1rem; font-weight: 400; margin-bottom: 18px; }
 
 /* ── RESPONSIVE ── */
@@ -171,6 +176,35 @@ tbody tr:hover { background: #fafaf8; }
   .content { padding: 18px; }
   .att-row { grid-template-columns: 1fr; gap: 8px; }
 }
+
 @media (max-width: 480px) {
+  /* Layout */
+  .stats-grid { grid-template-columns: 1fr 1fr; }
+  .content { padding: 14px; }
+  .topbar { padding: 10px 14px; gap: 8px; }
+  .topbar h1 { font-size: 0.88rem; }
+  .topbar-date { display: none; }
+  .card { padding: 16px; }
+
+  /* Touch targets — minimum 44px for all interactive elements */
+  .form-control, textarea.form-control { min-height: 44px; padding: 10px 13px; font-size: 0.92rem; }
+  select.form-control { min-height: 44px; }
+  .btn { min-height: 44px; padding: 10px 18px; }
+  .btn-sm { min-height: 36px; padding: 8px 14px; }
+
+  /* Modal — full width, scrollable */
+  .modal { padding: 18px; border-radius: 8px; }
+  .modal-bg { padding: 10px; align-items: flex-end; }
+  .modal { border-radius: 12px 12px 0 0; max-height: 85vh; }
+
+  /* Section header stacks on very small screens */
+  .section-head { flex-wrap: wrap; gap: 8px; }
+
+  /* Table hint label */
+  .tbl-wrap::before { content: '← scroll to see more →'; display: block; font-size: 0.65rem; color: var(--muted); text-align: center; padding: 4px 0 6px; letter-spacing: 0.08em; }
+}
+
+@media (max-width: 360px) {
   .stats-grid { grid-template-columns: 1fr; }
+  .content { padding: 12px; }
 }

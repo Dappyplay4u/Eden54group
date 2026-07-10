@@ -26,10 +26,10 @@
   <div class="content">
     <div id="alertBox" class="alert"></div>
     <div class="card">
-      <div class="section-head">
+      <div class="section-head" style="flex-wrap:wrap;gap:10px">
         <h2>Daily Bar Stock Count</h2>
-        <div style="display:flex;gap:8px;align-items:center">
-          <input type="date" id="barDate" class="form-control" style="width:160px">
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <input type="date" id="barDate" class="form-control" style="min-width:140px;flex:1">
           <button class="btn btn-gold" id="submitBtn" onclick="submitBar()">Save Report</button>
         </div>
       </div>

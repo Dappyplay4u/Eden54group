@@ -29,8 +29,8 @@
     <div class="card" style="margin-bottom:24px">
       <div class="section-head">
         <h2>Monthly Payroll</h2>
-        <div style="display:flex;gap:8px;align-items:center">
-          <input type="month" id="payMonth" class="form-control" style="width:170px">
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <input type="month" id="payMonth" class="form-control" style="min-width:140px;flex:1">
           <button class="btn btn-outline btn-sm" onclick="loadPayroll()">Load</button>
           <button class="btn btn-gold btn-sm" id="saveBtn" onclick="savePayroll()" style="display:none">Save</button>
         </div>

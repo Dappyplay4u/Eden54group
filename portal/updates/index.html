@@ -39,6 +39,12 @@
 .feed-photo { border-radius: 6px; overflow: hidden; cursor: pointer; }
 .feed-photo img { width: 100%; height: 160px; object-fit: cover; display: block; transition: opacity 0.2s; }
 .feed-photo:hover img { opacity: 0.9; }
+@media(max-width:480px){
+  .feed-photos.count-1,.feed-photos.count-2,.feed-photos.count-3,.feed-photos.count-4plus{max-width:100%;}
+  .feed-photos.count-3{grid-template-columns:1fr 1fr;}
+  .feed-photos.count-4plus{grid-template-columns:repeat(2,1fr);}
+  .feed-photo img{height:130px;}
+}
 .feed-actions { display: flex; align-items: center; justify-content: space-between; margin-top: 8px; }
 .feed-dept { font-size: 0.68rem; padding: 2px 8px; border-radius: 12px; background: var(--bg); color: var(--muted); border: 1px solid var(--border); }
 

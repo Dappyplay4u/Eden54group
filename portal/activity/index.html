@@ -9,6 +9,11 @@
 <style>
 .act-filters{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;align-items:flex-end;}
 .act-filters .form-group{margin:0;min-width:140px;}
+@media(max-width:480px){
+  .act-filters{gap:8px;}
+  .act-filters .form-group{min-width:calc(50% - 4px);flex:1;}
+  .act-filters select,.act-filters input[type=date]{width:100%;}
+}
 
 .clock-row{display:flex;align-items:flex-start;justify-content:space-between;padding:13px 0;border-bottom:1px solid var(--border);gap:14px;flex-wrap:wrap;}
 .clock-row:last-child{border-bottom:none;}

@@ -110,7 +110,7 @@ function addMatch() {
   const id = 'match_' + matchCount;
   const div = document.createElement('div');
   div.id = id;
-  div.style.cssText = 'display:grid;grid-template-columns:1fr auto 1fr auto;gap:6px;align-items:center;margin-bottom:8px';
+  div.style.cssText = 'display:grid;grid-template-columns:1fr auto 1fr auto;gap:6px;align-items:center;margin-bottom:8px;min-width:0';
   div.innerHTML = `
     <input class="form-control mp1" placeholder="Player 1" style="font-size:0.82rem">
     <span style="text-align:center;font-size:0.75rem;color:#6a6b62">vs</span>

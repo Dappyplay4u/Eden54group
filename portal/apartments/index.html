@@ -48,6 +48,13 @@
 .cal-event.ev-in{background:rgba(21,128,61,0.12);color:#15803d;}
 .cal-event.ev-out{background:rgba(220,38,38,0.1);color:#dc2626;}
 .cal-event.ev-res{background:rgba(59,130,246,0.1);color:#3b82f6;}
+/* Mobile: compact calendar cells */
+@media(max-width:600px){
+  .cal-day{min-height:40px;padding:3px 4px;}
+  .cal-day .cal-num{font-size:0.72rem;margin-bottom:1px;}
+  .cal-event{display:none;}
+  .cal-dot{width:6px;height:6px;}
+}
 </style>
 </head>
 <body>
