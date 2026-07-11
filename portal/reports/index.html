@@ -31,17 +31,40 @@
 
 .sub-label { font-size:0.65rem; letter-spacing:0.14em; text-transform:uppercase; color:var(--muted); margin-bottom:8px; margin-top:4px; }
 
-.grand-bar { background:var(--deep); border-radius:8px; padding:18px 24px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:14px; margin-bottom:24px; }
+.grand-bar { background:var(--deep); border-radius:8px; padding:20px 24px; display:flex; flex-direction:column; gap:16px; margin-bottom:24px; }
+.grand-bar-top { display:flex; align-items:flex-end; justify-content:space-between; flex-wrap:wrap; gap:10px; }
 .grand-bar-label { font-size:0.65rem; letter-spacing:0.18em; text-transform:uppercase; color:rgba(245,242,236,0.45); margin-bottom:4px; }
-.grand-bar-val { font-size:1.5rem; font-weight:400; color:var(--gold); }
-.gt-chips { display:flex; gap:12px; flex-wrap:wrap; }
-.gt-chip { font-size:0.75rem; color:rgba(245,242,236,0.55); white-space:nowrap; }
-.gt-chip strong { color:rgba(245,242,236,0.9); font-weight:400; }
+.grand-bar-val { font-size:1.6rem; font-weight:400; color:var(--gold); }
+.gt-chips { display:flex; gap:10px; flex-wrap:wrap; }
+.gt-dept-card { display:flex; flex-direction:column; gap:3px; padding:10px 16px; background:rgba(255,255,255,0.05); border-radius:6px; border:1px solid rgba(201,169,110,0.12); min-width:110px; }
+.gt-dept-name { font-size:0.62rem; letter-spacing:0.12em; text-transform:uppercase; color:rgba(245,242,236,0.45); }
+.gt-dept-amt { font-size:1rem; font-weight:400; color:var(--gold); }
 
 .pill-status { display:inline-flex; align-items:center; gap:5px; font-size:0.68rem; padding:3px 10px; border-radius:12px; white-space:nowrap; }
 .pill-ok   { background:#dcfce7; color:#166534; }
 .pill-warn { background:#fef9c3; color:#854d0e; }
 .pill-none { background:#f3f4f6; color:#6b7280; }
+
+/* Sales Intelligence */
+.si-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:24px; }
+@media(max-width:900px){ .si-grid { grid-template-columns:1fr 1fr; } }
+@media(max-width:640px){ .si-grid { grid-template-columns:1fr; } }
+.si-card { background:var(--card); border:1px solid var(--border); border-radius:8px; padding:16px 18px; }
+.si-card-title { font-size:0.68rem; letter-spacing:0.16em; text-transform:uppercase; color:var(--muted); margin-bottom:12px; padding-bottom:8px; border-bottom:1px solid var(--border); }
+.si-row { display:flex; flex-direction:column; gap:4px; padding:8px 0; border-bottom:1px solid rgba(0,0,0,0.05); }
+.si-row:last-child { border-bottom:none; }
+.si-row-top { display:flex; align-items:center; justify-content:space-between; gap:8px; font-size:0.83rem; }
+.si-rank { font-size:0.68rem; color:var(--gold); font-weight:500; min-width:22px; flex-shrink:0; }
+.si-bar-track { height:3px; background:var(--border); border-radius:2px; overflow:hidden; }
+.si-bar-fill { height:100%; background:linear-gradient(to right, var(--gold), rgba(201,169,110,0.35)); border-radius:2px; }
+.si-none { color:var(--muted); font-size:0.8rem; padding:8px 0; }
+.si-period-btn { font-size:0.7rem; padding:4px 10px; border:1px solid var(--border); background:transparent; color:var(--muted); border-radius:4px; cursor:pointer; transition:all 0.2s; }
+.si-period-btn:hover { border-color:var(--gold); color:var(--gold); }
+.si-period-btn.active { border-color:var(--gold); color:var(--gold); background:rgba(201,169,110,0.08); }
+.si-dept-tab { font-size:0.65rem; padding:3px 8px; border:1px solid var(--border); background:transparent; color:var(--muted); border-radius:3px; cursor:pointer; transition:all 0.2s; white-space:nowrap; }
+.si-dept-tab:hover { border-color:var(--gold); color:var(--gold); }
+.si-dept-tab.active { border-color:var(--gold); color:var(--gold); background:rgba(201,169,110,0.08); }
+.si-top-prod { font-size:0.7rem; color:var(--muted); margin-top:2px; padding-left:30px; }
 
 /* Monthly summary */
 .ms-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:20px; }
@@ -103,6 +126,18 @@
       <button class="btn btn-outline btn-sm" onclick="window.print()">Print Report</button>
     </div>
 
+    <!-- Daily revenue by department — shown first -->
+    <div class="grand-bar no-print" id="grandBar" style="display:none">
+      <div class="grand-bar-top">
+        <div>
+          <div class="grand-bar-label">Daily Revenue — All Departments</div>
+          <div class="grand-bar-val" id="grandTotal">₦0.00</div>
+        </div>
+        <div id="grandNet" class="grand-net" style="padding:0;margin:0;border:none"></div>
+      </div>
+      <div class="gt-chips" id="grandChips"></div>
+    </div>
+
     <!-- Monthly Financial Summary (HR only) -->
     <div class="ms-grid no-print" id="monthlySummary" style="display:none">
       <div class="ms-card">
@@ -123,21 +158,41 @@
       </div>
     </div>
 
+    <!-- Sales Intelligence -->
+    <div class="no-print" id="salesLeaders" style="display:none">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:10px">
+        <div id="siLabel" style="font-size:0.68rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--muted)">Sales Intelligence</div>
+        <div style="display:flex;gap:6px">
+          <button class="si-period-btn" data-days="7" onclick="setSIPeriod(7)">7 Days</button>
+          <button class="si-period-btn active" data-days="30" onclick="setSIPeriod(30)">30 Days</button>
+          <button class="si-period-btn" data-days="90" onclick="setSIPeriod(90)">90 Days</button>
+        </div>
+      </div>
+      <div class="si-grid">
+        <div class="si-card">
+          <div class="si-card-title">📅 Highest Sales Days</div>
+          <div id="siTopDays"><div class="si-none">Loading…</div></div>
+        </div>
+        <div class="si-card">
+          <div class="si-card-title">🏆 Department Rankings</div>
+          <div id="siTopDepts"><div class="si-none">Loading…</div></div>
+        </div>
+        <div class="si-card">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+            <div class="si-card-title" style="margin:0;padding:0;border:none">⭐ Best-Selling Products</div>
+            <div id="siDeptTabs" style="display:flex;flex-wrap:wrap;gap:4px"></div>
+          </div>
+          <div style="height:1px;background:var(--border);margin-bottom:10px"></div>
+          <div id="siTopProducts"><div class="si-none">Loading…</div></div>
+        </div>
+      </div>
+    </div>
+
     <!-- Print header -->
     <div class="print-header">
       <img src="/logo/eden 54 logo.jpeg" style="width:44px;height:44px;border-radius:50%;margin-bottom:8px">
       <h2 style="font-size:1.1rem;font-weight:500">Eden 54 Group — Daily Reports</h2>
       <p id="printDate" style="font-size:0.82rem;color:#555;margin-top:4px"></p>
-    </div>
-
-    <!-- Grand Total (daily) -->
-    <div class="grand-bar no-print" id="grandBar" style="display:none">
-      <div style="flex:1">
-        <div class="grand-bar-label">Daily Revenue — All Departments</div>
-        <div class="grand-bar-val" id="grandTotal">₦0.00</div>
-        <div class="grand-net" id="grandNet"></div>
-      </div>
-      <div class="gt-chips" id="grandChips"></div>
     </div>
 
     <!-- Department cards (rendered dynamically) -->
@@ -665,7 +720,7 @@ function renderExpenses(date, rows) {
 
   const deptLabels = {
     salon: 'Barbing Salon', lounge: 'Lounge', bar: 'Bar',
-    kitchen: 'Kitchen', apartment: 'Apartment', pool: 'Pool', management: 'Management'
+    kitchen: 'Kitchen', apartment: 'Apartments', pool: 'Pool', management: 'Management'
   };
 
   let html = '';
@@ -711,7 +766,7 @@ function renderExpenses(date, rows) {
 function renderGrandTotal(allSales, poolComps, allExpenses, aptRentals) {
   const salesTot     = allSales.reduce((s,r)=>s+(r.totalSales||0),0);
   const compNet      = poolComps.reduce((s,r)=>s+(r.netRevenue||0),0);
-  const aptRentalRev = (aptRentals||[]).reduce((s,r)=>s+(r.paid||0),0);
+  const aptRentalRev = (aptRentals||[]).reduce((s,r)=>s+(r.total||r.paid||0),0);
   const gross        = salesTot + compNet + aptRentalRev;
   if (!gross) return;
 
@@ -720,19 +775,27 @@ function renderGrandTotal(allSales, poolComps, allExpenses, aptRentals) {
   const isProfit = netDay >= 0;
 
   // Chips by POS section + manual category
+  const secLabels = {
+    games:'🎮 Games', drinks:'🍺 Bar & Drinks', food:'🍽️ Food & Restaurant',
+    apt:'🏠 Apartments', events:'🎪 Events', barbing:'💈 Barbing Salon'
+  };
   const bySec = {};
   allSales.forEach(r => {
     const key = r.source === 'pos'
-      ? ({ games:'🎮 Games', drinks:'🍺 Drinks', food:'🍽️ Food', apt:'🏠 Apartment', events:'🎪 Events', barbing:'💈 Salon' }[r.section] || '🎪 Events')
-      : (r.department || 'Other');
+      ? (secLabels[r.section] || '🎪 Events')
+      : (secLabels[deptToSection(r.department)] || r.department || 'Other');
     bySec[key] = (bySec[key]||0) + (r.totalSales||0);
   });
   if (compNet > 0)      bySec['🏊 Competitions'] = compNet;
-  if (aptRentalRev > 0) bySec['🏠 Apt Rentals']  = aptRentalRev;
+  if (aptRentalRev > 0) bySec['🏠 Apartments']  = (bySec['🏠 Apartments']||0) + aptRentalRev;
 
   const chips = Object.entries(bySec)
-    .filter(([,t])=>t>0)
-    .map(([k,t])=>`<div class="gt-chip">${esc(k)} <strong>${N(t)}</strong></div>`)
+    .filter(([,t]) => t > 0)
+    .sort((a,b) => b[1]-a[1])
+    .map(([k,t]) => `<div class="gt-dept-card">
+      <div class="gt-dept-name">${esc(k)}</div>
+      <div class="gt-dept-amt">${N(t)}</div>
+    </div>`)
     .join('');
 
   document.getElementById('grandTotal').textContent = N(gross);
@@ -818,8 +881,207 @@ async function loadMonthlySummary() {
   }
 }
 
+/* ── SALES INTELLIGENCE ── */
+let siPeriod = 30;
+let siDeptFilter = 'all';
+let siCache = null;
+
+const SI_DEPT_LABELS = {
+  games:'🎮 Games', drinks:'🍺 Bar & Drinks', food:'🍽️ Food & Restaurant',
+  apt:'🏠 Apartments', barbing:'💈 Barbing Salon', events:'🎪 Events'
+};
+
+function setSIPeriod(days) {
+  siPeriod = days;
+  document.querySelectorAll('.si-period-btn').forEach(b =>
+    b.classList.toggle('active', Number(b.dataset.days) === days)
+  );
+  loadSalesLeaders();
+}
+
+function setSIDept(sec) {
+  siDeptFilter = sec;
+  document.querySelectorAll('.si-dept-tab').forEach(b =>
+    b.classList.toggle('active', b.dataset.sec === sec)
+  );
+  renderSIProducts();
+}
+
+function renderSIProducts() {
+  const el = document.getElementById('siTopProducts');
+  if (!el || !siCache) return;
+  const items = siDeptFilter === 'all'
+    ? siCache.allProducts
+    : Object.entries(siCache.byDeptProducts[siDeptFilter] || {})
+        .filter(([, d]) => d.revenue > 0)
+        .sort((a, b) => b[1].revenue - a[1].revenue)
+        .slice(0, 8);
+  const maxProd = items[0]?.[1].revenue || 1;
+  el.innerHTML = items.length
+    ? items.map(([name, d], i) => `<div class="si-row">
+        <div class="si-row-top">
+          <span style="display:flex;align-items:center;gap:8px">
+            <span class="si-rank">#${i + 1}</span><span>${esc(name)}</span>
+          </span>
+          <div style="text-align:right">
+            <div style="color:var(--gold);font-weight:400">${N(d.revenue)}</div>
+            <div style="font-size:0.68rem;color:var(--muted)">${d.qty} sold</div>
+          </div>
+        </div>
+        <div class="si-bar-track"><div class="si-bar-fill" style="width:${Math.round((d.revenue/maxProd)*100)}%"></div></div>
+      </div>`).join('')
+    : '<div class="si-none">No product data for this department</div>';
+}
+
+async function loadSalesLeaders() {
+  const el = document.getElementById('salesLeaders');
+  if (!el) return;
+
+  const today = new Date();
+  const start = new Date(today);
+  start.setDate(start.getDate() - siPeriod + 1);
+  const startStr = start.toISOString().split('T')[0];
+  const endStr   = today.toISOString().split('T')[0];
+
+  document.getElementById('siLabel').textContent =
+    `Sales Intelligence — Last ${siPeriod} Day${siPeriod === 1 ? '' : 's'}`;
+  ['siTopDays','siTopDepts','siTopProducts'].forEach(id => {
+    document.getElementById(id).innerHTML = '<div class="si-none">Loading…</div>';
+  });
+  el.style.display = 'block';
+  siCache = null;
+
+  try {
+    const snap = await db.collection('sales')
+      .where('date', '>=', startStr)
+      .where('date', '<=', endStr)
+      .get();
+
+    const sales = snap.docs.map(d => d.data());
+
+    /* ── Highest Sales Days ── */
+    const byDate = {};
+    sales.forEach(s => {
+      const d   = s.date || '';
+      const amt = s.source === 'pos' ? (s.amount || 0) : (s.totalSales || 0);
+      if (d) byDate[d] = (byDate[d] || 0) + amt;
+    });
+    const topDays = Object.entries(byDate)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5);
+    const maxDay = topDays[0]?.[1] || 1;
+
+    document.getElementById('siTopDays').innerHTML = topDays.length
+      ? topDays.map(([date, amt], i) => {
+          const label = new Date(date + 'T12:00:00')
+            .toLocaleDateString('en-NG', { weekday:'short', day:'numeric', month:'short' });
+          return `<div class="si-row">
+            <div class="si-row-top">
+              <span style="display:flex;align-items:center;gap:8px">
+                <span class="si-rank">#${i + 1}</span><span>${label}</span>
+              </span>
+              <span style="color:var(--gold);font-weight:400">${N(amt)}</span>
+            </div>
+            <div class="si-bar-track"><div class="si-bar-fill" style="width:${Math.round((amt/maxDay)*100)}%"></div></div>
+          </div>`;
+        }).join('')
+      : '<div class="si-none">No sales data in this period</div>';
+
+    /* ── Department Rankings + per-dept products ── */
+    const byDept    = {};   // label → total revenue
+    const byDeptSec = {};   // label → section key
+    const byDeptProducts = {}; // section key → { productName: { qty, revenue } }
+
+    sales.forEach(s => {
+      const amt   = s.source === 'pos' ? (s.amount || 0) : (s.totalSales || 0);
+      const sec   = s.source === 'pos'
+        ? (s.section || 'events').toLowerCase()
+        : deptToSection(s.department);
+      const label = SI_DEPT_LABELS[sec] || (s.department || '📦 Other');
+      byDept[label]    = (byDept[label] || 0) + amt;
+      byDeptSec[label] = sec;
+
+      if (!byDeptProducts[sec]) byDeptProducts[sec] = {};
+      (s.items || []).forEach(item => {
+        const name = (item.name || '').trim() || '—';
+        if (!byDeptProducts[sec][name]) byDeptProducts[sec][name] = { qty:0, revenue:0 };
+        byDeptProducts[sec][name].qty     += (item.qty || 1);
+        byDeptProducts[sec][name].revenue += (item.total || (item.unitPrice||0)*(item.qty||1));
+      });
+    });
+
+    const topDepts = Object.entries(byDept)
+      .filter(([, v]) => v > 0)
+      .sort((a, b) => b[1] - a[1]);
+    const maxDept = topDepts[0]?.[1] || 1;
+
+    document.getElementById('siTopDepts').innerHTML = topDepts.length
+      ? topDepts.map(([name, amt], i) => {
+          const sec      = byDeptSec[name] || '';
+          const topProd  = Object.entries(byDeptProducts[sec] || {})
+            .sort((a, b) => b[1].revenue - a[1].revenue)[0];
+          const prodLine = topProd
+            ? `<div class="si-top-prod">⭐ ${esc(topProd[0])} · ${N(topProd[1].revenue)} · ${topProd[1].qty} sold</div>`
+            : '';
+          return `<div class="si-row">
+            <div class="si-row-top">
+              <span style="display:flex;align-items:center;gap:8px">
+                <span class="si-rank">#${i + 1}</span><span>${esc(name)}</span>
+              </span>
+              <span style="color:var(--gold);font-weight:400">${N(amt)}</span>
+            </div>
+            ${prodLine}
+            <div class="si-bar-track"><div class="si-bar-fill" style="width:${Math.round((amt/maxDept)*100)}%"></div></div>
+          </div>`;
+        }).join('')
+      : '<div class="si-none">No department data</div>';
+
+    /* ── Build all-products list & dept tabs ── */
+    const allProductsMap = {};
+    Object.values(byDeptProducts).forEach(deptMap => {
+      Object.entries(deptMap).forEach(([name, d]) => {
+        if (!allProductsMap[name]) allProductsMap[name] = { qty:0, revenue:0 };
+        allProductsMap[name].qty     += d.qty;
+        allProductsMap[name].revenue += d.revenue;
+      });
+    });
+    const allProducts = Object.entries(allProductsMap)
+      .filter(([, d]) => d.revenue > 0)
+      .sort((a, b) => b[1].revenue - a[1].revenue)
+      .slice(0, 8);
+
+    siCache = { byDeptProducts, allProducts };
+
+    // Dept filter tabs — only show depts that have product items
+    const tabsEl = document.getElementById('siDeptTabs');
+    if (tabsEl) {
+      const deptsWithItems = Object.entries(byDeptProducts)
+        .filter(([, map]) => Object.values(map).some(d => d.revenue > 0))
+        .map(([sec]) => sec);
+      tabsEl.innerHTML = [
+        `<button class="si-dept-tab${siDeptFilter==='all'?' active':''}" data-sec="all" onclick="setSIDept('all')">All</button>`,
+        ...deptsWithItems.map(sec =>
+          `<button class="si-dept-tab${siDeptFilter===sec?' active':''}" data-sec="${sec}" onclick="setSIDept('${sec}')">
+            ${(SI_DEPT_LABELS[sec]||sec).replace(/^\S+\s/, '')}
+          </button>`
+        )
+      ].join('');
+    }
+
+    renderSIProducts();
+
+  } catch (err) {
+    console.error('Sales leaders:', err);
+    ['siTopDays','siTopDepts','siTopProducts'].forEach(id => {
+      document.getElementById(id).innerHTML =
+        '<div class="si-none" style="color:#ef4444">Failed to load</div>';
+    });
+  }
+}
+
 loadAll();
 loadMonthlySummary();
+loadSalesLeaders();
 </script>
 </body>
 </html>

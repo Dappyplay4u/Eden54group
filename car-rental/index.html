@@ -200,6 +200,13 @@
     section { padding: 72px 24px; }
     .hero-content { padding: 0 24px; }
     footer { padding: 32px 24px; flex-direction: column; align-items: flex-start; }
+    .car-gallery-grid { grid-template-columns: 1fr 1fr; }
+    .car-lb-prev { left: 8px; }
+    .car-lb-next { right: 8px; }
+  }
+  @media (max-width: 480px) {
+    .car-gallery-grid { grid-template-columns: 1fr; }
+    .car-gallery-item:first-child { grid-column: span 1; aspect-ratio: 4/3; }
   }
 </style>
 </head>

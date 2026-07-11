@@ -3688,20 +3688,26 @@
     console.log('[RF] form.submit() called — waiting for iframe load...');
 
     /* Also fire email via FormSubmit (runs in parallel, fire-and-forget) */
-    const emailData = new FormData();
-    emailData.append('_subject',        'New Reservation Request — Eden 54');
-    emailData.append('_captcha',        'false');
-    emailData.append('_template',       'table');
-    emailData.append('First Name',      document.getElementById('rfFirstName').value);
-    emailData.append('Last Name',       document.getElementById('rfLastName').value);
-    emailData.append('Email',           document.getElementById('rfEmail').value);
-    emailData.append('Phone',           document.getElementById('rfPhone').value);
-    emailData.append('Check-in Date',   document.getElementById('rfCheckin').value);
-    emailData.append('Check-out Date',  document.getElementById('rfCheckout').value);
-    emailData.append('Guests',          document.getElementById('rfGuests').value);
-    emailData.append('Apartment Unit',  document.getElementById('rfUnit').value);
-    emailData.append('Special Requests',document.getElementById('rfRequests').value);
-    fetch('https://formsubmit.co/eden54group@gmail.com', { method: 'POST', body: emailData }).catch(() => {});
+    const emailPayload = {
+      _subject:          'New Reservation Request — Eden 54',
+      _captcha:          'false',
+      _template:         'table',
+      _cc:               'eden54group@gmail.com',
+      'First Name':      document.getElementById('rfFirstName').value,
+      'Last Name':       document.getElementById('rfLastName').value,
+      'Email':           document.getElementById('rfEmail').value,
+      'Phone':           document.getElementById('rfPhone').value,
+      'Check-in Date':   document.getElementById('rfCheckin').value,
+      'Check-out Date':  document.getElementById('rfCheckout').value,
+      'Guests':          document.getElementById('rfGuests').value,
+      'Apartment Unit':  document.getElementById('rfUnit').value,
+      'Special Requests':document.getElementById('rfRequests').value,
+    };
+    fetch('https://formsubmit.co/ajax/jegede.oladapo@ymail.com', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify(emailPayload)
+    }).catch(() => {});
 
     /* Also write to Firestore so portal shows it as a notification */
     (function saveBooking() {
