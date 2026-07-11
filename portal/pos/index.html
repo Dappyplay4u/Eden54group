@@ -411,9 +411,13 @@ const DEFAULT_MENU = [
   { name:'Pounded Yam',           price:15000, category:'food', section:'Specials', icon:'🥣' },
 ];
 const DEFAULT_APT = [
-  { unitType:'1 Bedroom', bedrooms:1, nightlyRate:45000 },
-  { unitType:'2 Bedroom', bedrooms:2, nightlyRate:85000 },
-  { unitType:'3 Bedroom', bedrooms:3, nightlyRate:120000 },
+  { unitType:'The Ivy',                    bedrooms:1, nightlyRate:50000  },
+  { unitType:'The Willow',                 bedrooms:2, nightlyRate:100000 },
+  { unitType:'The Amber',                  bedrooms:2, nightlyRate:100000 },
+  { unitType:'The Jasmine',                bedrooms:2, nightlyRate:100000 },
+  { unitType:'The Orchid',                 bedrooms:2, nightlyRate:100000 },
+  { unitType:'The Eden Suite',             bedrooms:3, nightlyRate:150000 },
+  { unitType:'All Units — Whole Property', bedrooms:6, nightlyRate:500000 },
 ];
 const DEFAULT_BARBING = [
   { name:'Haircut & Style',        price:2500, category:'barbing', icon:'✂️' },
@@ -557,6 +561,18 @@ async function loadAllData() {
     aptRates = r.docs.map(d=>({id:d.id,...d.data()}));
   } else {
     aptRates = aptSnap.docs.map(d=>({id:d.id,...d.data()}));
+    // Migrate: if still on old generic names (1 Bedroom / 2 Bedroom / 3 Bedroom),
+    // replace entire collection with the 6 named units
+    const OLD_GENERIC = ['1 Bedroom','2 Bedroom','3 Bedroom'];
+    const hasOldNames = aptRates.some(r => OLD_GENERIC.includes(r.unitType));
+    if (hasOldNames) {
+      const mb = db.batch();
+      aptRates.forEach(r => mb.delete(db.collection('aptRates').doc(r.id)));
+      DEFAULT_APT.forEach(r => mb.set(db.collection('aptRates').doc(), r));
+      await mb.commit();
+      const fresh = await db.collection('aptRates').get();
+      aptRates = fresh.docs.map(d=>({id:d.id,...d.data()}));
+    }
   }
 
   // Game prices (named doc IDs = stable references)
@@ -579,6 +595,9 @@ function initPOS() {
   document.getElementById('posName').textContent  = staff.name || '—';
   document.getElementById('posDept').textContent  = (staff.department || staff.role || '').replace(/\b\w/g, c=>c.toUpperCase());
   document.getElementById('receivedBy').value     = staff.name || '';
+
+  // Show reservation notifications for manager / CEO / HR
+  if (!document.getElementById('aptNotifBtn')) initBookingNotifications(staff);
 
   const dept  = (staff.department || '').toLowerCase();
   const level = (staff.accessLevel || staff.role || 'staff').toLowerCase().replace(/\s+/g,'');
@@ -668,7 +687,7 @@ function renderItems(cat) {
     grid.innerHTML = html;
   } else if (cat === 'apt') {
     if (!aptRates.length) { grid.innerHTML = '<p class="no-items">No apartment rates configured. Use ⚙️ Menu to add rates.</p>'; return; }
-    const cards = [...aptRates].sort((a,b)=>(a.bedrooms||0)-(b.bedrooms||0)).map(r=>ic(r.id||r.unitType,r.unitType,r.nightlyRate,'🏨','per night')).join('');
+    const cards = [...aptRates].sort((a,b)=>(a.bedrooms||0)-(b.bedrooms||0)).map(r=>ic(r.id||r.unitType,r.unitType,r.nightlyRate,'🏨',`${r.bedrooms} Bed · per night`)).join('');
     grid.innerHTML = `<div class="item-grid">${cards}</div>`;
   } else if (cat === 'barbing') {
     const items = menuItems.filter(i=>i.category==='barbing');
@@ -882,7 +901,7 @@ function renderMgrContent() {
       </div>
       <div style="margin-top:18px;padding-top:14px;border-top:1px solid var(--border);display:flex;align-items:center;gap:14px;flex-wrap:wrap">
         <button onclick="resetToWebsiteRates()" style="padding:8px 16px;background:rgba(201,169,110,0.1);color:var(--gold-l);border:1px solid rgba(201,169,110,0.25);border-radius:5px;font-family:'Jost',sans-serif;font-size:0.72rem;letter-spacing:0.08em;cursor:pointer">↺ Reset to Website Rates</button>
-        <span style="font-size:0.68rem;color:var(--muted)">Resets to 1 Bed ₦45k · 2 Bed ₦85k · 3 Bed ₦120k</span>
+        <span style="font-size:0.68rem;color:var(--muted)">Resets to 7 units · The Ivy ₦50k · 2-Bed ₦100k · Eden Suite ₦150k · Whole Property ₦500k</span>
       </div>`;
     return;
   }
@@ -983,7 +1002,7 @@ async function addAptRate() {
 }
 
 async function resetToWebsiteRates() {
-  if (!confirm('Replace ALL apartment rates with website defaults?\n• 1 Bedroom — ₦45,000/night\n• 2 Bedroom — ₦85,000/night\n• 3 Bedroom — ₦120,000/night')) return;
+  if (!confirm('Replace ALL apartment rates with defaults?\n• 1 Bedroom — ₦50,000/night\n• 2 Bedroom — ₦100,000/night\n• 3 Bedroom — ₦150,000/night')) return;
   const snap = await db.collection('aptRates').get();
   const b = db.batch();
   snap.docs.forEach(d=>b.delete(d.ref));

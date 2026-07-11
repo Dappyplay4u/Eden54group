@@ -151,6 +151,9 @@ function buildNav(staff, active) {
   const nav = document.getElementById('sbNav');
   if (nav) nav.innerHTML = html;
 
+  // Booking popup notification bell for manager/CEO/HR
+  if (!document.getElementById('aptNotifBtn')) initBookingNotifications(staff);
+
   const canSeeApts = isManager || isHR || isFrontDesk;
   if (canSeeApts && typeof db !== 'undefined') {
     db.collection('apartmentBookings')
@@ -227,6 +230,148 @@ function requireAccess(staff, page) {
     return false;
   }
   return true;
+}
+
+/* ── Apartment booking notifications (portal + POS) ── */
+function initBookingNotifications(staff) {
+  const _raw = (staff.accessLevel || staff.role || '').toLowerCase().replace(/\s+/g,'');
+  const isCEO     = _raw === 'ceo' || _raw === 'superadmin';
+  const isManager = isCEO || _raw === 'manager';
+  const dept      = (staff.department || '').toLowerCase();
+  const isHR      = _raw === 'hr' || dept.includes('hr') || dept.includes('human resource');
+  if (!isManager && !isHR) return;
+
+  // Inject styles once
+  if (!document.getElementById('aptNotifStyles')) {
+    const s = document.createElement('style');
+    s.id = 'aptNotifStyles';
+    s.textContent = `
+      #aptNotifBtn{position:relative;background:none;border:1px solid rgba(201,169,110,0.35);border-radius:6px;padding:6px 11px;cursor:pointer;font-size:1rem;color:#C9A96E;display:inline-flex;align-items:center;gap:5px;transition:background .2s;white-space:nowrap;font-family:'Jost',sans-serif;font-size:0.78rem;letter-spacing:0.04em}
+      #aptNotifBtn:hover{background:rgba(201,169,110,0.1)}
+      #aptNotifBadge{background:#dc2626;color:#fff;border-radius:50%;min-width:18px;height:18px;font-size:0.6rem;font-weight:600;display:none;align-items:center;justify-content:center;padding:0 3px}
+      #aptNotifPanel{position:fixed;top:58px;right:16px;width:320px;max-width:calc(100vw - 32px);background:#fff;border:1px solid #e5e5e0;border-radius:10px;box-shadow:0 8px 32px rgba(0,0,0,.15);z-index:9000;display:none;overflow:hidden}
+      #aptNotifPanel .np-head{padding:13px 16px;border-bottom:1px solid #e5e5e0;display:flex;align-items:center;justify-content:space-between}
+      #aptNotifPanel .np-title{font-size:0.8rem;font-weight:500;color:#1a2415}
+      #aptNotifPanel .np-link{font-size:0.72rem;color:#9A7A3A;text-decoration:none}
+      #aptNotifPanel .np-link:hover{text-decoration:underline}
+      #aptNotifPanel .np-body{max-height:300px;overflow-y:auto}
+      #aptNotifPanel .np-row{padding:11px 16px;border-bottom:1px solid #f0ede8;display:flex;gap:10px;align-items:flex-start}
+      #aptNotifPanel .np-row:last-child{border-bottom:none}
+      #aptNotifPanel .np-dot{width:8px;height:8px;border-radius:50%;background:#dc2626;margin-top:5px;flex-shrink:0}
+      #aptNotifPanel .np-name{font-size:0.82rem;font-weight:400;color:#1a2415}
+      #aptNotifPanel .np-meta{font-size:0.7rem;color:#6a6b62;line-height:1.65;margin-top:2px}
+      #aptNotifPanel .np-empty{padding:22px 16px;text-align:center;color:#6a6b62;font-size:0.8rem}
+      #aptNotifToast{position:fixed;bottom:24px;right:24px;background:#1a2415;color:#C9A96E;padding:14px 18px;border-radius:8px;font-size:0.8rem;box-shadow:0 4px 20px rgba(0,0,0,.35);z-index:9999;display:none;cursor:pointer;max-width:290px;border-left:3px solid #C9A96E;line-height:1.5}
+      #aptNotifToast strong{display:block;margin-bottom:3px;font-weight:500;font-size:0.85rem}
+    `;
+    document.head.appendChild(s);
+  }
+
+  // Bell button
+  const bell = document.createElement('button');
+  bell.id = 'aptNotifBtn';
+  bell.title = 'Apartment Reservations';
+  bell.innerHTML = `🔔 Reservations <span id="aptNotifBadge"></span>`;
+
+  // Dropdown panel
+  const panel = document.createElement('div');
+  panel.id = 'aptNotifPanel';
+  panel.innerHTML = `
+    <div class="np-head">
+      <span class="np-title">🏨 New Reservations</span>
+      <a href="/portal/apartments/" class="np-link">View All →</a>
+    </div>
+    <div class="np-body" id="aptNotifBody"><div class="np-empty">No new reservations</div></div>`;
+
+  // Toast
+  const toast = document.createElement('div');
+  toast.id = 'aptNotifToast';
+  toast.onclick = () => window.location.href = '/portal/apartments/';
+
+  document.body.appendChild(panel);
+  document.body.appendChild(toast);
+
+  // Insert bell — POS uses .hdr-btns; portal uses .topbar
+  const hdrBtns = document.querySelector('.hdr-btns');
+  const topbarDate = document.getElementById('topDate');
+  if (hdrBtns) {
+    hdrBtns.insertBefore(bell, hdrBtns.firstChild);
+  } else if (topbarDate) {
+    bell.style.marginLeft = 'auto';
+    topbarDate.parentNode.insertBefore(bell, topbarDate);
+  }
+
+  // Toggle panel on bell click
+  bell.addEventListener('click', e => {
+    e.stopPropagation();
+    panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
+  });
+  document.addEventListener('click', () => { panel.style.display = 'none'; });
+
+  // Live listener
+  let prevCount = null;
+  db.collection('apartmentBookings')
+    .where('status', 'in', ['new', 'confirmed'])
+    .onSnapshot(snap => {
+      const newCount = snap.docs.filter(d => d.data().status === 'new').length;
+      const badge = document.getElementById('aptNotifBadge');
+      if (badge) {
+        badge.textContent = newCount;
+        badge.style.display = newCount > 0 ? 'inline-flex' : 'none';
+      }
+      const count = snap.size;
+
+      // Populate dropdown
+      const body = document.getElementById('aptNotifBody');
+      if (body) {
+        if (!count) {
+          body.innerHTML = '<div class="np-empty">No new reservations</div>';
+        } else {
+          const docs = snap.docs.map(d => ({id:d.id,...d.data()}))
+            .sort((a,b) => (b.createdAt?.seconds||0) - (a.createdAt?.seconds||0));
+          body.innerHTML = docs.map(b => `
+            <div class="np-row" id="nprow-${b.id}">
+              <div class="np-dot"></div>
+              <div style="flex:1;min-width:0">
+                <div class="np-name">${b.firstName||''} ${b.lastName||''}</div>
+                <div class="np-meta">
+                  🏨 ${b.unit||'—'}<br>
+                  📅 ${b.checkin||'—'} → ${b.checkout||'—'}<br>
+                  👥 ${b.guests||'—'} guest(s) &nbsp;·&nbsp; 📱 ${b.phone||'—'}
+                </div>
+                <div style="display:flex;gap:6px;margin-top:7px;flex-wrap:wrap">
+                  <a href="/portal/apartments/" style="font-size:0.68rem;color:#9A7A3A;text-decoration:underline">View</a>
+                  <button onclick="npDecline('${b.id}','${(b.firstName||'').replace(/'/g,"\\'")} ${(b.lastName||'').replace(/'/g,"\\'")}','nprow-${b.id}','${b.status||'new'}')" style="font-size:0.68rem;color:#dc2626;background:none;border:1px solid #dc2626;border-radius:4px;padding:2px 8px;cursor:pointer;font-family:inherit">✕ Delete</button>
+                </div>
+              </div>
+            </div>`).join('');
+        }
+      }
+
+      // Toast only when a truly NEW booking arrives after page load
+      if (prevCount !== null && newCount > prevCount) {
+        const n = newCount - prevCount;
+        toast.innerHTML = `<strong>🔔 New Reservation${n>1?'s':''}</strong>${n} new apartment booking${n>1?'s':''} — tap to view.`;
+        toast.style.display = 'block';
+        setTimeout(() => { toast.style.display = 'none'; }, 7000);
+      }
+      prevCount = newCount;
+    }, () => {});
+}
+
+/* Called from the notification dropdown on any portal page or POS */
+async function npDecline(id, guestName, rowId, status) {
+  const msg = status === 'confirmed'
+    ? `Delete confirmed booking for ${guestName}?\n\nUse this for cancellations, refund requests, or non-payment after confirmation.`
+    : `Delete reservation for ${guestName}?\n\nUse this when no payment or deposit has been made.`;
+  if (!confirm(msg)) return;
+  try {
+    await db.collection('apartmentBookings').doc(id).delete();
+    const row = document.getElementById(rowId);
+    if (row) row.remove();
+  } catch(e) {
+    alert('Could not delete booking: ' + e.message);
+  }
 }
 
 /* ── UI helpers ── */

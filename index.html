@@ -949,6 +949,7 @@
   }
   .price-num { font-family: 'Cormorant Garamond', serif; font-size: 1.8rem; color: var(--gold); }
   .price-unit { font-size: 0.65rem; letter-spacing: 0.15em; color: var(--muted); text-transform: uppercase; }
+  .room-caution { font-size: 0.68rem; color: rgba(201,169,110,0.65); margin-top: 6px; letter-spacing: 0.03em; }
   .room-arrow {
     position: absolute; top: 32px; right: 32px; z-index: 2;
     width: 40px; height: 40px;
@@ -1528,6 +1529,7 @@
     content: '';
     position: absolute; inset: 0;
     background: linear-gradient(135deg, rgba(201,169,110,0.06) 0%, transparent 60%);
+    pointer-events: none;
   }
   .package-tag {
     font-size: 0.62rem; letter-spacing: 0.4em; text-transform: uppercase;
@@ -1566,6 +1568,7 @@
     text-transform: uppercase;
     text-decoration: none;
     transition: background 0.3s, letter-spacing 0.3s;
+    position: relative; z-index: 2;
   }
   .package-cta:hover { background: var(--gold-light); letter-spacing: 0.35em; }
   .package-badge {
@@ -1598,10 +1601,26 @@
     font-size: 0.62rem; letter-spacing: 0.25em;
     text-transform: uppercase; color: var(--muted);
   }
+  .pkg-price-row { display:flex; align-items:baseline; gap:12px; margin-bottom:8px; flex-wrap:wrap; }
+  .pkg-price { font-family:'Cormorant Garamond',serif; font-size:2.2rem; color:var(--gold); font-weight:400; line-height:1; }
+  .pkg-per   { font-size:0.65rem; letter-spacing:0.15em; text-transform:uppercase; color:var(--muted); }
+  .pkg-was   { font-size:0.9rem; color:var(--muted); text-decoration:line-through; opacity:0.45; }
+  .pkg-caution { font-size:0.72rem; color:rgba(201,169,110,0.6); margin-bottom:28px; letter-spacing:0.02em; }
+
   @media (max-width: 768px) {
     .package-card { grid-template-columns: 1fr; gap: 40px; text-align: center; }
     .package-includes { justify-content: center; }
+    .pkg-price-row { justify-content: center; }
     .badge-circle { margin: 0 auto; }
+  }
+  @media (max-width: 480px) {
+    .package-card { padding: 32px 20px; gap: 32px; }
+    .package-name { font-size: 2rem; }
+    .pkg-price { font-size: 1.7rem; }
+    .badge-circle { width: 120px; height: 120px; }
+    .badge-pct { font-size: 2.6rem; }
+    .package-cta { padding: 12px 28px; }
+    .room-caution { font-size: 0.62rem; }
   }
 
   /* ── RESPONSIVE BREAKPOINTS ─────────────────────────────────
@@ -1619,8 +1638,9 @@
     .amenities-grid, .rooms-grid { grid-template-columns: 1fr 1fr; }
     .outdoor-grid { grid-template-columns: 1fr; }
     .footer-grid { grid-template-columns: 1fr 1fr; }
-    .amenities, .outdoor, .dining, .rooms, .booking, .testimonials { padding: 80px 32px; }
+    .amenities, .outdoor, .dining, .rooms, .booking, .testimonials, .packages { padding: 80px 32px; }
     .intro { padding: 60px 32px 80px; }
+    .package-card { padding: 40px 32px; }
   }
   @media (max-width: 640px) {
     .amenities-grid, .rooms-grid { grid-template-columns: 1fr; }
@@ -2850,9 +2870,9 @@
 <!-- ══════════════════════════════════════════════════════════════
      SUITES SECTION  (anchor: #rooms)
      Three suite cards displayed side by side:
-       - One-Bedroom Suite   → ₦45,000/night  (Entry Collection)
-       - Two-Bedroom Suite   → ₦85,000/night  (Signature Collection)
-       - Three-Bedroom Suite → ₦120,000/night (Prestige Collection)
+       - One-Bedroom Suite   → ₦50,000/night  + ₦13,335 caution (Entry Collection)
+       - Two-Bedroom Suite   → ₦100,000/night + ₦26,670 caution (Signature Collection)
+       - Three-Bedroom Suite → ₦150,000/night + ₦40,005 caution (Prestige Collection)
      Each card has an emoji placeholder background, a dark gradient
      overlay so text stays readable, and an arrow icon that appears
      on hover. To update pricing or descriptions, edit the .room-card
@@ -2873,9 +2893,10 @@
           <h3 class="room-name">One-Bedroom Suite</h3>
           <p class="room-desc">Elegantly appointed living space with a fully equipped kitchenette, king bed, ensuite bathroom, and garden views.</p>
           <div class="room-price">
-            <span class="price-num" id="apt-price-1">₦45,000</span>
+            <span class="price-num" id="apt-price-1">₦50,000</span>
             <span class="price-unit">per night</span>
           </div>
+          <div class="room-caution">+ <span id="apt-caution-1">₦13,335</span> caution deposit · refundable on checkout</div>
         </div>
       </div>
       <div class="room-card reveal reveal-delay-1">
@@ -2886,9 +2907,10 @@
           <h3 class="room-name">Two-Bedroom Suite</h3>
           <p class="room-desc">Separate living and dining areas, two marble-clad ensuites, walk-in wardrobes, and a private balcony.</p>
           <div class="room-price">
-            <span class="price-num" id="apt-price-2">₦85,000</span>
+            <span class="price-num" id="apt-price-2">₦100,000</span>
             <span class="price-unit">per night</span>
           </div>
+          <div class="room-caution">+ <span id="apt-caution-2">₦26,670</span> caution deposit · refundable on checkout</div>
         </div>
       </div>
       <div class="room-card reveal reveal-delay-2">
@@ -2899,9 +2921,10 @@
           <h3 class="room-name">Three-Bedroom Suite</h3>
           <p class="room-desc">Three bedrooms, spacious living and dining areas, fully equipped kitchen, and premium amenities throughout.</p>
           <div class="room-price">
-            <span class="price-num" id="apt-price-3">₦120,000</span>
+            <span class="price-num" id="apt-price-3">₦150,000</span>
             <span class="price-unit">per night</span>
           </div>
+          <div class="room-caution">+ <span id="apt-caution-3">₦40,005</span> caution deposit · refundable on checkout</div>
         </div>
       </div>
     </div>
@@ -2924,22 +2947,57 @@
       <div>
         <p class="package-tag">Family Package</p>
         <h3 class="package-name">The Family <em>Escape</em></h3>
-        <p class="package-desc">Treat your family to an unforgettable luxury getaway at Eden 54. Enjoy spacious suites, poolside fun, the game center, fine dining, and the pergola pool bar — all at an exclusive 20% discount. Perfect for creating memories that last a lifetime.</p>
-        <div class="package-includes">
-          <span class="package-pill">🏠 Suite Accommodation</span>
-          <span class="package-pill">🏊 Pool Access</span>
-          <span class="package-pill">🎮 Game Center</span>
-          <span class="package-pill">🍽️ Fine Dining</span>
-          <span class="package-pill">🍹 Pergola Pool Bar</span>
-          <span class="package-pill">🌿 Garden Access</span>
+        <p class="package-desc">Treat your family to an unforgettable luxury getaway at Eden 54. Choose any suite and enjoy 10% off your accommodation rate, with full access to the pool and garden included. The game center and fine dining restaurant are available on-site at additional cost. Perfect for creating memories that last a lifetime.</p>
+        <div class="pkg-price-row">
+          <span class="pkg-price">From ₦45,000</span>
+          <span class="pkg-per">per night</span>
+          <span class="pkg-was">From ₦50,000</span>
         </div>
-        <a href="#contact" class="package-cta">Book This Package</a>
+        <div class="pkg-caution">+ Caution deposit (26.67% of nightly rate) · fully refundable on checkout &amp; unit confirmation</div>
+        <div class="package-includes">
+          <span class="package-pill">🏠 Any Suite — 10% Off</span>
+          <span class="package-pill">🏊 Pool Access — Included</span>
+          <span class="package-pill">🌿 Garden Access — Included</span>
+          <span class="package-pill" style="opacity:0.6;border-style:dashed">🎮 Game Center — Extra</span>
+          <span class="package-pill" style="opacity:0.6;border-style:dashed">🍽️ Fine Dining — Extra</span>
+        </div>
+        <a href="#contact" class="package-cta">Reserve Now</a>
       </div>
       <div class="package-badge">
         <div class="badge-circle">
           <span class="badge-save">Save</span>
-          <span class="badge-pct">20%</span>
+          <span class="badge-pct">10%</span>
           <span class="badge-off">Off</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="package-card reveal" style="border-color:rgba(201,169,110,0.45);margin-top:32px">
+      <div>
+        <p class="package-tag">Exclusive Buyout</p>
+        <h3 class="package-name">The Eden <em>Platinum</em></h3>
+        <p class="package-desc">The ultimate Eden 54 experience. Reserve all six apartments — The Ivy, The Willow, The Amber, The Jasmine, The Orchid &amp; The Eden Suite — for a fully private sanctuary. Pool access is included. Fine dining and the game center are available on-site at additional cost. Ideal for weddings, corporate retreats, milestone celebrations, and extended family gatherings that deserve an entire sanctuary of their own.</p>
+        <div class="pkg-price-row">
+          <span class="pkg-price">₦500,000</span>
+          <span class="pkg-per">per night</span>
+          <span class="pkg-was">₦600,000</span>
+        </div>
+        <div class="pkg-caution">+ ₦133,350 caution deposit · fully refundable on checkout &amp; unit confirmation</div>
+        <div class="package-includes">
+          <span class="package-pill">🏠 All 6 Apartments</span>
+          <span class="package-pill">🏊 Pool Access — Included</span>
+          <span class="package-pill">🌿 Full Property</span>
+          <span class="package-pill">🔐 Complete Privacy</span>
+          <span class="package-pill" style="opacity:0.6;border-style:dashed">🎮 Game Center — Extra</span>
+          <span class="package-pill" style="opacity:0.6;border-style:dashed">🍽️ Fine Dining — Extra</span>
+        </div>
+        <a href="#contact" class="package-cta">Reserve Now</a>
+      </div>
+      <div class="package-badge">
+        <div class="badge-circle">
+          <span class="badge-save">Save</span>
+          <span class="badge-pct" style="font-size:2.6rem;line-height:1">₦100k</span>
+          <span class="badge-off">per night</span>
         </div>
       </div>
     </div>
@@ -3097,6 +3155,14 @@
                   <option value="3">3 guests</option>
                   <option value="4">4 guests</option>
                   <option value="5">5 guests</option>
+                  <option value="6">6 guests</option>
+                  <option value="7">7 guests</option>
+                  <option value="8">8 guests</option>
+                  <option value="9">9 guests</option>
+                  <option value="10">10 guests</option>
+                  <option value="11–15">11–15 guests</option>
+                  <option value="16–20">16–20 guests</option>
+                  <option value="20+">20+ guests</option>
                 </select>
                 <span class="rf-field-error" id="rferr-rfGuests">Please select guests</span>
               </div>
@@ -3105,13 +3171,13 @@
 
           <div class="rf-section">
             <div class="rf-field">
-              <label for="rfUnit">Apartment unit <span class="req">*</span></label>
+              <label for="rfUnit">Apartment unit <span class="req">*</span>
+                <span id="rfAvailSpinner" style="display:none;font-size:0.72rem;color:#888;margin-left:8px;font-weight:300;letter-spacing:0.04em">Checking availability…</span>
+              </label>
               <select id="rfUnit" name="entry.9091780">
-                <option value="" disabled selected>Choose</option>
-                <option value="1 Bedroom Apartment">1 Bedroom Apartment</option>
-                <option value="2 Bedroom Apartment">2 Bedroom Apartment</option>
-                <option value="3 Bedroom Apartment">3 Bedroom Apartment</option>
+                <option value="" disabled selected>Select dates above to see availability</option>
               </select>
+              <div id="rfAvailNote" style="display:none;font-size:0.74rem;margin-top:6px;line-height:1.5"></div>
               <span class="rf-field-error" id="rferr-rfUnit">Please select an apartment unit</span>
             </div>
           </div>
@@ -3201,8 +3267,8 @@
     <div class="footer-col">
       <h5>Our Services</h5>
       <ul>
-        <li><a href="apartment.html">Apartments</a></li>
-        <li><a href="apartment.html#dining">Steakhouse & Lounge</a></li>
+        <li><a href="/#rooms">Apartments</a></li>
+        <li><a href="/#dining">Steakhouse & Lounge</a></li>
         <li><a href="/games">Games & Competition</a></li>
         <li><a href="/car-rental">Car Rental</a></li>
         <li><a href="/careers">Careers</a></li>
@@ -3211,9 +3277,9 @@
     <div class="footer-col">
       <h5>Suites</h5>
       <ul>
-        <li><a href="apartment.html">One-Bedroom Suite</a></li>
-        <li><a href="apartment.html">Two-Bedroom Suite</a></li>
-        <li><a href="apartment.html">Three-Bedroom Suite</a></li>
+        <li><a href="/#rooms">One-Bedroom Suite</a></li>
+        <li><a href="/#rooms">Two-Bedroom Suite</a></li>
+        <li><a href="/#rooms">Three-Bedroom Suite</a></li>
         <li><a href="#contact">Long Stay Packages</a></li>
       </ul>
     </div>
@@ -3411,6 +3477,119 @@
     { id: 'rfRequests',  required: false },
   ];
 
+  /* ── Named apartment units ── */
+  const RF_UNITS = [
+    { name: 'The Ivy',         beds: 1, rate: 50000,  desc: '1 Bedroom · Intimate & Refined'    },
+    { name: 'The Willow',      beds: 2, rate: 100000, desc: '2 Bedrooms · Graceful & Serene'    },
+    { name: 'The Amber',       beds: 2, rate: 100000, desc: '2 Bedrooms · Warm & Inviting'      },
+    { name: 'The Jasmine',     beds: 2, rate: 100000, desc: '2 Bedrooms · Fragrant & Elegant'   },
+    { name: 'The Orchid',      beds: 2, rate: 100000, desc: '2 Bedrooms · Exotic & Luxurious'   },
+    { name: 'The Eden Suite',  beds: 3, rate: 150000, desc: '3 Bedrooms · The Crown Jewel'      },
+  ];
+  const rfFmt = n => '₦' + Number(n).toLocaleString('en-NG') + '/night';
+
+  /* Map legacy/generic unit names → bedroom count for fallback blocking */
+  function rfLegacyBeds(raw) {
+    if (!raw) return null;
+    const u = raw.toLowerCase();
+    if (u.includes('all') || u.includes('whole')) return 'ALL';
+    if (u.includes('1') || u.includes('one')) return 1;
+    if (u.includes('3') || u.includes('three')) return 3;
+    if (u.includes('2') || u.includes('two')) return 2;
+    return null;
+  }
+
+  async function rfCheckAvailability() {
+    const checkin = document.getElementById('rfCheckin').value;
+    const checkout = document.getElementById('rfCheckout').value;
+    const unitSel  = document.getElementById('rfUnit');
+    const noteEl   = document.getElementById('rfAvailNote');
+    const spinEl   = document.getElementById('rfAvailSpinner');
+
+    // Static fallback (shown before dates picked or on Firebase error)
+    function buildStaticOpts(note) {
+      unitSel.innerHTML = `<option value="" disabled selected>Choose a unit</option>`
+        + RF_UNITS.map(u => `<option value="${u.name}">${u.name} — ${u.desc} · ${rfFmt(u.rate)}</option>`).join('')
+        + `<option value="All Units — Whole Property">🏠 All Units — Whole Property · The Eden Platinum (₦500,000/night · Save ₦100k)</option>`;
+      noteEl.style.display = note ? 'block' : 'none';
+      if (note) noteEl.innerHTML = note;
+    }
+
+    if (!checkin || !checkout || checkout <= checkin) {
+      unitSel.innerHTML = '<option value="" disabled selected>Select dates above to see availability</option>';
+      noteEl.style.display = 'none';
+      return;
+    }
+
+    spinEl.style.display = 'inline';
+    noteEl.style.display = 'none';
+
+    try {
+      if (typeof firebase === 'undefined' || !firebase.apps || !firebase.apps.length) throw new Error('sdk');
+      const db = firebase.firestore();
+
+      const [webSnap, portalSnap] = await Promise.all([
+        db.collection('apartmentBookings').where('checkin', '<', checkout).get(),
+        db.collection('apartmentRentals').where('checkin', '<', checkout).get(),
+      ]);
+
+      // Track which named units are booked; also track legacy bed-count bookings
+      const bookedUnits = new Set();
+      const legacyBooked = { 1: 0, 2: 0, 3: 0 };
+
+      function processBooking(b) {
+        if (b.status === 'cancelled' || b.status === 'checked-out') return;
+        if (!b.checkout || b.checkout <= checkin) return;
+        const raw = b.unit || '';
+        if (RF_UNITS.some(u => u.name === raw)) {
+          bookedUnits.add(raw); // exact named unit match
+        } else {
+          const beds = rfLegacyBeds(raw);
+          if (beds === 'ALL') { RF_UNITS.forEach(u => bookedUnits.add(u.name)); }
+          else if (beds) legacyBooked[beds] = (legacyBooked[beds] || 0) + 1;
+        }
+      }
+
+      webSnap.forEach(doc => processBooking(doc.data()));
+      portalSnap.forEach(doc => processBooking(doc.data()));
+
+      // Block legacy bed-count bookings against the first available unit of that size
+      [1, 2, 3].forEach(beds => {
+        let remaining = legacyBooked[beds] || 0;
+        RF_UNITS.forEach(u => {
+          if (u.beds === beds && remaining > 0 && !bookedUnits.has(u.name)) {
+            bookedUnits.add(u.name);
+            remaining--;
+          }
+        });
+      });
+
+      spinEl.style.display = 'none';
+
+      let html = '<option value="" disabled selected>Choose a unit</option>';
+      let anyAvail = false;
+
+      RF_UNITS.forEach(u => {
+        const ok = !bookedUnits.has(u.name);
+        if (ok) anyAvail = true;
+        html += `<option value="${u.name}"${ok ? '' : ' disabled'}>${u.name} — ${u.desc} · ${rfFmt(u.rate)}${ok ? '' : ' · Booked'}</option>`;
+      });
+
+      const allClear = bookedUnits.size === 0;
+      html += `<option value="All Units — Whole Property"${allClear ? '' : ' disabled'}>🏠 All Units — Whole Property · The Eden Platinum (₦500,000/night · Save ₦100k)${allClear ? '' : ' · Not Available'}</option>`;
+
+      unitSel.innerHTML = html;
+      noteEl.style.display = 'block';
+      noteEl.innerHTML = anyAvail
+        ? '<span style="color:#2d7a4f">✓ Live availability loaded for your selected dates</span>'
+        : '<span style="color:#c0392b">No units available for these dates — please try different dates or <a href="#contact" style="color:#c0392b;text-decoration:underline">contact us</a>.</span>';
+
+    } catch(e) {
+      spinEl.style.display = 'none';
+      buildStaticOpts('<span style="color:#888">Choose your preferred unit — staff will confirm availability.</span>');
+    }
+  }
+
   (function initRF() {
     const rfToday = new Date().toISOString().split('T')[0];
     const rfCI = document.getElementById('rfCheckin');
@@ -3420,6 +3599,10 @@
     if (rfCI) rfCI.addEventListener('change', function() {
       rfCO.min = this.value;
       if (rfCO.value && rfCO.value < this.value) rfCO.value = this.value;
+      rfCheckAvailability();
+    });
+    if (rfCO) rfCO.addEventListener('change', function() {
+      rfCheckAvailability();
     });
   })();
 
@@ -3672,17 +3855,23 @@
   } catch(e) {}
 </script>
 <script>
-  // Sync apartment prices from Firestore aptRates so website always matches POS settings
+  // Sync apartment prices from Firestore aptRates — skips stale old-default values
+  // so Firestore can only override HTML when a manager has set a genuinely custom rate.
   (function() {
+    const OLD_DEFAULTS = { 1: 45000, 2: 85000, 3: 120000 };
     try {
       const db = firebase.firestore();
       db.collection('aptRates').get().then(snap => {
         snap.forEach(doc => {
-          const r = doc.data();
+          const r    = doc.data();
           const beds = parseInt(r.bedrooms) || 0;
-          const el = document.getElementById('apt-price-' + beds);
-          if (el && r.nightlyRate) {
-            el.textContent = '₦' + Number(r.nightlyRate).toLocaleString('en-NG');
+          const rate = Number(r.nightlyRate) || 0;
+          if (!rate || rate === OLD_DEFAULTS[beds]) return; // ignore stale Firestore data
+          const priceEl   = document.getElementById('apt-price-'   + beds);
+          const cautionEl = document.getElementById('apt-caution-' + beds);
+          if (priceEl) {
+            priceEl.textContent = '₦' + rate.toLocaleString('en-NG');
+            if (cautionEl) cautionEl.textContent = '₦' + Math.round(rate * 0.2667).toLocaleString('en-NG');
           }
         });
       }).catch(() => {});

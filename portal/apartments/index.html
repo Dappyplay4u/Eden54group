@@ -114,12 +114,15 @@
         <div class="fg2" style="margin-bottom:14px">
           <div class="form-group">
             <label class="form-label">Apartment Type *</label>
-            <select id="apUnit" class="form-control">
+            <select id="apUnit" class="form-control" onchange="apUnitChanged()">
               <option value="">Select unit…</option>
-              <option>1-Bedroom Suite</option>
-              <option>2-Bedroom Suite</option>
-              <option>3-Bedroom Suite</option>
-              <option>Studio</option>
+              <option value="The Ivy">The Ivy — 1 Bedroom · Intimate &amp; Refined</option>
+              <option value="The Willow">The Willow — 2 Bedrooms · Graceful &amp; Serene</option>
+              <option value="The Amber">The Amber — 2 Bedrooms · Warm &amp; Inviting</option>
+              <option value="The Jasmine">The Jasmine — 2 Bedrooms · Fragrant &amp; Elegant</option>
+              <option value="The Orchid">The Orchid — 2 Bedrooms · Exotic &amp; Luxurious</option>
+              <option value="The Eden Suite">The Eden Suite — 3 Bedrooms · The Crown Jewel</option>
+              <option value="All Units — Whole Property">All Units — Whole Property</option>
             </select>
           </div>
           <div class="form-group">
@@ -200,8 +203,12 @@
         <!-- Balance display -->
         <div id="balanceDisplay" style="display:none">
           <div class="balance-row">
-            <span class="b-lbl">Total Amount</span>
+            <span class="b-lbl">Rental Total</span>
             <span class="b-val" id="bTotal">₦0</span>
+          </div>
+          <div class="balance-row" id="bCautionRow" style="display:none">
+            <span class="b-lbl">Caution Deposit <span style="font-size:0.65rem;color:var(--muted)">(refundable on checkout)</span></span>
+            <span class="b-val" id="bCaution" style="color:var(--gold)">₦0</span>
           </div>
           <div class="balance-row">
             <span class="b-lbl">Amount Paid</span>
@@ -359,6 +366,27 @@ function calcNights() {
   }
   calcTotal();
 }
+const AP_UNIT_RATES = {
+  'The Ivy':                    { rate: 50000,  beds: 1 },
+  'The Willow':                 { rate: 100000, beds: 2 },
+  'The Amber':                  { rate: 100000, beds: 2 },
+  'The Jasmine':                { rate: 100000, beds: 2 },
+  'The Orchid':                 { rate: 100000, beds: 2 },
+  'The Eden Suite':             { rate: 150000, beds: 3 },
+  'All Units — Whole Property': { rate: 500000, beds: 6 },
+};
+const CAUTION_PCT = 0.2667;
+
+function apUnitChanged() {
+  const unit = document.getElementById('apUnit').value;
+  const info = AP_UNIT_RATES[unit];
+  if (info) {
+    document.getElementById('apRate').value     = info.rate;
+    document.getElementById('apBedrooms').value = info.beds <= 3 ? info.beds : 3;
+    calcTotal();
+  }
+}
+
 function calcTotal() {
   const n    = parseInt(document.getElementById('nightsVal').textContent) || 0;
   const rate = parseFloat(document.getElementById('apRate').value) || 0;
@@ -366,16 +394,25 @@ function calcTotal() {
   calcBalance();
 }
 function calcBalance() {
-  const total = parseFloat(document.getElementById('apTotal').value) || 0;
-  const paid  = parseFloat(document.getElementById('apPaid').value)  || 0;
+  const total   = parseFloat(document.getElementById('apTotal').value) || 0;
+  const paid    = parseFloat(document.getElementById('apPaid').value)  || 0;
+  const rate    = parseFloat(document.getElementById('apRate').value)  || 0;
+  const caution = rate > 0 ? Math.round(rate * CAUTION_PCT) : 0;
   if (total > 0 || paid > 0) {
     document.getElementById('balanceDisplay').style.display = 'block';
-    document.getElementById('bTotal').textContent   = fmt(total);
-    document.getElementById('bPaid').textContent    = fmt(paid);
+    document.getElementById('bTotal').textContent = fmt(total);
+    document.getElementById('bPaid').textContent  = fmt(paid);
+    const cautionRow = document.getElementById('bCautionRow');
+    if (caution > 0) {
+      cautionRow.style.display = '';
+      document.getElementById('bCaution').textContent = fmt(caution);
+    } else {
+      cautionRow.style.display = 'none';
+    }
     const bal = total - paid;
     const balEl = document.getElementById('bBalance');
-    balEl.textContent  = fmt(bal);
-    balEl.className    = 'b-val' + (bal > 0 ? ' red' : '');
+    balEl.textContent = fmt(bal);
+    balEl.className   = 'b-val' + (bal > 0 ? ' red' : '');
   }
 }
 
@@ -397,8 +434,9 @@ async function submitRental() {
     return showAlert('alertBox', 'Please fill all required fields.', 'alert-error');
   }
 
-  const nights  = nightsBetween(checkin, checkout);
-  const balance = total - paid;
+  const nights     = nightsBetween(checkin, checkout);
+  const balance    = total - paid;
+  const cautionFee = rate > 0 ? Math.round(rate * CAUTION_PCT) : 0;
 
   try {
     await db.collection('apartmentRentals').add({
@@ -408,6 +446,7 @@ async function submitRental() {
       bedrooms:  +bedrooms,
       guests:    document.getElementById('apGuests').value,
       checkin, checkout, nights, rate, total, paid, balance,
+      cautionFee, cautionStatus: 'held',
       payMethod, payStatus,
       notes:     document.getElementById('apNotes').value.trim(),
       loggedBy:  staff.name,
@@ -472,6 +511,7 @@ function loadNotifications() {
               <div class="notif-actions">
                 ${isNew ? `<button class="btn btn-gold btn-sm" onclick="confirmBooking('${b.id}')">✓ Confirm</button>` : ''}
                 <button class="btn btn-outline btn-sm" onclick="convertToRental('${b.id}')">+ Log as Rental</button>
+                <button class="btn btn-sm" style="border:1px solid #dc2626;color:#dc2626;background:none;min-height:36px;padding:8px 14px;border-radius:4px;cursor:pointer;font-family:'Jost',sans-serif;font-size:0.72rem;letter-spacing:0.08em" onclick="declineBooking('${b.id}','${(b.firstName||'').replace(/'/g,"\\'")} ${(b.lastName||'').replace(/'/g,"\\'")}','${b.status||'new'}')">✕ Delete</button>
               </div>
             </div>
             <div class="notif-time">${timeAgo(b.createdAt)}</div>
@@ -486,6 +526,15 @@ function loadNotifications() {
 
 async function confirmBooking(id) {
   await db.collection('apartmentBookings').doc(id).update({ status: 'confirmed' });
+}
+
+async function declineBooking(id, guestName, status) {
+  const msg = status === 'confirmed'
+    ? `Delete confirmed booking for ${guestName}?\n\nUse this for cancellations, refund requests, or non-payment after confirmation.`
+    : `Delete reservation for ${guestName}?\n\nUse this when no payment or deposit has been made.`;
+  if (!confirm(msg)) return;
+  await db.collection('apartmentBookings').doc(id).delete();
+  showAlert('alertBox', `Booking for ${guestName} deleted.`, 'alert-error');
 }
 
 async function markAllSeen() {
@@ -534,6 +583,7 @@ function loadActive() {
               <div class="notif-meta">
                 🏨 ${r.unit}${r.bedrooms ? ` · ${r.bedrooms} Bed` : ''} &nbsp;|&nbsp; 📅 ${fmtDate(r.checkin)} → ${fmtDate(r.checkout)} (${r.nights} night${r.nights!==1?'s':''})
                 <br>💰 Total: ${fmt(r.total)} &nbsp;|&nbsp; Paid: ${fmt(r.paid)} &nbsp;|&nbsp; <span style="color:${bal>0?'#dc2626':'#15803d'}">Balance: ${fmt(bal)}</span>
+                ${r.cautionFee ? `<br>🔐 Caution deposit: ${fmt(r.cautionFee)} <span style="color:#15803d">(refundable on checkout)</span>` : ''}
               </div>
               <div class="notif-actions">
                 <button class="btn btn-outline btn-sm" onclick="checkOut('${r.id}')">Check Out</button>
