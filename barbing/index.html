@@ -185,6 +185,17 @@
     footer { padding: 32px 24px; flex-direction: column; align-items: flex-start; }
     .hours-grid { gap: 32px; }
   }
+  /* Booking modal mobile fixes */
+  .modal-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+  @media (max-width: 480px) {
+    #barbingModal > div { padding: 0 !important; }
+    #barbingModal > div > div:first-child { padding: 24px 20px 16px !important; }
+    #barbingForm { padding: 0 20px 28px !important; }
+    #barbingModal label { font-size: 0.72rem !important; color: rgba(245,242,236,0.65) !important; }
+    #barbingModal input, #barbingModal select, #barbingModal textarea { min-height: 44px !important; font-size: 0.92rem !important; }
+    .modal-2col { grid-template-columns: 1fr !important; }
+    #barbingSubmitBtn { min-height: 48px !important; font-size: 0.82rem !important; }
+  }
 </style>
 </head>
 <body>
@@ -530,34 +541,34 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLB(); }
       <input type="hidden" name="_captcha" value="false">
       <input type="hidden" name="_cc" value="eden54games@gmail.com">
       <div style="margin-bottom:14px">
-        <label style="display:block;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:rgba(245,242,236,0.45);margin-bottom:6px">Full Name *</label>
+        <label style="display:block;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:rgba(245,242,236,0.65);margin-bottom:6px">Full Name *</label>
         <input name="name" required placeholder="Your full name" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(201,169,110,0.22);padding:11px 14px;color:#F5F2EC;font-family:'Jost',sans-serif;font-size:0.88rem;outline:none;border-radius:2px" onfocus="this.style.borderColor='rgba(201,169,110,0.6)'" onblur="this.style.borderColor='rgba(201,169,110,0.22)'">
       </div>
       <div style="margin-bottom:14px">
-        <label style="display:block;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:rgba(245,242,236,0.45);margin-bottom:6px">Phone Number *</label>
+        <label style="display:block;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:rgba(245,242,236,0.65);margin-bottom:6px">Phone Number *</label>
         <input name="phone" type="tel" required placeholder="e.g. 08012345678" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(201,169,110,0.22);padding:11px 14px;color:#F5F2EC;font-family:'Jost',sans-serif;font-size:0.88rem;outline:none;border-radius:2px" onfocus="this.style.borderColor='rgba(201,169,110,0.6)'" onblur="this.style.borderColor='rgba(201,169,110,0.22)'">
       </div>
       <div style="margin-bottom:14px">
-        <label style="display:block;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:rgba(245,242,236,0.45);margin-bottom:6px">Service Required *</label>
+        <label style="display:block;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:rgba(245,242,236,0.65);margin-bottom:6px">Service Required *</label>
         <select name="service" required style="width:100%;background:#0f2318;border:1px solid rgba(201,169,110,0.22);padding:11px 14px;color:#F5F2EC;font-family:'Jost',sans-serif;font-size:0.88rem;outline:none;border-radius:2px">
           <option value="">Select a service…</option>
           <option>Haircut</option><option>Beard Trim</option><option>Haircut + Beard</option><option>Hair Styling</option><option>Full Grooming Package</option><option>Kids Haircut</option>
         </select>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+      <div class="modal-2col">
         <div>
-          <label style="display:block;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:rgba(245,242,236,0.45);margin-bottom:6px">Preferred Date</label>
+          <label style="display:block;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:rgba(245,242,236,0.65);margin-bottom:6px">Preferred Date</label>
           <input name="date" type="date" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(201,169,110,0.22);padding:11px 14px;color:#F5F2EC;font-family:'Jost',sans-serif;font-size:0.88rem;outline:none;border-radius:2px">
         </div>
         <div>
-          <label style="display:block;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:rgba(245,242,236,0.45);margin-bottom:6px">Preferred Time</label>
+          <label style="display:block;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:rgba(245,242,236,0.65);margin-bottom:6px">Preferred Time</label>
           <select name="time" style="width:100%;background:#0f2318;border:1px solid rgba(201,169,110,0.22);padding:11px 14px;color:#F5F2EC;font-family:'Jost',sans-serif;font-size:0.88rem;outline:none;border-radius:2px">
             <option>Morning (9am–12pm)</option><option>Afternoon (12pm–3pm)</option><option>Evening (3pm–6pm)</option>
           </select>
         </div>
       </div>
       <div style="margin-bottom:20px">
-        <label style="display:block;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:rgba(245,242,236,0.45);margin-bottom:6px">Special Requests (optional)</label>
+        <label style="display:block;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:rgba(245,242,236,0.65);margin-bottom:6px">Special Requests (optional)</label>
         <textarea name="notes" rows="3" placeholder="Any specific style or requirements…" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(201,169,110,0.22);padding:11px 14px;color:#F5F2EC;font-family:'Jost',sans-serif;font-size:0.88rem;outline:none;border-radius:2px;resize:vertical"></textarea>
       </div>
       <button type="submit" id="barbingSubmitBtn" style="width:100%;background:#C9A96E;color:#0f2318;border:none;padding:14px;font-family:'Jost',sans-serif;font-size:0.78rem;letter-spacing:0.22em;text-transform:uppercase;cursor:pointer;border-radius:2px">Reserve My Slot →</button>

@@ -122,7 +122,9 @@ body{background:var(--bg);color:var(--text);font-family:'Jost',sans-serif;font-w
 .success h2{font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:300;margin-bottom:10px}
 .success h2 em{color:var(--gold);font-style:italic}
 .success p{font-size:.85rem;color:var(--muted);max-width:460px;margin:0 auto 20px;line-height:1.8}
-.success .ref{display:inline-block;padding:8px 20px;border:1px solid var(--border);border-radius:4px;font-size:.72rem;color:var(--gold);letter-spacing:.2em;text-transform:uppercase;margin-top:8px}
+.success .ref{display:inline-block;padding:10px 24px;border:1px solid var(--border);border-radius:4px;font-size:1rem;font-weight:400;color:var(--gold);letter-spacing:.18em;text-transform:uppercase;margin-top:8px}
+.success .copy-btn{display:inline-block;margin-top:12px;background:none;border:1px solid var(--border);color:var(--muted);font-family:'Jost',sans-serif;font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;padding:7px 16px;border-radius:4px;cursor:pointer;transition:.2s}
+.success .copy-btn:hover{border-color:var(--gold);color:var(--gold)}
 
 /* ── Loading ── */
 .loading{position:fixed;inset:0;background:rgba(11,26,14,.92);display:none;flex-direction:column;align-items:center;justify-content:center;z-index:9999;gap:16px}
@@ -132,13 +134,16 @@ body{background:var(--bg);color:var(--text);font-family:'Jost',sans-serif;font-w
 .load-msg{font-size:.78rem;color:var(--muted)}
 .load-sub{font-size:.66rem;color:var(--dim);text-align:center;max-width:280px}
 
-@media(max-width:640px){
+@media(max-width:768px){
   .bc-hdr{padding:16px 20px}
   .bc-hdr-right{display:none}
   .bc-prog{padding:20px 20px 0}
   .stp-lbl{display:none}
   .bc-main{padding:28px 16px 80px}
   .fg,.fg.c3{grid-template-columns:1fr}
+  .fld label{font-size:.75rem}
+  .fld input,.fld select,.fld textarea{min-height:44px;font-size:.9rem}
+  .btn-nxt{min-height:48px;font-size:.82rem}
 }
 </style>
 </head>
@@ -177,6 +182,8 @@ body{background:var(--bg);color:var(--text);font-family:'Jost',sans-serif;font-w
     <h2>Submission <em>Received</em></h2>
     <p>Thank you. Your background check form has been received by the Eden 54 HR team. You will be contacted within 3–5 working days to confirm the next steps.</p>
     <div class="ref" id="refId"></div>
+    <br>
+    <button class="copy-btn" onclick="navigator.clipboard.writeText(document.getElementById('refId').textContent).then(()=>{this.textContent='Copied!';setTimeout(()=>this.textContent='Copy Reference ID',2000)})">Copy Reference ID</button>
   </div>
 
   <!-- ══════════════════════════════════════

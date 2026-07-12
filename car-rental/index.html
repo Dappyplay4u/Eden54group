@@ -208,6 +208,16 @@
     .car-gallery-grid { grid-template-columns: 1fr; }
     .car-gallery-item:first-child { grid-column: span 1; aspect-ratio: 4/3; }
   }
+  /* Booking modal mobile fixes */
+  .modal-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+  @media (max-width: 480px) {
+    #carModal > div > div:first-child { padding: 24px 20px 16px !important; }
+    #carForm { padding: 0 20px 28px !important; }
+    #carModal label { font-size: 0.72rem !important; color: rgba(245,242,236,0.65) !important; }
+    #carModal input, #carModal select, #carModal textarea { min-height: 44px !important; font-size: 0.92rem !important; }
+    .modal-2col { grid-template-columns: 1fr !important; }
+    #carSubmitBtn { min-height: 48px !important; font-size: 0.82rem !important; }
+  }
 </style>
 </head>
 <body>
@@ -554,31 +564,31 @@
       <input type="hidden" name="_captcha" value="false">
       <input type="hidden" name="_cc" value="eden54games@gmail.com">
       <div style="margin-bottom:14px">
-        <label style="display:block;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:rgba(245,242,236,0.45);margin-bottom:6px">Full Name *</label>
+        <label style="display:block;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:rgba(245,242,236,0.65);margin-bottom:6px">Full Name *</label>
         <input name="name" required placeholder="Your full name" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(201,169,110,0.22);padding:11px 14px;color:#F5F2EC;font-family:'Jost',sans-serif;font-size:0.88rem;outline:none;border-radius:2px" onfocus="this.style.borderColor='rgba(201,169,110,0.6)'" onblur="this.style.borderColor='rgba(201,169,110,0.22)'">
       </div>
       <div style="margin-bottom:14px">
-        <label style="display:block;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:rgba(245,242,236,0.45);margin-bottom:6px">Phone Number *</label>
+        <label style="display:block;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:rgba(245,242,236,0.65);margin-bottom:6px">Phone Number *</label>
         <input name="phone" type="tel" required placeholder="e.g. 08012345678" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(201,169,110,0.22);padding:11px 14px;color:#F5F2EC;font-family:'Jost',sans-serif;font-size:0.88rem;outline:none;border-radius:2px" onfocus="this.style.borderColor='rgba(201,169,110,0.6)'" onblur="this.style.borderColor='rgba(201,169,110,0.22)'">
       </div>
       <div style="margin-bottom:14px">
-        <label style="display:block;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:rgba(245,242,236,0.45);margin-bottom:6px">Destination *</label>
+        <label style="display:block;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:rgba(245,242,236,0.65);margin-bottom:6px">Destination *</label>
         <input name="destination" required placeholder="Where are you going?" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(201,169,110,0.22);padding:11px 14px;color:#F5F2EC;font-family:'Jost',sans-serif;font-size:0.88rem;outline:none;border-radius:2px" onfocus="this.style.borderColor='rgba(201,169,110,0.6)'" onblur="this.style.borderColor='rgba(201,169,110,0.22)'">
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+      <div class="modal-2col">
         <div>
-          <label style="display:block;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:rgba(245,242,236,0.45);margin-bottom:6px">Date Required</label>
+          <label style="display:block;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:rgba(245,242,236,0.65);margin-bottom:6px">Date Required</label>
           <input name="date" type="date" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(201,169,110,0.22);padding:11px 14px;color:#F5F2EC;font-family:'Jost',sans-serif;font-size:0.88rem;outline:none;border-radius:2px">
         </div>
         <div>
-          <label style="display:block;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:rgba(245,242,236,0.45);margin-bottom:6px">Passengers</label>
+          <label style="display:block;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:rgba(245,242,236,0.65);margin-bottom:6px">Passengers</label>
           <select name="passengers" style="width:100%;background:#0f2318;border:1px solid rgba(201,169,110,0.22);padding:11px 14px;color:#F5F2EC;font-family:'Jost',sans-serif;font-size:0.88rem;outline:none;border-radius:2px">
             <option>1</option><option>2</option><option>3</option><option>4</option><option>5+</option>
           </select>
         </div>
       </div>
       <div style="margin-bottom:20px">
-        <label style="display:block;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:rgba(245,242,236,0.45);margin-bottom:6px">Additional Notes (optional)</label>
+        <label style="display:block;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:rgba(245,242,236,0.65);margin-bottom:6px">Additional Notes (optional)</label>
         <textarea name="notes" rows="3" placeholder="Pick-up time, return trip, specific requirements…" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(201,169,110,0.22);padding:11px 14px;color:#F5F2EC;font-family:'Jost',sans-serif;font-size:0.88rem;outline:none;border-radius:2px;resize:vertical"></textarea>
       </div>
       <button type="submit" id="carSubmitBtn" style="width:100%;background:#C9A96E;color:#0f2318;border:none;padding:14px;font-family:'Jost',sans-serif;font-size:0.78rem;letter-spacing:0.22em;text-transform:uppercase;cursor:pointer;border-radius:2px">Book My Ride →</button>

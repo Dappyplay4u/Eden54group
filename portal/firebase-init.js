@@ -28,7 +28,11 @@ function getStaff() {
   }
 }
 function setStaff(data) { localStorage.setItem('eden54_staff', JSON.stringify(data)); }
-function switchProfile() { localStorage.removeItem('eden54_staff'); window.location.href = '/portal/'; }
+function switchProfile() {
+  localStorage.removeItem('eden54_staff');
+  try { firebase.auth().signOut(); } catch(e) {}
+  window.location.href = '/portal/';
+}
 
 /* ── Sidebar ── */
 function populateSidebar(staff) {
@@ -84,7 +88,7 @@ function buildNav(staff, active) {
   _navActive = active;
   const _raw      = (staff.accessLevel || staff.role || 'staff').toLowerCase().replace(/\s+/g,'');
   const isCEO     = _raw === 'ceo' || _raw === 'superadmin';
-  const isManager = isCEO || _raw === 'manager';
+  const isManager = isCEO || _raw === 'manager' || _raw.includes('manager');
   const dept      = (staff.department || '').toLowerCase();
   const isHR      = !isManager && (_raw === 'hr' || dept === 'hr' || dept.includes('human resource'));
   const isFrontDesk = dept === 'front desk' || dept === 'receptionist' || dept === 'lounge' || dept === 'apartments';
@@ -187,7 +191,10 @@ function buildNav(staff, active) {
   }
 
   const switchBtn = document.querySelector('.sb-foot a[onclick]');
-  if (switchBtn) switchBtn.style.display = (isManager || isHR) ? '' : 'none';
+  if (switchBtn) {
+    switchBtn.innerHTML = '<i class="sb-icon">🚪</i> Sign Out';
+    switchBtn.style.display = '';
+  }
 
   // Always fetch live Firestore data once per page load so nav reflects real access level
   if (!_navFetched && staff && staff.id && typeof db !== 'undefined') {
@@ -214,7 +221,7 @@ function requireAccess(staff, page) {
   const _raw      = (staff.accessLevel || staff.role || 'staff').toLowerCase().replace(/\s+/g,'');
   const isCEO     = _raw === 'ceo' || _raw === 'superadmin';
   if (isCEO) return true; // CEO has unrestricted access to all pages
-  const isManager = _raw === 'manager';
+  const isManager = _raw === 'manager' || _raw.includes('manager');
   const dept      = (staff.department || '').toLowerCase();
   const isHR      = _raw === 'hr' || dept === 'hr' || dept.includes('human resource');
   const rules = {
@@ -282,6 +289,7 @@ function initBookingNotifications(staff) {
   const bell = document.createElement('button');
   bell.id = 'aptNotifBtn';
   bell.title = 'Apartment Reservations';
+  bell.setAttribute('aria-label', 'Apartment Reservations');
   bell.innerHTML = `🔔 Reservations <span id="aptNotifBadge"></span>`;
 
   // Dropdown panel
@@ -290,7 +298,10 @@ function initBookingNotifications(staff) {
   panel.innerHTML = `
     <div class="np-head">
       <span class="np-title">🏨 New Reservations</span>
-      <a href="/portal/apartments/" class="np-link">View All →</a>
+      <div style="display:flex;align-items:center;gap:10px">
+        <a href="/portal/apartments/" class="np-link">View All →</a>
+        <button onclick="document.getElementById('aptNotifPanel').style.display='none'" aria-label="Close notifications" style="background:none;border:none;cursor:pointer;font-size:1rem;color:#6a6b62;line-height:1;padding:0">×</button>
+      </div>
     </div>
     <div class="np-body" id="aptNotifBody"><div class="np-empty">No new reservations</div></div>`;
 

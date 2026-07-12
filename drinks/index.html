@@ -158,6 +158,16 @@ footer a { color: var(--gold); text-decoration: none; }
   .benefits-grid { grid-template-columns: 1fr 1fr; }
   .stat-row { gap: 24px; }
 }
+/* Booking modal mobile fixes */
+.modal-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+@media (max-width: 480px) {
+  #drinksModal > div > div:first-child { padding: 24px 20px 16px !important; }
+  #drinksForm { padding: 0 20px 28px !important; }
+  #drinksModal label { font-size: 0.72rem !important; color: rgba(245,242,236,0.65) !important; }
+  #drinksModal input, #drinksModal select, #drinksModal textarea { min-height: 44px !important; font-size: 0.92rem !important; }
+  .modal-2col { grid-template-columns: 1fr !important; }
+  #drinksSubmitBtn { min-height: 48px !important; font-size: 0.82rem !important; }
+}
 </style>
 </head>
 <body>
@@ -316,29 +326,29 @@ document.querySelectorAll('#navLinks a').forEach(a => a.addEventListener('click'
       <input type="hidden" name="_captcha" value="false">
       <input type="hidden" name="_cc" value="eden54games@gmail.com">
       <div style="margin-bottom:14px">
-        <label style="display:block;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:rgba(245,242,236,0.45);margin-bottom:6px">Full Name *</label>
+        <label style="display:block;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:rgba(245,242,236,0.65);margin-bottom:6px">Full Name *</label>
         <input name="name" required placeholder="Your full name" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(201,169,110,0.22);padding:11px 14px;color:#F5F2EC;font-family:'Jost',sans-serif;font-size:0.88rem;outline:none;border-radius:2px;transition:border-color 0.2s" onfocus="this.style.borderColor='rgba(201,169,110,0.6)'" onblur="this.style.borderColor='rgba(201,169,110,0.22)'">
       </div>
       <div style="margin-bottom:14px">
-        <label style="display:block;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:rgba(245,242,236,0.45);margin-bottom:6px">Phone Number *</label>
+        <label style="display:block;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:rgba(245,242,236,0.65);margin-bottom:6px">Phone Number *</label>
         <input name="phone" type="tel" required placeholder="e.g. 08012345678" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(201,169,110,0.22);padding:11px 14px;color:#F5F2EC;font-family:'Jost',sans-serif;font-size:0.88rem;outline:none;border-radius:2px;transition:border-color 0.2s" onfocus="this.style.borderColor='rgba(201,169,110,0.6)'" onblur="this.style.borderColor='rgba(201,169,110,0.22)'">
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+      <div class="modal-2col">
         <div>
-          <label style="display:block;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:rgba(245,242,236,0.45);margin-bottom:6px">Quantity</label>
+          <label style="display:block;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:rgba(245,242,236,0.65);margin-bottom:6px">Quantity</label>
           <select name="quantity" style="width:100%;background:#0f2318;border:1px solid rgba(201,169,110,0.22);padding:11px 14px;color:#F5F2EC;font-family:'Jost',sans-serif;font-size:0.88rem;outline:none;border-radius:2px">
             <option>1 bottle</option><option>2 bottles</option><option>3 bottles</option><option>5 bottles</option><option>10+ bottles</option>
           </select>
         </div>
         <div>
-          <label style="display:block;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:rgba(245,242,236,0.45);margin-bottom:6px">Pickup / Delivery</label>
+          <label style="display:block;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:rgba(245,242,236,0.65);margin-bottom:6px">Pickup / Delivery</label>
           <select name="delivery" style="width:100%;background:#0f2318;border:1px solid rgba(201,169,110,0.22);padding:11px 14px;color:#F5F2EC;font-family:'Jost',sans-serif;font-size:0.88rem;outline:none;border-radius:2px">
             <option>Pickup at Eden 54</option><option>Delivery</option>
           </select>
         </div>
       </div>
       <div style="margin-bottom:20px">
-        <label style="display:block;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:rgba(245,242,236,0.45);margin-bottom:6px">Notes (optional)</label>
+        <label style="display:block;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:rgba(245,242,236,0.65);margin-bottom:6px">Notes (optional)</label>
         <textarea name="notes" rows="3" placeholder="Any special requests, delivery address, preferred time…" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(201,169,110,0.22);padding:11px 14px;color:#F5F2EC;font-family:'Jost',sans-serif;font-size:0.88rem;outline:none;border-radius:2px;resize:vertical"></textarea>
       </div>
       <button type="submit" id="drinksSubmitBtn" style="width:100%;background:#C9A96E;color:#0f2318;border:none;padding:14px;font-family:'Jost',sans-serif;font-size:0.78rem;letter-spacing:0.22em;text-transform:uppercase;cursor:pointer;border-radius:2px;transition:background 0.2s">Place Order →</button>
