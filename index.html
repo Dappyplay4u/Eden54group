@@ -3692,7 +3692,8 @@
       _subject:          'New Reservation Request — Eden 54',
       _captcha:          'false',
       _template:         'table',
-      _cc:               'eden54group@gmail.com',
+      _cc:               'eden54games@gmail.com',
+
       'First Name':      document.getElementById('rfFirstName').value,
       'Last Name':       document.getElementById('rfLastName').value,
       'Email':           document.getElementById('rfEmail').value,
@@ -3703,7 +3704,7 @@
       'Apartment Unit':  document.getElementById('rfUnit').value,
       'Special Requests':document.getElementById('rfRequests').value,
     };
-    fetch('https://formsubmit.co/ajax/jegede.oladapo@ymail.com', {
+    fetch('https://formsubmit.co/ajax/eden54group@gmail.com', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
       body: JSON.stringify(emailPayload)

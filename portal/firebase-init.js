@@ -15,9 +15,17 @@ try { storage = firebase.storage(); } catch(e) {}
 function getStaff() {
   try {
     const s = localStorage.getItem('eden54_staff');
-    if (!s) { window.location.href = '/portal/'; return null; }
+    if (!s) {
+      sessionStorage.setItem('eden54_redirect', window.location.href);
+      window.location.href = '/portal/';
+      return null;
+    }
     return JSON.parse(s);
-  } catch(e) { window.location.href = '/portal/'; return null; }
+  } catch(e) {
+    sessionStorage.setItem('eden54_redirect', window.location.href);
+    window.location.href = '/portal/';
+    return null;
+  }
 }
 function setStaff(data) { localStorage.setItem('eden54_staff', JSON.stringify(data)); }
 function switchProfile() { localStorage.removeItem('eden54_staff'); window.location.href = '/portal/'; }
@@ -105,10 +113,11 @@ function buildNav(staff, active) {
     html += sec('Reports');
     html += a('/portal/reports/',    '📋', 'All Reports',    'reports');
     html += sec('HR & Operations');
-    html += a('/portal/attendance/', '👥', 'Attendance',     'attendance');
-    html += a('/portal/payroll/',    '💵', 'Payroll',        'payroll');
-    html += a('/portal/activity/',   '🕵️', 'Staff Activity', 'activity');
-    html += a('/portal/expenses/',   '🧾', 'Expenses',       'expenses');
+    html += a('/portal/attendance/',        '👥', 'Attendance',        'attendance');
+    html += a('/portal/payroll/',           '💵', 'Payroll',            'payroll');
+    html += a('/portal/activity/',          '🕵️', 'Staff Activity',     'activity');
+    html += a('/portal/expenses/',          '🧾', 'Expenses',           'expenses');
+    html += a('/portal/background-check/', '🔍', 'Background Checks',  'background-check');
     html += sec('Admin');
     html += a('/portal/staff/',      '👤', 'Manage Staff',   'staff');
     html += sec('Apartments');
@@ -117,11 +126,12 @@ function buildNav(staff, active) {
     html += sec('Reports');
     html += a('/portal/reports/',    '📋', 'All Reports',    'reports');
     html += sec('HR');
-    html += a('/portal/attendance/', '👥', 'Attendance',     'attendance');
-    html += a('/portal/payroll/',    '💵', 'Payroll',        'payroll');
-    html += a('/portal/expenses/',   '🧾', 'Expenses',       'expenses');
+    html += a('/portal/attendance/',        '👥', 'Attendance',        'attendance');
+    html += a('/portal/payroll/',           '💵', 'Payroll',            'payroll');
+    html += a('/portal/expenses/',          '🧾', 'Expenses',           'expenses');
+    html += a('/portal/background-check/', '🔍', 'Background Checks',  'background-check');
     html += sec('Admin');
-    html += a('/portal/staff/',      '👤', 'Manage Staff',   'staff');
+    html += a('/portal/staff/',             '👤', 'Manage Staff',       'staff');
     html += sec('Apartments');
     html += a('/portal/apartments/', '🏨', 'Apartment Rentals', 'apartments');
   } else {
@@ -208,12 +218,13 @@ function requireAccess(staff, page) {
   const dept      = (staff.department || '').toLowerCase();
   const isHR      = _raw === 'hr' || dept === 'hr' || dept.includes('human resource');
   const rules = {
-    dashboard:  isManager,
-    staff:      isManager || isHR,
-    attendance: isManager || isHR,
-    payroll:    isManager || isHR,
-    reports:    isManager || isHR,
-    activity:   isManager,
+    dashboard:          isManager,
+    staff:              isManager || isHR,
+    attendance:         isManager || isHR,
+    payroll:            isManager || isHR,
+    reports:            isManager || isHR,
+    activity:           isManager,
+    'background-check': isManager || isHR,
     expenses:   true,
     bar:        isManager || dept === 'bar',
     kitchen:    isManager || dept === 'kitchen',

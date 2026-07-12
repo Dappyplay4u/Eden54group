@@ -528,6 +528,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLB(); }
     <form id="barbingForm" style="padding:0 36px 36px" onsubmit="submitBarbingForm(event)">
       <input type="hidden" name="_subject" value="Barbing Salon Booking — Eden 54">
       <input type="hidden" name="_captcha" value="false">
+      <input type="hidden" name="_cc" value="eden54games@gmail.com">
       <div style="margin-bottom:14px">
         <label style="display:block;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:rgba(245,242,236,0.45);margin-bottom:6px">Full Name *</label>
         <input name="name" required placeholder="Your full name" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(201,169,110,0.22);padding:11px 14px;color:#F5F2EC;font-family:'Jost',sans-serif;font-size:0.88rem;outline:none;border-radius:2px" onfocus="this.style.borderColor='rgba(201,169,110,0.6)'" onblur="this.style.borderColor='rgba(201,169,110,0.22)'">
@@ -571,7 +572,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLB(); }
 <script>
 function openBarbingModal(e){ if(e) e.preventDefault(); document.getElementById('barbingModal').style.opacity='1'; document.getElementById('barbingModal').style.pointerEvents='all'; }
 function closeBarbingModal(){ const m=document.getElementById('barbingModal'); m.style.opacity='0'; m.style.pointerEvents='none'; document.getElementById('barbingForm').style.display=''; document.getElementById('barbingSuccess').style.display='none'; document.getElementById('barbingForm').reset(); }
-async function submitBarbingForm(e){ e.preventDefault(); const btn=document.getElementById('barbingSubmitBtn'); btn.textContent='Sending…'; btn.disabled=true; const data={}; new FormData(e.target).forEach((v,k)=>data[k]=v); try{ const r=await fetch('https://formsubmit.co/ajax/jegede.oladapo@ymail.com',{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify(data)}); if(r.ok){ document.getElementById('barbingForm').style.display='none'; document.getElementById('barbingSuccess').style.display='block'; setTimeout(closeBarbingModal,4000); }else throw 0; }catch{ btn.textContent='Reserve My Slot →'; btn.disabled=false; alert('Something went wrong — please try again.'); } }
+async function submitBarbingForm(e){ e.preventDefault(); const btn=document.getElementById('barbingSubmitBtn'); btn.textContent='Sending…'; btn.disabled=true; const data={}; new FormData(e.target).forEach((v,k)=>data[k]=v); try{ const r=await fetch('https://formsubmit.co/ajax/eden54group@gmail.com',{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify(data)}); if(r.ok){ document.getElementById('barbingForm').style.display='none'; document.getElementById('barbingSuccess').style.display='block'; setTimeout(closeBarbingModal,4000); }else throw 0; }catch{ btn.textContent='Reserve My Slot →'; btn.disabled=false; alert('Something went wrong — please try again.'); } }
 document.getElementById('barbingModal').addEventListener('click',function(e){ if(e.target===this) closeBarbingModal(); });
 document.addEventListener('keydown', e => { if(e.key==='Escape') closeBarbingModal(); });
 </script>

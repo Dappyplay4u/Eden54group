@@ -143,8 +143,9 @@ if (saved) {
   try {
     const s = JSON.parse(saved);
     const lvl = (s.accessLevel || s.role || '').toLowerCase().replace(/\s+/g,'');
-    window.location.href = ['ceo','superadmin','manager'].includes(lvl) || lvl.includes('manager')
-      ? '/portal/dashboard/' : '/portal/home/';
+    const _r0 = sessionStorage.getItem('eden54_redirect'); sessionStorage.removeItem('eden54_redirect');
+    window.location.href = _r0 || (['ceo','superadmin','manager'].includes(lvl) || lvl.includes('manager')
+      ? '/portal/dashboard/' : '/portal/home/');
   } catch(e) { localStorage.removeItem('eden54_staff'); }
 }
 
@@ -286,7 +287,8 @@ async function submitPassword(e) {
     });
     const lvl = (s.accessLevel || s.role || '').toLowerCase().replace(/\s+/g,'');
     const isPriv = ['ceo','superadmin','manager'].includes(lvl) || lvl.includes('manager');
-    window.location.href = isPriv ? '/portal/dashboard/' : '/portal/home/';
+    const _r1 = sessionStorage.getItem('eden54_redirect'); sessionStorage.removeItem('eden54_redirect');
+    window.location.href = _r1 || (isPriv ? '/portal/dashboard/' : '/portal/home/');
 
   } catch(ex) {
     const map = {

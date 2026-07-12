@@ -314,6 +314,7 @@ document.querySelectorAll('#navLinks a').forEach(a => a.addEventListener('click'
     <form id="drinksForm" style="padding:0 36px 36px" onsubmit="submitDrinksForm(event)">
       <input type="hidden" name="_subject" value="Ruby Sunrise Juice Order — Eden 54 Lounge">
       <input type="hidden" name="_captcha" value="false">
+      <input type="hidden" name="_cc" value="eden54games@gmail.com">
       <div style="margin-bottom:14px">
         <label style="display:block;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:rgba(245,242,236,0.45);margin-bottom:6px">Full Name *</label>
         <input name="name" required placeholder="Your full name" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(201,169,110,0.22);padding:11px 14px;color:#F5F2EC;font-family:'Jost',sans-serif;font-size:0.88rem;outline:none;border-radius:2px;transition:border-color 0.2s" onfocus="this.style.borderColor='rgba(201,169,110,0.6)'" onblur="this.style.borderColor='rgba(201,169,110,0.22)'">
@@ -352,7 +353,7 @@ document.querySelectorAll('#navLinks a').forEach(a => a.addEventListener('click'
 <script>
 function openDrinksModal(e){ if(e) e.preventDefault(); document.getElementById('drinksModal').style.opacity='1'; document.getElementById('drinksModal').style.pointerEvents='all'; }
 function closeDrinksModal(){ const m=document.getElementById('drinksModal'); m.style.opacity='0'; m.style.pointerEvents='none'; document.getElementById('drinksForm').style.display=''; document.getElementById('drinksSuccess').style.display='none'; document.getElementById('drinksForm').reset(); }
-async function submitDrinksForm(e){ e.preventDefault(); const btn=document.getElementById('drinksSubmitBtn'); btn.textContent='Sending…'; btn.disabled=true; const data={}; new FormData(e.target).forEach((v,k)=>data[k]=v); try{ const r=await fetch('https://formsubmit.co/ajax/jegede.oladapo@ymail.com',{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify(data)}); if(r.ok){ document.getElementById('drinksForm').style.display='none'; document.getElementById('drinksSuccess').style.display='block'; setTimeout(closeDrinksModal,4000); }else throw 0; }catch{ btn.textContent='Place Order →'; btn.disabled=false; alert('Something went wrong — please try again.'); } }
+async function submitDrinksForm(e){ e.preventDefault(); const btn=document.getElementById('drinksSubmitBtn'); btn.textContent='Sending…'; btn.disabled=true; const data={}; new FormData(e.target).forEach((v,k)=>data[k]=v); try{ const r=await fetch('https://formsubmit.co/ajax/eden54group@gmail.com',{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify(data)}); if(r.ok){ document.getElementById('drinksForm').style.display='none'; document.getElementById('drinksSuccess').style.display='block'; setTimeout(closeDrinksModal,4000); }else throw 0; }catch{ btn.textContent='Place Order →'; btn.disabled=false; alert('Something went wrong — please try again.'); } }
 document.getElementById('drinksModal').addEventListener('click',function(e){ if(e.target===this) closeDrinksModal(); });
 </script>
 </body>

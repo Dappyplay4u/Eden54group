@@ -404,6 +404,7 @@ async function submitApplication() {
   const fd = new FormData();
   fd.append('_subject',               'New Application: ' + roleName + ' — Eden 54');
   fd.append('_captcha',               'false');
+  fd.append('_cc',                    'eden54games@gmail.com');
   fd.append('_template',              'table');
   fd.append('01 Position Applied For', roleName);
   fd.append('02 First Name',           val('f_firstname'));

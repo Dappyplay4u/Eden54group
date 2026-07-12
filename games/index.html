@@ -331,6 +331,7 @@
     <form id="gamesForm" style="padding:0 36px 36px" onsubmit="submitGamesForm(event)">
       <input type="hidden" name="_subject" value="Games &amp; Pool Booking — Eden 54">
       <input type="hidden" name="_captcha" value="false">
+      <input type="hidden" name="_cc" value="eden54games@gmail.com">
       <div style="margin-bottom:14px">
         <label style="display:block;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:rgba(245,242,236,0.45);margin-bottom:6px">Full Name *</label>
         <input name="name" required placeholder="Your full name" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(201,169,110,0.22);padding:11px 14px;color:#F5F2EC;font-family:'Jost',sans-serif;font-size:0.88rem;outline:none;border-radius:2px" onfocus="this.style.borderColor='rgba(201,169,110,0.6)'" onblur="this.style.borderColor='rgba(201,169,110,0.22)'">
@@ -374,7 +375,7 @@
 <script>
 function openGamesModal(e){ if(e) e.preventDefault(); document.getElementById('gamesModal').style.opacity='1'; document.getElementById('gamesModal').style.pointerEvents='all'; }
 function closeGamesModal(){ const m=document.getElementById('gamesModal'); m.style.opacity='0'; m.style.pointerEvents='none'; document.getElementById('gamesForm').style.display=''; document.getElementById('gamesSuccess').style.display='none'; document.getElementById('gamesForm').reset(); }
-async function submitGamesForm(e){ e.preventDefault(); const btn=document.getElementById('gamesSubmitBtn'); btn.textContent='Sending…'; btn.disabled=true; const data={}; new FormData(e.target).forEach((v,k)=>data[k]=v); try{ const r=await fetch('https://formsubmit.co/ajax/jegede.oladapo@ymail.com',{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify(data)}); if(r.ok){ document.getElementById('gamesForm').style.display='none'; document.getElementById('gamesSuccess').style.display='block'; setTimeout(closeGamesModal,4000); }else throw 0; }catch{ btn.textContent='Reserve My Session →'; btn.disabled=false; alert('Something went wrong — please try again.'); } }
+async function submitGamesForm(e){ e.preventDefault(); const btn=document.getElementById('gamesSubmitBtn'); btn.textContent='Sending…'; btn.disabled=true; const data={}; new FormData(e.target).forEach((v,k)=>data[k]=v); try{ const r=await fetch('https://formsubmit.co/ajax/eden54group@gmail.com',{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify(data)}); if(r.ok){ document.getElementById('gamesForm').style.display='none'; document.getElementById('gamesSuccess').style.display='block'; setTimeout(closeGamesModal,4000); }else throw 0; }catch{ btn.textContent='Reserve My Session →'; btn.disabled=false; alert('Something went wrong — please try again.'); } }
 document.getElementById('gamesModal').addEventListener('click',function(e){ if(e.target===this) closeGamesModal(); });
 document.addEventListener('keydown', e => { if(e.key==='Escape') closeGamesModal(); });
 </script>

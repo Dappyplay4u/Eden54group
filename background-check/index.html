@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Eden 54 | Pre-Employment Background Check</title>
+<link rel="icon" type="image/jpeg" href="/logo/eden 54 logo.jpeg">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0b1a0e;--deep:#0f2318;--card:#0d1f11;
+  --gold:#C9A96E;--glt:rgba(201,169,110,0.08);--gmd:rgba(201,169,110,0.18);
+  --text:#F5F2EC;--muted:rgba(245,242,236,0.5);--dim:rgba(245,242,236,0.25);
+  --border:rgba(201,169,110,0.2);--borderhi:rgba(201,169,110,0.55);
+  --err:#e07070;--ok:#5a9e6f
+}
+body{background:var(--bg);color:var(--text);font-family:'Jost',sans-serif;font-weight:300;min-height:100vh;line-height:1.5}
+
+/* ── Header ── */
+.bc-hdr{padding:18px 48px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px;background:var(--deep)}
+.bc-logo{width:40px;height:40px;border-radius:50%;object-fit:cover;border:1px solid var(--border)}
+.bc-brand{font-family:'Cormorant Garamond',serif;font-size:1.1rem;color:var(--gold);letter-spacing:.15em;line-height:1.3}
+.bc-brand small{display:block;font-family:'Jost',sans-serif;font-size:.58rem;letter-spacing:.25em;text-transform:uppercase;color:var(--muted);margin-top:2px}
+.bc-hdr-right{margin-left:auto;font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;color:var(--dim);text-align:right}
+
+/* ── Progress ── */
+.bc-prog{padding:28px 48px 0;max-width:820px;margin:0 auto}
+.steps{display:flex;position:relative}
+.steps::before{content:'';position:absolute;top:13px;left:5%;right:5%;height:1px;background:var(--border);z-index:0}
+.stp{flex:1;display:flex;flex-direction:column;align-items:center;position:relative;z-index:1}
+.stp-dot{width:28px;height:28px;border-radius:50%;border:1px solid var(--border);background:var(--bg);display:flex;align-items:center;justify-content:center;font-size:.7rem;color:var(--muted);transition:.3s;font-family:'Jost',sans-serif}
+.stp.active .stp-dot{border-color:var(--gold);color:var(--gold);background:var(--glt)}
+.stp.done .stp-dot{background:var(--gold);border-color:var(--gold);color:#0b1a0e;font-size:.8rem;font-weight:500}
+.stp-lbl{font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-top:7px;text-align:center}
+.stp.active .stp-lbl,.stp.done .stp-lbl{color:var(--gold)}
+
+/* ── Main ── */
+.bc-main{max-width:740px;margin:0 auto;padding:44px 24px 100px}
+.step-hd{margin-bottom:28px}
+.step-num{font-size:.6rem;letter-spacing:.28em;text-transform:uppercase;color:var(--gold);margin-bottom:6px}
+.step-title{font-family:'Cormorant Garamond',serif;font-size:1.85rem;font-weight:300;color:var(--text)}
+.step-title em{font-style:italic;color:var(--gold)}
+.step-note{font-size:.78rem;color:var(--muted);margin-top:8px;line-height:1.7;font-style:italic}
+
+/* ── Section divider ── */
+.sh{margin:28px 0 16px;padding-bottom:10px;border-bottom:1px solid var(--border)}
+.sh h3{font-family:'Cormorant Garamond',serif;font-size:1.15rem;font-weight:400;color:var(--gold)}
+.sh-note{font-size:.72rem;color:var(--muted);margin-top:4px;font-style:italic}
+
+/* ── Grid ── */
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.fg.c1{grid-template-columns:1fr}
+.fg.c3{grid-template-columns:1fr 1fr 1fr}
+
+/* ── Fields ── */
+.fld label{display:block;font-size:.6rem;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);margin-bottom:6px}
+.fld label .req{color:var(--err);margin-left:2px}
+.fld input,.fld select,.fld textarea{
+  width:100%;background:rgba(255,255,255,0.04);border:1px solid var(--border);
+  padding:11px 14px;color:var(--text);font-family:'Jost',sans-serif;
+  font-size:.87rem;font-weight:300;outline:none;border-radius:4px;
+  transition:border-color .2s;-webkit-appearance:none
+}
+.fld input:focus,.fld select:focus,.fld textarea:focus{border-color:var(--borderhi)}
+.fld input[readonly]{opacity:.6;cursor:default}
+.fld select option{background:#0f2318}
+.fld textarea{resize:vertical;min-height:80px}
+.fld input.err,.fld select.err{border-color:var(--err)!important}
+.field-note{font-size:.7rem;color:var(--muted);font-style:italic;margin-top:5px}
+
+/* ── Upload zones ── */
+.upzone{
+  border:1px dashed rgba(201,169,110,.35);border-radius:4px;
+  padding:20px 14px;text-align:center;cursor:pointer;
+  transition:.2s;position:relative;overflow:hidden;min-height:80px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px
+}
+.upzone:hover,.upzone.ok{border-color:var(--borderhi);background:var(--glt)}
+.upzone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.up-icon{font-size:1.4rem}
+.up-hint{font-size:.68rem;color:var(--muted)}
+.up-name{font-size:.73rem;color:var(--gold);word-break:break-all;display:none}
+.upzone.ok .up-name{display:block}
+.upzone.ok .up-hint{display:none}
+.up-opt{font-size:.62rem;color:var(--dim);margin-top:2px}
+
+/* ── Info box ── */
+.info-box{background:var(--glt);border:1px solid var(--border);border-radius:4px;padding:12px 16px;font-size:.76rem;color:var(--muted);line-height:1.7;margin-bottom:14px;font-style:italic}
+
+/* ── Buttons ── */
+.bc-acts{display:flex;gap:10px;margin-top:40px;padding-top:24px;border-top:1px solid var(--border)}
+.btn-nxt{flex:1;padding:14px;background:var(--gold);color:#0b1a0e;font-family:'Jost',sans-serif;font-size:.78rem;font-weight:500;letter-spacing:.18em;text-transform:uppercase;border:none;border-radius:4px;cursor:pointer;transition:opacity .2s}
+.btn-nxt:hover{opacity:.88}
+.btn-nxt:disabled{opacity:.35;cursor:not-allowed}
+.btn-bk{padding:14px 22px;background:none;border:1px solid var(--border);color:var(--muted);font-family:'Jost',sans-serif;font-size:.78rem;letter-spacing:.18em;text-transform:uppercase;border-radius:4px;cursor:pointer;transition:.2s}
+.btn-bk:hover{border-color:var(--gold);color:var(--gold)}
+
+/* ── Error banner ── */
+.err-bar{background:rgba(224,112,112,.1);border:1px solid rgba(224,112,112,.4);border-radius:4px;padding:12px 16px;font-size:.78rem;color:var(--err);margin-bottom:20px;display:none;line-height:1.6}
+
+/* ── Review ── */
+.rv-card{background:var(--card);border:1px solid var(--border);border-radius:6px;padding:18px 20px;margin-bottom:12px}
+.rv-card h4{font-size:.6rem;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.rv-row{display:flex;gap:10px;margin-bottom:6px;font-size:.8rem;line-height:1.5}
+.rv-k{color:var(--muted);min-width:160px;flex-shrink:0}
+.rv-v{color:var(--text)}
+
+/* ── Declaration ── */
+.decl-text{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:4px;padding:18px 20px;font-size:.8rem;color:var(--muted);line-height:1.85;margin-bottom:20px}
+.chk-row{display:flex;gap:12px;align-items:flex-start;margin-bottom:12px;cursor:pointer}
+.chk-row input[type=checkbox]{margin-top:3px;accent-color:var(--gold);width:16px;height:16px;flex-shrink:0;cursor:pointer}
+.chk-row span{font-size:.78rem;color:var(--muted);line-height:1.6}
+
+/* ── Success ── */
+.success{display:none;text-align:center;padding:80px 24px}
+.success .ico{font-size:3rem;margin-bottom:16px}
+.success h2{font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:300;margin-bottom:10px}
+.success h2 em{color:var(--gold);font-style:italic}
+.success p{font-size:.85rem;color:var(--muted);max-width:460px;margin:0 auto 20px;line-height:1.8}
+.success .ref{display:inline-block;padding:8px 20px;border:1px solid var(--border);border-radius:4px;font-size:.72rem;color:var(--gold);letter-spacing:.2em;text-transform:uppercase;margin-top:8px}
+
+/* ── Loading ── */
+.loading{position:fixed;inset:0;background:rgba(11,26,14,.92);display:none;flex-direction:column;align-items:center;justify-content:center;z-index:9999;gap:16px}
+.loading.on{display:flex}
+.spin{width:36px;height:36px;border:2px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.load-msg{font-size:.78rem;color:var(--muted)}
+.load-sub{font-size:.66rem;color:var(--dim);text-align:center;max-width:280px}
+
+@media(max-width:640px){
+  .bc-hdr{padding:16px 20px}
+  .bc-hdr-right{display:none}
+  .bc-prog{padding:20px 20px 0}
+  .stp-lbl{display:none}
+  .bc-main{padding:28px 16px 80px}
+  .fg,.fg.c3{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<div class="loading" id="loader">
+  <div class="spin"></div>
+  <div class="load-msg" id="loadMsg">Uploading documents…</div>
+  <div class="load-sub">Please do not close this page</div>
+</div>
+
+<!-- Header -->
+<header class="bc-hdr">
+  <img src="/logo/eden 54 logo.jpeg" alt="Eden 54" class="bc-logo">
+  <div class="bc-brand">Eden 54 <small>Pre-Employment Background Check &amp; Reference Form</small></div>
+  <div class="bc-hdr-right">Confidential<br>HR Use Only</div>
+</header>
+
+<!-- Progress -->
+<div class="bc-prog">
+  <div class="steps" id="stepBar">
+    <div class="stp active" id="sp1"><div class="stp-dot">1</div><div class="stp-lbl">Personal</div></div>
+    <div class="stp" id="sp2"><div class="stp-dot">2</div><div class="stp-lbl">ID &amp; Docs</div></div>
+    <div class="stp" id="sp3"><div class="stp-dot">3</div><div class="stp-lbl">Guarantors</div></div>
+    <div class="stp" id="sp4"><div class="stp-dot">4</div><div class="stp-lbl">Employment</div></div>
+    <div class="stp" id="sp5"><div class="stp-dot">5</div><div class="stp-lbl">Submit</div></div>
+  </div>
+</div>
+
+<main class="bc-main">
+  <div class="err-bar" id="errBar"></div>
+
+  <!-- SUCCESS -->
+  <div class="success" id="successScreen">
+    <div class="ico">✅</div>
+    <h2>Submission <em>Received</em></h2>
+    <p>Thank you. Your background check form has been received by the Eden 54 HR team. You will be contacted within 3–5 working days to confirm the next steps.</p>
+    <div class="ref" id="refId"></div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       STEP 1 — Applicant Personal Information
+  ══════════════════════════════════════ -->
+  <div id="step1">
+    <div class="step-hd">
+      <div class="step-num">Section 1 of 5</div>
+      <div class="step-title">Applicant <em>Personal Information</em></div>
+      <div class="step-note">Please complete all sections accurately. Information provided will be verified and stored securely in our HR records for background screening purposes.</div>
+    </div>
+
+    <div class="fg">
+      <div class="fld"><label>Full Name <span class="req">*</span></label><input type="text" id="p_name" placeholder="As it appears on government ID"></div>
+      <div class="fld"><label>Date of Birth <span class="req">*</span></label><input type="date" id="p_dob"></div>
+    </div>
+    <div class="fg">
+      <div class="fld"><label>Gender <span class="req">*</span></label>
+        <select id="p_gender"><option value="">Select</option><option>Male</option><option>Female</option></select>
+      </div>
+      <div class="fld"><label>Marital Status</label>
+        <select id="p_marital"><option value="">Select</option><option>Single</option><option>Married</option><option>Divorced</option><option>Widowed</option></select>
+      </div>
+    </div>
+    <div class="fg">
+      <div class="fld"><label>Phone Number <span class="req">*</span></label><input type="tel" id="p_phone" placeholder="+234 000 000 0000"></div>
+      <div class="fld"><label>Email Address</label><input type="email" id="p_email" placeholder="your@email.com"></div>
+    </div>
+    <div class="fg c1">
+      <div class="fld"><label>Home Address <span class="req">*</span></label><input type="text" id="p_address" placeholder="Full current residential address"></div>
+    </div>
+    <div class="fg">
+      <div class="fld"><label>State of Origin</label><input type="text" id="p_state" placeholder="e.g. Osun State"></div>
+      <div class="fld"><label>Local Government Area</label><input type="text" id="p_lga" placeholder="e.g. Ilesa East"></div>
+    </div>
+    <div class="fg">
+      <div class="fld"><label>Position Applied For <span class="req">*</span></label>
+        <select id="p_position">
+          <option value="">Select position</option>
+          <option>Facility Manager</option><option>Barber / Stylist</option>
+          <option>Chef / Cook</option><option>Kitchen Assistant</option>
+          <option>Front of House Staff</option><option>Games Attendant</option>
+          <option>Driver</option><option>Security</option>
+          <option>Cleaner / Housekeeper</option><option>Bartender</option>
+          <option>Receptionist / Front Desk</option><option>Other</option>
+        </select>
+      </div>
+      <div class="fld"><label>Date of Application</label><input type="text" id="p_appdate" readonly></div>
+    </div>
+
+    <div class="bc-acts">
+      <button class="btn-nxt" onclick="goNext(1)">Continue — Government ID →</button>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       STEP 2 — Government ID & Documents
+  ══════════════════════════════════════ -->
+  <div id="step2" style="display:none">
+    <div class="step-hd">
+      <div class="step-num">Section 2 of 5</div>
+      <div class="step-title">Identity & <em>Documents</em></div>
+      <div class="step-note">Upload clear, legible copies of all documents. Accepted formats: JPG, PNG, PDF · Maximum 5 MB per file.</div>
+    </div>
+
+    <!-- Government ID -->
+    <div class="sh"><h3>2a. Government Identification</h3></div>
+    <div class="fg">
+      <div class="fld"><label>ID Type <span class="req">*</span></label>
+        <select id="d_idtype">
+          <option value="">Select ID type</option>
+          <option>National Identity Card (NIN)</option>
+          <option>International Passport</option>
+          <option>Driver's License</option>
+          <option>Voter's Card (PVC)</option>
+        </select>
+      </div>
+      <div class="fld"><label>ID Number <span class="req">*</span></label><input type="text" id="d_idnum" placeholder="Enter ID number"></div>
+    </div>
+    <div class="fg c1">
+      <div class="fld"><label>BVN — Bank Verification Number</label><input type="text" id="d_bvn" placeholder="11-digit BVN" maxlength="11"></div>
+    </div>
+    <div class="fg">
+      <div class="fld"><label>Upload Government ID <span class="req">*</span></label>
+        <div class="upzone" id="uz_id"><input type="file" id="f_id" accept=".jpg,.jpeg,.png,.pdf" onchange="pickFile(this,'uz_id','fn_id')">
+          <div class="up-icon">📄</div><div class="up-hint">Click to upload — JPG, PNG or PDF</div><div class="up-name" id="fn_id"></div></div>
+      </div>
+      <div class="fld"><label>Upload Passport Photograph <span class="req">*</span></label>
+        <div class="upzone" id="uz_photo"><input type="file" id="f_photo" accept=".jpg,.jpeg,.png" onchange="pickFile(this,'uz_photo','fn_photo')">
+          <div class="up-icon">📷</div><div class="up-hint">Recent photo — JPG or PNG</div><div class="up-name" id="fn_photo"></div></div>
+      </div>
+    </div>
+    <p class="field-note">Please attach a clear copy of your government-issued ID and a recent passport photograph.</p>
+
+    <!-- Proof of Address -->
+    <div class="sh"><h3>2b. Proof of Address</h3></div>
+    <div class="fg c3">
+      <div class="fld"><label>Document Type <span class="req">*</span></label>
+        <select id="d_addrtype">
+          <option value="">Select type</option>
+          <option>Utility Bill (NEPA / Water)</option>
+          <option>Tenancy Agreement</option>
+          <option>Bank Statement (with address)</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <div class="fld"><label>Document Date <span class="req">*</span></label><input type="date" id="d_addrdate"></div>
+      <div class="fld"><label>Upload Document <span class="req">*</span></label>
+        <div class="upzone" id="uz_addr" style="padding:10px"><input type="file" id="f_addr" accept=".jpg,.jpeg,.png,.pdf" onchange="pickFile(this,'uz_addr','fn_addr')">
+          <div class="up-icon" style="font-size:1rem">📁</div><div class="up-hint">Click to upload</div><div class="up-name" id="fn_addr"></div></div>
+      </div>
+    </div>
+    <p class="field-note">Please attach a copy of a utility bill or tenancy agreement dated within the last 3 months.</p>
+
+    <!-- Police Certificate -->
+    <div class="sh"><h3>2c. Police Character Certificate</h3></div>
+    <div class="fg c3">
+      <div class="fld"><label>Certificate Number</label><input type="text" id="d_policenum" placeholder="e.g. NPF/2024/00001"></div>
+      <div class="fld"><label>Date of Issue</label><input type="date" id="d_policedate"></div>
+      <div class="fld"><label>Issuing Station / Command</label><input type="text" id="d_policestation" placeholder="e.g. Ilesa Police Division"></div>
+    </div>
+    <div class="fg">
+      <div class="fld"><label>Upload Certificate <span style="font-size:.6rem;color:var(--dim)">(if available)</span></label>
+        <div class="upzone" id="uz_police"><input type="file" id="f_police" accept=".jpg,.jpeg,.png,.pdf" onchange="pickFile(this,'uz_police','fn_police')">
+          <div class="up-icon">🗂️</div><div class="up-hint">Click to upload — JPG, PNG or PDF</div>
+          <div class="up-opt">Optional if certificate is pending</div>
+          <div class="up-name" id="fn_police"></div></div>
+      </div>
+      <div class="fld"><label>Expected Submission Date <span style="font-size:.6rem;color:var(--dim)">(if pending)</span></label>
+        <input type="date" id="d_policeexpected">
+        <p class="field-note">If you have not yet obtained your police certificate, please provide the date you expect to submit it.</p>
+      </div>
+    </div>
+
+    <div class="bc-acts">
+      <button class="btn-bk" onclick="goBack(2)">← Back</button>
+      <button class="btn-nxt" onclick="goNext(2)">Continue — Guarantors →</button>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       STEP 3 — Guarantor Information
+  ══════════════════════════════════════ -->
+  <div id="step3" style="display:none">
+    <div class="step-hd">
+      <div class="step-num">Section 3 of 5</div>
+      <div class="step-title">Guarantor <em>Information</em></div>
+      <div class="step-note">Please provide details of two guarantors who can vouch for your character and whereabouts. Both must hold valid, traceable government-issued ID.</div>
+    </div>
+
+    <!-- Guarantor 1 -->
+    <div class="sh"><h3>Guarantor 1</h3></div>
+    <div class="fg">
+      <div class="fld"><label>Full Name <span class="req">*</span></label><input type="text" id="g1_name" placeholder="Guarantor's full name"></div>
+      <div class="fld"><label>Relationship to Applicant <span class="req">*</span></label>
+        <select id="g1_rel"><option value="">Select</option>
+          <option>Parent</option><option>Sibling</option><option>Uncle / Aunt</option>
+          <option>Community / Religious Leader</option><option>Former Employer</option>
+          <option>Colleague</option><option>Friend</option><option>Other</option>
+        </select>
+      </div>
+    </div>
+    <div class="fg">
+      <div class="fld"><label>Phone Number <span class="req">*</span></label><input type="tel" id="g1_phone" placeholder="+234 000 000 0000"></div>
+      <div class="fld"><label>Email Address</label><input type="email" id="g1_email" placeholder="Optional"></div>
+    </div>
+    <div class="fg c1">
+      <div class="fld"><label>Address <span class="req">*</span></label><input type="text" id="g1_addr" placeholder="Full traceable residential or office address"></div>
+    </div>
+    <div class="fg">
+      <div class="fld"><label>Occupation / Employer <span class="req">*</span></label><input type="text" id="g1_occ" placeholder="e.g. Civil Servant, Farmer, Teacher at..."></div>
+      <div class="fld"><label>ID Type <span class="req">*</span></label>
+        <select id="g1_idtype"><option value="">Select</option>
+          <option>National Identity Card (NIN)</option><option>International Passport</option>
+          <option>Driver's License</option><option>Voter's Card (PVC)</option>
+        </select>
+      </div>
+    </div>
+    <div class="fg">
+      <div class="fld"><label>ID Number <span class="req">*</span></label><input type="text" id="g1_idnum" placeholder="Guarantor's ID number"></div>
+      <div class="fld"><label>Upload Guarantor 1 ID <span class="req">*</span></label>
+        <div class="upzone" id="uz_g1" style="padding:10px"><input type="file" id="f_g1" accept=".jpg,.jpeg,.png,.pdf" onchange="pickFile(this,'uz_g1','fn_g1')">
+          <div class="up-icon" style="font-size:1rem">📄</div><div class="up-hint">Click to upload</div><div class="up-name" id="fn_g1"></div></div>
+      </div>
+    </div>
+
+    <!-- Guarantor 2 -->
+    <div class="sh"><h3>Guarantor 2</h3></div>
+    <div class="fg">
+      <div class="fld"><label>Full Name <span class="req">*</span></label><input type="text" id="g2_name" placeholder="Guarantor's full name"></div>
+      <div class="fld"><label>Relationship to Applicant <span class="req">*</span></label>
+        <select id="g2_rel"><option value="">Select</option>
+          <option>Parent</option><option>Sibling</option><option>Uncle / Aunt</option>
+          <option>Community / Religious Leader</option><option>Former Employer</option>
+          <option>Colleague</option><option>Friend</option><option>Other</option>
+        </select>
+      </div>
+    </div>
+    <div class="fg">
+      <div class="fld"><label>Phone Number <span class="req">*</span></label><input type="tel" id="g2_phone" placeholder="+234 000 000 0000"></div>
+      <div class="fld"><label>Email Address</label><input type="email" id="g2_email" placeholder="Optional"></div>
+    </div>
+    <div class="fg c1">
+      <div class="fld"><label>Address <span class="req">*</span></label><input type="text" id="g2_addr" placeholder="Full traceable residential or office address"></div>
+    </div>
+    <div class="fg">
+      <div class="fld"><label>Occupation / Employer <span class="req">*</span></label><input type="text" id="g2_occ" placeholder="e.g. Business Owner, Civil Servant at..."></div>
+      <div class="fld"><label>ID Type <span class="req">*</span></label>
+        <select id="g2_idtype"><option value="">Select</option>
+          <option>National Identity Card (NIN)</option><option>International Passport</option>
+          <option>Driver's License</option><option>Voter's Card (PVC)</option>
+        </select>
+      </div>
+    </div>
+    <div class="fg">
+      <div class="fld"><label>ID Number <span class="req">*</span></label><input type="text" id="g2_idnum" placeholder="Guarantor's ID number"></div>
+      <div class="fld"><label>Upload Guarantor 2 ID <span class="req">*</span></label>
+        <div class="upzone" id="uz_g2" style="padding:10px"><input type="file" id="f_g2" accept=".jpg,.jpeg,.png,.pdf" onchange="pickFile(this,'uz_g2','fn_g2')">
+          <div class="up-icon" style="font-size:1rem">📄</div><div class="up-hint">Click to upload</div><div class="up-name" id="fn_g2"></div></div>
+      </div>
+    </div>
+
+    <div class="bc-acts">
+      <button class="btn-bk" onclick="goBack(3)">← Back</button>
+      <button class="btn-nxt" onclick="goNext(3)">Continue — Employment →</button>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       STEP 4 — Employment References
+  ══════════════════════════════════════ -->
+  <div id="step4" style="display:none">
+    <div class="step-hd">
+      <div class="step-num">Section 4 of 5</div>
+      <div class="step-title">Employment <em>References</em></div>
+      <div class="step-note">HR will contact both references directly by phone to verify your employment history and conduct. Please ensure all contact details are current and accurate.</div>
+    </div>
+
+    <!-- Employment Reference 1 -->
+    <div class="sh"><h3>Employment Reference #1</h3><div class="sh-note">Most recent employer</div></div>
+    <div class="fg">
+      <div class="fld"><label>Company / Employer Name <span class="req">*</span></label><input type="text" id="e1_co" placeholder="Name of company or organisation"></div>
+      <div class="fld"><label>Contact Person &amp; Job Title <span class="req">*</span></label><input type="text" id="e1_contact" placeholder="e.g. Mrs. Adeola Bello — HR Manager"></div>
+    </div>
+    <div class="fg">
+      <div class="fld"><label>Phone Number <span class="req">*</span></label><input type="tel" id="e1_phone" placeholder="+234 000 000 0000"></div>
+      <div class="fld"><label>Email Address</label><input type="email" id="e1_email" placeholder="Optional"></div>
+    </div>
+    <div class="fg">
+      <div class="fld"><label>Applicant's Role Held <span class="req">*</span></label><input type="text" id="e1_title" placeholder="Your job title at this employer"></div>
+    </div>
+    <div class="fg">
+      <div class="fld"><label>Dates of Employment — From <span class="req">*</span></label><input type="month" id="e1_from"></div>
+      <div class="fld"><label>Dates of Employment — To <span class="req">*</span></label><input type="month" id="e1_to"></div>
+    </div>
+    <div class="fg c1">
+      <div class="fld"><label>Reason for Leaving <span class="req">*</span></label><textarea id="e1_reason" placeholder="Brief explanation"></textarea></div>
+    </div>
+
+    <!-- Employment Reference 2 -->
+    <div class="sh"><h3>Employment Reference #2</h3><div class="sh-note">Second most recent employer — leave blank if this is your first position</div></div>
+    <div class="fg">
+      <div class="fld"><label>Company / Employer Name</label><input type="text" id="e2_co" placeholder="Name of company or organisation"></div>
+      <div class="fld"><label>Contact Person &amp; Job Title</label><input type="text" id="e2_contact" placeholder="e.g. Mr. Tunde Akin — Operations Manager"></div>
+    </div>
+    <div class="fg">
+      <div class="fld"><label>Phone Number</label><input type="tel" id="e2_phone" placeholder="+234 000 000 0000"></div>
+      <div class="fld"><label>Email Address</label><input type="email" id="e2_email" placeholder="Optional"></div>
+    </div>
+    <div class="fg">
+      <div class="fld"><label>Applicant's Role Held</label><input type="text" id="e2_title" placeholder="Your job title at this employer"></div>
+    </div>
+    <div class="fg">
+      <div class="fld"><label>Dates of Employment — From</label><input type="month" id="e2_from"></div>
+      <div class="fld"><label>Dates of Employment — To</label><input type="month" id="e2_to"></div>
+    </div>
+    <div class="fg c1">
+      <div class="fld"><label>Reason for Leaving</label><textarea id="e2_reason" placeholder="Brief explanation"></textarea></div>
+    </div>
+
+    <div class="bc-acts">
+      <button class="btn-bk" onclick="goBack(4)">← Back</button>
+      <button class="btn-nxt" onclick="goNext(4)">Review &amp; Submit →</button>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       STEP 5 — Declaration & Submit
+  ══════════════════════════════════════ -->
+  <div id="step5" style="display:none">
+    <div class="step-hd">
+      <div class="step-num">Section 5 of 5</div>
+      <div class="step-title">Declaration &amp; <em>Submission</em></div>
+      <div class="step-note">Please review your information before confirming. All data is stored securely and used solely for employment vetting.</div>
+    </div>
+
+    <div id="rvContent"></div>
+
+    <!-- Declaration -->
+    <div class="sh"><h3>8. Declaration</h3></div>
+    <div class="decl-text">
+      I hereby declare that the information provided in this form is true, complete, and accurate to the best of my knowledge. I understand that any false or misleading information may result in disqualification from consideration or termination of employment if discovered after hiring. I consent to Eden 54 conducting background verification, including contacting my references, guarantors, and past employers, and confirm that my personal data provided herein may be securely stored and used for employment screening purposes.
+    </div>
+
+    <label class="chk-row"><input type="checkbox" id="d1"><span>I confirm all information submitted is true and accurate.</span></label>
+    <label class="chk-row"><input type="checkbox" id="d2"><span>I consent to Eden 54 contacting my listed references, guarantors, and previous employers for verification purposes.</span></label>
+    <label class="chk-row"><input type="checkbox" id="d3"><span>I consent to my personal data being securely stored and used for employment screening in line with applicable law.</span></label>
+
+    <div class="sh" style="margin-top:24px"><h3>Applicant's Signature</h3></div>
+    <div class="fg">
+      <div class="fld"><label>Type Full Name as Signature <span class="req">*</span></label><input type="text" id="sig_name" placeholder="Type your full legal name"></div>
+      <div class="fld"><label>Date</label><input type="text" id="sig_date" readonly></div>
+    </div>
+
+    <div class="bc-acts">
+      <button class="btn-bk" onclick="goBack(5)">← Back</button>
+      <button class="btn-nxt" id="submitBtn" onclick="submitForm()">Submit Background Check</button>
+    </div>
+  </div>
+
+</main>
+
+<!-- Hidden form + iframe for file-attachment email (bypasses CORS limitation of fetch) -->
+<iframe name="bc_mail_frame" style="display:none" aria-hidden="true"></iframe>
+<form id="bcMailForm" action="https://formsubmit.co/eden54group@gmail.com"
+      method="POST" enctype="multipart/form-data"
+      target="bc_mail_frame" style="display:none">
+  <input type="hidden" name="_captcha" value="false">
+  <input type="hidden" name="_cc" value="eden54games@gmail.com">
+  <input type="hidden" name="_subject"        id="bef_subj">
+  <input type="hidden" name="Reference_ID"    id="bef_ref">
+  <input type="hidden" name="Full_Name"        id="bef_name">
+  <input type="hidden" name="Date_of_Birth"    id="bef_dob">
+  <input type="hidden" name="Gender"           id="bef_gender">
+  <input type="hidden" name="Marital_Status"   id="bef_marital">
+  <input type="hidden" name="Phone"            id="bef_phone">
+  <input type="hidden" name="Email"            id="bef_email">
+  <input type="hidden" name="Address"          id="bef_addr">
+  <input type="hidden" name="State_LGA"        id="bef_state">
+  <input type="hidden" name="Position_Applied" id="bef_pos">
+  <input type="hidden" name="ID_Type"          id="bef_idtype">
+  <input type="hidden" name="ID_Number"        id="bef_idnum">
+  <input type="hidden" name="BVN"              id="bef_bvn">
+  <input type="hidden" name="Address_Proof"    id="bef_addrproof">
+  <input type="hidden" name="Police_Cert"      id="bef_police">
+  <input type="hidden" name="Police_Station"   id="bef_policestation">
+  <input type="hidden" name="Guarantor_1"      id="bef_g1">
+  <input type="hidden" name="Guarantor_1_Address" id="bef_g1addr">
+  <input type="hidden" name="Guarantor_1_ID"   id="bef_g1id">
+  <input type="hidden" name="Guarantor_2"      id="bef_g2">
+  <input type="hidden" name="Guarantor_2_Address" id="bef_g2addr">
+  <input type="hidden" name="Guarantor_2_ID"   id="bef_g2id">
+  <input type="hidden" name="Employer_1"       id="bef_e1">
+  <input type="hidden" name="Employer_1_Role"  id="bef_e1role">
+  <input type="hidden" name="Employer_2"       id="bef_e2">
+  <input type="hidden" name="Signature"        id="bef_sig">
+  <input type="hidden" name="Portal_Review"    id="bef_portal">
+  <!-- File fields — populated via DataTransfer API -->
+  <input type="file" name="Government_ID"      id="bef_fid">
+  <input type="file" name="Passport_Photo"     id="bef_fphoto">
+  <input type="file" name="Address_Proof_Doc"  id="bef_faddr">
+  <input type="file" name="Police_Certificate" id="bef_fpolice">
+  <input type="file" name="Guarantor_1_ID_Doc" id="bef_fg1">
+  <input type="file" name="Guarantor_2_ID_Doc" id="bef_fg2">
+</form>
+
+<script>
+const firebaseConfig = {
+  apiKey:"AIzaSyAexUjhTx1iBiivwB8rUdK52ANleN1DFAg",
+  authDomain:"eden54.firebaseapp.com",projectId:"eden54",
+  storageBucket:"eden54.firebasestorage.app",
+  messagingSenderId:"643222824531",
+  appId:"1:643222824531:web:dc643654a672c1cd0d48a6"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+let storage = null;
+try { storage = firebase.storage(); } catch(e) {}
+
+const $ = id => document.getElementById(id);
+const v = id => ($( id)||{}).value || '';
+
+/* Auto-fill dates */
+(function(){
+  const now = new Date();
+  const ds = now.toLocaleDateString('en-GB',{day:'2-digit',month:'long',year:'numeric'});
+  const dt = $('p_appdate'); if (dt) dt.value = ds;
+  const sd = $('sig_date'); if (sd) sd.value = ds;
+})();
+
+function showErr(msg) {
+  const el = $('errBar');
+  el.innerHTML = msg; el.style.display = 'block';
+  el.scrollIntoView({ behavior:'smooth', block:'nearest' });
+}
+function clearErr() { $('errBar').style.display = 'none'; }
+
+function pickFile(input, zoneId, nameId) {
+  const f = input.files[0];
+  if (!f) return;
+  if (f.size > 5 * 1024 * 1024) {
+    showErr('<strong>' + f.name + '</strong> exceeds 5 MB. Please compress the file and try again.');
+    input.value = ''; return;
+  }
+  $(zoneId).classList.add('ok');
+  $(nameId).textContent = '✓ ' + f.name;
+}
+
+function markInvalid(id) {
+  const el = $(id); if (!el) return;
+  el.classList.add('err');
+  ['input','change'].forEach(ev => el.addEventListener(ev, () => el.classList.remove('err'), {once:true}));
+}
+
+function validate(n) {
+  clearErr();
+  const req = {
+    1: ['p_name','p_dob','p_gender','p_phone','p_address','p_position'],
+    2: ['d_idtype','d_idnum','d_addrtype','d_addrdate'],
+    3: ['g1_name','g1_rel','g1_phone','g1_addr','g1_occ','g1_idtype','g1_idnum',
+        'g2_name','g2_rel','g2_phone','g2_addr','g2_occ','g2_idtype','g2_idnum'],
+    4: ['e1_co','e1_contact','e1_phone','e1_title','e1_from','e1_to','e1_reason'],
+  }[n] || [];
+
+  for (const id of req) {
+    if (!v(id).trim()) {
+      markInvalid(id); showErr('Please fill in all required fields before continuing.');
+      $(id).focus(); return false;
+    }
+  }
+  if (n === 2) {
+    if (!$('f_id').files[0])    { showErr('Please upload your Government ID.');          return false; }
+    if (!$('f_photo').files[0]) { showErr('Please upload your Passport Photograph.');    return false; }
+    if (!$('f_addr').files[0])  { showErr('Please upload your Proof of Address.');       return false; }
+  }
+  if (n === 3) {
+    if (!$('f_g1').files[0]) { showErr("Please upload Guarantor 1's ID document."); return false; }
+    if (!$('f_g2').files[0]) { showErr("Please upload Guarantor 2's ID document."); return false; }
+  }
+  return true;
+}
+
+function setStep(n) {
+  for (let i = 1; i <= 5; i++) {
+    const s = $('step'+i); if (s) s.style.display = i===n ? '' : 'none';
+    const p = $('sp'+i);
+    if (p) {
+      p.className = 'stp' + (i<n?' done':i===n?' active':'');
+      p.querySelector('.stp-dot').textContent = i < n ? '✓' : i;
+    }
+  }
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function goNext(n) { if (!validate(n)) return; if (n===4) buildReview(); setStep(n+1); }
+function goBack(n) { setStep(n-1); }
+
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function row(k,val) { return '<div class="rv-row"><span class="rv-k">'+k+'</span><span class="rv-v">'+esc(val||'—')+'</span></div>'; }
+
+function buildReview() {
+  $('rvContent').innerHTML =
+    '<div class="rv-card"><h4>Personal Information</h4>'
+    +row('Full Name',v('p_name'))+row('Date of Birth',v('p_dob'))+row('Gender',v('p_gender'))
+    +row('Phone',v('p_phone'))+row('Email',v('p_email'))+row('Address',v('p_address'))
+    +row('State / LGA',v('p_state')+(v('p_lga')?' · '+v('p_lga'):''))+row('Position Applied',v('p_position'))+'</div>'
+    +'<div class="rv-card"><h4>Identity Documents</h4>'
+    +row('ID Type & Number',v('d_idtype')+' — '+v('d_idnum'))+row('BVN',v('d_bvn'))
+    +row('Address Proof',v('d_addrtype')+' ('+v('d_addrdate')+')')
+    +row('Police Cert No.',v('d_policenum'))+row('Police Station',v('d_policestation'))
+    +(v('d_policeexpected') ? row('Cert Expected By', v('d_policeexpected')) : '')
+    +row('Files','ID + Passport Photo + Address Proof queued ✓')+'</div>'
+    +'<div class="rv-card"><h4>Guarantors</h4>'
+    +row('Guarantor 1',v('g1_name')+' · '+v('g1_rel'))+row('Phone / Address',v('g1_phone')+' · '+v('g1_addr'))
+    +row('Occupation',v('g1_occ'))+row('ID',v('g1_idtype')+' '+v('g1_idnum'))
+    +row('Guarantor 2',v('g2_name')+' · '+v('g2_rel'))+row('Phone / Address',v('g2_phone')+' · '+v('g2_addr'))
+    +row('Occupation',v('g2_occ'))+row('ID',v('g2_idtype')+' '+v('g2_idnum'))+'</div>'
+    +'<div class="rv-card"><h4>Employment References</h4>'
+    +row('Employer 1',v('e1_co'))+row('Contact',v('e1_contact'))+row('Phone',v('e1_phone'))
+    +row('Role',v('e1_title'))+row('Period',v('e1_from')+' → '+v('e1_to'))
+    +(v('e2_co') ? row('Employer 2',v('e2_co'))+row('Contact',v('e2_contact'))+row('Phone',v('e2_phone'))+row('Role',v('e2_title'))+row('Period',v('e2_from')+' → '+v('e2_to')) : '')
+    +'</div>';
+}
+
+async function upload(file, path) {
+  if (!file || !storage) return null;
+  try {
+    const ref = storage.ref(path);
+    const timeout = new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 60000));
+    await Promise.race([ref.put(file), timeout]);
+    return await ref.getDownloadURL();
+  } catch(e) { console.error('Storage upload failed ['+path+']:', e.code, e.message); return null; }
+}
+
+function loader(msg) { $('loadMsg').textContent = msg; $('loader').classList.add('on'); }
+function unloader()  { $('loader').classList.remove('on'); }
+
+async function submitForm() {
+  if (!$('d1').checked||!$('d2').checked||!$('d3').checked) {
+    showErr('Please accept all three declarations before submitting.'); return;
+  }
+  if (!v('sig_name').trim()) { markInvalid('sig_name'); showErr('Please type your full name as signature.'); return; }
+
+  const btn = $('submitBtn'); btn.disabled = true; clearErr();
+  const uid = Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+  const bp = 'background-checks/'+uid;
+
+  try {
+    /* 1 — Email with file attachments FIRST — same pattern as careers form (email before Firebase) */
+    loader('Sending notification…');
+    try {
+      const fd = new FormData();
+      fd.append('_subject',   'New Background Check — '+v('p_name')+' ('+v('p_position')+')');
+      fd.append('_captcha',   'false');
+      fd.append('_template',  'table');
+      fd.append('_cc',        'eden54games@gmail.com');
+      fd.append('Reference_ID',        uid.toUpperCase());
+      fd.append('Full_Name',           v('p_name'));
+      fd.append('Date_of_Birth',       v('p_dob'));
+      fd.append('Gender',              v('p_gender'));
+      fd.append('Marital_Status',      v('p_marital'));
+      fd.append('Phone',               v('p_phone'));
+      fd.append('Email',               v('p_email')||'Not provided');
+      fd.append('Address',             v('p_address'));
+      fd.append('State_LGA',           (v('p_state')||'')+(v('p_lga')?' / '+v('p_lga'):''));
+      fd.append('Position_Applied',    v('p_position'));
+      fd.append('ID_Type',             v('d_idtype'));
+      fd.append('ID_Number',           v('d_idnum'));
+      fd.append('BVN',                 v('d_bvn')||'Not provided');
+      fd.append('Address_Proof',       v('d_addrtype')+' ('+v('d_addrdate')+')');
+      fd.append('Police_Cert',         v('d_policenum')||(v('d_policeexpected')?'Pending — expected '+v('d_policeexpected'):'Not provided'));
+      fd.append('Police_Station',      v('d_policestation')||'—');
+      fd.append('Guarantor_1',         v('g1_name')+' ('+v('g1_rel')+') · '+v('g1_phone')+' · '+v('g1_occ'));
+      fd.append('Guarantor_1_Address', v('g1_addr'));
+      fd.append('Guarantor_1_ID',      v('g1_idtype')+' — '+v('g1_idnum'));
+      fd.append('Guarantor_2',         v('g2_name')+' ('+v('g2_rel')+') · '+v('g2_phone')+' · '+v('g2_occ'));
+      fd.append('Guarantor_2_Address', v('g2_addr'));
+      fd.append('Guarantor_2_ID',      v('g2_idtype')+' — '+v('g2_idnum'));
+      fd.append('Employer_1',          v('e1_co')+' — '+v('e1_contact')+' ('+v('e1_phone')+')');
+      fd.append('Employer_1_Role',     v('e1_title')+' · '+v('e1_from')+' → '+v('e1_to'));
+      fd.append('Employer_2',          v('e2_co') ? v('e2_co')+' — '+v('e2_contact')+' ('+v('e2_phone')+')' : 'N/A');
+      fd.append('Signature',           v('sig_name'));
+      fd.append('Portal_Review',       'https://eden54group.com/portal/background-check/?id='+uid);
+      /* File attachments */
+      if ($('f_id').files[0])     fd.append('Government_ID',        $('f_id').files[0],     $('f_id').files[0].name);
+      if ($('f_photo').files[0])  fd.append('Passport_Photo',       $('f_photo').files[0],  $('f_photo').files[0].name);
+      if ($('f_addr').files[0])   fd.append('Address_Proof_Doc',    $('f_addr').files[0],   $('f_addr').files[0].name);
+      if ($('f_police').files[0]) fd.append('Police_Certificate',   $('f_police').files[0], $('f_police').files[0].name);
+      if ($('f_g1').files[0])     fd.append('Guarantor_1_ID_Doc',   $('f_g1').files[0],     $('f_g1').files[0].name);
+      if ($('f_g2').files[0])     fd.append('Guarantor_2_ID_Doc',   $('f_g2').files[0],     $('f_g2').files[0].name);
+      /* Regular endpoint (not /ajax/) — delivers files as attachments; CORS blocks response but email still sends */
+      await fetch('https://formsubmit.co/eden54group@gmail.com', { method: 'POST', body: fd });
+    } catch(e) { /* CORS expected — email still sends */ }
+
+    /* 2 — Anonymous sign-in for Firebase (non-fatal) */
+    loader('Preparing submission…');
+    try {
+      if (!firebase.auth().currentUser) await firebase.auth().signInAnonymously();
+    } catch(authErr) { /* anonymous auth not enabled — continue without it */ }
+
+    /* 3 — Upload files to Storage */
+    loader('Uploading documents… please do not close this page');
+    const [idUrl, photoUrl, addrUrl, policeUrl, g1Url, g2Url] = await Promise.all([
+      upload($('f_id').files[0],     bp+'/govt-id'),
+      upload($('f_photo').files[0],  bp+'/passport-photo'),
+      upload($('f_addr').files[0],   bp+'/address-proof'),
+      upload($('f_police').files[0], bp+'/police-cert'),
+      upload($('f_g1').files[0],     bp+'/guarantor1-id'),
+      upload($('f_g2').files[0],     bp+'/guarantor2-id'),
+    ]);
+
+    /* 4 — Save to Firestore */
+    loader('Saving your information…');
+    try { await db.collection('backgroundChecks').doc(uid).set({
+      refId: uid,
+      fullName:v('p_name'), dob:v('p_dob'), gender:v('p_gender'), marital:v('p_marital'),
+      phone:v('p_phone'), email:v('p_email'), address:v('p_address'),
+      stateOfOrigin:v('p_state'), lga:v('p_lga'), position:v('p_position'),
+      dateOfApplication: new Date().toISOString().split('T')[0],
+      idType:v('d_idtype'), idNumber:v('d_idnum'), bvn:v('d_bvn'),
+      idUrl: idUrl||null, passportPhotoUrl: photoUrl||null,
+      addressProofType:v('d_addrtype'), addressProofDate:v('d_addrdate'), addressProofUrl: addrUrl||null,
+      policeCertNumber:v('d_policenum'), policeCertDate:v('d_policedate'),
+      policeStation:v('d_policestation'), policeCertExpected:v('d_policeexpected'), policeUrl: policeUrl||null,
+      guarantors:[
+        {name:v('g1_name'),relationship:v('g1_rel'),phone:v('g1_phone'),email:v('g1_email'),address:v('g1_addr'),occupation:v('g1_occ'),idType:v('g1_idtype'),idNumber:v('g1_idnum'),idUrl:g1Url||null},
+        {name:v('g2_name'),relationship:v('g2_rel'),phone:v('g2_phone'),email:v('g2_email'),address:v('g2_addr'),occupation:v('g2_occ'),idType:v('g2_idtype'),idNumber:v('g2_idnum'),idUrl:g2Url||null},
+      ],
+      employers:[
+        {company:v('e1_co'),contact:v('e1_contact'),phone:v('e1_phone'),email:v('e1_email'),title:v('e1_title'),from:v('e1_from'),to:v('e1_to'),reason:v('e1_reason')},
+        {company:v('e2_co'),contact:v('e2_contact'),phone:v('e2_phone'),email:v('e2_email'),title:v('e2_title'),from:v('e2_from'),to:v('e2_to'),reason:v('e2_reason')},
+      ],
+      signature: v('sig_name'),
+      status:'pending', hrNotes:'', idVerifiedBy:'', refChecksBy:'', policeVerified:false, hrDecision:'',
+      submittedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    }); } catch(fsErr) { /* non-fatal */ }
+
+    /* 5 — Show success */
+    unloader();
+    $('step5').style.display = 'none';
+    $('stepBar').style.opacity = '.4';
+    $('successScreen').style.display = 'block';
+    $('refId').textContent = 'Reference: '+uid.toUpperCase();
+
+  } catch(err) {
+    unloader(); btn.disabled = false;
+    showErr('Submission failed: '+err.message+'. Please try again or contact HR directly.');
+  }
+}
+</script>
+</body>
+</html>
