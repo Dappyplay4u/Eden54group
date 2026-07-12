@@ -71,7 +71,10 @@ body{font-family:'Jost',sans-serif;font-weight:300;background:#0f2318;min-height
     <img src="/logo/eden 54 logo.jpeg" alt="Eden 54">
     <h1>Eden 54</h1>
     <p>Staff Portal</p>
-    <div class="sub">Select your profile to continue</div>
+    <div class="sub" id="headerSub">Select your profile to continue</div>
+    <div id="expiredBanner" style="display:none;margin-top:10px;background:#fef3c7;color:#92400e;border:1px solid #fcd34d;border-radius:8px;padding:10px 14px;font-size:0.82rem;text-align:center">
+      Your session expired after 14 hours. Please log in again.
+    </div>
   </div>
 
   <div id="salonSection" style="display:none">
@@ -131,22 +134,39 @@ body{font-family:'Jost',sans-serif;font-weight:300;background:#0f2318;min-height
 <script>
 const auth = firebase.auth();
 
+const _params = new URLSearchParams(window.location.search);
+
 // ?switch clears session and forces picker
-if (new URLSearchParams(window.location.search).has('switch')) {
+if (_params.has('switch')) {
   localStorage.removeItem('eden54_staff');
+  localStorage.removeItem('eden54_login_at');
   history.replaceState(null, '', '/portal/');
 }
 
-// Already signed in — go straight through
+// ?expired shows session-expired banner
+if (_params.has('expired')) {
+  document.getElementById('expiredBanner').style.display = 'block';
+  history.replaceState(null, '', '/portal/');
+}
+
+// Already signed in — check for expiry then redirect
 const saved = localStorage.getItem('eden54_staff');
 if (saved) {
-  try {
-    const s = JSON.parse(saved);
-    const lvl = (s.accessLevel || s.role || '').toLowerCase().replace(/\s+/g,'');
-    const _r0 = sessionStorage.getItem('eden54_redirect'); sessionStorage.removeItem('eden54_redirect');
-    window.location.href = _r0 || (['ceo','superadmin','manager'].includes(lvl) || lvl.includes('manager')
-      ? '/portal/dashboard/' : '/portal/home/');
-  } catch(e) { localStorage.removeItem('eden54_staff'); }
+  const _loginAt = parseInt(localStorage.getItem('eden54_login_at') || '0', 10);
+  const _expired = _loginAt && (Date.now() - _loginAt > 14 * 3600000);
+  if (_expired) {
+    localStorage.removeItem('eden54_staff');
+    localStorage.removeItem('eden54_login_at');
+    document.getElementById('expiredBanner').style.display = 'block';
+  } else {
+    try {
+      const s = JSON.parse(saved);
+      const lvl = (s.accessLevel || s.role || '').toLowerCase().replace(/\s+/g,'');
+      const _r0 = sessionStorage.getItem('eden54_redirect'); sessionStorage.removeItem('eden54_redirect');
+      window.location.href = _r0 || (['ceo','superadmin','manager'].includes(lvl) || lvl.includes('manager')
+        ? '/portal/dashboard/' : '/portal/home/');
+    } catch(e) { localStorage.removeItem('eden54_staff'); }
+  }
 }
 
 /* ── Staff loading ── */
@@ -276,7 +296,7 @@ async function submitPassword(e) {
     // Verified — immediately sign out of Firebase Auth (portal uses localStorage, not Auth sessions)
     await auth.signOut();
 
-    // Store staff profile and redirect
+    // Store staff profile and session timestamp, then redirect
     setStaff({
       id:          s.id,
       name:        s.name,
@@ -285,6 +305,7 @@ async function submitPassword(e) {
       accessLevel: s.accessLevel,
       photoURL:    s.photoURL,
     });
+    localStorage.setItem('eden54_login_at', Date.now());
     const lvl = (s.accessLevel || s.role || '').toLowerCase().replace(/\s+/g,'');
     const isPriv = ['ceo','superadmin','manager'].includes(lvl) || lvl.includes('manager');
     const _r1 = sessionStorage.getItem('eden54_redirect'); sessionStorage.removeItem('eden54_redirect');

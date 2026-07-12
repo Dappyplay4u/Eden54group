@@ -12,6 +12,8 @@ let storage = null;
 try { storage = firebase.storage(); } catch(e) {}
 
 /* ── Identity ── */
+const SESSION_TIMEOUT_MS = 14 * 60 * 60 * 1000; // 14 hours
+
 function getStaff() {
   try {
     const s = localStorage.getItem('eden54_staff');
@@ -20,6 +22,17 @@ function getStaff() {
       window.location.href = '/portal/';
       return null;
     }
+    // Auto-logout after 14 hours of inactivity
+    const loginAt = parseInt(localStorage.getItem('eden54_login_at') || '0', 10);
+    if (loginAt && Date.now() - loginAt > SESSION_TIMEOUT_MS) {
+      localStorage.removeItem('eden54_staff');
+      localStorage.removeItem('eden54_login_at');
+      sessionStorage.setItem('eden54_redirect', window.location.href);
+      window.location.href = '/portal/?expired=1';
+      return null;
+    }
+    // Stamp loginAt for sessions that pre-date this feature
+    if (!loginAt) localStorage.setItem('eden54_login_at', Date.now());
     return JSON.parse(s);
   } catch(e) {
     sessionStorage.setItem('eden54_redirect', window.location.href);
@@ -30,6 +43,7 @@ function getStaff() {
 function setStaff(data) { localStorage.setItem('eden54_staff', JSON.stringify(data)); }
 function switchProfile() {
   localStorage.removeItem('eden54_staff');
+  localStorage.removeItem('eden54_login_at');
   try { firebase.auth().signOut(); } catch(e) {}
   window.location.href = '/portal/';
 }
