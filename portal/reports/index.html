@@ -93,6 +93,13 @@
   .print-header { display:block !important; }
 }
 .print-header { display:none; text-align:center; margin-bottom:20px; }
+/* Range report */
+.mode-btn { font-size:0.72rem; padding:6px 14px; border:1px solid var(--border); background:transparent; color:var(--muted); border-radius:4px; cursor:pointer; transition:all .2s; font-family:'Jost',sans-serif; letter-spacing:0.05em; }
+.mode-btn:hover { border-color:var(--gold); color:var(--gold); }
+.mode-btn.active { border-color:var(--gold); color:var(--gold); background:rgba(201,169,110,0.08); font-weight:400; }
+.rng-tbl th,.rng-tbl td { padding:9px 14px; text-align:right; white-space:nowrap; font-size:0.82rem; }
+.rng-tbl tfoot td { border-top:2px solid var(--border); }
+.rng-tbl tbody tr:hover { background:rgba(201,169,110,0.04); }
 </style>
 </head>
 <body>
@@ -117,14 +124,53 @@
   <div class="content">
     <div id="alertBox" class="alert"></div>
 
-    <!-- Date picker + print -->
-    <div class="no-print" style="display:flex;align-items:flex-end;gap:12px;margin-bottom:20px;flex-wrap:wrap">
+    <!-- Mode toggle + department filter -->
+    <div class="no-print" style="display:flex;gap:10px;margin-bottom:16px;align-items:flex-end;flex-wrap:wrap">
+      <div>
+        <div style="font-size:0.65rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-bottom:6px">View</div>
+        <div style="display:flex;gap:6px">
+          <button class="mode-btn active" id="modeSingle" onclick="setMode('single')">Single Day</button>
+          <button class="mode-btn" id="modeRange" onclick="setMode('range')">Date Range</button>
+        </div>
+      </div>
+      <div class="form-group" style="margin:0;min-width:200px">
+        <label class="form-label">Department</label>
+        <select id="filterDept" class="form-control" onchange="onDeptFilter()">
+          <option value="all">All Departments</option>
+          <option value="barbing">💈 Barbing Salon</option>
+          <option value="games">🎮 Games &amp; Pool</option>
+          <option value="drinks">🍺 Bar &amp; Drinks</option>
+          <option value="food">🍽️ Food &amp; Restaurant</option>
+          <option value="apt">🏠 Apartments</option>
+          <option value="events">🎪 Events</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Single-day picker -->
+    <div class="no-print" id="singleDateWrap" style="display:flex;align-items:flex-end;gap:12px;margin-bottom:20px;flex-wrap:wrap">
       <div class="form-group" style="margin:0">
         <label class="form-label">Date</label>
         <input type="date" id="reportDate" class="form-control" onchange="loadAll()">
       </div>
       <button class="btn btn-outline btn-sm" onclick="window.print()">Print Report</button>
     </div>
+
+    <!-- Range picker -->
+    <div class="no-print" id="rangeWrap" style="display:none;align-items:flex-end;gap:12px;margin-bottom:20px;flex-wrap:wrap">
+      <div class="form-group" style="margin:0">
+        <label class="form-label">From</label>
+        <input type="date" id="rangeFrom" class="form-control">
+      </div>
+      <div class="form-group" style="margin:0">
+        <label class="form-label">To</label>
+        <input type="date" id="rangeTo" class="form-control">
+      </div>
+      <button class="btn btn-gold btn-sm" onclick="loadRange()">Load Report</button>
+    </div>
+
+    <!-- Range results -->
+    <div id="rangeResult" style="display:none;margin-bottom:24px"></div>
 
     <!-- Daily revenue by department — shown first -->
     <div class="grand-bar no-print" id="grandBar" style="display:none">
@@ -329,7 +375,8 @@ async function loadAll() {
   renderEvents(date, pos.events, manual.other);
   renderBarbing(date, barbReports, pos.barbing, manual.barbing);
   renderExpenses(date, allExpenses);
-  renderGrandTotal(allSales, poolComps, allExpenses, aptRentals);
+  renderGrandTotal(allSales, poolComps, allExpenses, aptRentals, barbReports);
+  applyDeptFilterSingle(document.getElementById('filterDept').value);
 }
 
 /* ── Shared: sales revenue rows ── */
@@ -763,11 +810,26 @@ function renderExpenses(date, rows) {
 }
 
 /* ── GRAND TOTAL ── */
-function renderGrandTotal(allSales, poolComps, allExpenses, aptRentals) {
+function renderGrandTotal(allSales, poolComps, allExpenses, aptRentals, barbReports) {
+  // Exclude barbing_reports for staff already represented in the sales collection (POS or manual).
+  const barbSalesStaff = new Set();
+  allSales.forEach(r => {
+    const sec = r.source === 'pos' ? (r.section||'').toLowerCase() : deptToSection(r.department);
+    if (sec === 'barbing') {
+      if (r.staffId)   barbSalesStaff.add(r.staffId);
+      if (r.staffName) barbSalesStaff.add((r.staffName||'').toLowerCase().trim());
+    }
+  });
+  const dedupedBarb = (barbReports||[]).filter(r =>
+    !barbSalesStaff.has(r.staffId) &&
+    !barbSalesStaff.has((r.staffName||'').toLowerCase().trim())
+  );
+  const barbTot = dedupedBarb.reduce((s,r) => s + (r.totalRevenue||0), 0);
+
   const salesTot     = allSales.reduce((s,r)=>s+(r.totalSales||0),0);
   const compNet      = poolComps.reduce((s,r)=>s+(r.netRevenue||0),0);
   const aptRentalRev = (aptRentals||[]).reduce((s,r)=>s+(r.total||r.paid||0),0);
-  const gross        = salesTot + compNet + aptRentalRev;
+  const gross        = salesTot + compNet + aptRentalRev + barbTot;
   if (!gross) return;
 
   const totalExp = (allExpenses||[]).reduce((s,e)=>s+(e.amount||0),0);
@@ -788,6 +850,7 @@ function renderGrandTotal(allSales, poolComps, allExpenses, aptRentals) {
   });
   if (compNet > 0)      bySec['🏊 Competitions'] = compNet;
   if (aptRentalRev > 0) bySec['🏠 Apartments']  = (bySec['🏠 Apartments']||0) + aptRentalRev;
+  if (barbTot > 0)      bySec['💈 Barbing Salon'] = (bySec['💈 Barbing Salon']||0) + barbTot;
 
   const chips = Object.entries(bySec)
     .filter(([,t]) => t > 0)
@@ -1082,6 +1145,227 @@ async function loadSalesLeaders() {
 loadAll();
 loadMonthlySummary();
 loadSalesLeaders();
+
+/* ── Mode toggle ── */
+const DAILY_ELS = ['grandBar','monthlySummary','salesLeaders','gamesCard','drinksCard','foodCard','apartmentCard','eventsCard','barbingCard','expensesCard'];
+
+function setMode(mode) {
+  const isRange = mode === 'range';
+  document.getElementById('singleDateWrap').style.display = isRange ? 'none' : 'flex';
+  document.getElementById('rangeWrap').style.display      = isRange ? 'flex' : 'none';
+  document.getElementById('rangeResult').style.display    = isRange ? 'block' : 'none';
+  DAILY_ELS.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = isRange ? 'none' : '';
+  });
+  document.getElementById('modeSingle').classList.toggle('active', !isRange);
+  document.getElementById('modeRange').classList.toggle('active',  isRange);
+  if (!isRange) { loadAll(); loadMonthlySummary(); }
+}
+
+/* ── Department filter ── */
+const DEPT_CARD_MAP = {
+  barbing: 'barbingCard', games: 'gamesCard', drinks: 'drinksCard',
+  food: 'foodCard', apt: 'apartmentCard', events: 'eventsCard',
+};
+
+function applyDeptFilterSingle(dept) {
+  const all = Object.values(DEPT_CARD_MAP);
+  if (dept === 'all') {
+    all.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = ''; });
+    // grandBar was already set by renderGrandTotal — don't override
+  } else {
+    all.forEach(id => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.style.display = (DEPT_CARD_MAP[dept] === id) ? '' : 'none';
+    });
+    // Hide the all-dept grand bar when a single dept is selected
+    const gb = document.getElementById('grandBar');
+    if (gb) gb.style.display = 'none';
+  }
+}
+
+function onDeptFilter() {
+  const dept    = document.getElementById('filterDept').value;
+  const isRange = document.getElementById('rangeWrap').style.display !== 'none';
+  if (isRange) {
+    if (_rangeCache) renderRangeTable(_rangeCache, dept);
+  } else {
+    applyDeptFilterSingle(dept);
+  }
+}
+
+/* ── Range Report ── */
+(function initRange() {
+  const today = new Date();
+  const yyyy  = today.getFullYear();
+  const mm    = String(today.getMonth()+1).padStart(2,'0');
+  document.getElementById('rangeFrom').value = `${yyyy}-${mm}-01`;
+  document.getElementById('rangeTo').value   = todayStr();
+})();
+
+let _rangeCache = null;
+
+async function loadRange() {
+  const fromDate = document.getElementById('rangeFrom').value;
+  const toDate   = document.getElementById('rangeTo').value;
+  if (!fromDate || !toDate) { alert('Please select both a From and To date.'); return; }
+  if (fromDate > toDate)    { alert('From date must be before the To date.'); return; }
+
+  const el = document.getElementById('rangeResult');
+  el.style.display = 'block';
+  el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted);font-size:0.85rem">Loading…</div>';
+
+  try {
+    const [salesSnap, barbSnap, compSnap] = await Promise.all([
+      db.collection('sales').where('date','>=',fromDate).where('date','<=',toDate).get(),
+      db.collection('barbing_reports').where('date','>=',fromDate).where('date','<=',toDate).get(),
+      db.collection('pool_competitions').where('date','>=',fromDate).where('date','<=',toDate).get(),
+    ]);
+    let aptDocs = [];
+    try {
+      const aptSnap = await db.collection('apartmentRentals').where('checkin','>=',fromDate).where('checkin','<=',toDate).get();
+      aptDocs = aptSnap.docs;
+    } catch(e) {}
+
+    const DEPTS = ['barbing','games','drinks','food','apt','events'];
+    const days  = {};
+    const getDay = d => {
+      if (!days[d]) days[d] = { barbing:0, games:0, drinks:0, food:0, apt:0, events:0 };
+      return days[d];
+    };
+
+    const posBarbByDay = {};
+    salesSnap.forEach(doc => {
+      const r = doc.data();
+      if (!r.date) return;
+      const amt = r.source === 'pos' ? (r.amount||0) : (r.totalSales||0);
+      const sec = r.source === 'pos'
+        ? (r.section||'events').toLowerCase()
+        : deptToSection(r.department);
+      const d = getDay(r.date);
+      if (DEPTS.includes(sec)) d[sec] += amt; else d.events += amt;
+      const isBarbingSale = r.source === 'pos'
+        ? (r.section||'').toLowerCase() === 'barbing'
+        : deptToSection(r.department) === 'barbing';
+      if (isBarbingSale) {
+        if (!posBarbByDay[r.date]) posBarbByDay[r.date] = new Set();
+        if (r.staffName) posBarbByDay[r.date].add((r.staffName||'').toLowerCase().trim());
+        if (r.staffId)   posBarbByDay[r.date].add('id:'+r.staffId);
+      }
+    });
+
+    compSnap.forEach(doc => {
+      const r = doc.data();
+      if (r.date) getDay(r.date).games += (r.netRevenue||0);
+    });
+
+    barbSnap.forEach(doc => {
+      const r = doc.data();
+      if (!r.date) return;
+      const ps  = posBarbByDay[r.date] || new Set();
+      const dup = ps.has((r.staffName||'').toLowerCase()) || ps.has('id:'+(r.staffId||''));
+      if (!dup) getDay(r.date).barbing += (r.totalRevenue||0);
+    });
+
+    aptDocs.forEach(doc => {
+      const r = doc.data();
+      const d = r.checkin;
+      if (d && d >= fromDate && d <= toDate) getDay(d).apt += (r.paid||0);
+    });
+
+    const sortedDates = Object.keys(days).sort();
+    if (!sortedDates.length) {
+      el.innerHTML = `<div class="dept-card"><div class="dept-body" style="text-align:center;color:var(--muted);padding:32px">No activity found for this date range.</div></div>`;
+      _rangeCache = null;
+      return;
+    }
+
+    _rangeCache = { days, sortedDates, fromDate, toDate };
+    renderRangeTable(_rangeCache, document.getElementById('filterDept').value);
+
+  } catch(err) {
+    document.getElementById('rangeResult').innerHTML = `<div class="dept-card"><div class="dept-body" style="color:#ef4444;padding:24px">Error loading range report: ${esc(err.message)}</div></div>`;
+    console.error('loadRange:', err);
+  }
+}
+
+function renderRangeTable(cache, dept) {
+  const { days, sortedDates, fromDate, toDate } = cache;
+  const ALL_COLS = [
+    { key:'barbing', label:'💈 Barbing' },
+    { key:'games',   label:'🎮 Games' },
+    { key:'drinks',  label:'🍺 Bar' },
+    { key:'food',    label:'🍽️ Food' },
+    { key:'apt',     label:'🏠 Apt' },
+    { key:'events',  label:'🎪 Events' },
+  ];
+  const DEPTS = ALL_COLS.map(c => c.key);
+  const cols  = (dept === 'all') ? ALL_COLS : ALL_COLS.filter(c => c.key === dept);
+  const keys  = cols.map(c => c.key);
+  const showTotal = cols.length > 1;
+
+  // Compute totals for visible columns
+  const totals = {};
+  DEPTS.forEach(k => { totals[k] = 0; });
+  sortedDates.forEach(d => keys.forEach(k => totals[k] += days[d][k]));
+  const grandTot = keys.reduce((s,k) => s + totals[k], 0);
+
+  const deptLabel = dept === 'all' ? 'All Departments' : (cols[0]?.label || dept);
+
+  const thead = `<tr>
+    <th style="text-align:left">Date</th>
+    ${cols.map(c=>`<th>${c.label}</th>`).join('')}
+    ${showTotal ? '<th>Total</th>' : ''}
+  </tr>`;
+
+  const rows = sortedDates.map(date => {
+    const d      = days[date];
+    const dayTot = keys.reduce((s,k) => s + d[k], 0);
+    if (!dayTot) return '';
+    const label = new Date(date+'T12:00:00').toLocaleDateString('en-NG',{weekday:'short',day:'numeric',month:'short'});
+    return `<tr>
+      <td style="text-align:left">
+        <a href="#" onclick="setMode('single');document.getElementById('reportDate').value='${date}';loadAll();return false"
+           style="color:var(--gold);text-decoration:none;font-size:0.82rem">${label}</a>
+      </td>
+      ${cols.map(c=>`<td style="color:${d[c.key]>0?'var(--text)':'var(--muted)'}">${d[c.key]>0?N(d[c.key]):'—'}</td>`).join('')}
+      ${showTotal ? `<td style="font-weight:400;color:var(--gold)">${N(dayTot)}</td>` : ''}
+    </tr>`;
+  }).filter(Boolean).join('');
+
+  const activeDays = sortedDates.filter(d => keys.some(k => days[d][k] > 0)).length;
+
+  const tfoot = `<tr style="background:rgba(201,169,110,0.06)">
+    <td style="text-align:left;font-weight:400">Total · ${activeDays} day${activeDays!==1?'s':''}</td>
+    ${cols.map(c=>`<td style="font-weight:400;color:${totals[c.key]>0?'var(--gold)':'var(--muted)'}">${totals[c.key]>0?N(totals[c.key]):'—'}</td>`).join('')}
+    ${showTotal ? `<td style="font-weight:400;color:var(--gold)">${N(grandTot)}</td>` : ''}
+  </tr>`;
+
+  const colSpan = cols.length + (showTotal ? 2 : 1);
+  document.getElementById('rangeResult').innerHTML = `<div class="dept-card">
+    <div class="dept-header">
+      <div class="dept-header-left">
+        <span class="dept-icon">📅</span>
+        <div>
+          <div class="dept-title">Range Report — ${deptLabel}</div>
+          <div class="dept-sub">${fromDate} → ${toDate} · ${activeDays} day${activeDays!==1?'s':''} with activity</div>
+        </div>
+      </div>
+      <span class="pill-status pill-ok">${N(grandTot)}</span>
+    </div>
+    <div class="dept-body">
+      <div class="tbl-wrap">
+        <table class="rng-tbl" style="min-width:${cols.length>1?'560':'260'}px;width:100%">
+          <thead>${thead}</thead>
+          <tbody>${rows || `<tr><td colspan="${colSpan}" style="text-align:center;color:var(--muted);padding:24px">No activity for this department in the selected range.</td></tr>`}</tbody>
+          <tfoot>${tfoot}</tfoot>
+        </table>
+      </div>
+    </div>
+  </div>`;
+}
 </script>
 </body>
 </html>

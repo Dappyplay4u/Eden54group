@@ -45,6 +45,14 @@
       </div>
     </div>
 
+    <div class="card" id="salaryDirCard" style="display:none;margin-bottom:24px">
+      <div class="section-head">
+        <h2>Staff Salary Directory</h2>
+        <span class="text-muted" style="font-size:0.78rem" id="salaryDirSub">Loading…</span>
+      </div>
+      <div id="salaryDirBody"><p class="text-muted" style="font-size:0.85rem">Loading…</p></div>
+    </div>
+
     <div class="card">
       <div class="section-head"><h2>History</h2></div>
       <div class="tbl-wrap">
@@ -178,7 +186,56 @@ async function loadHistory() {
         return `<tr><td class="fw4">${p.month}</td><td>${(p.staff||[]).length}</td><td class="text-gold fw4">${fmtNaira(p.totalPaid)}</td><td><span class="badge badge-${allPaid?'ok':'warn'}">${allPaid?'All Paid':'Partial'}</span></td><td>${p.processedBy}</td></tr>`;
       }).join('');
 }
+
+async function loadSalaryDirectory() {
+  const raw = (currentStaff.accessLevel || currentStaff.role || '').toLowerCase().replace(/\s+/g,'');
+  const isCEO = raw === 'ceo' || raw === 'superadmin';
+  const dept  = (currentStaff.department || '').toLowerCase();
+  const isHR  = raw === 'hr' || dept === 'hr' || dept.includes('human resource');
+  if (!isCEO && !isHR) return;
+
+  document.getElementById('salaryDirCard').style.display = 'block';
+  try {
+    const snap = await db.collection('staff').orderBy('department').get();
+    const staff = snap.docs
+      .map(d => ({ id: d.id, ...d.data() }))
+      .filter(s => s.active !== false);
+
+    const totalWage = staff.reduce((sum, s) => sum + (s.basicSalary || 0), 0);
+    document.getElementById('salaryDirSub').textContent =
+      staff.length + ' active staff · Total monthly wage: ' + fmtNaira(totalWage);
+
+    const byDept = {};
+    staff.forEach(s => {
+      const d = s.department || 'Other';
+      if (!byDept[d]) byDept[d] = [];
+      byDept[d].push(s);
+    });
+
+    let html = '<div class="tbl-wrap"><table><thead><tr><th>Staff</th><th>Department</th><th>Role</th><th style="text-align:right">Basic Salary</th></tr></thead><tbody>';
+    Object.entries(byDept).sort((a,b)=>a[0].localeCompare(b[0])).forEach(([, members]) => {
+      members.sort((a,b)=>(a.name||'').localeCompare(b.name||''));
+      members.forEach(s => {
+        html += `<tr>
+          <td class="fw4">${s.name || '—'}</td>
+          <td>${s.department || '—'}</td>
+          <td><span class="badge badge-info">${s.accessLevel || s.role || 'Staff'}</span></td>
+          <td style="text-align:right" class="${s.basicSalary ? 'fw4 text-gold' : 'text-muted'}">${s.basicSalary ? fmtNaira(s.basicSalary) : '—'}</td>
+        </tr>`;
+      });
+    });
+    html += `</tbody><tfoot><tr>
+      <td colspan="3" style="padding:10px 12px;font-size:0.82rem;color:var(--muted)">Total Monthly Payroll</td>
+      <td style="text-align:right;padding:10px 12px;border-top:2px solid var(--border)" class="fw4 text-gold">${fmtNaira(totalWage)}</td>
+    </tr></tfoot></table></div>`;
+    document.getElementById('salaryDirBody').innerHTML = html;
+  } catch(e) {
+    document.getElementById('salaryDirBody').innerHTML = `<p style="color:#fca5a5;font-size:0.85rem">Error loading staff: ${e.message}</p>`;
+  }
+}
+
 loadHistory();
+loadSalaryDirectory();
 </script>
 </body>
 </html>

@@ -76,8 +76,14 @@
     <div class="card no-print" style="margin-bottom:20px">
       <div class="act-filters">
         <div class="form-group">
+          <label class="form-label">Department</label>
+          <select id="filterDept" class="form-control" style="min-width:160px" onchange="onDeptChange()">
+            <option value="">All Departments</option>
+          </select>
+        </div>
+        <div class="form-group">
           <label class="form-label">Staff Member</label>
-          <select id="filterStaff" class="form-control" style="min-width:200px" onchange="loadAll()">
+          <select id="filterStaff" class="form-control" style="min-width:180px">
             <option value="">All Staff</option>
           </select>
         </div>
@@ -194,74 +200,141 @@ let staffMap = {};
 async function init() {
   try {
     const snap = await db.collection('staff').orderBy('name').get();
-    const sel  = document.getElementById('filterStaff');
     snap.forEach(d => {
       const s = { id: d.id, ...d.data() };
-      if (s.active !== false) {
-        staffMap[s.id] = s;
-        sel.innerHTML += `<option value="${s.id}">${s.name} — ${s.department}</option>`;
-      }
+      if (s.active !== false) staffMap[s.id] = s;
     });
+
+    // Populate department dropdown
+    const depts = [...new Set(Object.values(staffMap).map(s => s.department).filter(Boolean))].sort();
+    const deptSel = document.getElementById('filterDept');
+    depts.forEach(d => { deptSel.innerHTML += `<option value="${d}">${d}</option>`; });
+
+    // Populate staff dropdown (all staff initially)
+    rebuildStaffDropdown('');
   } catch(e) {
     console.error('Staff list error:', e);
   }
-  // Auto-load regardless of whether staff list succeeded
   loadAll();
+}
+
+function rebuildStaffDropdown(deptFilter) {
+  const sel = document.getElementById('filterStaff');
+  sel.innerHTML = '<option value="">All Staff</option>';
+  Object.values(staffMap)
+    .filter(s => !deptFilter || s.department === deptFilter)
+    .sort((a,b) => (a.name||'').localeCompare(b.name||''))
+    .forEach(s => {
+      sel.innerHTML += `<option value="${s.id}">${s.name}${deptFilter ? '' : ' — ' + (s.department||'')}</option>`;
+    });
+}
+
+function onDeptChange() {
+  const dept = document.getElementById('filterDept').value;
+  rebuildStaffDropdown(dept);
 }
 
 /* ── Pull Report ── */
 async function loadAll() {
   const staffId  = document.getElementById('filterStaff').value;
+  const deptKey  = document.getElementById('filterDept').value;
   const dateFrom = document.getElementById('dateFrom').value;
   const dateTo   = document.getElementById('dateTo').value;
   if (!dateFrom || !dateTo) { showAlert('alertBox','Please select a date range.','alert-error'); return; }
   document.getElementById('summaryCards').style.display = '';
 
+  // When a department is chosen but no specific staff, build a staffId Set for client-side filtering
+  let deptStaffIds = null;
+  if (deptKey && !staffId) {
+    deptStaffIds = new Set(Object.values(staffMap).filter(s => s.department === deptKey).map(s => s.id));
+  }
+
   await Promise.all([
-    loadSales(staffId, dateFrom, dateTo),
-    loadClocks(staffId, dateFrom, dateTo),
-    loadUpdates(staffId, dateFrom, dateTo),
-    loadExpenses(staffId, dateFrom, dateTo)
+    loadSales(staffId, dateFrom, dateTo, deptStaffIds),
+    loadClocks(staffId, dateFrom, dateTo, deptStaffIds),
+    loadUpdates(staffId, dateFrom, dateTo, deptStaffIds),
+    loadExpenses(staffId, dateFrom, dateTo, deptStaffIds)
   ]);
 }
 
 /* ── Sales Records ── */
-async function loadSales(staffId, from, to) {
+async function loadSales(staffId, from, to, deptStaffIds) {
   const el = document.getElementById('salesList');
   el.innerHTML = '<p class="text-muted" style="font-size:0.85rem">Loading…</p>';
   try {
-    // Avoid composite index: query by staffId OR by date range, filter the other client-side
-    let rawSnap;
-    if (staffId) {
-      rawSnap = await db.collection('sales').where('staffId','==',staffId).get();
-    } else {
-      rawSnap = await db.collection('sales').where('date','>=',from).where('date','<=',to).get();
-    }
-    // Apply remaining filter client-side
-    const docs = rawSnap.docs.filter(d => {
-      const date = d.data().date || '';
-      return date >= from && date <= to;
+    // Query sales + barbing_reports in parallel; avoid composite index by filtering date client-side
+    const [rawSnap, barbSnap] = await Promise.all([
+      staffId
+        ? db.collection('sales').where('staffId','==',staffId).get()
+        : db.collection('sales').where('date','>=',from).where('date','<=',to).get(),
+      staffId
+        ? db.collection('barbing_reports').where('staffId','==',staffId).get()
+        : db.collection('barbing_reports').where('date','>=',from).where('date','<=',to).get(),
+    ]);
+
+    // Normalize sales records: POS uses `amount`, manual uses `totalSales`
+    const barbSalesByDay = {};
+    let rows = rawSnap.docs
+      .filter(d => { const dt = d.data().date || ''; return dt >= from && dt <= to; })
+      .map(d => {
+        const s = Object.assign({}, d.data());
+        if (s.source === 'pos') {
+          const amt = s.amount || 0;
+          const pm  = (s.paymentMethod || '').toLowerCase();
+          s.totalSales    = amt;
+          s.cashSales     = pm === 'cash'     ? amt : 0;
+          s.transferSales = pm === 'transfer' ? amt : 0;
+          s.posSales      = pm === 'pos'      ? amt : 0;
+          s.department    = s.department || s.section || '';
+        }
+        // Track barbing staff per day for dedup against barbing_reports
+        const isBarbingSale = s.source === 'pos'
+          ? (s.section||'').toLowerCase() === 'barbing'
+          : ['barbing salon','salon','barbing'].includes((s.department||'').toLowerCase().trim());
+        if (isBarbingSale && s.date) {
+          if (!barbSalesByDay[s.date]) barbSalesByDay[s.date] = new Set();
+          if (s.staffId)   barbSalesByDay[s.date].add(s.staffId);
+          if (s.staffName) barbSalesByDay[s.date].add((s.staffName||'').toLowerCase().trim());
+        }
+        return s;
+      });
+
+    // Merge barbing_reports, skipping staff already counted in sales
+    barbSnap.docs.forEach(d => {
+      const r = d.data();
+      const dt = r.date || '';
+      if (dt < from || dt > to) return;
+      const ps = barbSalesByDay[dt] || new Set();
+      if (ps.has(r.staffId) || ps.has((r.staffName||'').toLowerCase().trim())) return;
+      rows.push({
+        date: dt, staffName: r.staffName || '', staffId: r.staffId || '',
+        department: 'Barbing Salon',
+        totalSales: r.totalRevenue || 0,
+        cashSales: r.cashSales || 0, transferSales: r.transferSales || 0, posSales: r.posSales || 0,
+        notes: '', services: r.services || [], _barbReport: true,
+      });
     });
 
+    // Apply department filter when set
+    if (deptStaffIds) rows = rows.filter(r => deptStaffIds.has(r.staffId));
+
     let grand = 0, cash = 0, transfer = 0, pos = 0;
-    docs.forEach(d => {
-      const s = d.data();
+    rows.forEach(s => {
       grand    += s.totalSales    || 0;
       cash     += s.cashSales     || 0;
       transfer += s.transferSales || 0;
       pos      += s.posSales      || 0;
     });
     document.getElementById('sumSales').textContent     = fmtNaira(grand);
-    document.getElementById('sumSalesSub').textContent  = docs.length + ' submission' + (docs.length !== 1 ? 's' : '');
-    document.getElementById('salesSummary').textContent = docs.length + ' record' + (docs.length !== 1 ? 's' : '') + ' · Total ' + fmtNaira(grand);
+    document.getElementById('sumSalesSub').textContent  = rows.length + ' submission' + (rows.length !== 1 ? 's' : '');
+    document.getElementById('salesSummary').textContent = rows.length + ' record' + (rows.length !== 1 ? 's' : '') + ' · Total ' + fmtNaira(grand);
 
-    if (!docs.length) {
+    if (!rows.length) {
       el.innerHTML = '<p class="text-muted" style="font-size:0.85rem;padding:8px 0">No sales records in this range.</p>';
       return;
     }
 
-    // Sort by date desc
-    docs.sort((a,b) => b.data().date.localeCompare(a.data().date));
+    rows.sort((a, b) => (b.date||'').localeCompare(a.date||''));
 
     el.innerHTML = `
       <div style="margin-bottom:12px;padding:10px 14px;background:#f9f9f7;border-radius:6px;display:flex;gap:24px;flex-wrap:wrap;font-size:0.82rem">
@@ -274,20 +347,22 @@ async function loadSales(staffId, from, to) {
         <table>
           <thead><tr><th>Date</th><th>Staff</th><th>Department</th><th>Cash</th><th>Transfer</th><th>POS</th><th>Total</th><th>Notes</th></tr></thead>
           <tbody>
-            ${docs.map(d => {
-              const s = d.data();
+            ${rows.map(s => {
               const svcHtml = (s.services||[]).length
                 ? `<div style="font-size:0.68rem;color:var(--muted);margin-top:2px">${s.services.map(x=>x.type+(x.amount?': '+fmtNaira(x.amount):'')).join(' · ')}</div>`
                 : '';
+              const posTag = s.source === 'pos'
+                ? '<span style="font-size:0.68rem;background:rgba(201,169,110,0.15);color:#C9A96E;padding:1px 6px;border-radius:3px;margin-left:4px">POS</span>'
+                : '';
               return `<tr>
                 <td class="fw4">${s.date}</td>
-                <td>${s.staffName}</td>
-                <td><span class="badge badge-info">${s.department}</span>${svcHtml}</td>
+                <td>${escHtml(s.staffName)}${posTag}</td>
+                <td><span class="badge badge-info">${escHtml(s.department)}</span>${svcHtml}</td>
                 <td>${fmtNaira(s.cashSales)}</td>
                 <td>${fmtNaira(s.transferSales)}</td>
                 <td>${fmtNaira(s.posSales)}</td>
                 <td class="fw4 text-gold">${fmtNaira(s.totalSales)}</td>
-                <td style="font-size:0.78rem;color:var(--muted)">${s.notes||''}</td>
+                <td style="font-size:0.78rem;color:var(--muted)">${escHtml(s.notes||'')}</td>
               </tr>`;
             }).join('')}
           </tbody>
@@ -300,14 +375,17 @@ async function loadSales(staffId, from, to) {
 }
 
 /* ── Clock Records ── */
-async function loadClocks(staffId, from, to) {
+async function loadClocks(staffId, from, to, deptStaffIds) {
   const el = document.getElementById('clockList');
   el.innerHTML = '<p class="text-muted" style="font-size:0.85rem">Loading…</p>';
   try {
     const all  = await db.collection('clockings').get();
     let docs = all.docs.filter(d => {
       const date = d.id.split('_')[0];
-      return date >= from && date <= to && (!staffId || d.id.endsWith('_' + staffId));
+      const cid  = d.data().staffId;
+      return date >= from && date <= to &&
+        (!staffId || d.id.endsWith('_' + staffId)) &&
+        (!deptStaffIds || deptStaffIds.has(cid));
     });
     docs.sort((a,b) => b.id.localeCompare(a.id));
 
@@ -372,7 +450,7 @@ async function loadClocks(staffId, from, to) {
 }
 
 /* ── Reports / Updates ── */
-async function loadUpdates(staffId, from, to) {
+async function loadUpdates(staffId, from, to, deptStaffIds) {
   const el = document.getElementById('updateList');
   el.innerHTML = '<p class="text-muted" style="font-size:0.85rem">Loading…</p>';
   try {
@@ -380,11 +458,12 @@ async function loadUpdates(staffId, from, to) {
     if (staffId) query = db.collection('updates').where('staffId','==',staffId).orderBy('createdAt','desc').limit(200);
     const snap = await query.get();
     const docs = snap.docs.filter(doc => {
-      const ts = doc.data().createdAt;
+      const u  = doc.data();
+      const ts = u.createdAt;
       if (!ts) return false;
-      const dt = ts.toDate();
+      const dt   = ts.toDate();
       const date = dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0');
-      return date >= from && date <= to;
+      return date >= from && date <= to && (!deptStaffIds || deptStaffIds.has(u.staffId));
     });
     document.getElementById('updateSummary').textContent = docs.length + ' update' + (docs.length !== 1 ? 's' : '');
     document.getElementById('sumReports').textContent    = docs.length;
@@ -420,7 +499,7 @@ async function loadUpdates(staffId, from, to) {
 
 /* ── Print ── */
 /* ── Expenses ── */
-async function loadExpenses(staffId, from, to) {
+async function loadExpenses(staffId, from, to, deptStaffIds) {
   const el = document.getElementById('expenseList');
   el.innerHTML = '<p class="text-muted" style="font-size:0.85rem">Loading…</p>';
   try {
@@ -431,8 +510,9 @@ async function loadExpenses(staffId, from, to) {
       rawSnap = await db.collection('expenses').where('date','>=',from).where('date','<=',to).get();
     }
     const docs = rawSnap.docs.filter(d => {
-      const date = d.data().date || '';
-      return date >= from && date <= to;
+      const e    = d.data();
+      const date = e.date || '';
+      return date >= from && date <= to && (!deptStaffIds || deptStaffIds.has(e.staffId));
     });
 
     if (!docs.length) {
@@ -477,13 +557,16 @@ async function loadExpenses(staffId, from, to) {
 }
 
 function printReport() {
-  const staffId  = document.getElementById('filterStaff').value;
-  const from     = document.getElementById('dateFrom').value;
-  const to       = document.getElementById('dateTo').value;
-  const staffSel = document.getElementById('filterStaff');
-  const staffName = staffId ? staffSel.options[staffSel.selectedIndex].text : 'All Staff';
+  const staffId   = document.getElementById('filterStaff').value;
+  const deptKey   = document.getElementById('filterDept').value;
+  const from      = document.getElementById('dateFrom').value;
+  const to        = document.getElementById('dateTo').value;
+  const staffSel  = document.getElementById('filterStaff');
+  const who = staffId
+    ? staffSel.options[staffSel.selectedIndex].text
+    : deptKey ? deptKey + ' Department' : 'All Staff';
   document.getElementById('printMeta').textContent =
-    staffName + ' · ' + from + ' to ' + to + ' · Generated ' + new Date().toLocaleString('en-NG');
+    who + ' · ' + from + ' to ' + to + ' · Generated ' + new Date().toLocaleString('en-NG');
   window.print();
 }
 

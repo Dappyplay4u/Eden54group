@@ -115,21 +115,62 @@ async function load() {
   const today = todayStr();
 
   // ── Sales ──────────────────────────────────────────────
-  const salesSnap = await db.collection('sales').where('date','==',today).get();
+  const monthStart = today.slice(0,7) + '-01';
+  const [salesSnap, barbSnap, monthSnap, monthBarbSnap] = await Promise.all([
+    db.collection('sales').where('date','==',today).get(),
+    db.collection('barbing_reports').where('date','==',today).get(),
+    db.collection('sales').where('date','>=',monthStart).where('date','<=',today).get(),
+    db.collection('barbing_reports').where('date','>=',monthStart).where('date','<=',today).get(),
+  ]);
+
   let todayTotal = 0, deptMap = {};
+  const posBarbIds   = new Set();
+  const posBarbNames = new Set();
   salesSnap.forEach(d => {
     const s = d.data();
     const amt = saleTotal(s);
     todayTotal += amt;
     const dept = saleDept(s);
     if (dept && dept !== '—') deptMap[dept] = (deptMap[dept] || 0) + amt;
+    const isBarbingToday = s.source === 'pos'
+      ? (s.section||'').toLowerCase() === 'barbing'
+      : ['barbing salon','salon','barbing'].includes((s.department||'').toLowerCase().trim());
+    if (isBarbingToday) {
+      if (s.staffId) posBarbIds.add(s.staffId);
+      if (s.staffName) posBarbNames.add((s.staffName||'').toLowerCase().trim());
+    }
+  });
+  // Include today's barbing service reports (exclude staff already counted in sales)
+  barbSnap.forEach(d => {
+    const r = d.data();
+    if (posBarbIds.has(r.staffId) || posBarbNames.has((r.staffName||'').toLowerCase().trim())) return;
+    const amt = r.totalRevenue || 0;
+    todayTotal += amt;
+    if (amt) deptMap['barbing'] = (deptMap['barbing'] || 0) + amt;
   });
   document.getElementById('statSales').textContent = fmtNaira(todayTotal);
-  document.getElementById('statSubs').textContent  = salesSnap.size;
+  document.getElementById('statSubs').textContent  = salesSnap.size + barbSnap.size;
 
-  const monthStart = today.slice(0,7) + '-01';
-  const monthSnap = await db.collection('sales').where('date','>=',monthStart).where('date','<=',today).get();
-  let monthTotal = 0; monthSnap.forEach(d => monthTotal += saleTotal(d.data()));
+  // Monthly total — dedup barbing_reports per day+staff against ALL barbing sales
+  const monthPosBarbKeys = new Set();
+  let monthTotal = 0;
+  monthSnap.forEach(d => {
+    const s = d.data();
+    monthTotal += saleTotal(s);
+    const isBarbingMonth = s.source === 'pos'
+      ? (s.section||'').toLowerCase() === 'barbing'
+      : ['barbing salon','salon','barbing'].includes((s.department||'').toLowerCase().trim());
+    if (isBarbingMonth && s.date) {
+      if (s.staffId)   monthPosBarbKeys.add(s.date + '_' + s.staffId);
+      if (s.staffName) monthPosBarbKeys.add(s.date + '_' + (s.staffName||'').toLowerCase().trim());
+    }
+  });
+  monthBarbSnap.forEach(d => {
+    const r = d.data();
+    const byId   = r.date && r.staffId   ? monthPosBarbKeys.has(r.date + '_' + r.staffId)                          : false;
+    const byName = r.date && r.staffName ? monthPosBarbKeys.has(r.date + '_' + (r.staffName||'').toLowerCase().trim()) : false;
+    if (!byId && !byName) monthTotal += r.totalRevenue || 0;
+  });
   document.getElementById('statMonth').textContent = fmtNaira(monthTotal);
 
   // ── Clocking & Attendance ─────────────────────────────
