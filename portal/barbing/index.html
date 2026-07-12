@@ -74,8 +74,8 @@
         <div class="section-head" style="margin-top:0"><h2>Recent Reports</h2></div>
         <div class="tbl-wrap">
           <table>
-            <thead><tr><th>Date</th><th>Barber</th><th>Services</th><th>Total</th></tr></thead>
-            <tbody id="histTable"><tr><td colspan="4" style="text-align:center;padding:16px;color:#6a6b62">Loading…</td></tr></tbody>
+            <thead><tr><th>Date</th><th>Barber</th><th>Services</th><th>Total</th><th id="editColHead" style="display:none"></th></tr></thead>
+            <tbody id="histTable"><tr><td colspan="5" style="text-align:center;padding:16px;color:#6a6b62">Loading…</td></tr></tbody>
           </table>
         </div>
       </div>
@@ -84,18 +84,69 @@
   </div>
 </div>
 
+<!-- Edit Record Modal -->
+<div class="modal-bg" id="editModalBg" onclick="if(event.target===this)closeEditModal()">
+  <div class="modal" style="max-width:560px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+      <h3 style="margin:0">Edit Barbing Report</h3>
+      <button onclick="closeEditModal()" style="background:none;border:none;font-size:1.4rem;cursor:pointer;color:#6a6b62;line-height:1">×</button>
+    </div>
+    <div id="editAlertBox" class="alert"></div>
+    <div class="fg2" style="margin-bottom:14px">
+      <div class="form-group">
+        <label class="form-label">Date</label>
+        <input type="date" id="editDate" class="form-control">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Barber</label>
+        <input type="text" id="editBarberName" class="form-control" readonly style="opacity:0.6">
+      </div>
+    </div>
+    <p style="font-size:0.72rem;letter-spacing:0.1em;text-transform:uppercase;color:#6a6b62;margin-bottom:10px">Services</p>
+    <div id="editServiceRows"></div>
+    <button onclick="addEditService()" class="btn btn-outline btn-sm" style="margin-bottom:16px">+ Add Service</button>
+    <div style="background:#f5f9f5;border:1px solid #C9A96E;border-radius:6px;padding:12px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center">
+      <span style="font-size:0.75rem;color:#6a6b62;text-transform:uppercase;letter-spacing:0.1em">Revised Total</span>
+      <span class="text-gold fw4" id="editTotalDisplay">₦0.00</span>
+    </div>
+    <div class="fg2" style="margin-bottom:14px">
+      <div class="form-group">
+        <label class="form-label">Cash (₦)</label>
+        <input type="number" id="editCash" class="form-control" placeholder="0" min="0">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Transfer (₦)</label>
+        <input type="number" id="editTransfer" class="form-control" placeholder="0" min="0">
+      </div>
+    </div>
+    <div class="form-group" style="margin-bottom:20px">
+      <label class="form-label">Edit Reason / Notes</label>
+      <textarea id="editNotes" class="form-control" rows="2" placeholder="Reason for correction…"></textarea>
+    </div>
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-outline" onclick="closeEditModal()" style="flex:1">Cancel</button>
+      <button class="btn btn-gold" id="saveEditBtn" onclick="saveEdit()" style="flex:2">Save Changes</button>
+    </div>
+  </div>
+</div>
+
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="/portal/firebase-init.js"></script>
 <script>
 const SERVICES = ['Haircut','Shave','Haircut + Shave','Beard Trim','Low Cut','Shape Up','Colouring','Scalp Treatment','Other'];
-let svcCount = 0;
+let svcCount = 0, editSvcCount = 0, editDocId = null;
 const currentStaff = getStaff();
 requireAccess(currentStaff, 'barbing');
 populateSidebar(currentStaff);
 buildNav(currentStaff, 'barbing');
 document.getElementById('barbDate').value = todayStr();
 document.getElementById('topDate').textContent = new Date().toLocaleDateString('en-NG',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+
+/* Permission check */
+const _r = (currentStaff.accessLevel || currentStaff.role || '').toLowerCase().replace(/\s+/g,'');
+const canEdit = _r === 'ceo' || _r === 'superadmin' || _r === 'manager' || _r.includes('manager');
+if (canEdit) document.getElementById('editColHead').style.display = '';
 
 async function init() {
   const snap = await db.collection('staff').where('department','==','salon').get();
@@ -185,12 +236,100 @@ async function loadToday() {
 }
 
 async function loadHistory() {
-  const snap = await db.collection('barbing_reports').orderBy('submittedAt','desc').limit(20).get();
+  const snap = await db.collection('barbing_reports').orderBy('submittedAt','desc').limit(30).get();
   const tbody = document.getElementById('histTable');
-  tbody.innerHTML = snap.empty
-    ? '<tr><td colspan="4" style="text-align:center;padding:16px;color:#6a6b62">No reports yet.</td></tr>'
-    : snap.docs.map(d=>{ const r=d.data(); return `<tr><td>${r.date}</td><td class="fw4">${r.staffName}</td><td>${r.clientsServed}</td><td class="text-gold fw4">${fmtNaira(r.totalRevenue)}</td></tr>`; }).join('');
+  if (snap.empty) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:16px;color:#6a6b62">No reports yet.</td></tr>'; return; }
+  tbody.innerHTML = snap.docs.map(d => {
+    const r = d.data();
+    const editCell = canEdit
+      ? `<td><button class="btn btn-outline btn-sm" onclick="openEditModal('${d.id}')">Edit</button></td>`
+      : '<td></td>';
+    const edited = r.editedAt ? ` <span style="font-size:0.65rem;color:#C9A96E;letter-spacing:0.06em">(edited)</span>` : '';
+    return `<tr><td>${r.date}${edited}</td><td class="fw4">${r.staffName}</td><td>${r.clientsServed}</td><td class="text-gold fw4">${fmtNaira(r.totalRevenue)}</td>${editCell}</tr>`;
+  }).join('');
 }
+
+/* ── Edit modal ── */
+async function openEditModal(docId) {
+  editDocId = docId;
+  const snap = await db.collection('barbing_reports').doc(docId).get();
+  if (!snap.exists) { alert('Record not found.'); return; }
+  const r = snap.data();
+  document.getElementById('editDate').value = r.date || '';
+  document.getElementById('editBarberName').value = r.staffName || '';
+  document.getElementById('editCash').value = r.cash || 0;
+  document.getElementById('editTransfer').value = r.transfer || 0;
+  document.getElementById('editNotes').value = r.notes || '';
+  document.getElementById('editServiceRows').innerHTML = '';
+  editSvcCount = 0;
+  (r.services || []).forEach(s => addEditService(s.type, s.amount));
+  if (!r.services || !r.services.length) addEditService();
+  calcEdit();
+  document.getElementById('editModalBg').classList.add('show');
+}
+
+function closeEditModal() {
+  document.getElementById('editModalBg').classList.remove('show');
+  editDocId = null;
+}
+
+function addEditService(type = '', amount = '') {
+  editSvcCount++;
+  const id = 'esvc_' + editSvcCount;
+  const div = document.createElement('div');
+  div.id = id;
+  div.style.cssText = 'display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:end;margin-bottom:10px';
+  div.innerHTML = `
+    <div class="form-group"><label class="form-label">Service</label>
+      <select class="form-control esvc-type" onchange="calcEdit()">
+        ${SERVICES.map(s=>`<option${s===type?' selected':''}>${s}</option>`).join('')}
+      </select></div>
+    <div class="form-group"><label class="form-label">Amount (₦)</label>
+      <input type="number" class="form-control esvc-amt" min="0" placeholder="0" value="${amount}" oninput="calcEdit()"></div>
+    <button onclick="document.getElementById('${id}').remove();calcEdit()" class="btn btn-outline btn-sm" style="margin-bottom:1px">✕</button>`;
+  document.getElementById('editServiceRows').appendChild(div);
+  calcEdit();
+}
+
+function calcEdit() {
+  let total = 0;
+  document.querySelectorAll('.esvc-amt').forEach(a => { total += +a.value || 0; });
+  document.getElementById('editTotalDisplay').textContent = fmtNaira(total);
+}
+
+async function saveEdit() {
+  if (!editDocId) return;
+  const services = [];
+  document.getElementById('editServiceRows').querySelectorAll('div[id^="esvc_"]').forEach(row => {
+    const type = row.querySelector('.esvc-type').value;
+    const amt  = +row.querySelector('.esvc-amt').value || 0;
+    if (amt > 0) services.push({ type, amount: amt });
+  });
+  const totalRevenue = services.reduce((s, x) => s + x.amount, 0);
+  if (!services.length) { showAlert('editAlertBox', 'Add at least one service with an amount.', 'alert-error'); return; }
+  const btn = document.getElementById('saveEditBtn');
+  btn.disabled = true; btn.textContent = 'Saving…';
+  try {
+    await db.collection('barbing_reports').doc(editDocId).update({
+      services,
+      totalRevenue,
+      clientsServed: services.length,
+      cash:     +document.getElementById('editCash').value || 0,
+      transfer: +document.getElementById('editTransfer').value || 0,
+      notes:    document.getElementById('editNotes').value.trim(),
+      editedBy: currentStaff.name,
+      editedById: currentStaff.id,
+      editedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    });
+    closeEditModal();
+    showAlert('alertBox', 'Record updated successfully.', 'alert-success');
+    loadToday(); loadHistory();
+  } catch(e) {
+    showAlert('editAlertBox', 'Save failed: ' + e.message, 'alert-error');
+  }
+  btn.disabled = false; btn.textContent = 'Save Changes';
+}
+
 init();
 </script>
 </body>
