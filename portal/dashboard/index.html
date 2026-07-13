@@ -278,14 +278,23 @@ async function load() {
         return `<tr><td>${s.date}</td><td class="fw4">${saleName(s)}</td><td><span class="badge badge-info">${saleDept(s)}</span></td><td>${fmtNaira(saleCash(s))}</td><td>${fmtNaira(saleTransfer(s))}</td><td>${fmtNaira(salePOS(s))}</td><td class="fw4 text-gold">${fmtNaira(saleTotal(s))}</td></tr>`;
       }).join('');
 
+  // Single range query instead of 7 sequential round trips
+  const sevenAgo = (() => {
+    const d = new Date(); d.setDate(d.getDate() - 6);
+    return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  })();
+  const weekSnap = await db.collection('sales').where('date','>=',sevenAgo).where('date','<=',today).get();
+  const byDate = {};
+  weekSnap.forEach(x => {
+    const s = x.data();
+    byDate[s.date] = (byDate[s.date] || 0) + saleTotal(s);
+  });
   const days = [], sales7 = [];
   for (let i = 6; i >= 0; i--) {
     const d = new Date(); d.setDate(d.getDate() - i);
     const ds = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
     days.push(ds.slice(5));
-    const snap = await db.collection('sales').where('date','==',ds).get();
-    let t = 0; snap.forEach(x => t += saleTotal(x.data()));
-    sales7.push(t);
+    sales7.push(byDate[ds] || 0);
   }
   new Chart(document.getElementById('chartWeek'), {
     type: 'line',

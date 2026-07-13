@@ -738,7 +738,15 @@ async function deleteTab(tabId, customerName) {
   if (!isAdmin) return;
   if (!confirm(`Delete tab for "${customerName}"?\n\nThis cannot be undone. Any items on this tab will be lost.`)) return;
   try {
+    // Fetch full tab data for the audit log before deleting
+    const snap = await db.collection('tabs').doc(tabId).get();
+    const tabData = snap.exists ? snap.data() : {};
     await db.collection('tabs').doc(tabId).delete();
+    writeAuditLog(staff, 'delete_tab', {
+      tabId, customerName: tabData.customerName || customerName,
+      tableLabel: tabData.tableLabel || '', subtotal: tabData.subtotal || 0,
+      tabStatus: tabData.status || '', openedBy: tabData.openedBy || null,
+    });
     showAlert('alertBox', `Tab deleted: ${customerName}`, 'alert-success');
   } catch(e) {
     showAlert('alertBox', 'Error deleting tab: '+e.message, 'alert-error');
@@ -749,7 +757,13 @@ async function deleteCurrentTab() {
   if (!isAdmin||!currentTabId||!currentTab) return;
   if (!confirm(`Delete tab for "${currentTab.customerName}"?\n\nThis cannot be undone.`)) return;
   try {
+    const tabData = { ...currentTab };
     await db.collection('tabs').doc(currentTabId).delete();
+    writeAuditLog(staff, 'delete_tab', {
+      tabId: currentTabId, customerName: tabData.customerName,
+      tableLabel: tabData.tableLabel || '', subtotal: tabData.subtotal || 0,
+      tabStatus: tabData.status || '', openedBy: tabData.openedBy || null,
+    });
     exitOrderView();
     showAlert('alertBox', `Tab deleted: ${currentTab.customerName}`, 'alert-success');
   } catch(e) {

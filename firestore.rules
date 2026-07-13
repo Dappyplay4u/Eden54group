@@ -1,0 +1,122 @@
+rules_version = '2';
+
+// Eden 54 — Firestore Security Rules
+//
+// Current auth situation:
+//   POS terminal  → Firebase Auth (email/password) — request.auth is available
+//   Staff portal  → localStorage only              — request.auth is NULL for portal users
+//
+// Because portal staff are not Firebase-authenticated, we cannot restrict all
+// collections by identity yet. The priority rules below protect what we CAN protect
+// now, and mark everything else with TODO for when portal auth is migrated to Firebase.
+//
+// To deploy: firebase deploy --only firestore:rules
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Helpers ────────────────────────────────────────────────────────────────
+    function isFirebaseAuth() {
+      return request.auth != null;
+    }
+
+    function validAmount(field) {
+      return !(field in request.resource.data)
+          || (request.resource.data[field] is number
+              && request.resource.data[field] >= 0);
+    }
+
+    function validSaleShape() {
+      let d = request.resource.data;
+      return d.staffId is string && d.staffId.size() > 0
+          && d.date is string && d.date.size() == 10
+          && validAmount('amount')
+          && validAmount('totalSales')
+          && validAmount('cashSales')
+          && validAmount('transferSales')
+          && validAmount('posSales');
+    }
+
+    function validTabShape() {
+      let d = request.resource.data;
+      return d.customerName is string && d.customerName.size() > 0
+          && d.status in ['open', 'awaiting', 'awaiting-pos', 'paid'];
+    }
+
+    // ── Sales ──────────────────────────────────────────────────────────────────
+    // Portal (Quick Pay) and POS both write here.
+    // Validate shape on all creates to prevent negative/malformed entries.
+    // Only Firebase-authenticated users (POS cashiers) can delete.
+    match /sales/{doc} {
+      allow read:   if true;
+      allow create: if validSaleShape();
+      allow update: if isFirebaseAuth();
+      allow delete: if isFirebaseAuth();
+    }
+
+    // ── Tabs ───────────────────────────────────────────────────────────────────
+    // Portal staff create and manage tabs (no Firebase Auth).
+    // Validate shape on create to prevent garbage data.
+    match /tabs/{doc} {
+      allow read:   if true;
+      allow create: if validTabShape();
+      allow update: if true;
+      allow delete: if true; // CEO/manager delete enforced client-side; TODO: enforce server-side after auth migration
+    }
+
+    // ── Menu Items ─────────────────────────────────────────────────────────────
+    // Anyone can read (POS needs unauthenticated read on load).
+    // Only Firebase-authenticated POS users can add/edit/delete menu items.
+    match /menuItems/{doc} {
+      allow read:  if true;
+      allow write: if isFirebaseAuth();
+    }
+
+    // ── FCM Tokens ─────────────────────────────────────────────────────────────
+    // Only Firebase-authenticated devices (POS terminals) register for push notifications.
+    match /fcmTokens/{token} {
+      allow read, write: if isFirebaseAuth();
+    }
+
+    // ── Audit Log ──────────────────────────────────────────────────────────────
+    // Append-only: records can be created but never edited or deleted.
+    // This makes the audit trail tamper-evident.
+    match /auditLog/{doc} {
+      allow read:             if true;
+      allow create:           if true;
+      allow update, delete:   if false;
+    }
+
+    // ── Apartment Bookings ─────────────────────────────────────────────────────
+    // Public-facing form submits bookings unauthenticated.
+    // Validate required guest fields on create.
+    match /apartmentBookings/{doc} {
+      allow read:   if true;
+      allow create: if request.resource.data.firstName is string
+                    && request.resource.data.lastName  is string
+                    && request.resource.data.phone     is string;
+      allow update, delete: if true; // TODO: restrict to authenticated managers after auth migration
+    }
+
+    // ── Staff ──────────────────────────────────────────────────────────────────
+    // TODO: once portal migrates to Firebase Auth, restrict writes to managers/HR only.
+    match /staff/{doc} {
+      allow read:  if true;
+      allow write: if true;
+    }
+
+    // ── Barbing Reports ────────────────────────────────────────────────────────
+    match /barbing_reports/{doc} {
+      allow read:   if true;
+      allow create: if request.resource.data.staffId is string
+                    && request.resource.data.date is string;
+      allow update, delete: if true;
+    }
+
+    // ── Everything else (expenses, attendance, clockings, payroll, etc.) ───────
+    // TODO: tighten these after portal auth migration to Firebase Auth.
+    match /{document=**} {
+      allow read, write: if true;
+    }
+  }
+}

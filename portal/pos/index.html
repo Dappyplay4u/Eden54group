@@ -846,7 +846,14 @@ async function completeSale() {
   const btn = document.getElementById('btnComplete');
   btn.disabled = true; btn.textContent = 'Processing…';
 
-  const total      = cart.reduce((s,c)=>s+c.price*c.qty, 0);
+  const total = cart.reduce((s,c)=>s+c.price*c.qty, 0);
+
+  // Guard: reject zero or negative totals before touching Firestore
+  if (total <= 0) {
+    alert('Sale total must be greater than ₦0. Please check item prices.');
+    btn.disabled = false; btn.textContent = 'Complete Sale';
+    return;
+  }
   const customer   = document.getElementById('custName').value.trim();
   const custPhone  = document.getElementById('custPhone').value.trim();
   const receivedBy = document.getElementById('receivedBy').value.trim();

@@ -8,6 +8,16 @@ const firebaseConfig = {
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
+
+// Enable offline persistence so the app survives brief connectivity loss
+db.enablePersistence({ synchronizeTabs: true }).catch(err => {
+  // failed-precondition: multiple tabs open (only one can hold persistence at a time)
+  // unimplemented: browser doesn't support IndexedDB (e.g. private mode on some browsers)
+  if (err.code !== 'failed-precondition' && err.code !== 'unimplemented') {
+    console.warn('Firestore persistence error:', err);
+  }
+});
+
 let storage = null;
 try { storage = firebase.storage(); } catch(e) {}
 
@@ -260,7 +270,8 @@ function requireAccess(staff, page) {
     home:       true,
     updates:    true,
   };
-  if (rules[page] === false) {
+  // Deny-by-default: unknown page key or explicit false both redirect
+  if (!rules[page]) {
     window.location.href = '/portal/home/';
     return false;
   }
@@ -369,18 +380,18 @@ function initBookingNotifications(staff) {
           const docs = snap.docs.map(d => ({id:d.id,...d.data()}))
             .sort((a,b) => (b.createdAt?.seconds||0) - (a.createdAt?.seconds||0));
           body.innerHTML = docs.map(b => `
-            <div class="np-row" id="nprow-${b.id}">
+            <div class="np-row" id="nprow-${esc(b.id)}">
               <div class="np-dot"></div>
               <div style="flex:1;min-width:0">
-                <div class="np-name">${b.firstName||''} ${b.lastName||''}</div>
+                <div class="np-name">${esc(b.firstName)} ${esc(b.lastName)}</div>
                 <div class="np-meta">
-                  🏨 ${b.unit||'—'}<br>
-                  📅 ${b.checkin||'—'} → ${b.checkout||'—'}<br>
-                  👥 ${b.guests||'—'} guest(s) &nbsp;·&nbsp; 📱 ${b.phone||'—'}
+                  🏨 ${esc(b.unit||'—')}<br>
+                  📅 ${esc(b.checkin||'—')} → ${esc(b.checkout||'—')}<br>
+                  👥 ${esc(String(b.guests||'—'))} guest(s) &nbsp;·&nbsp; 📱 ${esc(b.phone||'—')}
                 </div>
                 <div style="display:flex;gap:6px;margin-top:7px;flex-wrap:wrap">
                   <a href="/portal/apartments/" style="font-size:0.68rem;color:#9A7A3A;text-decoration:underline">View</a>
-                  <button onclick="npDecline('${b.id}','${(b.firstName||'').replace(/'/g,"\\'")} ${(b.lastName||'').replace(/'/g,"\\'")}','nprow-${b.id}','${b.status||'new'}')" style="font-size:0.68rem;color:#dc2626;background:none;border:1px solid #dc2626;border-radius:4px;padding:2px 8px;cursor:pointer;font-family:inherit">✕ Delete</button>
+                  <button onclick="npDecline('${esc(b.id)}','nprow-${esc(b.id)}','${esc(b.status||'new')}')" style="font-size:0.68rem;color:#dc2626;background:none;border:1px solid #dc2626;border-radius:4px;padding:2px 8px;cursor:pointer;font-family:inherit">✕ Delete</button>
                 </div>
               </div>
             </div>`).join('');
@@ -399,7 +410,16 @@ function initBookingNotifications(staff) {
 }
 
 /* Called from the notification dropdown on any portal page or POS */
-async function npDecline(id, guestName, rowId, status) {
+async function npDecline(id, rowId, status) {
+  // Fetch the name fresh from Firestore — never trust data passed through onclick attributes
+  let guestName = 'this guest';
+  try {
+    const snap = await db.collection('apartmentBookings').doc(id).get();
+    if (snap.exists) {
+      const d = snap.data();
+      guestName = ((d.firstName||'') + ' ' + (d.lastName||'')).trim() || 'this guest';
+    }
+  } catch(_) {}
   const msg = status === 'confirmed'
     ? `Delete confirmed booking for ${guestName}?\n\nUse this for cancellations, refund requests, or non-payment after confirmation.`
     : `Delete reservation for ${guestName}?\n\nUse this when no payment or deposit has been made.`;
@@ -411,6 +431,25 @@ async function npDecline(id, guestName, rowId, status) {
   } catch(e) {
     alert('Could not delete booking: ' + e.message);
   }
+}
+
+/* ── Shared utilities ── */
+
+// HTML-escape for safe innerHTML interpolation
+function esc(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+// Append-only audit log — records who deleted/changed what and when
+function writeAuditLog(staff, action, details) {
+  if (typeof db === 'undefined') return;
+  db.collection('auditLog').add({
+    action,
+    staffId:   staff && staff.id   ? staff.id   : 'unknown',
+    staffName: staff && staff.name ? staff.name : 'unknown',
+    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+    ...details,
+  }).catch(() => {});
 }
 
 /* ── UI helpers ── */
