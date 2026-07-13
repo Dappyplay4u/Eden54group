@@ -228,16 +228,12 @@ async function loadMySales(date) {
     let grandTotal = 0, cashTotal = 0, transTotal = 0, posTotal = 0;
 
     const rows = sales.map(r => {
-      const isPOS = r.source === 'pos';
-      const amt   = isPOS ? (r.amount || 0) : (r.totalSales || 0);
+      const isPOS = r.source === 'pos' || r.source === 'tab';
+      const amt   = saleTotal(r);
       grandTotal += amt;
-      if (!isPOS) {
-        cashTotal  += r.cashSales || 0;
-        transTotal += r.transferSales || 0;
-        posTotal   += r.posSales || 0;
-      } else {
-        posTotal += amt;
-      }
+      cashTotal  += saleCash(r);
+      transTotal += saleTransfer(r);
+      posTotal   += salePOS(r);
 
       const badge = isPOS
         ? '<span class="sales-badge-pos">POS</span>'

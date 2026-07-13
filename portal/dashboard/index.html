@@ -108,13 +108,9 @@ function fmtT(ts) {
   return ts.toDate().toLocaleTimeString('en-NG',{hour:'2-digit',minute:'2-digit'});
 }
 
-/* ── Unified sale helpers (manual reports use totalSales; POS uses amount) ── */
-function saleTotal(s)    { return s.source === 'pos' ? (s.amount || 0)      : (s.totalSales    || 0); }
-function saleCash(s)     { return s.source === 'pos' ? (s.paymentMethod === 'cash'     ? s.amount : 0) : (s.cashSales     || 0); }
-function saleTransfer(s) { return s.source === 'pos' ? (s.paymentMethod === 'transfer' ? s.amount : 0) : (s.transferSales || 0); }
-function salePOS(s)      { return s.source === 'pos' ? (s.paymentMethod === 'pos'      ? s.amount : 0) : (s.posSales      || 0); }
-function saleDept(s)     { return s.department || (s.source === 'pos' ? s.section : '') || '—'; }
-function saleName(s)     { return s.staffName || '—'; }
+// saleTotal / saleCash / saleTransfer / salePOS defined in firebase-init.js
+function saleDept(s) { return s.department || s.section || '—'; }
+function saleName(s) { return s.staffName || '—'; }
 
 async function load() {
   const today = todayStr();

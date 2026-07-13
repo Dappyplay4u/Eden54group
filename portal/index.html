@@ -297,9 +297,17 @@ async function submitPassword(e) {
   const email = s.posUsername.trim().toLowerCase().replace(/\s+/g,'_') + '@eden54.pos';
 
   try {
-    await auth.signInWithEmailAndPassword(email, password);
-    // Verified — immediately sign out of Firebase Auth (portal uses localStorage, not Auth sessions)
-    await auth.signOut();
+    const userCred = await auth.signInWithEmailAndPassword(email, password);
+    // Keep the Firebase Auth session alive — portal pages will verify it on each load.
+    // Write authUid back to the staff doc so Firestore rules can resolve the caller's role.
+    const authUid = userCred.user.uid;
+    db.collection('staff').doc(s.id).update({ authUid }).catch(() => {});
+    db.collection('staffByAuth').doc(authUid).set({
+      staffId:     s.id,
+      accessLevel: s.accessLevel || 'staff',
+      department:  s.department  || '',
+      active:      true,
+    }, { merge: true }).catch(() => {});
 
     // Store staff profile and session timestamp, then redirect
     setStaff({

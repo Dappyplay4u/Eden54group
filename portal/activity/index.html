@@ -283,15 +283,11 @@ async function loadSales(staffId, from, to, deptStaffIds) {
       .filter(d => { const dt = d.data().date || ''; return dt >= from && dt <= to; })
       .map(d => {
         const s = Object.assign({}, d.data());
-        if (s.source === 'pos') {
-          const amt = s.amount || 0;
-          const pm  = (s.paymentMethod || '').toLowerCase();
-          s.totalSales    = amt;
-          s.cashSales     = pm === 'cash'     ? amt : 0;
-          s.transferSales = pm === 'transfer' ? amt : 0;
-          s.posSales      = pm === 'pos'      ? amt : 0;
-          s.department    = s.department || s.section || '';
-        }
+        s.totalSales    = saleTotal(s);
+        s.cashSales     = saleCash(s);
+        s.transferSales = saleTransfer(s);
+        s.posSales      = salePOS(s);
+        s.department    = s.department || s.section || '';
         // Track barbing staff per day for dedup against barbing_reports
         const isBarbingSale = s.source === 'pos'
           ? (s.section||'').toLowerCase() === 'barbing'

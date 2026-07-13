@@ -464,6 +464,14 @@ function todayStr() {
     String(d.getDate()).padStart(2, '0');
 }
 function fmtNaira(n) { return '₦' + Number(n || 0).toLocaleString('en-NG', { minimumFractionDigits: 2 }); }
+
+// Unified sale schema helpers — works with both POS records (amount field) and
+// manual/Quick-Pay records (totalSales/cashSales/transferSales/posSales fields).
+// New POS writes include all fields, so the fallback only applies to legacy records.
+function saleTotal(s)    { return s.totalSales    != null ? (s.totalSales    || 0) : (s.amount || 0); }
+function saleCash(s)     { return s.cashSales     != null ? (s.cashSales     || 0) : (s.paymentMethod === 'cash'     ? (s.amount || 0) : 0); }
+function saleTransfer(s) { return s.transferSales != null ? (s.transferSales || 0) : (s.paymentMethod === 'transfer' ? (s.amount || 0) : 0); }
+function salePOS(s)      { return s.posSales      != null ? (s.posSales      || 0) : (s.paymentMethod === 'pos'      ? (s.amount || 0) : 0); }
 function showAlert(id, msg, type = 'alert-success') {
   const el = document.getElementById(id);
   if (!el) return;

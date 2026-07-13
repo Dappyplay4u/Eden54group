@@ -335,14 +335,10 @@ async function loadAll() {
   const [allSales, barbReports, barStock, kitStock, poolComps, allExpenses, aptRentals] = await Promise.all([
     db.collection('sales').where('date','==',date).get().then(s=>s.docs.map(d=>{
       const r = d.data();
-      if (r.source === 'pos') {
-        const amt = r.amount || 0;
-        const pm  = (r.paymentMethod || '').toLowerCase();
-        r.totalSales    = amt;
-        r.cashSales     = pm === 'cash'     ? amt : 0;
-        r.transferSales = pm === 'transfer' ? amt : 0;
-        r.posSales      = pm === 'pos'      ? amt : 0;
-      }
+      r.totalSales    = saleTotal(r);
+      r.cashSales     = saleCash(r);
+      r.transferSales = saleTransfer(r);
+      r.posSales      = salePOS(r);
       return r;
     })),
     db.collection('barbing_reports').where('date','==',date).get().then(s=>s.docs.map(d=>d.data())),
@@ -895,9 +891,9 @@ async function loadMonthlySummary() {
       db.collection('apartmentRentals').where('checkin','>=',monthStart).where('checkin','<=',monthEnd).get().catch(()=>({docs:[]})),
     ]);
 
-    const mSales   = salesSnap.docs.map(d => {
+    const mSales = salesSnap.docs.map(d => {
       const r = d.data();
-      if (r.source === 'pos') r.totalSales = r.amount || 0;
+      r.totalSales = saleTotal(r);
       return r;
     });
     const mExp     = expSnap.docs.map(d => d.data());
@@ -1031,7 +1027,7 @@ async function loadSalesLeaders() {
     const byDate = {};
     sales.forEach(s => {
       const d   = s.date || '';
-      const amt = s.source === 'pos' ? (s.amount || 0) : (s.totalSales || 0);
+      const amt = saleTotal(s);
       if (d) byDate[d] = (byDate[d] || 0) + amt;
     });
     const topDays = Object.entries(byDate)
@@ -1061,7 +1057,7 @@ async function loadSalesLeaders() {
     const byDeptProducts = {}; // section key → { productName: { qty, revenue } }
 
     sales.forEach(s => {
-      const amt   = s.source === 'pos' ? (s.amount || 0) : (s.totalSales || 0);
+      const amt   = saleTotal(s);
       const sec   = s.source === 'pos'
         ? (s.section || 'events').toLowerCase()
         : deptToSection(s.department);
@@ -1245,7 +1241,7 @@ async function loadRange() {
     salesSnap.forEach(doc => {
       const r = doc.data();
       if (!r.date) return;
-      const amt = r.source === 'pos' ? (r.amount||0) : (r.totalSales||0);
+      const amt = saleTotal(r);
       const sec = r.source === 'pos'
         ? (r.section||'events').toLowerCase()
         : deptToSection(r.department);
