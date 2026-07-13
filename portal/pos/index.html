@@ -1,8 +1,13 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#0f2318">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Eden 54">
 <title>Eden 54 · POS</title>
 <link rel="icon" type="image/jpeg" href="/logo/eden 54 logo.jpeg">
 <link href="https://fonts.googleapis.com/css2?family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet">
@@ -147,6 +152,7 @@ select.fc option{background:var(--deep)}
 
 /* ── Receipt (print only) ── */
 @media print{body>*{display:none!important}#receiptArea{display:block!important;color:#000!important;background:#fff!important}}
+@keyframes fcmSlide{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
 #receiptArea{display:none;padding:20px;font-family:'Courier New',monospace;font-size:12px;max-width:300px;margin:0 auto;color:#000;background:#fff}
 .rh{text-align:center;border-bottom:1px dashed #000;padding-bottom:10px;margin-bottom:10px}
 .rh h2{font-size:15px;font-weight:bold}
@@ -349,6 +355,7 @@ select.fc option{background:var(--deep)}
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-messaging-compat.js"></script>
 <script src="/portal/firebase-init.js"></script>
 <script>
 /* ════ State ════ */
@@ -650,6 +657,9 @@ function initPOS() {
 
   // Listen for tabs sent to POS from Table Tabs
   if (isBar || isPriv) listenPendingTabs();
+
+  // Register for push notifications (PWA)
+  initFCM();
 }
 
 /* ════ Pending Tabs — from Table Tabs ════ */
@@ -914,6 +924,69 @@ function newSale() {
   updateCartUI();
   // Re-show pending tab banner if any tabs are still waiting
   if (typeof listenPendingTabs === 'function') listenPendingTabs();
+}
+
+/* ════ PWA — FCM Push Notifications ════ */
+// VAPID key from Firebase Console → Project Settings → Cloud Messaging → Web Push certificates
+const VAPID_KEY = 'REPLACE_WITH_YOUR_VAPID_KEY';
+
+async function initFCM() {
+  if (!('serviceWorker' in navigator) || !('Notification' in window)) return;
+  if (!VAPID_KEY || VAPID_KEY.startsWith('REPLACE')) return; // not configured yet
+
+  try {
+    const swReg = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+
+    // Only ask for permission if not already decided
+    if (Notification.permission === 'default') {
+      await Notification.requestPermission();
+    }
+    if (Notification.permission !== 'granted') return;
+
+    const messaging = firebase.messaging();
+    const token = await messaging.getToken({ vapidKey: VAPID_KEY, serviceWorkerRegistration: swReg });
+    if (!token) return;
+
+    // Save token to Firestore so Cloud Function can target this device
+    await db.collection('fcmTokens').doc(token).set({
+      staffId:   staff.id,
+      staffName: staff.name,
+      page:      'pos',
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    });
+
+    // Handle foreground messages (app is open)
+    messaging.onMessage(payload => {
+      const title = payload.notification?.title || 'Eden 54';
+      const body  = payload.notification?.body  || '';
+      showFCMToast(title, body);
+    });
+  } catch (e) {
+    console.warn('FCM init failed:', e);
+  }
+}
+
+function showFCMToast(title, body) {
+  const existing = document.getElementById('fcmToast');
+  if (existing) existing.remove();
+  const toast = document.createElement('div');
+  toast.id = 'fcmToast';
+  toast.style.cssText = [
+    'position:fixed;top:16px;right:16px;z-index:9999',
+    'background:#162d1f;border:1px solid rgba(201,169,110,0.4)',
+    'border-radius:10px;padding:14px 18px;max-width:320px',
+    'font-family:Jost,sans-serif;box-shadow:0 4px 20px rgba(0,0,0,0.4)',
+    'animation:fcmSlide .25s ease',
+  ].join(';');
+  toast.innerHTML = `
+    <div style="font-size:0.82rem;font-weight:500;color:#C9A96E;margin-bottom:4px">${title}</div>
+    <div style="font-size:0.78rem;color:rgba(245,242,236,0.75)">${body}</div>
+    <div style="margin-top:10px;display:flex;gap:8px">
+      <button onclick="this.closest('#fcmToast').remove()" style="flex:1;padding:6px;background:transparent;border:1px solid rgba(201,169,110,0.25);color:rgba(201,169,110,0.65);border-radius:5px;font-family:Jost,sans-serif;font-size:0.7rem;cursor:pointer">Dismiss</button>
+      <button onclick="document.getElementById('fcmToast').remove()" style="flex:2;padding:6px;background:#C9A96E;color:#0f2318;border:none;border-radius:5px;font-family:Jost,sans-serif;font-size:0.7rem;font-weight:500;cursor:pointer">View Tabs ↓</button>
+    </div>`;
+  document.body.appendChild(toast);
+  setTimeout(() => toast?.remove(), 12000);
 }
 
 /* ════ Receipt ════ */

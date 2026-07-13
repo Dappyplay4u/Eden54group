@@ -1,0 +1,25 @@
+{
+  "name": "Eden 54 Staff Portal",
+  "short_name": "Eden 54",
+  "description": "Eden 54 Group staff management and POS portal",
+  "start_url": "/portal/",
+  "scope": "/portal/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0f2318",
+  "theme_color": "#0f2318",
+  "icons": [
+    {
+      "src": "/logo/eden 54 logo.jpeg",
+      "sizes": "192x192",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/logo/eden 54 logo.jpeg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    }
+  ]
+}
