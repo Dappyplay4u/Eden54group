@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Table Tabs · Eden 54</title>
+<link rel="icon" type="image/jpeg" href="/logo/eden 54 logo.jpeg">
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/portal/portal.css">
+<style>
+/* ══ LIST VIEW ══ */
+.tabs-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
+.tab-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:18px 20px;cursor:pointer;transition:all .18s;position:relative}
+.tab-card:hover{border-color:var(--gold);transform:translateY(-1px);box-shadow:0 4px 16px rgba(0,0,0,0.08)}
+.tab-card.awaiting{border-color:rgba(251,191,36,0.45);background:rgba(251,191,36,0.03)}
+.tab-card.awaiting-pos{border-color:rgba(34,197,94,0.4);background:rgba(34,197,94,0.03)}
+.tab-customer{font-size:1.05rem;font-weight:400;margin-bottom:3px}
+.tab-table{font-size:0.72rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+.tab-meta{display:flex;gap:12px;font-size:0.78rem;color:var(--muted);flex-wrap:wrap}
+.tab-total{font-size:1.1rem;font-weight:400;color:var(--gold);margin-top:12px}
+.tab-badge{position:absolute;top:14px;right:14px;font-size:0.62rem;padding:3px 9px;border-radius:12px;letter-spacing:0.08em;text-transform:uppercase}
+.b-open{background:#dcfce7;color:#166534}
+.b-await{background:#fef9c3;color:#854d0e}
+.b-pos{background:#d1fae5;color:#065f46}
+.tab-stat-row{display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap}
+.tab-stat{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:14px 18px;flex:1;min-width:110px}
+.tab-stat-lbl{font-size:0.62rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--muted);margin-bottom:5px}
+.tab-stat-val{font-size:1.2rem;color:var(--gold)}
+.btn-del-tab{position:absolute;bottom:14px;right:14px;padding:4px 10px;background:transparent;border:1px solid rgba(220,38,38,0.3);color:rgba(220,38,38,0.6);border-radius:5px;font-family:'Jost',sans-serif;font-size:0.65rem;letter-spacing:0.08em;cursor:pointer;transition:all .2s;z-index:2}
+.btn-del-tab:hover{background:rgba(220,38,38,0.08);border-color:rgba(220,38,38,0.6);color:#fca5a5}
+/* History section */
+.hist-section{margin-top:28px;padding-top:20px;border-top:1px solid var(--border)}
+.hist-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.hist-hdr-lbl{font-size:0.65rem;letter-spacing:0.16em;text-transform:uppercase;color:var(--muted);font-weight:400}
+.hist-row{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--card);border:1px solid var(--border);border-radius:8px;margin-bottom:6px}
+.hist-main{flex:1;min-width:0}
+.hist-cust{font-size:0.85rem;font-weight:400}
+.hist-meta{display:flex;gap:10px;color:var(--muted);font-size:0.72rem;margin-top:3px;flex-wrap:wrap}
+.hist-amt{font-size:0.95rem;color:var(--gold);flex-shrink:0}
+/* Age warnings */
+.tab-card.age-warn{border-color:rgba(251,191,36,0.55)!important}
+.tab-card.age-warn:hover{border-color:rgba(251,191,36,0.8)!important}
+.tab-card.age-old{border-color:rgba(239,68,68,0.55)!important}
+.tab-card.age-old:hover{border-color:rgba(239,68,68,0.8)!important}
+.tab-age-badge{display:inline-block;font-size:0.65rem;padding:2px 7px;border-radius:10px;font-weight:500;margin-left:4px}
+.age-warn .tab-age-badge{background:rgba(251,191,36,0.15);color:#d97706}
+.age-old  .tab-age-badge{background:rgba(239,68,68,0.12);color:#ef4444}
+
+/* ══ MODALS ══ */
+.modal-ov{position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:500;display:none;align-items:center;justify-content:center;padding:20px}
+.modal-ov.show{display:flex}
+.modal-card{background:var(--bg,#fff);border:1px solid var(--border);border-radius:14px;padding:28px;width:100%;max-width:440px}
+.modal-card h3{font-size:1rem;font-weight:400;margin-bottom:20px}
+.table-pills{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 4px}
+.tpill{padding:7px 14px;border:1px solid var(--border);border-radius:20px;font-size:0.76rem;color:var(--muted);cursor:pointer;background:transparent;transition:all .2s}
+.tpill.active,.tpill:hover{border-color:var(--gold);color:var(--gold);background:rgba(201,169,110,0.08)}
+.tpill.active{font-weight:500}
+.modal-btns{display:flex;gap:10px;margin-top:22px}
+.btn-mcancel{flex:1;padding:10px;border:1px solid var(--border);border-radius:6px;background:transparent;font-family:'Jost',sans-serif;font-size:0.78rem;color:var(--muted);cursor:pointer;transition:all .2s}
+.btn-mcancel:hover{border-color:var(--gold);color:var(--gold)}
+.pay-methods{display:flex;gap:8px;margin-bottom:16px}
+.pay-method{flex:1;padding:10px;border:1px solid var(--border);border-radius:6px;font-family:'Jost',sans-serif;font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);cursor:pointer;background:transparent;transition:all .2s;text-align:center}
+.pay-method.active{border-color:var(--gold);color:var(--gold);background:rgba(201,169,110,0.1)}
+.pay-btns{display:flex;gap:10px}
+.btn-confirm-pay{flex:2;padding:10px;background:var(--gold);color:#fff;border:none;border-radius:6px;font-family:'Jost',sans-serif;font-size:0.78rem;font-weight:500;cursor:pointer;transition:background .2s}
+.btn-confirm-pay:hover{background:#b8935a}
+.btn-confirm-pay:disabled{opacity:0.45;cursor:not-allowed}
+
+/* ══ ORDER VIEW — full-screen POS-style overlay ══ */
+#orderView{
+  position:fixed;inset:0;z-index:300;
+  display:none;flex-direction:column;
+  background:#0f2318;color:rgba(245,242,236,0.92);
+  font-family:'Jost',sans-serif;
+  height:100dvh;overflow:hidden;
+}
+#orderView *{box-sizing:border-box}
+
+.ov-hdr{background:#162d1f;border-bottom:1px solid rgba(201,169,110,0.15);
+  padding:0 18px;height:54px;display:flex;align-items:center;gap:12px;flex-shrink:0}
+.ov-back{padding:6px 14px;border:1px solid rgba(201,169,110,0.15);border-radius:5px;
+  font-family:'Jost',sans-serif;font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;
+  cursor:pointer;background:transparent;color:rgba(245,242,236,0.5);transition:all .2s;flex-shrink:0}
+.ov-back:hover{border-color:#C9A96E;color:#C9A96E}
+.ov-title{flex:1;font-size:0.9rem;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;color:rgba(245,242,236,0.92)}
+.ov-hdr-total{font-size:1rem;color:#C9A96E;flex-shrink:0}
+
+.ov-cats{padding:10px 16px;background:#162d1f;border-bottom:1px solid rgba(201,169,110,0.15);
+  display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;flex-shrink:0}
+.ov-cats::-webkit-scrollbar{display:none}
+.ov-cat{padding:7px 18px;border:1px solid rgba(201,169,110,0.15);border-radius:20px;
+  font-family:'Jost',sans-serif;font-size:0.76rem;letter-spacing:0.1em;text-transform:uppercase;
+  color:rgba(245,242,236,0.38);cursor:pointer;background:transparent;transition:all .2s;white-space:nowrap;flex-shrink:0}
+.ov-cat.active,.ov-cat:hover{border-color:#C9A96E;color:#C9A96E;background:rgba(201,169,110,0.08)}
+.ov-cat.active{background:rgba(201,169,110,0.14);font-weight:500}
+
+.ov-body{display:grid;grid-template-columns:1fr 340px;flex:1;min-height:0;overflow:hidden}
+
+/* Items panel */
+.ov-items{padding:16px;overflow-y:auto}
+.ov-sec-lbl{font-size:0.6rem;letter-spacing:0.24em;text-transform:uppercase;color:#C9A96E;
+  margin:16px 0 8px;font-weight:500;padding-bottom:6px;border-bottom:1px solid rgba(201,169,110,0.18)}
+.ov-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(128px,1fr));gap:12px}
+.ov-ic{background:rgba(255,255,255,0.04);border:1px solid rgba(201,169,110,0.15);border-radius:10px;
+  padding:16px 10px;text-align:center;cursor:pointer;transition:all .18s;
+  user-select:none;-webkit-tap-highlight-color:transparent}
+.ov-ic:hover{background:rgba(255,255,255,0.07);border-color:rgba(201,169,110,0.35);transform:translateY(-1px)}
+.ov-ic:active,.ov-ic.tapped{background:rgba(201,169,110,0.15);border-color:rgba(201,169,110,0.5);transform:scale(0.96)}
+.ov-ic-icon{font-size:1.9rem;margin-bottom:8px;line-height:1}
+.ov-ic-name{font-size:0.82rem;font-weight:400;margin-bottom:4px;color:rgba(245,242,236,0.92)}
+.ov-ic-price{font-size:0.7rem;color:#C9A96E}
+
+/* Cart panel */
+.ov-cart{background:#162d1f;border-left:1px solid rgba(201,169,110,0.15);
+  display:flex;flex-direction:column;overflow:hidden;flex-shrink:0}
+.ov-cart-hdr{padding:13px 16px;border-bottom:1px solid rgba(201,169,110,0.15);
+  display:flex;align-items:center;gap:8px;flex-shrink:0}
+.ov-cart-hdr-info{flex:1;min-width:0}
+.ov-cart-cust{font-size:0.88rem;font-weight:500;color:rgba(245,242,236,0.92);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ov-cart-sub{font-size:0.68rem;color:rgba(201,169,110,0.7);margin-top:2px}
+.btn-ov-clear{background:none;border:1px solid rgba(220,38,38,0.25);color:rgba(220,38,38,0.6);
+  border-radius:4px;padding:4px 10px;font-family:'Jost',sans-serif;font-size:0.68rem;cursor:pointer;flex-shrink:0}
+.btn-ov-clear:hover{background:rgba(220,38,38,0.08)}
+.ov-cart-items{flex:1;overflow-y:auto;padding:4px 0}
+.ov-cart-empty{text-align:center;padding:40px 16px;color:rgba(245,242,236,0.38);font-size:0.82rem;line-height:1.6}
+.ov-cart-row{padding:9px 14px;display:flex;align-items:center;gap:8px;border-bottom:1px solid rgba(255,255,255,0.04)}
+.ov-cart-name{flex:1;font-size:0.82rem;min-width:0;color:rgba(245,242,236,0.92)}
+.ov-cart-qty{display:flex;align-items:center;gap:5px;flex-shrink:0}
+.ov-qty-btn{width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,0.07);
+  border:1px solid rgba(201,169,110,0.15);color:rgba(245,242,236,0.92);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;font-size:0.85rem}
+.ov-qty-btn:hover{border-color:#C9A96E;color:#C9A96E}
+.ov-qty-num{font-size:0.83rem;font-weight:500;min-width:18px;text-align:center;color:rgba(245,242,236,0.92)}
+.ov-cart-price{font-size:0.82rem;color:#C9A96E;min-width:68px;text-align:right;flex-shrink:0}
+.ov-cart-foot{border-top:1px solid rgba(201,169,110,0.15);padding:14px 16px;flex-shrink:0}
+.ov-total-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.ov-total-lbl{font-size:0.72rem;letter-spacing:0.14em;text-transform:uppercase;color:rgba(245,242,236,0.38)}
+.ov-total-amt{font-size:1.28rem;font-weight:500;color:#C9A96E}
+.btn-send-pos{width:100%;padding:12px;background:#C9A96E;color:#0f2318;border:none;
+  border-radius:7px;font-family:'Jost',sans-serif;font-size:0.78rem;font-weight:500;
+  letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;transition:background .2s;margin-bottom:8px}
+.btn-send-pos:hover{background:#E0BE8A}
+.btn-send-pos:disabled{opacity:0.55;cursor:not-allowed}
+.btn-quick-pay{width:100%;padding:9px;background:transparent;border:1px solid rgba(201,169,110,0.25);
+  color:rgba(201,169,110,0.65);border-radius:7px;font-family:'Jost',sans-serif;font-size:0.7rem;
+  letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;transition:all .2s}
+.btn-quick-pay:hover{background:rgba(201,169,110,0.08);border-color:rgba(201,169,110,0.45)}
+
+/* Mobile */
+#ovMobBar{display:none;position:fixed;bottom:0;left:0;right:0;z-index:400;
+  background:#162d1f;border-top:1px solid rgba(201,169,110,0.3);
+  padding:11px 16px;align-items:center;justify-content:space-between;gap:12px}
+#ovMobBar.show{display:flex}
+#ovMobBack{display:none;background:none;border:none;color:#C9A96E;font-family:'Jost',sans-serif;
+  font-size:0.82rem;cursor:pointer;padding:0;flex-shrink:0}
+
+/* Status banner inside order view */
+.ov-status-bar{padding:8px 18px;font-size:0.75rem;letter-spacing:0.06em;text-align:center;flex-shrink:0}
+.ov-status-bar.at-pos{background:rgba(34,197,94,0.1);color:#86efac;border-bottom:1px solid rgba(34,197,94,0.2)}
+
+@media(max-width:720px){
+  .ov-body{grid-template-columns:1fr}
+  .ov-cart{display:none}
+  .ov-cart.mob-open{
+    display:flex;position:fixed;inset:0;z-index:500;
+    flex-direction:column;overflow:hidden;border-left:none;
+  }
+  .ov-items{padding-bottom:76px}
+  .ov-grid{grid-template-columns:repeat(3,1fr)}
+  /* Header: hide redundant total, shrink action buttons to icons */
+  .ov-hdr-total{display:none}
+  #btnTransferTab{padding:6px 10px;font-size:0}
+  #btnTransferTab::after{content:'↔';font-size:0.85rem}
+  #btnDelTab{padding:6px 10px;font-size:0}
+  #btnDelTab::after{content:'✕';font-size:0.85rem}
+  /* History rows: stack meta on mobile */
+  .hist-row{flex-direction:column;align-items:flex-start;gap:6px}
+  .hist-amt{font-size:0.88rem}
+  /* Transfer modal select */
+  #transferSel{font-size:0.85rem}
+}
+@media(max-width:400px){
+  .tab-stat{min-width:calc(50% - 6px)}
+  .ov-hdr{gap:8px;padding:0 12px}
+}
+</style>
+</head>
+<body>
+<div class="sb-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+<aside class="sidebar" id="sidebar">
+  <div class="sb-brand"><div class="sb-brand-name">Eden 54</div><div class="sb-brand-sub">Staff Portal</div></div>
+  <nav class="sb-nav" id="sbNav"></nav>
+  <div class="sb-foot">
+    <div id="sidebarUser"></div>
+    <a class="sb-item" onclick="switchProfile()" style="cursor:pointer"><i class="sb-icon">🔄</i> Switch Profile</a>
+  </div>
+</aside>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <button class="hamburger" onclick="toggleSidebar()"><div></div><div></div><div></div></button>
+      <h1>Table Tabs</h1>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <div class="topbar-date" id="topDate"></div>
+      <button class="btn btn-gold btn-sm" onclick="openNewTabModal()">+ New Tab</button>
+    </div>
+  </div>
+
+  <div id="alertBox" class="alert" style="margin:0 24px"></div>
+
+  <div class="content" id="listView">
+    <div class="tab-stat-row">
+      <div class="tab-stat"><div class="tab-stat-lbl">Open</div><div class="tab-stat-val" id="statOpen">—</div></div>
+      <div class="tab-stat"><div class="tab-stat-lbl">Open Value</div><div class="tab-stat-val" id="statVal">—</div></div>
+      <div class="tab-stat"><div class="tab-stat-lbl">At POS</div><div class="tab-stat-val" id="statPos">—</div></div>
+      <div class="tab-stat"><div class="tab-stat-lbl">Paid Today</div><div class="tab-stat-val" id="statPaid">—</div></div>
+    </div>
+    <div class="tabs-grid" id="tabsGrid">
+      <div style="color:var(--muted);font-size:0.85rem;padding:20px">Loading tabs…</div>
+    </div>
+
+    <!-- Closed tab history (today) -->
+    <div class="hist-section" id="histSection" style="display:none">
+      <div class="hist-hdr">
+        <span class="hist-hdr-lbl">Closed Today</span>
+        <span style="font-size:0.82rem;color:var(--muted)" id="histSummary">—</span>
+      </div>
+      <div id="histList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════ NEW TAB MODAL ════ -->
+<div class="modal-ov" id="newTabModal">
+  <div class="modal-card">
+    <h3>Open New Tab</h3>
+    <div class="form-group">
+      <label class="form-label">Customer / Group Name</label>
+      <input type="text" id="newCustomer" class="form-control" placeholder="e.g. John & Friends" autocomplete="off">
+    </div>
+    <div class="form-group" style="margin-top:14px">
+      <label class="form-label">Table</label>
+      <div class="table-pills" id="tablePills"></div>
+      <input type="text" id="newTableCustom" class="form-control" style="margin-top:8px" placeholder="Or type a custom table…" autocomplete="off">
+    </div>
+    <div class="modal-btns">
+      <button class="btn-mcancel" onclick="closeNewTabModal()">Cancel</button>
+      <button class="btn btn-gold" style="flex:2" onclick="createTab()">Open Tab</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════ QUICK PAY MODAL ════ -->
+<div class="modal-ov" id="payModal">
+  <div class="modal-card" style="max-width:380px">
+    <h3>Quick Pay</h3>
+    <div style="font-size:1.05rem;font-weight:400;color:var(--gold);margin-bottom:2px" id="payModalCust">—</div>
+    <div style="font-size:0.72rem;color:var(--muted);margin-bottom:16px" id="payModalSub">—</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);margin-bottom:16px">
+      <span style="font-size:0.7rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--muted)">Total</span>
+      <span style="font-size:1.5rem;color:var(--gold)" id="payModalAmt">₦0.00</span>
+    </div>
+    <div style="font-size:0.7rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Payment Method</div>
+    <div class="pay-methods">
+      <div class="pay-method active" data-method="cash"     onclick="selPayMethod(this)">Cash</div>
+      <div class="pay-method"       data-method="transfer"  onclick="selPayMethod(this)">Transfer</div>
+      <div class="pay-method"       data-method="pos"       onclick="selPayMethod(this)">POS</div>
+    </div>
+    <div class="pay-btns">
+      <button class="btn-mcancel" onclick="closePayModal()">Cancel</button>
+      <button class="btn-confirm-pay" id="btnConfirmPay" onclick="confirmPayment()">Confirm Payment</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════ TRANSFER MODAL ════ -->
+<div class="modal-ov" id="transferModal">
+  <div class="modal-card" style="max-width:360px">
+    <h3>Transfer Tab</h3>
+    <p style="font-size:0.82rem;color:var(--muted);margin-bottom:16px">Reassign serving staff for this tab (e.g. shift change).</p>
+    <div class="form-group">
+      <label class="form-label">New Serving Staff</label>
+      <select id="transferSel" class="form-control" style="height:auto;padding:10px 12px">
+        <option value="">Loading…</option>
+      </select>
+    </div>
+    <div class="modal-btns" style="margin-top:18px">
+      <button class="btn-mcancel" onclick="closeTransferModal()">Cancel</button>
+      <button class="btn btn-gold" style="flex:2" onclick="confirmTransfer()">Transfer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════ ORDER VIEW — full POS-style overlay ════ -->
+<div id="orderView">
+
+  <!-- Status bar (shown when tab is at POS) -->
+  <div class="ov-status-bar at-pos" id="ovStatusBar" style="display:none;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+    <span>✓ This tab has been sent to the POS terminal for payment</span>
+    <button onclick="revertToOpen()" style="padding:4px 12px;background:transparent;border:1px solid rgba(134,239,172,0.4);color:#86efac;border-radius:5px;font-family:'Jost',sans-serif;font-size:0.68rem;letter-spacing:0.08em;cursor:pointer;white-space:nowrap;transition:all .2s">↩ Revert to Open</button>
+  </div>
+
+  <!-- Header -->
+  <div class="ov-hdr">
+    <button class="ov-back" onclick="exitOrderView()">← Tabs</button>
+    <div class="ov-title" id="ovTitle">Tab</div>
+    <div class="ov-hdr-total" id="ovHdrTotal">₦0.00</div>
+    <button id="btnTransferTab" onclick="openTransferModal()" style="display:none;padding:5px 12px;background:transparent;border:1px solid rgba(201,169,110,0.35);color:rgba(201,169,110,0.75);border-radius:5px;font-family:'Jost',sans-serif;font-size:0.68rem;letter-spacing:0.08em;cursor:pointer;flex-shrink:0;transition:all .2s">↔ Transfer</button>
+    <button id="btnDelTab" onclick="deleteCurrentTab()" style="display:none;padding:5px 12px;background:transparent;border:1px solid rgba(220,38,38,0.35);color:rgba(220,38,38,0.65);border-radius:5px;font-family:'Jost',sans-serif;font-size:0.68rem;letter-spacing:0.08em;cursor:pointer;flex-shrink:0;transition:all .2s">✕ Delete Tab</button>
+  </div>
+
+  <!-- Category tabs -->
+  <div class="ov-cats" id="ovCats"></div>
+
+  <!-- Body: items + cart -->
+  <div class="ov-body">
+
+    <!-- Left: item picker -->
+    <div class="ov-items" id="ovItems">
+      <div style="color:rgba(245,242,236,0.38);padding:20px;font-size:0.85rem">Loading menu…</div>
+    </div>
+
+    <!-- Right: tab cart -->
+    <div class="ov-cart" id="ovCart">
+      <div class="ov-cart-hdr">
+        <button id="ovMobBack" onclick="closeMobileCart()">← Menu</button>
+        <div class="ov-cart-hdr-info">
+          <div class="ov-cart-cust" id="ovCartCust">—</div>
+          <div class="ov-cart-sub"  id="ovCartSub">—</div>
+        </div>
+        <button class="btn-ov-clear" onclick="confirmClearTab()">Clear</button>
+      </div>
+      <div class="ov-cart-items">
+        <div class="ov-cart-empty" id="ovCartEmpty">No items yet.<br>Tap an item to add it to the tab.</div>
+        <div id="ovCartRows"></div>
+      </div>
+      <div class="ov-cart-foot">
+        <div class="ov-total-row">
+          <span class="ov-total-lbl">Tab Total</span>
+          <span class="ov-total-amt" id="ovCartTotal">₦0.00</span>
+        </div>
+        <button class="btn-send-pos" id="btnSendPOS" onclick="sendToPOS()">Send to POS for Payment</button>
+        <button class="btn-quick-pay" onclick="openQuickPay()">Quick Pay Here</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mobile floating bar -->
+  <div id="ovMobBar">
+    <div>
+      <div style="font-size:0.6rem;letter-spacing:0.12em;text-transform:uppercase;color:rgba(245,242,236,0.38);margin-bottom:2px">Current Tab</div>
+      <div style="display:flex;align-items:baseline;gap:8px">
+        <span id="ovMobCount" style="font-size:0.8rem;color:rgba(245,242,236,0.65)"></span>
+        <span id="ovMobAmt"   style="font-size:1rem;color:#C9A96E;font-weight:500">₦0.00</span>
+      </div>
+    </div>
+    <button onclick="openMobileCart()" style="padding:11px 20px;background:#C9A96E;color:#0f2318;border:none;border-radius:6px;font-family:'Jost',sans-serif;font-size:0.8rem;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;white-space:nowrap">
+      View Order →
+    </button>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="/portal/firebase-init.js"></script>
+<script>
+const staff = getStaff();
+requireAccess(staff, 'tabs');
+populateSidebar(staff);
+buildNav(staff, 'tabs');
+document.getElementById('topDate').textContent =
+  new Date().toLocaleDateString('en-NG',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+
+const N  = n => '₦' + Number(n||0).toLocaleString('en-NG',{minimumFractionDigits:2});
+const esc = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+/* Role flags */
+const _raw    = (staff.accessLevel||staff.role||'').toLowerCase().replace(/\s+/g,'');
+const isAdmin = _raw==='ceo'||_raw==='superadmin'||_raw==='manager'||_raw.includes('manager');
+
+/* ── Constants ── */
+const TABLE_LABELS = [
+  'Table 1','Table 2','Table 3','Table 4','Table 5','Table 6','Table 7','Table 8','Table 9','Table 10',
+  'Bar Counter','VIP Room','Poolside','Private Lounge'
+];
+const FOOD_SECTIONS = ['Starters','Salads','Mains','Specials'];
+
+/* ── State ── */
+let menuItems    = [];
+let currentTabId = null;
+let currentTab   = null;
+let tabUnsub     = null;
+let payMethod    = 'cash';
+let selTable     = '';
+let activeCat    = 'drinks';
+
+/* ════ TABLE PILLS ════ */
+(function() {
+  const el = document.getElementById('tablePills');
+  TABLE_LABELS.forEach(label => {
+    const btn = document.createElement('button');
+    btn.className = 'tpill';
+    btn.textContent = label;
+    btn.onclick = () => {
+      document.querySelectorAll('.tpill').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      selTable = label;
+      document.getElementById('newTableCustom').value = '';
+    };
+    el.appendChild(btn);
+  });
+  document.getElementById('newTableCustom').addEventListener('input', () => {
+    if (document.getElementById('newTableCustom').value) {
+      document.querySelectorAll('.tpill').forEach(p => p.classList.remove('active'));
+      selTable = '';
+    }
+  });
+})();
+
+/* ════ NEW TAB MODAL ════ */
+function openNewTabModal() {
+  document.getElementById('newCustomer').value = '';
+  document.getElementById('newTableCustom').value = '';
+  document.querySelectorAll('.tpill').forEach(p => p.classList.remove('active'));
+  selTable = '';
+  document.getElementById('newTabModal').classList.add('show');
+  setTimeout(() => document.getElementById('newCustomer').focus(), 80);
+}
+function closeNewTabModal() { document.getElementById('newTabModal').classList.remove('show'); }
+
+async function createTab() {
+  const customerName = document.getElementById('newCustomer').value.trim();
+  const tableLabel   = document.getElementById('newTableCustom').value.trim() || selTable;
+  if (!customerName) { showAlert('alertBox','Enter a customer name.','alert-error'); return; }
+  if (!tableLabel)   { showAlert('alertBox','Select or type a table.','alert-error'); return; }
+  try {
+    const ref = await db.collection('tabs').add({
+      customerName, tableLabel, status:'open',
+      openedAt:    firebase.firestore.FieldValue.serverTimestamp(),
+      openedBy:    { id:staff.id, name:staff.name },
+      servingStaff:{ id:staff.id, name:staff.name },
+      items:[], subtotal:0, date:todayStr(),
+    });
+    closeNewTabModal();
+    enterOrderView(ref.id);
+  } catch(e) {
+    showAlert('alertBox','Error: '+e.message,'alert-error');
+  }
+}
+
+/* ════ LIST VIEW ════ */
+function subscribeList() {
+  db.collection('tabs').where('status','in',['open','awaiting','awaiting-pos'])
+    .onSnapshot(snap => {
+      const tabs = snap.docs.map(d=>({id:d.id,...d.data()}))
+        .sort((a,b)=>(a.openedAt?.seconds||0)-(b.openedAt?.seconds||0));
+      renderList(tabs);
+    });
+  db.collection('tabs').where('date','==',todayStr()).where('status','==','paid')
+    .onSnapshot(snap => {
+      const paid = snap.docs.map(d=>({id:d.id,...d.data()}))
+        .sort((a,b) => (b.paidAt?.seconds||0) - (a.paidAt?.seconds||0));
+      document.getElementById('statPaid').textContent =
+        N(paid.reduce((s,t)=>s+(t.subtotal||0),0));
+      renderHistory(paid);
+    });
+}
+
+function renderList(tabs) {
+  const open  = tabs.filter(t=>t.status==='open');
+  const atPos = tabs.filter(t=>t.status==='awaiting-pos');
+  document.getElementById('statOpen').textContent = open.length;
+  document.getElementById('statVal').textContent  = N(open.reduce((s,t)=>s+(t.subtotal||0),0));
+  document.getElementById('statPos').textContent  = atPos.length;
+
+  const grid = document.getElementById('tabsGrid');
+  if (!tabs.length) {
+    grid.innerHTML = `<div style="text-align:center;padding:60px 20px;color:var(--muted);grid-column:1/-1">
+      <div style="font-size:2.5rem;margin-bottom:12px">🍽️</div>
+      <strong>No open tabs</strong><p style="font-size:0.82rem;margin-top:6px">Tap "+ New Tab" to get started.</p>
+    </div>`; return;
+  }
+  grid.innerHTML = tabs.map(t => {
+    const opened  = t.openedAt?.toDate?.() || new Date();
+    const mins    = Math.floor((Date.now()-opened)/60000);
+    const tOpen   = mins<60 ? mins+'m' : Math.floor(mins/60)+'h '+(mins%60)+'m';
+    const itemCnt = (t.items||[]).reduce((s,i)=>s+(i.qty||0),0);
+    const badgeClass = t.status==='awaiting-pos'?'b-pos':t.status==='awaiting'?'b-await':'b-open';
+    const badgeText  = t.status==='awaiting-pos'?'At POS':t.status==='awaiting'?'Bill Req.':'Open';
+    // Age-based warning classes (only for open/awaiting, not at-POS)
+    const ageClass = t.status!=='awaiting-pos' ? (mins>=180 ? 'age-old' : mins>=120 ? 'age-warn' : '') : '';
+    const cardClass = ['tab-card',
+      t.status==='awaiting-pos'?'awaiting-pos':t.status==='awaiting'?'awaiting':'',
+      ageClass].filter(Boolean).join(' ');
+    const ageBadge = ageClass
+      ? `<span class="tab-age-badge">${mins>=180?'🔴':'🟡'} ${tOpen} open</span>` : '';
+    const delBtn = isAdmin
+      ? `<button class="btn-del-tab" onclick="event.stopPropagation();deleteTab('${t.id}','${esc(t.customerName)}')">✕ Delete</button>`
+      : '';
+    return `<div class="${cardClass}" onclick="enterOrderView('${t.id}')" style="${isAdmin?'padding-bottom:44px':''}">
+      <span class="tab-badge ${badgeClass}">${badgeText}</span>
+      <div class="tab-customer">${esc(t.customerName)}</div>
+      <div class="tab-table">📍 ${esc(t.tableLabel)}</div>
+      <div class="tab-meta">
+        <span>👤 ${esc(t.servingStaff?.name||t.openedBy?.name||'—')}</span>
+        <span>🛒 ${itemCnt} item${itemCnt!==1?'s':''}</span>
+        <span>⏱ ${tOpen}${ageBadge}</span>
+      </div>
+      <div class="tab-total">${N(t.subtotal)}</div>
+      ${delBtn}
+    </div>`;
+  }).join('');
+}
+
+function renderHistory(tabs) {
+  const sec = document.getElementById('histSection');
+  const el  = document.getElementById('histList');
+  if (!tabs.length) { sec.style.display='none'; return; }
+  sec.style.display = '';
+  const total = tabs.reduce((s,t)=>s+(t.subtotal||0),0);
+  document.getElementById('histSummary').textContent =
+    `${tabs.length} tab${tabs.length!==1?'s':''} · ${N(total)}`;
+  el.innerHTML = tabs.map(t => {
+    const paidAt   = t.paidAt?.toDate?.();
+    const paidTime = paidAt ? paidAt.toLocaleTimeString('en-NG',{hour:'2-digit',minute:'2-digit'}) : '—';
+    const servedBy = t.servingStaff?.name || t.openedBy?.name || '—';
+    const paidBy   = t.paidBy?.name || '—';
+    const method   = (t.paymentMethod||'cash').toUpperCase();
+    return `<div class="hist-row">
+      <div class="hist-main">
+        <div class="hist-cust">${esc(t.customerName)} <span style="color:var(--muted);font-size:0.72rem">· ${esc(t.tableLabel)}</span></div>
+        <div class="hist-meta">
+          <span>👤 ${esc(servedBy)}</span>
+          <span>💳 ${method}</span>
+          <span>✓ ${esc(paidBy)}</span>
+          <span>🕐 ${paidTime}</span>
+        </div>
+      </div>
+      <div class="hist-amt">${N(t.subtotal)}</div>
+    </div>`;
+  }).join('');
+}
+
+/* ════ ORDER VIEW ════ */
+function enterOrderView(tabId) {
+  currentTabId = tabId;
+  document.getElementById('orderView').style.display = 'flex';
+  document.getElementById('btnDelTab').style.display = isAdmin ? '' : 'none';
+  document.getElementById('btnTransferTab').style.display = '';
+  if (tabUnsub) tabUnsub();
+  tabUnsub = db.collection('tabs').doc(tabId).onSnapshot(snap => {
+    if (!snap.exists) { exitOrderView(); return; }
+    currentTab = snap.data();
+    renderCartPanel();
+  });
+  if (!menuItems.length) loadMenu();
+  else renderMenuItems(activeCat);
+}
+
+function exitOrderView() {
+  document.getElementById('orderView').style.display = 'none';
+  if (tabUnsub) { tabUnsub(); tabUnsub=null; }
+  currentTabId = null; currentTab = null;
+  document.getElementById('ovCart').classList.remove('mob-open');
+  document.getElementById('ovMobBar').classList.remove('show');
+}
+
+/* ── Menu load ── */
+async function loadMenu() {
+  try {
+    const snap = await db.collection('menuItems').where('active','==',true).get();
+    menuItems = snap.docs.map(d=>({id:d.id,...d.data()}))
+      .filter(i=>i.category==='drinks'||i.category==='food');
+    if (!menuItems.length) menuItems = DEFAULT_FD;
+  } catch(e) { menuItems = DEFAULT_FD; }
+  buildCatTabs();
+  renderMenuItems(activeCat);
+}
+
+function buildCatTabs() {
+  const cats = [{ id:'drinks', label:'🍺 Drinks' }];
+  FOOD_SECTIONS.forEach(s => {
+    if (menuItems.some(i=>i.category==='food'&&i.section===s))
+      cats.push({ id:'food__'+s, label:'🍽️ '+s });
+  });
+  const other = menuItems.filter(i=>i.category==='food'&&(!i.section||!FOOD_SECTIONS.includes(i.section)));
+  if (other.length) cats.push({ id:'food__Other', label:'🍽️ Other' });
+
+  document.getElementById('ovCats').innerHTML = cats.map((c,i)=>
+    `<button class="ov-cat${i===0?' active':''}" onclick="setCat('${esc(c.id)}',this)">${c.label}</button>`
+  ).join('');
+  activeCat = cats[0]?.id || 'drinks';
+}
+
+function setCat(cat, btn) {
+  activeCat = cat;
+  document.querySelectorAll('.ov-cat').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderMenuItems(cat);
+}
+
+function renderMenuItems(cat) {
+  const el = document.getElementById('ovItems');
+  let items;
+  if (cat === 'drinks') {
+    items = menuItems.filter(i=>i.category==='drinks');
+  } else {
+    const sec = cat.replace('food__','');
+    items = sec==='Other'
+      ? menuItems.filter(i=>i.category==='food'&&(!i.section||!FOOD_SECTIONS.includes(i.section)))
+      : menuItems.filter(i=>i.category==='food'&&i.section===sec);
+  }
+  if (!items.length) { el.innerHTML='<div style="color:rgba(245,242,236,0.38);padding:12px;font-size:0.82rem">No items in this category.</div>'; return; }
+  el.innerHTML = `<div class="ov-grid">${items.map(item=>`
+    <div class="ov-ic" data-name="${esc(item.name)}" data-price="${item.price}" data-icon="${esc(item.icon||'')}" data-cat="${esc(item.category||'')}">
+      <div class="ov-ic-icon">${item.icon||'🍽️'}</div>
+      <div class="ov-ic-name">${esc(item.name)}</div>
+      <div class="ov-ic-price">${N(item.price)}</div>
+    </div>`).join('')}</div>`;
+}
+
+/* ── Item tap via event delegation — transaction prevents concurrent-write loss ── */
+document.getElementById('ovItems').addEventListener('click', async e => {
+  const card = e.target.closest('.ov-ic');
+  if (!card || !currentTabId) return;
+  card.classList.add('tapped');
+  setTimeout(()=>card.classList.remove('tapped'), 220);
+
+  const newItem = { name:card.dataset.name, icon:card.dataset.icon,
+    unitPrice:parseFloat(card.dataset.price), category:card.dataset.cat };
+  const ref = db.collection('tabs').doc(currentTabId);
+  try {
+    await db.runTransaction(async tx => {
+      const snap = await tx.get(ref);
+      if (!snap.exists) return;
+      const items = [...(snap.data().items||[])];
+      const idx = items.findIndex(i=>i.name===newItem.name);
+      if (idx>=0) {
+        items[idx] = {...items[idx], qty:items[idx].qty+1};
+        items[idx].total = items[idx].qty * items[idx].unitPrice;
+      } else {
+        items.push({...newItem, qty:1, total:newItem.unitPrice});
+      }
+      tx.update(ref, {items, subtotal:items.reduce((s,i)=>s+i.total,0)});
+    });
+  } catch(e) { showOvToast('Could not add item — try again'); }
+});
+
+/* ── Cart qty controls — transaction prevents concurrent-write loss ── */
+document.getElementById('ovCartRows').addEventListener('click', async e => {
+  const btn = e.target.closest('[data-action]');
+  if (!btn || !currentTabId) return;
+  const idx    = parseInt(btn.dataset.idx);
+  const action = btn.dataset.action;
+  const ref    = db.collection('tabs').doc(currentTabId);
+  try {
+    await db.runTransaction(async tx => {
+      const snap = await tx.get(ref);
+      if (!snap.exists) return;
+      const items = [...(snap.data().items||[])];
+      if (idx >= items.length) return;
+      if (action==='inc') {
+        items[idx] = {...items[idx], qty:items[idx].qty+1};
+        items[idx].total = items[idx].qty * items[idx].unitPrice;
+      } else {
+        items[idx] = {...items[idx], qty:items[idx].qty-1};
+        items[idx].total = items[idx].qty * items[idx].unitPrice;
+        if (items[idx].qty<=0) items.splice(idx,1);
+      }
+      tx.update(ref, {items, subtotal:items.reduce((s,i)=>s+i.total,0)});
+    });
+  } catch(e) { showOvToast('Could not update — try again'); }
+});
+
+/* ── Render cart panel ── */
+function renderCartPanel() {
+  if (!currentTab) return;
+  const t = currentTab;
+
+  document.getElementById('ovTitle').textContent    = t.customerName+' · '+t.tableLabel;
+  document.getElementById('ovHdrTotal').textContent = N(t.subtotal);
+  document.getElementById('ovCartCust').textContent = t.customerName;
+  document.getElementById('ovCartSub').textContent  = t.tableLabel+' · '+((t.servingStaff||t.openedBy)?.name||'—');
+  document.getElementById('ovCartTotal').textContent = N(t.subtotal);
+
+  // Status bar
+  const statusBar = document.getElementById('ovStatusBar');
+  statusBar.style.display = t.status==='awaiting-pos' ? '' : 'none';
+
+  // Send to POS button state
+  const btnSend = document.getElementById('btnSendPOS');
+  const atPOS   = t.status==='awaiting-pos';
+  btnSend.disabled   = atPOS || !(t.items||[]).length;
+  btnSend.textContent = atPOS ? '✓ Sent to POS Terminal' : 'Send to POS for Payment';
+
+  // Mobile bar
+  const items = t.items||[];
+  const qty   = items.reduce((s,i)=>s+(i.qty||0),0);
+  document.getElementById('ovMobCount').textContent = qty ? qty+' item'+(qty>1?'s':'') : '';
+  document.getElementById('ovMobAmt').textContent   = N(t.subtotal);
+  if (qty>0 && !document.getElementById('ovCart').classList.contains('mob-open'))
+    document.getElementById('ovMobBar').classList.add('show');
+  else if (!qty)
+    document.getElementById('ovMobBar').classList.remove('show');
+
+  // Cart items
+  const empty = document.getElementById('ovCartEmpty');
+  const rows  = document.getElementById('ovCartRows');
+  if (!items.length) { empty.style.display=''; rows.innerHTML=''; return; }
+  empty.style.display='none';
+  rows.innerHTML = items.map((item,idx)=>`
+    <div class="ov-cart-row">
+      <div class="ov-cart-name">${esc(item.icon||'')} ${esc(item.name)}</div>
+      <div class="ov-cart-qty">
+        <button class="ov-qty-btn" data-action="dec" data-idx="${idx}">−</button>
+        <span class="ov-qty-num">${item.qty}</span>
+        <button class="ov-qty-btn" data-action="inc" data-idx="${idx}">+</button>
+      </div>
+      <div class="ov-cart-price">${N(item.total)}</div>
+    </div>`).join('');
+}
+
+async function confirmClearTab() {
+  if (!currentTabId||!currentTab?.items?.length) return;
+  if (!confirm('Remove all items from this tab?')) return;
+  await db.collection('tabs').doc(currentTabId).update({items:[],subtotal:0});
+}
+
+/* ════ DELETE TAB (CEO / Manager only) ════ */
+async function deleteTab(tabId, customerName) {
+  if (!isAdmin) return;
+  if (!confirm(`Delete tab for "${customerName}"?\n\nThis cannot be undone. Any items on this tab will be lost.`)) return;
+  try {
+    await db.collection('tabs').doc(tabId).delete();
+    showAlert('alertBox', `Tab deleted: ${customerName}`, 'alert-success');
+  } catch(e) {
+    showAlert('alertBox', 'Error deleting tab: '+e.message, 'alert-error');
+  }
+}
+
+async function deleteCurrentTab() {
+  if (!isAdmin||!currentTabId||!currentTab) return;
+  if (!confirm(`Delete tab for "${currentTab.customerName}"?\n\nThis cannot be undone.`)) return;
+  try {
+    await db.collection('tabs').doc(currentTabId).delete();
+    exitOrderView();
+    showAlert('alertBox', `Tab deleted: ${currentTab.customerName}`, 'alert-success');
+  } catch(e) {
+    showOvToast('Error: '+e.message);
+  }
+}
+
+/* ════ TRANSFER TAB ════ */
+async function openTransferModal() {
+  if (!currentTabId) return;
+  const sel = document.getElementById('transferSel');
+  sel.innerHTML = '<option value="">Loading staff…</option>';
+  document.getElementById('transferModal').style.display = 'flex';
+  try {
+    const snap = await db.collection('staff').where('active','==',true).get();
+    const currentServerId = currentTab?.servingStaff?.id || currentTab?.openedBy?.id;
+    const staffList = snap.docs.map(d=>({id:d.id,...d.data()}))
+      .filter(s => {
+        if (s.id === currentServerId) return false;
+        const dept = (s.department||'').toLowerCase();
+        return dept === 'lounge' || dept === 'bar';
+      })
+      .sort((a,b)=>(a.fullName||a.name||'').localeCompare(b.fullName||b.name||''));
+    if (!staffList.length) {
+      sel.innerHTML = '<option value="">No bartenders or waiters found</option>';
+      return;
+    }
+    sel.innerHTML = '<option value="">— Select staff —</option>' +
+      staffList.map(s=>`<option value="${s.id}" data-name="${esc(s.fullName||s.name||s.id)}">${esc(s.fullName||s.name||s.id)}</option>`).join('');
+  } catch(e) {
+    sel.innerHTML = '<option value="">Error loading staff</option>';
+  }
+}
+function closeTransferModal() {
+  document.getElementById('transferModal').style.display = 'none';
+}
+async function confirmTransfer() {
+  const sel = document.getElementById('transferSel');
+  const staffId = sel.value;
+  const staffName = sel.options[sel.selectedIndex]?.dataset?.name || sel.options[sel.selectedIndex]?.text || '';
+  if (!staffId || !currentTabId) { showOvToast('Select a staff member'); return; }
+  try {
+    await db.collection('tabs').doc(currentTabId).update({
+      servingStaff: { id: staffId, name: staffName }
+    });
+    closeTransferModal();
+    showOvToast(`Tab transferred to ${staffName}`);
+  } catch(e) { showOvToast('Error: '+e.message); }
+}
+
+/* ════ REVERT TO OPEN ════ */
+async function revertToOpen() {
+  if (!currentTabId) return;
+  if (!confirm('Pull this tab back from POS? Items can be added again and it will need to be re-sent.')) return;
+  try {
+    await db.collection('tabs').doc(currentTabId).update({status:'open'});
+  } catch(e) { showOvToast('Error: '+e.message); }
+}
+
+/* ════ SEND TO POS ════ */
+async function sendToPOS() {
+  if (!currentTabId||!currentTab?.items?.length) return;
+  const btn = document.getElementById('btnSendPOS');
+  btn.disabled=true; btn.textContent='Sending…';
+  try {
+    await db.collection('tabs').doc(currentTabId).update({status:'awaiting-pos'});
+    // Tab state will update via real-time listener — renderCartPanel handles button/banner
+  } catch(e) {
+    showOvToast('Error: '+e.message);
+    btn.disabled=false; btn.textContent='Send to POS for Payment';
+  }
+}
+
+function showOvToast(msg) {
+  const el = document.createElement('div');
+  el.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#162d1f;color:#C9A96E;padding:12px 20px;border-radius:8px;font-family:Jost,sans-serif;font-size:0.82rem;border:1px solid rgba(201,169,110,0.3);z-index:999;white-space:nowrap';
+  el.textContent = msg;
+  document.getElementById('orderView').appendChild(el);
+  setTimeout(()=>el.remove(),3000);
+}
+
+/* ════ QUICK PAY ════ */
+function openQuickPay() {
+  if (!currentTab||!currentTab.items?.length) return;
+  document.getElementById('payModalCust').textContent = currentTab.customerName;
+  document.getElementById('payModalSub').textContent  = currentTab.tableLabel+' · '+((currentTab.items||[]).length)+' item(s)';
+  document.getElementById('payModalAmt').textContent  = N(currentTab.subtotal);
+  payMethod = 'cash';
+  document.querySelectorAll('.pay-method').forEach(el=>el.classList.toggle('active',el.dataset.method==='cash'));
+  document.getElementById('payModal').classList.add('show');
+}
+function closePayModal()   { document.getElementById('payModal').classList.remove('show'); }
+function selPayMethod(el) {
+  document.querySelectorAll('.pay-method').forEach(e=>e.classList.remove('active'));
+  el.classList.add('active');
+  payMethod = el.dataset.method;
+}
+
+async function confirmPayment() {
+  if (!currentTabId||!currentTab) return;
+  const btn = document.getElementById('btnConfirmPay');
+  btn.disabled=true; btn.textContent='Processing…';
+  try {
+    const tab    = currentTab;
+    const total  = tab.subtotal||0;
+    const server = tab.servingStaff || tab.openedBy || {id:staff.id,name:staff.name};
+    const now    = firebase.firestore.FieldValue.serverTimestamp();
+    await db.collection('sales').add({
+      date:tab.date||todayStr(),
+      staffId:server.id, staffName:server.name,
+      processedBy:staff.name,
+      department:'Restaurant & Lounge', source:'tab', tabId:currentTabId,
+      customerName:tab.customerName, tableLabel:tab.tableLabel, items:tab.items||[],
+      totalSales:total,
+      cashSales:    payMethod==='cash'?total:0,
+      transferSales:payMethod==='transfer'?total:0,
+      posSales:     payMethod==='pos'?total:0,
+      paymentMethod:payMethod,
+      notes:`Tab: ${tab.customerName} @ ${tab.tableLabel}`,
+      createdAt:now,
+    });
+    await db.collection('tabs').doc(currentTabId).update({
+      status:'paid', paidAt:now,
+      paidBy:{id:staff.id,name:staff.name}, paymentMethod:payMethod
+    });
+    closePayModal();
+    exitOrderView();
+    showAlert('alertBox',`Paid · ${tab.customerName} · ${N(total)}`,'alert-success');
+  } catch(e) {
+    showAlert('alertBox','Error: '+e.message,'alert-error');
+  }
+  btn.disabled=false; btn.textContent='Confirm Payment';
+}
+
+/* ════ MOBILE ════ */
+function openMobileCart() {
+  document.getElementById('ovCart').classList.add('mob-open');
+  document.getElementById('ovMobBar').classList.remove('show');
+}
+function closeMobileCart() {
+  document.getElementById('ovCart').classList.remove('mob-open');
+  if (currentTab?.items?.length) document.getElementById('ovMobBar').classList.add('show');
+}
+
+/* ════ KEYBOARD ════ */
+document.addEventListener('keydown', e => {
+  if (e.key!=='Escape') return;
+  if (document.getElementById('payModal').classList.contains('show'))    { closePayModal(); return; }
+  if (document.getElementById('newTabModal').classList.contains('show')) { closeNewTabModal(); return; }
+  if (document.getElementById('ovCart').classList.contains('mob-open'))  { closeMobileCart(); return; }
+  if (document.getElementById('orderView').style.display!=='none')       { exitOrderView(); return; }
+});
+
+/* ════ DEFAULT MENU FALLBACK ════ */
+const DEFAULT_FD = [
+  {name:'Water',price:300,category:'drinks',icon:'💧'},{name:'Soft Drink',price:500,category:'drinks',icon:'🥤'},
+  {name:'Juice',price:700,category:'drinks',icon:'🧃'},{name:'Beer',price:1000,category:'drinks',icon:'🍺'},
+  {name:'Chapman',price:1500,category:'drinks',icon:'🍹'},{name:'Ruby Sunrise',price:2000,category:'drinks',icon:'🍹'},
+  {name:'Cocktail',price:3500,category:'drinks',icon:'🍸'},{name:'Spirit (Single)',price:2500,category:'drinks',icon:'🥃'},
+  {name:'Spirit (Double)',price:4500,category:'drinks',icon:'🥃'},{name:'Wine (Glass)',price:3000,category:'drinks',icon:'🍷'},
+  {name:'Wine (Bottle)',price:14000,category:'drinks',icon:'🍷'},
+  {name:'Chicken Skewers',price:8000,category:'food',section:'Starters',icon:'🍢'},
+  {name:'Suya Skewers',price:8500,category:'food',section:'Starters',icon:'🍢'},
+  {name:'Small Chops',price:6500,category:'food',section:'Starters',icon:'🥘'},
+  {name:'Catfish Pepper Soup',price:9500,category:'food',section:'Starters',icon:'🍲'},
+  {name:'Chicken Wings',price:8500,category:'food',section:'Starters',icon:'🍗'},
+  {name:'Chicken Salad',price:8500,category:'food',section:'Salads',icon:'🥗'},
+  {name:'Potato Salad',price:7000,category:'food',section:'Salads',icon:'🥗'},
+  {name:'Jollof Rice',price:14000,category:'food',section:'Mains',icon:'🍛'},
+  {name:'Fried Rice',price:13500,category:'food',section:'Mains',icon:'🍛'},
+  {name:'Chicken & Chips',price:11000,category:'food',section:'Mains',icon:'🍗'},
+  {name:'Grilled Catfish',price:16000,category:'food',section:'Mains',icon:'🐟'},
+  {name:'Chicken Shawarma',price:8500,category:'food',section:'Mains',icon:'🌯'},
+  {name:'Seafood Broil',price:22000,category:'food',section:'Specials',icon:'🦞'},
+  {name:'Steak',price:20000,category:'food',section:'Specials',icon:'🥩'},
+  {name:'Lamb Chops',price:28000,category:'food',section:'Specials',icon:'🍖'},
+];
+
+/* ════ INIT ════ */
+subscribeList();
+</script>
+</body>
+</html>

@@ -171,9 +171,11 @@ function buildNav(staff, active) {
   const isPOSStaff = isManager || isHR || isFrontDesk
     || dept.includes('game') || dept.includes('bar') || dept.includes('bartend') || dept.includes('lounge')
     || dept.includes('salon') || dept.includes('barbing');
+  const isTabsStaff = isManager || dept.includes('bar') || dept.includes('bartend') || dept.includes('lounge');
   if (isPOSStaff) {
     html += sec('POS');
     html += a('/portal/pos/', '🖥️', 'POS Terminal', 'pos');
+    if (isTabsStaff) html += a('/portal/tabs/', '🍽️', 'Table Tabs', 'tabs');
   }
 
   const nav = document.getElementById('sbNav');
@@ -252,6 +254,7 @@ function requireAccess(staff, page) {
     barbing:    isManager,   // salon staff use POS only
     pool:       isManager || dept === 'pool',
     apartments: isManager || isHR || dept === 'front desk' || dept === 'receptionist' || dept === 'lounge' || dept === 'apartments',
+    tabs:       isManager || dept.includes('bar') || dept.includes('bartend') || dept.includes('lounge'),
     pos:        true,
     sales:      true,
     home:       true,
