@@ -122,8 +122,9 @@ async function captureLocation() {
   });
 }
 
-let _navActive  = '';
-let _navFetched = false;
+let _navActive   = '';
+let _navFetched  = false;
+let _requiredPage = null; // set by requireAccess(); re-checked after Firestore confirms role
 
 function buildNav(staff, active) {
   _navActive = active;
@@ -253,24 +254,44 @@ function buildNav(staff, active) {
       }
       const fresh = { id: doc.id, ...doc.data() };
       setStaff(fresh);
+
+      // Phase 3: re-check access with Firestore-verified role.
+      // This catches a spoofed localStorage accessLevel — the real role
+      // from Firestore may deny what localStorage appeared to allow.
+      if (_requiredPage !== null) {
+        if (!_checkAccess(fresh, _requiredPage)) {
+          window.location.href = '/portal/home/';
+          return;
+        }
+        const content = document.querySelector('.content');
+        if (content) content.style.opacity = '1';
+        _requiredPage = null;
+      }
+
       const oldKey = (staff.accessLevel || staff.role || '') + '|' + (staff.department || '');
       const newKey = (fresh.accessLevel || fresh.role || '') + '|' + (fresh.department || '');
       if (oldKey !== newKey) {
         buildNav(fresh, _navActive);
         populateSidebar(fresh);
       }
-    }).catch(() => {});
+    }).catch(() => {
+      // Network failure — fall back to localStorage role, reveal content so
+      // offline staff aren't permanently locked out.
+      if (_requiredPage !== null) {
+        const content = document.querySelector('.content');
+        if (content) content.style.opacity = '1';
+        _requiredPage = null;
+      }
+    });
   }
 }
 
-/**
- * Redirect to home if the current staff member doesn't have access to a page.
- * Returns false and redirects if access is denied.
- */
-function requireAccess(staff, page) {
+// Pure role check — no redirects, no side effects.
+// Used by both the immediate localStorage check and the Firestore re-check.
+function _checkAccess(staff, page) {
   const _raw      = (staff.accessLevel || staff.role || 'staff').toLowerCase().replace(/\s+/g,'');
   const isCEO     = _raw === 'ceo' || _raw === 'superadmin';
-  if (isCEO) return true; // CEO has unrestricted access to all pages
+  if (isCEO) return true;
   const isManager = _raw === 'manager' || _raw.includes('manager');
   const dept      = (staff.department || '').toLowerCase();
   const isHR      = _raw === 'hr' || dept === 'hr' || dept.includes('human resource');
@@ -285,20 +306,36 @@ function requireAccess(staff, page) {
     expenses:   true,
     bar:        isManager || dept === 'bar',
     kitchen:    isManager || dept === 'kitchen',
-    barbing:    isManager,   // salon staff use POS only
+    barbing:    isManager,
     pool:       isManager || dept === 'pool',
     apartments: isManager || isHR || dept === 'front desk' || dept === 'receptionist' || dept === 'lounge' || dept === 'apartments',
     tabs:       isManager || dept.includes('bar') || dept.includes('bartend') || dept.includes('lounge'),
-    pos:        true,
-    sales:      true,
-    home:       true,
-    updates:    true,
+    pos:   true, sales:   true, home:    true, updates: true,
   };
-  // Deny-by-default: unknown page key or explicit false both redirect
-  if (!rules[page]) {
+  return !!rules[page];
+}
+
+/**
+ * Gate a page behind a role check.
+ *
+ * Phase 3 behaviour:
+ *  1. Checks immediately against the localStorage role — redirects if clearly denied.
+ *  2. If the localStorage role looks sufficient, hides .content and registers
+ *     _requiredPage so buildNav()'s Firestore callback can re-verify with the
+ *     live role and reveal (or redirect) once the fetch completes.
+ *
+ * Net effect: a DevTools-spoofed accessLevel gets through the instant check but
+ * is caught ~300 ms later when Firestore returns the real role.
+ */
+function requireAccess(staff, page) {
+  _requiredPage = page;
+  if (!_checkAccess(staff, page)) {
     window.location.href = '/portal/home/';
     return false;
   }
+  // Hide content until Firestore confirms the real role
+  const content = document.querySelector('.content');
+  if (content) { content.style.opacity = '0'; content.style.transition = 'opacity 0.18s'; }
   return true;
 }
 

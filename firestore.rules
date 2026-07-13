@@ -2,22 +2,45 @@ rules_version = '2';
 
 // Eden 54 — Firestore Security Rules
 //
-// Current auth situation:
-//   POS terminal  → Firebase Auth (email/password) — request.auth is available
-//   Staff portal  → localStorage only              — request.auth is NULL for portal users
+// Auth situation (post Phase 1+2 migration):
+//   All portal staff  → Firebase Auth session (email = posUsername@eden54.pos)
+//   POS terminal      → Firebase Auth (same Firebase project, same session)
+//   Public forms      → unauthenticated (apartment bookings only)
 //
-// Because portal staff are not Firebase-authenticated, we cannot restrict all
-// collections by identity yet. The priority rules below protect what we CAN protect
-// now, and mark everything else with TODO for when portal auth is migrated to Firebase.
+// Role lookup via staffByAuth/{uid}, written on every login by portal/index.html.
+//   Fields: { staffId, accessLevel, department, active }
+//   isManager() and isHR() each call get() on this doc (1 extra read per evaluation).
 //
 // To deploy: firebase deploy --only firestore:rules
 
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // ── Helpers ────────────────────────────────────────────────────────────────
-    function isFirebaseAuth() {
+    // ── Helpers ───────────────────────────────────────────────────────────────
+
+    function isAuth() {
       return request.auth != null;
+    }
+
+    function authData() {
+      return get(/databases/$(database)/documents/staffByAuth/$(request.auth.uid)).data;
+    }
+
+    function isManager() {
+      let r = authData().accessLevel;
+      return r == 'ceo' || r == 'superadmin' || r == 'manager'
+          || r.matches('.*(ceo|superadmin|manager).*');
+    }
+
+    function isHR() {
+      let d = authData();
+      return d.accessLevel == 'hr'
+          || d.get('department', '') == 'hr'
+          || d.get('department', '').matches('.*human.resource.*');
+    }
+
+    function isManagerOrHR() {
+      return isManager() || isHR();
     }
 
     function validAmount(field) {
@@ -43,80 +66,91 @@ service cloud.firestore {
           && d.status in ['open', 'awaiting', 'awaiting-pos', 'paid'];
     }
 
-    // ── Sales ──────────────────────────────────────────────────────────────────
-    // Portal (Quick Pay) and POS both write here.
-    // Validate shape on all creates to prevent negative/malformed entries.
-    // Only Firebase-authenticated users (POS cashiers) can delete.
+    // ── staffByAuth ───────────────────────────────────────────────────────────
+    // Written on every login — each user may only write their own doc.
+    // Managers can read any doc (for future admin tooling).
+    match /staffByAuth/{uid} {
+      allow read:  if isAuth() && (request.auth.uid == uid || isManager());
+      allow write: if isAuth() && request.auth.uid == uid;
+    }
+
+    // ── Staff profiles ────────────────────────────────────────────────────────
+    // Any authenticated staff can read (needed for nav, dropdowns, self-profile).
+    // Only managers/HR can create or update; only managers can delete.
+    match /staff/{doc} {
+      allow read:           if isAuth();
+      allow create, update: if isAuth() && isManagerOrHR();
+      allow delete:         if isAuth() && isManager();
+    }
+
+    // ── Sales ─────────────────────────────────────────────────────────────────
+    // Any authenticated staff can read and log a sale (POS + manual entry).
+    // Only managers can correct or void a sale record.
     match /sales/{doc} {
-      allow read:   if true;
-      allow create: if validSaleShape();
-      allow update: if isFirebaseAuth();
-      allow delete: if isFirebaseAuth();
+      allow read:           if isAuth();
+      allow create:         if isAuth() && validSaleShape();
+      allow update, delete: if isAuth() && isManager();
     }
 
-    // ── Tabs ───────────────────────────────────────────────────────────────────
-    // Portal staff create and manage tabs (no Firebase Auth).
-    // Validate shape on create to prevent garbage data.
+    // ── Table Tabs ────────────────────────────────────────────────────────────
+    // Lounge/bar staff create and update tabs throughout service.
+    // Only managers can delete a tab (voiding a completed table).
     match /tabs/{doc} {
-      allow read:   if true;
-      allow create: if validTabShape();
-      allow update: if true;
-      allow delete: if true; // CEO/manager delete enforced client-side; TODO: enforce server-side after auth migration
+      allow read:   if isAuth();
+      allow create: if isAuth() && validTabShape();
+      allow update: if isAuth();
+      allow delete: if isAuth() && isManager();
     }
 
-    // ── Menu Items ─────────────────────────────────────────────────────────────
-    // Anyone can read (POS needs unauthenticated read on load).
-    // Only Firebase-authenticated POS users can add/edit/delete menu items.
+    // ── Menu Items ────────────────────────────────────────────────────────────
+    // All authenticated staff can read (POS loads the menu on startup).
+    // Only managers can add, edit, or remove items.
     match /menuItems/{doc} {
-      allow read:  if true;
-      allow write: if isFirebaseAuth();
+      allow read:  if isAuth();
+      allow write: if isAuth() && isManager();
     }
 
-    // ── FCM Tokens ─────────────────────────────────────────────────────────────
-    // Only Firebase-authenticated devices (POS terminals) register for push notifications.
+    // ── Barbing Reports ───────────────────────────────────────────────────────
+    // Salon staff report through POS only — barbing_reports is manager-submitted.
+    match /barbing_reports/{doc} {
+      allow read:           if isAuth();
+      allow create:         if isAuth() && isManager()
+                            && request.resource.data.staffId is string
+                            && request.resource.data.date    is string;
+      allow update, delete: if isAuth() && isManager();
+    }
+
+    // ── FCM / Push Tokens ─────────────────────────────────────────────────────
     match /fcmTokens/{token} {
-      allow read, write: if isFirebaseAuth();
+      allow read, write: if isAuth();
     }
 
-    // ── Audit Log ──────────────────────────────────────────────────────────────
-    // Append-only: records can be created but never edited or deleted.
-    // This makes the audit trail tamper-evident.
+    // ── Audit Log (append-only) ───────────────────────────────────────────────
+    // Any authenticated staff can append a record; nobody can edit or delete.
+    // Only managers/HR can read (contains sensitive action trail).
     match /auditLog/{doc} {
-      allow read:             if true;
-      allow create:           if true;
-      allow update, delete:   if false;
+      allow read:           if isAuth() && isManagerOrHR();
+      allow create:         if isAuth();
+      allow update, delete: if false;
     }
 
-    // ── Apartment Bookings ─────────────────────────────────────────────────────
-    // Public-facing form submits bookings unauthenticated.
-    // Validate required guest fields on create.
+    // ── Apartment Bookings ────────────────────────────────────────────────────
+    // Public creates — guests submit the booking form without a portal login.
+    // Portal staff (authenticated) manage status, confirmations, and deletions.
     match /apartmentBookings/{doc} {
-      allow read:   if true;
       allow create: if request.resource.data.firstName is string
                     && request.resource.data.lastName  is string
                     && request.resource.data.phone     is string;
-      allow update, delete: if true; // TODO: restrict to authenticated managers after auth migration
+      allow read, update, delete: if isAuth();
     }
 
-    // ── Staff ──────────────────────────────────────────────────────────────────
-    // TODO: once portal migrates to Firebase Auth, restrict writes to managers/HR only.
-    match /staff/{doc} {
-      allow read:  if true;
-      allow write: if true;
-    }
-
-    // ── Barbing Reports ────────────────────────────────────────────────────────
-    match /barbing_reports/{doc} {
-      allow read:   if true;
-      allow create: if request.resource.data.staffId is string
-                    && request.resource.data.date is string;
-      allow update, delete: if true;
-    }
-
-    // ── Everything else (expenses, attendance, clockings, payroll, etc.) ───────
-    // TODO: tighten these after portal auth migration to Firebase Auth.
+    // ── Everything else ───────────────────────────────────────────────────────
+    // Covers: expenses, attendance, clockings, payroll, incidents, pool_reports,
+    // bar_reports, kitchen_reports, notices/updates, background checks, etc.
+    // All require a valid Firebase Auth session at minimum.
+    // Add explicit rules above as those collections need tighter per-role control.
     match /{document=**} {
-      allow read, write: if true;
+      allow read, write: if isAuth();
     }
   }
 }
