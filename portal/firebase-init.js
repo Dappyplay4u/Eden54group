@@ -43,6 +43,20 @@ function getStaff() {
     }
     // Stamp loginAt for sessions that pre-date this feature
     if (!loginAt) localStorage.setItem('eden54_login_at', Date.now());
+
+    // Background: verify Firebase Auth session is still alive.
+    // Fires once when Firebase initialises from its local cache (near-instant).
+    // Guards against: revoked sessions, password changes, manual token expiry.
+    // Ignores errors so offline staff aren't kicked out on a bad network.
+    firebase.auth().onAuthStateChanged(function(user) {
+      if (!localStorage.getItem('eden54_staff')) return; // already signed out — skip
+      if (!user) {
+        localStorage.removeItem('eden54_staff');
+        localStorage.removeItem('eden54_login_at');
+        window.location.href = '/portal/?expired=1';
+      }
+    }, function() {});
+
     return JSON.parse(s);
   } catch(e) {
     sessionStorage.setItem('eden54_redirect', window.location.href);
@@ -226,7 +240,14 @@ function buildNav(staff, active) {
   if (!_navFetched && staff && staff.id && typeof db !== 'undefined') {
     _navFetched = true;
     db.collection('staff').doc(staff.id).get().then(doc => {
-      if (!doc.exists) return;
+      // Staff deleted or deactivated — end the session immediately
+      if (!doc.exists || doc.data().active === false) {
+        firebase.auth().signOut().catch(() => {});
+        localStorage.removeItem('eden54_staff');
+        localStorage.removeItem('eden54_login_at');
+        window.location.href = '/portal/';
+        return;
+      }
       const fresh = { id: doc.id, ...doc.data() };
       setStaff(fresh);
       const oldKey = (staff.accessLevel || staff.role || '') + '|' + (staff.department || '');
