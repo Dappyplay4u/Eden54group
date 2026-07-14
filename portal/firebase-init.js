@@ -251,10 +251,21 @@ function buildNav(staff, active) {
       .onSnapshot(snap => {
         const myId = staff.id;
         const tabs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-        if (_tabsInit) {
+        if (!_tabsInit) {
+          // First snapshot: catch transfers that happened while app was closed/background
+          // Show banner if a tab was transferred to me within the last 2 minutes
+          const twoMinAgo = new Date(Date.now() - 2 * 60 * 1000).toISOString();
+          tabs.forEach(t => {
+            if (t.servingStaff?.id !== myId || !t.transferred) return;
+            const last = t.transferHistory?.[t.transferHistory.length - 1];
+            if (last && last.to?.id === myId && last.at > twoMinAgo) {
+              if (!_tabsOnPage) _showTabTransferBanner(t);
+            }
+          });
+        } else {
+          // Subsequent snapshots: tab just assigned to me in real time
           tabs.forEach(t => {
             if (t.servingStaff?.id === myId && !_myTabIds.has(t.id)) {
-              // Don't double-show if already on tabs page (that page has its own banner)
               if (!_tabsOnPage) _showTabTransferBanner(t);
             }
           });
