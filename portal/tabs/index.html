@@ -387,6 +387,7 @@ const FOOD_SECTIONS = ['Starters','Salads','Mains','Specials'];
 
 /* ── State ── */
 let menuItems    = [];
+let gameItems    = [];
 let currentTabId = null;
 let currentTab   = null;
 let tabUnsub     = null;
@@ -621,6 +622,12 @@ async function loadMenu() {
   } catch (e) {
     menuItems = DEFAULT_MENU;
   }
+  try {
+    const gsnap = await db.collection('gamePrices').get();
+    gameItems = gsnap.docs.map(d => ({ id: d.id, ...d.data() }));
+  } catch (e) {
+    gameItems = [];
+  }
   buildCatTabs();
   renderMenuItems(activeCat);
 }
@@ -633,6 +640,7 @@ function buildCatTabs() {
   });
   const other = menuItems.filter(i => i.category === 'food' && (!i.section || !FOOD_SECTIONS.includes(i.section)));
   if (other.length) cats.push({ id: 'food__Other', label: '🍽️ Other' });
+  if (gameItems.length) cats.push({ id: 'games', label: '🎮 Games' });
 
   document.getElementById('ovCats').innerHTML = cats.map((c, i) =>
     `<button class="ov-cat${i === 0 ? ' active' : ''}" onclick="setCat('${esc(c.id)}',this)">${c.label}</button>`
@@ -650,6 +658,15 @@ function setCat(cat, btn) {
 function renderMenuItems(cat) {
   const el = document.getElementById('ovItems');
   let items;
+  if (cat === 'games') {
+    el.innerHTML = `<div class="ov-grid">${gameItems.map(g => `
+      <div class="ov-ic" data-name="${esc(g.name)}" data-price="${g.price}" data-icon="${esc(g.icon || '🎮')}" data-cat="games">
+        <div class="ov-ic-icon">${g.icon || '🎮'}</div>
+        <div class="ov-ic-name">${esc(g.name)}</div>
+        <div class="ov-ic-price">${N(g.price)} / ${esc(g.unit || 'game')}</div>
+      </div>`).join('')}</div>`;
+    return;
+  }
   if (cat === 'drinks') {
     items = menuItems.filter(i => i.category === 'drinks');
   } else {
