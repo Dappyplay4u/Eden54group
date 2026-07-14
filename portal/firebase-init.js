@@ -241,6 +241,30 @@ function buildNav(staff, active) {
     switchBtn.style.display = '';
   }
 
+  // Tab transfer notification — global listener so it works on any portal page
+  if (staff && staff.id && isTabsStaff && typeof db !== 'undefined') {
+    const _tabsOnPage = window.location.pathname.includes('/tabs/');
+    let _tabsInit = false;
+    const _myTabIds = new Set();
+    db.collection('tabs')
+      .where('status', 'in', ['open', 'awaiting', 'awaiting-pos'])
+      .onSnapshot(snap => {
+        const myId = staff.id;
+        const tabs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        if (_tabsInit) {
+          tabs.forEach(t => {
+            if (t.servingStaff?.id === myId && !_myTabIds.has(t.id)) {
+              // Don't double-show if already on tabs page (that page has its own banner)
+              if (!_tabsOnPage) _showTabTransferBanner(t);
+            }
+          });
+        }
+        _myTabIds.clear();
+        tabs.forEach(t => { if (t.servingStaff?.id === myId) _myTabIds.add(t.id); });
+        _tabsInit = true;
+      }, () => {});
+  }
+
   // Always fetch live Firestore data once per page load so nav reflects real access level
   if (!_navFetched && staff && staff.id && typeof db !== 'undefined') {
     _navFetched = true;
@@ -519,6 +543,30 @@ async function npDecline(id, rowId, status) {
 // HTML-escape for safe innerHTML interpolation
 function esc(s) {
   return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+// Global tab transfer banner — shown on any page when a tab is assigned to the logged-in user
+function _showTabTransferBanner(t) {
+  try {
+    document.getElementById('_gTabXfer')?.remove();
+    const b = document.createElement('div');
+    b.id = '_gTabXfer';
+    b.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9999;background:#162d1f;border-bottom:2px solid #C9A96E;color:#f5f2ec;font-family:Jost,sans-serif;display:flex;align-items:center;justify-content:space-between;padding:14px 20px;gap:12px';
+    b.innerHTML =
+      '<div style="display:flex;align-items:center;gap:10px">' +
+        '<span style="font-size:1.3rem">🔔</span>' +
+        '<div>' +
+          '<div style="font-weight:600;font-size:0.9rem;color:#C9A96E">Tab transferred to you</div>' +
+          '<div style="font-size:0.8rem;opacity:0.82">' + esc(t.customerName) + ' · ' + esc(t.tableLabel) + '</div>' +
+        '</div>' +
+      '</div>' +
+      '<div style="display:flex;gap:8px;flex-shrink:0">' +
+        '<a href="/portal/tabs/" style="padding:6px 14px;background:#C9A96E;color:#0d1f12;border:none;border-radius:6px;font-family:Jost,sans-serif;font-size:0.78rem;font-weight:600;cursor:pointer;text-decoration:none;display:inline-block">Go to Tabs</a>' +
+        '<button onclick="document.getElementById(\'_gTabXfer\')?.remove()" style="padding:6px 10px;background:transparent;color:rgba(245,242,236,0.6);border:1px solid rgba(245,242,236,0.25);border-radius:6px;font-size:0.78rem;cursor:pointer">✕</button>' +
+      '</div>';
+    document.body.appendChild(b);
+    setTimeout(() => document.getElementById('_gTabXfer')?.remove(), 30000);
+  } catch (_) {}
 }
 
 // Append-only audit log — records who deleted/changed what and when
