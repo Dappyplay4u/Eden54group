@@ -77,6 +77,7 @@ function switchProfile() {
 
 /* ── Sidebar ── */
 function populateSidebar(staff) {
+  if (!staff) return;
   const el = document.getElementById('sidebarUser');
   if (el) el.innerHTML = `<strong>${staff.name}</strong><span>${staff.department}</span>`;
 }
@@ -127,17 +128,18 @@ let _navFetched  = false;
 let _requiredPage = null; // set by requireAccess(); re-checked after Firestore confirms role
 
 function buildNav(staff, active) {
+  if (!staff) { window.location.href = '/portal/?expired=1'; return; }
   _navActive = active;
   const _raw      = (staff.accessLevel || staff.role || 'staff').toLowerCase().replace(/\s+/g,'');
   const isCEO     = _raw === 'ceo' || _raw === 'superadmin';
   const isManager = isCEO || _raw === 'manager' || _raw.includes('manager');
   const dept      = (staff.department || '').toLowerCase();
   const isHR      = !isManager && (_raw === 'hr' || dept === 'hr' || dept.includes('human resource'));
-  const isFrontDesk = dept === 'front desk' || dept === 'receptionist' || dept === 'lounge' || dept === 'apartments';
+  const isFrontDesk = dept === 'front desk' || dept === 'receptionist';
 
   const canReport = {
     sales:      true,
-    bar:        isManager || dept === 'bar',
+    bar:        isManager || dept === 'bar' || dept.includes('lounge') || dept.includes('game'),
     kitchen:    isManager || dept === 'kitchen',
     barbing:    isManager,   // salon staff use POS — only managers submit barbing reports
     pool:       isManager || dept === 'pool',
@@ -197,12 +199,11 @@ function buildNav(staff, active) {
   }
 
   const isPOSStaff = isManager || isHR || isFrontDesk
-    || dept.includes('game') || dept.includes('bar') || dept.includes('bartend') || dept.includes('lounge')
     || dept.includes('salon') || dept.includes('barbing');
-  const isTabsStaff = isManager || dept.includes('bar') || dept.includes('bartend') || dept.includes('lounge');
-  if (isPOSStaff) {
+  const isTabsStaff = isManager || dept.includes('bar') || dept.includes('bartend') || dept.includes('lounge') || dept.includes('game');
+  if (isPOSStaff || isTabsStaff) {
     html += sec('POS');
-    html += a('/portal/pos/', '🖥️', 'POS Terminal', 'pos');
+    if (isPOSStaff) html += a('/portal/pos/', '🖥️', 'POS Terminal', 'pos');
     if (isTabsStaff) html += a('/portal/tabs/', '🍽️', 'Table Tabs', 'tabs');
   }
 
@@ -243,7 +244,16 @@ function buildNav(staff, active) {
   // Always fetch live Firestore data once per page load so nav reflects real access level
   if (!_navFetched && staff && staff.id && typeof db !== 'undefined') {
     _navFetched = true;
+    // Safety net: if fetch takes > 5 s or never starts, reveal content anyway
+    const _revealTimer = setTimeout(() => {
+      if (_requiredPage !== null) {
+        const content = document.querySelector('.content');
+        if (content) content.style.opacity = '1';
+        _requiredPage = null;
+      }
+    }, 5000);
     db.collection('staff').doc(staff.id).get().then(doc => {
+      clearTimeout(_revealTimer);
       // Staff deleted or deactivated — end the session immediately
       if (!doc.exists || doc.data().active === false) {
         if (typeof firebase.auth === 'function') firebase.auth().signOut().catch(() => {});
@@ -252,7 +262,14 @@ function buildNav(staff, active) {
         window.location.href = '/portal/';
         return;
       }
-      const fresh = { id: doc.id, ...doc.data() };
+      const freshData = doc.data();
+      const fresh = { id: doc.id, ...freshData };
+      // If the Firestore doc is missing role/accessLevel fields, keep what
+      // localStorage had — prevents a missing field from silently downgrading access.
+      if (!fresh.accessLevel && !fresh.role) {
+        if (staff.accessLevel) fresh.accessLevel = staff.accessLevel;
+        if (staff.role)        fresh.role        = staff.role;
+      }
       setStaff(fresh);
 
       // Phase 3: re-check access with Firestore-verified role.
@@ -275,6 +292,7 @@ function buildNav(staff, active) {
         populateSidebar(fresh);
       }
     }).catch(() => {
+      clearTimeout(_revealTimer);
       // Network failure — fall back to localStorage role, reveal content so
       // offline staff aren't permanently locked out.
       if (_requiredPage !== null) {
@@ -289,6 +307,7 @@ function buildNav(staff, active) {
 // Pure role check — no redirects, no side effects.
 // Used by both the immediate localStorage check and the Firestore re-check.
 function _checkAccess(staff, page) {
+  if (!staff) return false;
   const _raw      = (staff.accessLevel || staff.role || 'staff').toLowerCase().replace(/\s+/g,'');
   const isCEO     = _raw === 'ceo' || _raw === 'superadmin';
   if (isCEO) return true;
@@ -304,13 +323,14 @@ function _checkAccess(staff, page) {
     activity:           isManager,
     'background-check': isManager || isHR,
     expenses:   true,
-    bar:        isManager || dept === 'bar',
+    bar:        isManager || dept === 'bar' || dept.includes('lounge') || dept.includes('game'),
     kitchen:    isManager || dept === 'kitchen',
     barbing:    isManager,
     pool:       isManager || dept === 'pool',
     apartments: isManager || isHR || dept === 'front desk' || dept === 'receptionist' || dept === 'lounge' || dept === 'apartments',
-    tabs:       isManager || dept.includes('bar') || dept.includes('bartend') || dept.includes('lounge'),
-    pos:   true, sales:   true, home:    true, updates: true,
+    tabs:       isManager || dept.includes('bar') || dept.includes('bartend') || dept.includes('lounge') || dept.includes('game'),
+    pos:   isManager || isHR || dept === 'front desk' || dept === 'receptionist' || dept.includes('salon') || dept.includes('barbing'),
+    sales: true, home: true, updates: true,
   };
   return !!rules[page];
 }

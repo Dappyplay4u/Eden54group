@@ -373,11 +373,12 @@ let mgrActiveCat = 'food';
 
 /* ════ Default data ════ */
 const DEFAULT_GAMES = [
-  { id:'snooker', name:'Snooker',       price:2000, unit:'game',    icon:'🎱' },
-  { id:'tt',      name:'Table Tennis',  price:5000, unit:'hour',    icon:'🏓' },
-  { id:'vr',      name:'VR Experience', price:5000, unit:'session', icon:'🥽' },
-  { id:'ps',      name:'PlayStation',   price:5000, unit:'session', icon:'🎮' },
-  { id:'simcar',  name:'Sim Car Race',  price:5000, unit:'session', icon:'🚗' },
+  { id:'snooker', name:'Snooker',        price:2000, unit:'game',    icon:'🎱' },
+  { id:'tt',      name:'Table Tennis',   price:5000, unit:'hour',    icon:'🏓' },
+  { id:'vr',      name:'VR Experience',  price:5000, unit:'session', icon:'🥽' },
+  { id:'ps',      name:'PlayStation',    price:5000, unit:'session', icon:'🎮' },
+  { id:'simcar',  name:'Sim Car Race',   price:5000, unit:'session', icon:'🚗' },
+  { id:'pool',    name:'Swimming Pool',  price:5000, unit:'hour',    icon:'🏊' },
 ];
 const DEFAULT_MENU = [
   { name:'Water',                 price:300,   category:'drinks', icon:'💧' },
@@ -597,6 +598,15 @@ async function loadAllData() {
     gameItems = [...DEFAULT_GAMES];
   } else {
     gameItems = gameSnap.docs.map(d=>({id:d.id,...d.data()}));
+    // Patch: add any DEFAULT_GAMES entries missing from Firestore (e.g. newly added games)
+    const existingIds = new Set(gameItems.map(g => g.id));
+    const missing = DEFAULT_GAMES.filter(g => !existingIds.has(g.id));
+    if (missing.length) {
+      const b = db.batch();
+      missing.forEach(g => b.set(db.collection('gamePrices').doc(g.id), g));
+      await b.commit();
+      gameItems = [...gameItems, ...missing];
+    }
   }
 }
 

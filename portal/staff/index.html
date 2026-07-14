@@ -89,17 +89,13 @@
           <div class="form-group">
             <label class="form-label">Department</label>
             <select id="sDept" class="form-control">
-              <option value="salon">Barbing Salon</option>
-              <option value="lounge">Restaurant &amp; Lounge</option>
-              <option value="bar">Bar</option>
-              <option value="kitchen">Kitchen</option>
-              <option value="apartment">Apartment</option>
-              <option value="games">Games &amp; Entertainment</option>
-              <option value="pool">Pool</option>
-              <option value="front desk">Front Desk</option>
-              <option value="receptionist">Receptionist</option>
-              <option value="hr">HR</option>
               <option value="management">Management</option>
+              <option value="hr">HR</option>
+              <option value="kitchen">Kitchen</option>
+              <option value="lounge">Restaurant &amp; Lounge</option>
+              <option value="salon">Barbing Salon</option>
+              <option value="games">Games &amp; Entertainment</option>
+              <option value="front desk">Front Desk</option>
             </select>
           </div>
         </div>
@@ -202,17 +198,13 @@
       <div class="form-group">
         <label class="form-label">Department</label>
         <select id="editDept" class="form-control">
-          <option value="salon">Barbing Salon</option>
-          <option value="lounge">Restaurant &amp; Lounge</option>
-          <option value="bar">Bar</option>
-          <option value="kitchen">Kitchen</option>
-          <option value="apartment">Apartment</option>
-          <option value="games">Games &amp; Entertainment</option>
-          <option value="pool">Pool</option>
-          <option value="front desk">Front Desk</option>
-          <option value="receptionist">Receptionist</option>
-          <option value="hr">HR</option>
           <option value="management">Management</option>
+          <option value="hr">HR</option>
+          <option value="kitchen">Kitchen</option>
+          <option value="lounge">Restaurant &amp; Lounge</option>
+          <option value="salon">Barbing Salon</option>
+          <option value="games">Games &amp; Entertainment</option>
+          <option value="front desk">Front Desk</option>
         </select>
       </div>
     </div>
@@ -307,19 +299,27 @@ document.getElementById('topDate').textContent = new Date().toLocaleDateString('
 let allRoles = [];
 
 const DEFAULT_ROLES = [
-  { name: 'CEO',          accessLevel: 'ceo'        },
-  { name: 'Manager',      accessLevel: 'manager'    },
-  { name: 'HR',           accessLevel: 'hr'         },
-  { name: 'Front Desk',   accessLevel: 'staff'      },
-  { name: 'Stylist',      accessLevel: 'staff'      },
-  { name: 'Bartender',    accessLevel: 'staff'      },
-  { name: 'Receptionist', accessLevel: 'staff'      },
-  { name: 'Waiter',       accessLevel: 'staff'      },
-  { name: 'Kitchen Staff',accessLevel: 'staff'      },
+  { name: 'CEO',            accessLevel: 'ceo'     },
+  { name: 'Manager',        accessLevel: 'manager' },
+  { name: 'HR',             accessLevel: 'hr'      },
+  { name: 'Chef',           accessLevel: 'staff'   },
+  { name: 'Waiter',         accessLevel: 'staff'   },
+  { name: 'Bartender',      accessLevel: 'staff'   },
+  { name: 'Stylist',        accessLevel: 'staff'   },
+  { name: 'Game Attendant', accessLevel: 'staff'   },
+  { name: 'Cashier',        accessLevel: 'staff'   },
+  { name: 'Receptionist',   accessLevel: 'staff'   },
 ];
 
 async function loadRoles() {
-  const snap = await db.collection('portalRoles').orderBy('name').get();
+  let snap;
+  try {
+    snap = await db.collection('portalRoles').orderBy('name').get();
+  } catch (e) {
+    const el = document.getElementById('rolesList');
+    if (el) el.innerHTML = `<span style="color:#dc2626;font-size:0.78rem">Could not load roles: ${e.message}</span>`;
+    return;
+  }
   if (snap.empty) {
     const batch = db.batch();
     DEFAULT_ROLES.forEach(r => batch.set(db.collection('portalRoles').doc(), r));

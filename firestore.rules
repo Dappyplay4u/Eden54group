@@ -75,10 +75,10 @@ service cloud.firestore {
     }
 
     // ── Staff profiles ────────────────────────────────────────────────────────
-    // Any authenticated staff can read (needed for nav, dropdowns, self-profile).
-    // Only managers/HR can create or update; only managers can delete.
+    // Public read: the login page loads the staff list unauthenticated (photo/name picker).
+    // Writes are restricted to managers/HR.
     match /staff/{doc} {
-      allow read:           if isAuth();
+      allow read:           if true;
       allow create, update: if isAuth() && isManagerOrHR();
       allow delete:         if isAuth() && isManager();
     }

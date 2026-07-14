@@ -2,11 +2,11 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#0f2318">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Eden 54">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#0f2318">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Eden 54">
 <title>Table Tabs · Eden 54</title>
 <link rel="icon" type="image/jpeg" href="/logo/eden 54 logo.jpeg">
 <link href="https://fonts.googleapis.com/css2?family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet">
@@ -151,7 +151,7 @@
   letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;transition:all .2s}
 .btn-quick-pay:hover{background:rgba(201,169,110,0.08);border-color:rgba(201,169,110,0.45)}
 
-/* Mobile */
+/* Mobile floating bar */
 #ovMobBar{display:none;position:fixed;bottom:0;left:0;right:0;z-index:400;
   background:#162d1f;border-top:1px solid rgba(201,169,110,0.3);
   padding:11px 16px;align-items:center;justify-content:space-between;gap:12px}
@@ -172,16 +172,13 @@
   }
   .ov-items{padding-bottom:76px}
   .ov-grid{grid-template-columns:repeat(3,1fr)}
-  /* Header: hide redundant total, shrink action buttons to icons */
   .ov-hdr-total{display:none}
   #btnTransferTab{padding:6px 10px;font-size:0}
   #btnTransferTab::after{content:'↔';font-size:0.85rem}
   #btnDelTab{padding:6px 10px;font-size:0}
   #btnDelTab::after{content:'✕';font-size:0.85rem}
-  /* History rows: stack meta on mobile */
   .hist-row{flex-direction:column;align-items:flex-start;gap:6px}
   .hist-amt{font-size:0.88rem}
-  /* Transfer modal select */
   #transferSel{font-size:0.85rem}
 }
 @media(max-width:400px){
@@ -197,7 +194,7 @@
   <nav class="sb-nav" id="sbNav"></nav>
   <div class="sb-foot">
     <div id="sidebarUser"></div>
-    <a class="sb-item" onclick="switchProfile()" style="cursor:pointer"><i class="sb-icon">🔄</i> Switch Profile</a>
+    <a class="sb-item" onclick="switchProfile()" style="cursor:pointer"><i class="sb-icon">🚪</i> Sign Out</a>
   </div>
 </aside>
 
@@ -226,7 +223,6 @@
       <div style="color:var(--muted);font-size:0.85rem;padding:20px">Loading tabs…</div>
     </div>
 
-    <!-- Closed tab history (today) -->
     <div class="hist-section" id="histSection" style="display:none">
       <div class="hist-hdr">
         <span class="hist-hdr-lbl">Closed Today</span>
@@ -298,16 +294,13 @@
   </div>
 </div>
 
-<!-- ════ ORDER VIEW — full POS-style overlay ════ -->
+<!-- ════ ORDER VIEW ════ -->
 <div id="orderView">
-
-  <!-- Status bar (shown when tab is at POS) -->
-  <div class="ov-status-bar at-pos" id="ovStatusBar" style="display:none;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+  <div class="ov-status-bar at-pos" id="ovStatusBar" style="display:none">
     <span>✓ This tab has been sent to the POS terminal for payment</span>
     <button onclick="revertToOpen()" style="padding:4px 12px;background:transparent;border:1px solid rgba(134,239,172,0.4);color:#86efac;border-radius:5px;font-family:'Jost',sans-serif;font-size:0.68rem;letter-spacing:0.08em;cursor:pointer;white-space:nowrap;transition:all .2s">↩ Revert to Open</button>
   </div>
 
-  <!-- Header -->
   <div class="ov-hdr">
     <button class="ov-back" onclick="exitOrderView()">← Tabs</button>
     <div class="ov-title" id="ovTitle">Tab</div>
@@ -316,18 +309,13 @@
     <button id="btnDelTab" onclick="deleteCurrentTab()" style="display:none;padding:5px 12px;background:transparent;border:1px solid rgba(220,38,38,0.35);color:rgba(220,38,38,0.65);border-radius:5px;font-family:'Jost',sans-serif;font-size:0.68rem;letter-spacing:0.08em;cursor:pointer;flex-shrink:0;transition:all .2s">✕ Delete Tab</button>
   </div>
 
-  <!-- Category tabs -->
   <div class="ov-cats" id="ovCats"></div>
 
-  <!-- Body: items + cart -->
   <div class="ov-body">
-
-    <!-- Left: item picker -->
     <div class="ov-items" id="ovItems">
       <div style="color:rgba(245,242,236,0.38);padding:20px;font-size:0.85rem">Loading menu…</div>
     </div>
 
-    <!-- Right: tab cart -->
     <div class="ov-cart" id="ovCart">
       <div class="ov-cart-hdr">
         <button id="ovMobBack" onclick="closeMobileCart()">← Menu</button>
@@ -352,7 +340,6 @@
     </div>
   </div>
 
-  <!-- Mobile floating bar -->
   <div id="ovMobBar">
     <div>
       <div style="font-size:0.6rem;letter-spacing:0.12em;text-transform:uppercase;color:rgba(245,242,236,0.38);margin-bottom:2px">Current Tab</div>
@@ -372,24 +359,29 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="/portal/firebase-init.js"></script>
 <script>
+/* ── Bootstrap ── */
 const staff = getStaff();
 requireAccess(staff, 'tabs');
 populateSidebar(staff);
 buildNav(staff, 'tabs');
+
 document.getElementById('topDate').textContent =
   new Date().toLocaleDateString('en-NG',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
 
-const N  = n => '₦' + Number(n||0).toLocaleString('en-NG',{minimumFractionDigits:2});
-const esc = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+/* ── Helpers ── */
+// esc() is already defined globally in firebase-init.js — do not redeclare here
+// (redeclaring with const causes a SyntaxError in Chrome that kills the whole script)
+const N = n => '₦' + Number(n || 0).toLocaleString('en-NG', { minimumFractionDigits: 2 });
 
-/* Role flags */
-const _raw    = (staff.accessLevel||staff.role||'').toLowerCase().replace(/\s+/g,'');
-const isAdmin = _raw==='ceo'||_raw==='superadmin'||_raw==='manager'||_raw.includes('manager');
+/* ── Role flags ── */
+const _raw    = staff ? (staff.accessLevel || staff.role || '').toLowerCase().replace(/\s+/g, '') : '';
+const isAdmin = _raw === 'ceo' || _raw === 'superadmin' || _raw === 'manager' || _raw.includes('manager');
 
 /* ── Constants ── */
 const TABLE_LABELS = [
-  'Table 1','Table 2','Table 3','Table 4','Table 5','Table 6','Table 7','Table 8','Table 9','Table 10',
-  'Bar Counter','VIP Room','Poolside','Private Lounge'
+  'Table 1','Table 2','Table 3','Table 4','Table 5',
+  'Table 6','Table 7','Table 8','Table 9','Table 10',
+  'Bar Counter','VIP Room','Poolside','Private Lounge',
 ];
 const FOOD_SECTIONS = ['Starters','Salads','Mains','Specials'];
 
@@ -403,7 +395,7 @@ let selTable     = '';
 let activeCat    = 'drinks';
 
 /* ════ TABLE PILLS ════ */
-(function() {
+(function () {
   const el = document.getElementById('tablePills');
   TABLE_LABELS.forEach(label => {
     const btn = document.createElement('button');
@@ -439,80 +431,119 @@ function closeNewTabModal() { document.getElementById('newTabModal').classList.r
 async function createTab() {
   const customerName = document.getElementById('newCustomer').value.trim();
   const tableLabel   = document.getElementById('newTableCustom').value.trim() || selTable;
-  if (!customerName) { showAlert('alertBox','Enter a customer name.','alert-error'); return; }
-  if (!tableLabel)   { showAlert('alertBox','Select or type a table.','alert-error'); return; }
+  if (!customerName) { showAlert('alertBox', 'Enter a customer name.', 'alert-error'); return; }
+  if (!tableLabel)   { showAlert('alertBox', 'Select or type a table.', 'alert-error'); return; }
   try {
     const ref = await db.collection('tabs').add({
-      customerName, tableLabel, status:'open',
-      openedAt:    firebase.firestore.FieldValue.serverTimestamp(),
-      openedBy:    { id:staff.id, name:staff.name },
-      servingStaff:{ id:staff.id, name:staff.name },
-      items:[], subtotal:0, date:todayStr(),
+      customerName,
+      tableLabel,
+      status: 'open',
+      openedAt:     firebase.firestore.FieldValue.serverTimestamp(),
+      openedBy:     { id: staff.id, name: staff.name },
+      servingStaff: { id: staff.id, name: staff.name },
+      items: [],
+      subtotal: 0,
+      date: todayStr(),
     });
     closeNewTabModal();
     enterOrderView(ref.id);
-  } catch(e) {
-    showAlert('alertBox','Error: '+e.message,'alert-error');
+  } catch (e) {
+    showAlert('alertBox', 'Error: ' + e.message, 'alert-error');
   }
 }
 
 /* ════ LIST VIEW ════ */
 function subscribeList() {
-  db.collection('tabs').where('status','in',['open','awaiting','awaiting-pos'])
-    .onSnapshot(snap => {
-      const tabs = snap.docs.map(d=>({id:d.id,...d.data()}))
-        .sort((a,b)=>(a.openedAt?.seconds||0)-(b.openedAt?.seconds||0));
-      renderList(tabs);
-    });
-  db.collection('tabs').where('date','==',todayStr()).where('status','==','paid')
-    .onSnapshot(snap => {
-      const paid = snap.docs.map(d=>({id:d.id,...d.data()}))
-        .sort((a,b) => (b.paidAt?.seconds||0) - (a.paidAt?.seconds||0));
-      document.getElementById('statPaid').textContent =
-        N(paid.reduce((s,t)=>s+(t.subtotal||0),0));
-      renderHistory(paid);
-    });
+  /* Active tabs listener */
+  db.collection('tabs')
+    .where('status', 'in', ['open', 'awaiting', 'awaiting-pos'])
+    .onSnapshot(
+      snap => {
+        const tabs = snap.docs
+          .map(d => ({ id: d.id, ...d.data() }))
+          .sort((a, b) => (a.openedAt?.seconds || 0) - (b.openedAt?.seconds || 0));
+        renderList(tabs);
+      },
+      err => {
+        const grid = document.getElementById('tabsGrid');
+        if (!grid) return;
+        const msg = err.code === 'permission-denied'
+          ? 'Your session has expired. Sign out and sign back in.'
+          : 'Could not load tabs: ' + err.message;
+        grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:50px 20px;color:var(--muted)">
+          <div style="font-size:2rem;margin-bottom:10px">⚠️</div>
+          <strong style="font-size:0.9rem">Could not load tabs</strong>
+          <p style="font-size:0.78rem;margin-top:8px;max-width:320px;margin-left:auto;margin-right:auto">${esc(msg)}</p>
+          <button onclick="switchProfile()" style="margin-top:16px;padding:8px 18px;background:transparent;border:1px solid var(--gold);color:var(--gold);border-radius:6px;font-family:'Jost',sans-serif;font-size:0.76rem;cursor:pointer">Sign Out &amp; Back In</button>
+        </div>`;
+      }
+    );
+
+  /* Paid-today listener */
+  db.collection('tabs')
+    .where('date', '==', todayStr())
+    .where('status', '==', 'paid')
+    .onSnapshot(
+      snap => {
+        const paid = snap.docs
+          .map(d => ({ id: d.id, ...d.data() }))
+          .sort((a, b) => (b.paidAt?.seconds || 0) - (a.paidAt?.seconds || 0));
+        document.getElementById('statPaid').textContent =
+          N(paid.reduce((s, t) => s + (t.subtotal || 0), 0));
+        renderHistory(paid);
+      },
+      () => { /* non-critical — silently ignore */ }
+    );
 }
 
 function renderList(tabs) {
-  const open  = tabs.filter(t=>t.status==='open');
-  const atPos = tabs.filter(t=>t.status==='awaiting-pos');
+  const open  = tabs.filter(t => t.status === 'open');
+  const atPos = tabs.filter(t => t.status === 'awaiting-pos');
   document.getElementById('statOpen').textContent = open.length;
-  document.getElementById('statVal').textContent  = N(open.reduce((s,t)=>s+(t.subtotal||0),0));
+  document.getElementById('statVal').textContent  = N(open.reduce((s, t) => s + (t.subtotal || 0), 0));
   document.getElementById('statPos').textContent  = atPos.length;
 
   const grid = document.getElementById('tabsGrid');
   if (!tabs.length) {
     grid.innerHTML = `<div style="text-align:center;padding:60px 20px;color:var(--muted);grid-column:1/-1">
       <div style="font-size:2.5rem;margin-bottom:12px">🍽️</div>
-      <strong>No open tabs</strong><p style="font-size:0.82rem;margin-top:6px">Tap "+ New Tab" to get started.</p>
-    </div>`; return;
+      <strong>No open tabs</strong>
+      <p style="font-size:0.82rem;margin-top:6px">Tap "+ New Tab" to get started.</p>
+    </div>`;
+    return;
   }
   grid.innerHTML = tabs.map(t => {
-    const opened  = t.openedAt?.toDate?.() || new Date();
-    const mins    = Math.floor((Date.now()-opened)/60000);
-    const tOpen   = mins<60 ? mins+'m' : Math.floor(mins/60)+'h '+(mins%60)+'m';
-    const itemCnt = (t.items||[]).reduce((s,i)=>s+(i.qty||0),0);
-    const badgeClass = t.status==='awaiting-pos'?'b-pos':t.status==='awaiting'?'b-await':'b-open';
-    const badgeText  = t.status==='awaiting-pos'?'At POS':t.status==='awaiting'?'Bill Req.':'Open';
-    // Age-based warning classes (only for open/awaiting, not at-POS)
-    const ageClass = t.status!=='awaiting-pos' ? (mins>=180 ? 'age-old' : mins>=120 ? 'age-warn' : '') : '';
-    const cardClass = ['tab-card',
-      t.status==='awaiting-pos'?'awaiting-pos':t.status==='awaiting'?'awaiting':'',
-      ageClass].filter(Boolean).join(' ');
-    const ageBadge = ageClass
-      ? `<span class="tab-age-badge">${mins>=180?'🔴':'🟡'} ${tOpen} open</span>` : '';
-    const delBtn = isAdmin
+    const opened   = t.openedAt?.toDate?.() || new Date();
+    const mins     = Math.floor((Date.now() - opened) / 60000);
+    const tOpen    = mins < 60 ? mins + 'm' : Math.floor(mins / 60) + 'h ' + (mins % 60) + 'm';
+    const itemCnt  = (t.items || []).reduce((s, i) => s + (i.qty || 0), 0);
+    const badgeClass     = t.status === 'awaiting-pos' ? 'b-pos' : t.status === 'awaiting' ? 'b-await' : 'b-open';
+    const badgeText      = t.status === 'awaiting-pos' ? 'At POS' : t.status === 'awaiting' ? 'Bill Req.' : 'Open';
+    const ageClass       = t.status !== 'awaiting-pos' ? (mins >= 180 ? 'age-old' : mins >= 120 ? 'age-warn' : '') : '';
+    const cardClass      = ['tab-card',
+      t.status === 'awaiting-pos' ? 'awaiting-pos' : t.status === 'awaiting' ? 'awaiting' : '',
+      ageClass,
+    ].filter(Boolean).join(' ');
+    const ageBadge       = ageClass
+      ? `<span class="tab-age-badge">${mins >= 180 ? '🔴' : '🟡'} ${tOpen} open</span>` : '';
+    const currentServer  = t.servingStaff?.name || t.openedBy?.name || '—';
+    const originalOpener = t.openedBy?.name || '—';
+    const wasTransferred = t.transferred === true;
+    const transferNote   = wasTransferred
+      ? `<span style="color:rgba(239,68,68,0.72);font-size:0.7rem">↔ opened by ${esc(originalOpener)}</span>`
+      : '';
+    const delBtn         = isAdmin
       ? `<button class="btn-del-tab" onclick="event.stopPropagation();deleteTab('${t.id}','${esc(t.customerName)}')">✕ Delete</button>`
       : '';
-    return `<div class="${cardClass}" onclick="enterOrderView('${t.id}')" style="${isAdmin?'padding-bottom:44px':''}">
+    return `<div class="${cardClass}" onclick="enterOrderView('${t.id}')" style="${isAdmin ? 'padding-bottom:44px' : ''}">
       <span class="tab-badge ${badgeClass}">${badgeText}</span>
       <div class="tab-customer">${esc(t.customerName)}</div>
       <div class="tab-table">📍 ${esc(t.tableLabel)}</div>
       <div class="tab-meta">
-        <span>👤 ${esc(t.servingStaff?.name||t.openedBy?.name||'—')}</span>
-        <span>🛒 ${itemCnt} item${itemCnt!==1?'s':''}</span>
+        <span>👤 ${esc(currentServer)}</span>
+        <span>🛒 ${itemCnt} item${itemCnt !== 1 ? 's' : ''}</span>
         <span>⏱ ${tOpen}${ageBadge}</span>
+        ${transferNote}
       </div>
       <div class="tab-total">${N(t.subtotal)}</div>
       ${delBtn}
@@ -523,22 +554,25 @@ function renderList(tabs) {
 function renderHistory(tabs) {
   const sec = document.getElementById('histSection');
   const el  = document.getElementById('histList');
-  if (!tabs.length) { sec.style.display='none'; return; }
+  if (!tabs.length) { sec.style.display = 'none'; return; }
   sec.style.display = '';
-  const total = tabs.reduce((s,t)=>s+(t.subtotal||0),0);
+  const total = tabs.reduce((s, t) => s + (t.subtotal || 0), 0);
   document.getElementById('histSummary').textContent =
-    `${tabs.length} tab${tabs.length!==1?'s':''} · ${N(total)}`;
+    `${tabs.length} tab${tabs.length !== 1 ? 's' : ''} · ${N(total)}`;
   el.innerHTML = tabs.map(t => {
     const paidAt   = t.paidAt?.toDate?.();
-    const paidTime = paidAt ? paidAt.toLocaleTimeString('en-NG',{hour:'2-digit',minute:'2-digit'}) : '—';
-    const servedBy = t.servingStaff?.name || t.openedBy?.name || '—';
-    const paidBy   = t.paidBy?.name || '—';
-    const method   = (t.paymentMethod||'cash').toUpperCase();
+    const paidTime = paidAt ? paidAt.toLocaleTimeString('en-NG', { hour: '2-digit', minute: '2-digit' }) : '—';
+    const servedBy     = t.servingStaff?.name || t.openedBy?.name || '—';
+    const paidBy       = t.paidBy?.name || '—';
+    const method       = (t.paymentMethod || 'cash').toUpperCase();
+    const histTransfer = t.transferred && t.openedBy
+      ? `<span style="color:rgba(239,68,68,0.72);font-size:0.68rem;margin-left:4px">↔ opened by ${esc(t.openedBy.name)}</span>`
+      : '';
     return `<div class="hist-row">
       <div class="hist-main">
         <div class="hist-cust">${esc(t.customerName)} <span style="color:var(--muted);font-size:0.72rem">· ${esc(t.tableLabel)}</span></div>
         <div class="hist-meta">
-          <span>👤 ${esc(servedBy)}</span>
+          <span>👤 ${esc(servedBy)}${histTransfer}</span>
           <span>💳 ${method}</span>
           <span>✓ ${esc(paidBy)}</span>
           <span>🕐 ${paidTime}</span>
@@ -556,53 +590,59 @@ function enterOrderView(tabId) {
   document.getElementById('btnDelTab').style.display = isAdmin ? '' : 'none';
   document.getElementById('btnTransferTab').style.display = '';
   if (tabUnsub) tabUnsub();
-  tabUnsub = db.collection('tabs').doc(tabId).onSnapshot(snap => {
-    if (!snap.exists) { exitOrderView(); return; }
-    currentTab = snap.data();
-    renderCartPanel();
-  });
+  tabUnsub = db.collection('tabs').doc(tabId).onSnapshot(
+    snap => {
+      if (!snap.exists) { exitOrderView(); return; }
+      currentTab = snap.data();
+      renderCartPanel();
+    },
+    () => { exitOrderView(); }
+  );
   if (!menuItems.length) loadMenu();
   else renderMenuItems(activeCat);
 }
 
 function exitOrderView() {
   document.getElementById('orderView').style.display = 'none';
-  if (tabUnsub) { tabUnsub(); tabUnsub=null; }
-  currentTabId = null; currentTab = null;
+  if (tabUnsub) { tabUnsub(); tabUnsub = null; }
+  currentTabId = null;
+  currentTab   = null;
   document.getElementById('ovCart').classList.remove('mob-open');
   document.getElementById('ovMobBar').classList.remove('show');
 }
 
-/* ── Menu load ── */
+/* ── Menu ── */
 async function loadMenu() {
   try {
-    const snap = await db.collection('menuItems').where('active','==',true).get();
-    menuItems = snap.docs.map(d=>({id:d.id,...d.data()}))
-      .filter(i=>i.category==='drinks'||i.category==='food');
-    if (!menuItems.length) menuItems = DEFAULT_FD;
-  } catch(e) { menuItems = DEFAULT_FD; }
+    const snap = await db.collection('menuItems').where('active', '==', true).get();
+    menuItems = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+      .filter(i => i.category === 'drinks' || i.category === 'food');
+    if (!menuItems.length) menuItems = DEFAULT_MENU;
+  } catch (e) {
+    menuItems = DEFAULT_MENU;
+  }
   buildCatTabs();
   renderMenuItems(activeCat);
 }
 
 function buildCatTabs() {
-  const cats = [{ id:'drinks', label:'🍺 Drinks' }];
+  const cats = [{ id: 'drinks', label: '🍺 Drinks' }];
   FOOD_SECTIONS.forEach(s => {
-    if (menuItems.some(i=>i.category==='food'&&i.section===s))
-      cats.push({ id:'food__'+s, label:'🍽️ '+s });
+    if (menuItems.some(i => i.category === 'food' && i.section === s))
+      cats.push({ id: 'food__' + s, label: '🍽️ ' + s });
   });
-  const other = menuItems.filter(i=>i.category==='food'&&(!i.section||!FOOD_SECTIONS.includes(i.section)));
-  if (other.length) cats.push({ id:'food__Other', label:'🍽️ Other' });
+  const other = menuItems.filter(i => i.category === 'food' && (!i.section || !FOOD_SECTIONS.includes(i.section)));
+  if (other.length) cats.push({ id: 'food__Other', label: '🍽️ Other' });
 
-  document.getElementById('ovCats').innerHTML = cats.map((c,i)=>
-    `<button class="ov-cat${i===0?' active':''}" onclick="setCat('${esc(c.id)}',this)">${c.label}</button>`
+  document.getElementById('ovCats').innerHTML = cats.map((c, i) =>
+    `<button class="ov-cat${i === 0 ? ' active' : ''}" onclick="setCat('${esc(c.id)}',this)">${c.label}</button>`
   ).join('');
   activeCat = cats[0]?.id || 'drinks';
 }
 
 function setCat(cat, btn) {
   activeCat = cat;
-  document.querySelectorAll('.ov-cat').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.ov-cat').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   renderMenuItems(cat);
 }
@@ -611,50 +651,57 @@ function renderMenuItems(cat) {
   const el = document.getElementById('ovItems');
   let items;
   if (cat === 'drinks') {
-    items = menuItems.filter(i=>i.category==='drinks');
+    items = menuItems.filter(i => i.category === 'drinks');
   } else {
-    const sec = cat.replace('food__','');
-    items = sec==='Other'
-      ? menuItems.filter(i=>i.category==='food'&&(!i.section||!FOOD_SECTIONS.includes(i.section)))
-      : menuItems.filter(i=>i.category==='food'&&i.section===sec);
+    const sec = cat.replace('food__', '');
+    items = sec === 'Other'
+      ? menuItems.filter(i => i.category === 'food' && (!i.section || !FOOD_SECTIONS.includes(i.section)))
+      : menuItems.filter(i => i.category === 'food' && i.section === sec);
   }
-  if (!items.length) { el.innerHTML='<div style="color:rgba(245,242,236,0.38);padding:12px;font-size:0.82rem">No items in this category.</div>'; return; }
-  el.innerHTML = `<div class="ov-grid">${items.map(item=>`
-    <div class="ov-ic" data-name="${esc(item.name)}" data-price="${item.price}" data-icon="${esc(item.icon||'')}" data-cat="${esc(item.category||'')}">
-      <div class="ov-ic-icon">${item.icon||'🍽️'}</div>
+  if (!items.length) {
+    el.innerHTML = '<div style="color:rgba(245,242,236,0.38);padding:12px;font-size:0.82rem">No items in this category.</div>';
+    return;
+  }
+  el.innerHTML = `<div class="ov-grid">${items.map(item => `
+    <div class="ov-ic" data-name="${esc(item.name)}" data-price="${item.price}" data-icon="${esc(item.icon || '')}" data-cat="${esc(item.category || '')}">
+      <div class="ov-ic-icon">${item.icon || '🍽️'}</div>
       <div class="ov-ic-name">${esc(item.name)}</div>
       <div class="ov-ic-price">${N(item.price)}</div>
     </div>`).join('')}</div>`;
 }
 
-/* ── Item tap via event delegation — transaction prevents concurrent-write loss ── */
+/* ── Item tap via event delegation ── */
 document.getElementById('ovItems').addEventListener('click', async e => {
   const card = e.target.closest('.ov-ic');
   if (!card || !currentTabId) return;
   card.classList.add('tapped');
-  setTimeout(()=>card.classList.remove('tapped'), 220);
+  setTimeout(() => card.classList.remove('tapped'), 220);
 
-  const newItem = { name:card.dataset.name, icon:card.dataset.icon,
-    unitPrice:parseFloat(card.dataset.price), category:card.dataset.cat };
+  const newItem = {
+    name: card.dataset.name,
+    icon: card.dataset.icon,
+    unitPrice: parseFloat(card.dataset.price),
+    category: card.dataset.cat,
+  };
   const ref = db.collection('tabs').doc(currentTabId);
   try {
     await db.runTransaction(async tx => {
       const snap = await tx.get(ref);
       if (!snap.exists) return;
-      const items = [...(snap.data().items||[])];
-      const idx = items.findIndex(i=>i.name===newItem.name);
-      if (idx>=0) {
-        items[idx] = {...items[idx], qty:items[idx].qty+1};
+      const items = [...(snap.data().items || [])];
+      const idx = items.findIndex(i => i.name === newItem.name);
+      if (idx >= 0) {
+        items[idx] = { ...items[idx], qty: items[idx].qty + 1 };
         items[idx].total = items[idx].qty * items[idx].unitPrice;
       } else {
-        items.push({...newItem, qty:1, total:newItem.unitPrice});
+        items.push({ ...newItem, qty: 1, total: newItem.unitPrice });
       }
-      tx.update(ref, {items, subtotal:items.reduce((s,i)=>s+i.total,0)});
+      tx.update(ref, { items, subtotal: items.reduce((s, i) => s + i.total, 0) });
     });
-  } catch(e) { showOvToast('Could not add item — try again'); }
+  } catch (e) { showOvToast('Could not add item — try again'); }
 });
 
-/* ── Cart qty controls — transaction prevents concurrent-write loss ── */
+/* ── Cart qty controls ── */
 document.getElementById('ovCartRows').addEventListener('click', async e => {
   const btn = e.target.closest('[data-action]');
   if (!btn || !currentTabId) return;
@@ -665,19 +712,19 @@ document.getElementById('ovCartRows').addEventListener('click', async e => {
     await db.runTransaction(async tx => {
       const snap = await tx.get(ref);
       if (!snap.exists) return;
-      const items = [...(snap.data().items||[])];
+      const items = [...(snap.data().items || [])];
       if (idx >= items.length) return;
-      if (action==='inc') {
-        items[idx] = {...items[idx], qty:items[idx].qty+1};
+      if (action === 'inc') {
+        items[idx] = { ...items[idx], qty: items[idx].qty + 1 };
         items[idx].total = items[idx].qty * items[idx].unitPrice;
       } else {
-        items[idx] = {...items[idx], qty:items[idx].qty-1};
+        items[idx] = { ...items[idx], qty: items[idx].qty - 1 };
         items[idx].total = items[idx].qty * items[idx].unitPrice;
-        if (items[idx].qty<=0) items.splice(idx,1);
+        if (items[idx].qty <= 0) items.splice(idx, 1);
       }
-      tx.update(ref, {items, subtotal:items.reduce((s,i)=>s+i.total,0)});
+      tx.update(ref, { items, subtotal: items.reduce((s, i) => s + i.total, 0) });
     });
-  } catch(e) { showOvToast('Could not update — try again'); }
+  } catch (e) { showOvToast('Could not update — try again'); }
 });
 
 /* ── Render cart panel ── */
@@ -685,40 +732,42 @@ function renderCartPanel() {
   if (!currentTab) return;
   const t = currentTab;
 
-  document.getElementById('ovTitle').textContent    = t.customerName+' · '+t.tableLabel;
-  document.getElementById('ovHdrTotal').textContent = N(t.subtotal);
+  document.getElementById('ovTitle').textContent     = t.customerName + ' · ' + t.tableLabel;
+  document.getElementById('ovHdrTotal').textContent  = N(t.subtotal);
   document.getElementById('ovCartCust').textContent = t.customerName;
-  document.getElementById('ovCartSub').textContent  = t.tableLabel+' · '+((t.servingStaff||t.openedBy)?.name||'—');
+  const _server = (t.servingStaff || t.openedBy)?.name || '—';
+  const _subEl  = document.getElementById('ovCartSub');
+  if (t.transferred && t.openedBy) {
+    _subEl.innerHTML = `${esc(t.tableLabel)} · ${esc(_server)} <span style="color:rgba(239,68,68,0.72);font-size:0.62rem;margin-left:4px">↔ opened by ${esc(t.openedBy.name)}</span>`;
+  } else {
+    _subEl.textContent = `${t.tableLabel} · ${_server}`;
+  }
   document.getElementById('ovCartTotal').textContent = N(t.subtotal);
 
-  // Status bar
   const statusBar = document.getElementById('ovStatusBar');
-  statusBar.style.display = t.status==='awaiting-pos' ? '' : 'none';
+  statusBar.style.display = t.status === 'awaiting-pos' ? 'flex' : 'none';
 
-  // Send to POS button state
   const btnSend = document.getElementById('btnSendPOS');
-  const atPOS   = t.status==='awaiting-pos';
-  btnSend.disabled   = atPOS || !(t.items||[]).length;
+  const atPOS   = t.status === 'awaiting-pos';
+  btnSend.disabled    = atPOS || !(t.items || []).length;
   btnSend.textContent = atPOS ? '✓ Sent to POS Terminal' : 'Send to POS for Payment';
 
-  // Mobile bar
-  const items = t.items||[];
-  const qty   = items.reduce((s,i)=>s+(i.qty||0),0);
-  document.getElementById('ovMobCount').textContent = qty ? qty+' item'+(qty>1?'s':'') : '';
+  const items = t.items || [];
+  const qty   = items.reduce((s, i) => s + (i.qty || 0), 0);
+  document.getElementById('ovMobCount').textContent = qty ? qty + ' item' + (qty > 1 ? 's' : '') : '';
   document.getElementById('ovMobAmt').textContent   = N(t.subtotal);
-  if (qty>0 && !document.getElementById('ovCart').classList.contains('mob-open'))
+  if (qty > 0 && !document.getElementById('ovCart').classList.contains('mob-open'))
     document.getElementById('ovMobBar').classList.add('show');
   else if (!qty)
     document.getElementById('ovMobBar').classList.remove('show');
 
-  // Cart items
   const empty = document.getElementById('ovCartEmpty');
   const rows  = document.getElementById('ovCartRows');
-  if (!items.length) { empty.style.display=''; rows.innerHTML=''; return; }
-  empty.style.display='none';
-  rows.innerHTML = items.map((item,idx)=>`
+  if (!items.length) { empty.style.display = ''; rows.innerHTML = ''; return; }
+  empty.style.display = 'none';
+  rows.innerHTML = items.map((item, idx) => `
     <div class="ov-cart-row">
-      <div class="ov-cart-name">${esc(item.icon||'')} ${esc(item.name)}</div>
+      <div class="ov-cart-name">${esc(item.icon || '')} ${esc(item.name)}</div>
       <div class="ov-cart-qty">
         <button class="ov-qty-btn" data-action="dec" data-idx="${idx}">−</button>
         <span class="ov-qty-num">${item.qty}</span>
@@ -729,47 +778,50 @@ function renderCartPanel() {
 }
 
 async function confirmClearTab() {
-  if (!currentTabId||!currentTab?.items?.length) return;
+  if (!currentTabId || !currentTab?.items?.length) return;
   if (!confirm('Remove all items from this tab?')) return;
-  await db.collection('tabs').doc(currentTabId).update({items:[],subtotal:0});
+  await db.collection('tabs').doc(currentTabId).update({ items: [], subtotal: 0 });
 }
 
-/* ════ DELETE TAB (CEO / Manager only) ════ */
+/* ════ DELETE TAB ════ */
 async function deleteTab(tabId, customerName) {
   if (!isAdmin) return;
-  if (!confirm(`Delete tab for "${customerName}"?\n\nThis cannot be undone. Any items on this tab will be lost.`)) return;
+  if (!confirm(`Delete tab for "${customerName}"?\n\nThis cannot be undone.`)) return;
   try {
-    // Fetch full tab data for the audit log before deleting
-    const snap = await db.collection('tabs').doc(tabId).get();
+    const snap    = await db.collection('tabs').doc(tabId).get();
     const tabData = snap.exists ? snap.data() : {};
     await db.collection('tabs').doc(tabId).delete();
     writeAuditLog(staff, 'delete_tab', {
-      tabId, customerName: tabData.customerName || customerName,
-      tableLabel: tabData.tableLabel || '', subtotal: tabData.subtotal || 0,
-      tabStatus: tabData.status || '', openedBy: tabData.openedBy || null,
+      tabId,
+      customerName: tabData.customerName || customerName,
+      tableLabel:   tabData.tableLabel   || '',
+      subtotal:     tabData.subtotal     || 0,
+      tabStatus:    tabData.status       || '',
+      openedBy:     tabData.openedBy     || null,
     });
     showAlert('alertBox', `Tab deleted: ${customerName}`, 'alert-success');
-  } catch(e) {
-    showAlert('alertBox', 'Error deleting tab: '+e.message, 'alert-error');
+  } catch (e) {
+    showAlert('alertBox', 'Error deleting tab: ' + e.message, 'alert-error');
   }
 }
 
 async function deleteCurrentTab() {
-  if (!isAdmin||!currentTabId||!currentTab) return;
+  if (!isAdmin || !currentTabId || !currentTab) return;
   if (!confirm(`Delete tab for "${currentTab.customerName}"?\n\nThis cannot be undone.`)) return;
   try {
     const tabData = { ...currentTab };
     await db.collection('tabs').doc(currentTabId).delete();
     writeAuditLog(staff, 'delete_tab', {
-      tabId: currentTabId, customerName: tabData.customerName,
-      tableLabel: tabData.tableLabel || '', subtotal: tabData.subtotal || 0,
-      tabStatus: tabData.status || '', openedBy: tabData.openedBy || null,
+      tabId:        currentTabId,
+      customerName: tabData.customerName,
+      tableLabel:   tabData.tableLabel || '',
+      subtotal:     tabData.subtotal   || 0,
+      tabStatus:    tabData.status     || '',
+      openedBy:     tabData.openedBy   || null,
     });
     exitOrderView();
     showAlert('alertBox', `Tab deleted: ${currentTab.customerName}`, 'alert-success');
-  } catch(e) {
-    showOvToast('Error: '+e.message);
-  }
+  } catch (e) { showOvToast('Error: ' + e.message); }
 }
 
 /* ════ TRANSFER TAB ════ */
@@ -779,40 +831,48 @@ async function openTransferModal() {
   sel.innerHTML = '<option value="">Loading staff…</option>';
   document.getElementById('transferModal').style.display = 'flex';
   try {
-    const snap = await db.collection('staff').where('active','==',true).get();
+    const snap = await db.collection('staff').where('active', '==', true).get();
     const currentServerId = currentTab?.servingStaff?.id || currentTab?.openedBy?.id;
-    const staffList = snap.docs.map(d=>({id:d.id,...d.data()}))
+    const staffList = snap.docs.map(d => ({ id: d.id, ...d.data() }))
       .filter(s => {
         if (s.id === currentServerId) return false;
-        const dept = (s.department||'').toLowerCase();
+        const dept = (s.department || '').toLowerCase();
         return dept === 'lounge' || dept === 'bar';
       })
-      .sort((a,b)=>(a.fullName||a.name||'').localeCompare(b.fullName||b.name||''));
+      .sort((a, b) => (a.fullName || a.name || '').localeCompare(b.fullName || b.name || ''));
     if (!staffList.length) {
-      sel.innerHTML = '<option value="">No bartenders or waiters found</option>';
+      sel.innerHTML = '<option value="">No bar or lounge staff found</option>';
       return;
     }
     sel.innerHTML = '<option value="">— Select staff —</option>' +
-      staffList.map(s=>`<option value="${s.id}" data-name="${esc(s.fullName||s.name||s.id)}">${esc(s.fullName||s.name||s.id)}</option>`).join('');
-  } catch(e) {
+      staffList.map(s => `<option value="${s.id}" data-name="${esc(s.fullName || s.name || s.id)}">${esc(s.fullName || s.name || s.id)}</option>`).join('');
+  } catch (e) {
     sel.innerHTML = '<option value="">Error loading staff</option>';
   }
 }
-function closeTransferModal() {
-  document.getElementById('transferModal').style.display = 'none';
-}
+
+function closeTransferModal() { document.getElementById('transferModal').style.display = 'none'; }
+
 async function confirmTransfer() {
-  const sel = document.getElementById('transferSel');
-  const staffId = sel.value;
+  const sel       = document.getElementById('transferSel');
+  const staffId   = sel.value;
   const staffName = sel.options[sel.selectedIndex]?.dataset?.name || sel.options[sel.selectedIndex]?.text || '';
   if (!staffId || !currentTabId) { showOvToast('Select a staff member'); return; }
   try {
+    const prevServer = currentTab?.servingStaff || currentTab?.openedBy || null;
     await db.collection('tabs').doc(currentTabId).update({
-      servingStaff: { id: staffId, name: staffName }
+      servingStaff:    { id: staffId, name: staffName },
+      transferred:     true,
+      transferHistory: firebase.firestore.FieldValue.arrayUnion({
+        from: prevServer,
+        to:   { id: staffId, name: staffName },
+        at:   new Date().toISOString(),
+        by:   { id: staff.id, name: staff.name },
+      }),
     });
     closeTransferModal();
     showOvToast(`Tab transferred to ${staffName}`);
-  } catch(e) { showOvToast('Error: '+e.message); }
+  } catch (e) { showOvToast('Error: ' + e.message); }
 }
 
 /* ════ REVERT TO OPEN ════ */
@@ -820,83 +880,90 @@ async function revertToOpen() {
   if (!currentTabId) return;
   if (!confirm('Pull this tab back from POS? Items can be added again and it will need to be re-sent.')) return;
   try {
-    await db.collection('tabs').doc(currentTabId).update({status:'open'});
-  } catch(e) { showOvToast('Error: '+e.message); }
+    await db.collection('tabs').doc(currentTabId).update({ status: 'open' });
+  } catch (e) { showOvToast('Error: ' + e.message); }
 }
 
 /* ════ SEND TO POS ════ */
 async function sendToPOS() {
-  if (!currentTabId||!currentTab?.items?.length) return;
+  if (!currentTabId || !currentTab?.items?.length) return;
   const btn = document.getElementById('btnSendPOS');
-  btn.disabled=true; btn.textContent='Sending…';
+  btn.disabled = true; btn.textContent = 'Sending…';
   try {
-    await db.collection('tabs').doc(currentTabId).update({status:'awaiting-pos'});
-    // Tab state will update via real-time listener — renderCartPanel handles button/banner
-  } catch(e) {
-    showOvToast('Error: '+e.message);
-    btn.disabled=false; btn.textContent='Send to POS for Payment';
+    await db.collection('tabs').doc(currentTabId).update({ status: 'awaiting-pos' });
+  } catch (e) {
+    showOvToast('Error: ' + e.message);
+    btn.disabled = false; btn.textContent = 'Send to POS for Payment';
   }
 }
 
+/* ── Toast ── */
 function showOvToast(msg) {
   const el = document.createElement('div');
-  el.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#162d1f;color:#C9A96E;padding:12px 20px;border-radius:8px;font-family:Jost,sans-serif;font-size:0.82rem;border:1px solid rgba(201,169,110,0.3);z-index:999;white-space:nowrap';
+  el.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#162d1f;color:#C9A96E;padding:12px 20px;border-radius:8px;font-family:Jost,sans-serif;font-size:0.82rem;border:1px solid rgba(201,169,110,0.3);z-index:999;white-space:nowrap';
   el.textContent = msg;
   document.getElementById('orderView').appendChild(el);
-  setTimeout(()=>el.remove(),3000);
+  setTimeout(() => el.remove(), 3000);
 }
 
 /* ════ QUICK PAY ════ */
 function openQuickPay() {
-  if (!currentTab||!currentTab.items?.length) return;
+  if (!currentTab || !currentTab.items?.length) return;
   document.getElementById('payModalCust').textContent = currentTab.customerName;
-  document.getElementById('payModalSub').textContent  = currentTab.tableLabel+' · '+((currentTab.items||[]).length)+' item(s)';
+  document.getElementById('payModalSub').textContent  = currentTab.tableLabel + ' · ' + (currentTab.items || []).length + ' item(s)';
   document.getElementById('payModalAmt').textContent  = N(currentTab.subtotal);
   payMethod = 'cash';
-  document.querySelectorAll('.pay-method').forEach(el=>el.classList.toggle('active',el.dataset.method==='cash'));
+  document.querySelectorAll('.pay-method').forEach(el => el.classList.toggle('active', el.dataset.method === 'cash'));
   document.getElementById('payModal').classList.add('show');
 }
-function closePayModal()   { document.getElementById('payModal').classList.remove('show'); }
+function closePayModal() { document.getElementById('payModal').classList.remove('show'); }
 function selPayMethod(el) {
-  document.querySelectorAll('.pay-method').forEach(e=>e.classList.remove('active'));
+  document.querySelectorAll('.pay-method').forEach(e => e.classList.remove('active'));
   el.classList.add('active');
   payMethod = el.dataset.method;
 }
 
 async function confirmPayment() {
-  if (!currentTabId||!currentTab) return;
+  if (!currentTabId || !currentTab) return;
   const btn = document.getElementById('btnConfirmPay');
-  btn.disabled=true; btn.textContent='Processing…';
+  btn.disabled = true; btn.textContent = 'Processing…';
   try {
     const tab    = currentTab;
-    const total  = tab.subtotal||0;
-    const server = tab.servingStaff || tab.openedBy || {id:staff.id,name:staff.name};
+    const total  = tab.subtotal || 0;
+    const server = tab.servingStaff || tab.openedBy || { id: staff.id, name: staff.name };
     const now    = firebase.firestore.FieldValue.serverTimestamp();
     await db.collection('sales').add({
-      date:tab.date||todayStr(),
-      staffId:server.id, staffName:server.name,
-      processedBy:staff.name,
-      department:'Restaurant & Lounge', source:'tab', tabId:currentTabId,
-      customerName:tab.customerName, tableLabel:tab.tableLabel, items:tab.items||[],
-      totalSales:total,
-      cashSales:    payMethod==='cash'?total:0,
-      transferSales:payMethod==='transfer'?total:0,
-      posSales:     payMethod==='pos'?total:0,
-      paymentMethod:payMethod,
-      notes:`Tab: ${tab.customerName} @ ${tab.tableLabel}`,
-      createdAt:now,
+      date:          tab.date || todayStr(),
+      staffId:       server.id,
+      staffName:     server.name,
+      processedBy:   staff.name,
+      department:    'Restaurant & Lounge',
+      source:        'tab',
+      tabId:         currentTabId,
+      customerName:  tab.customerName,
+      tableLabel:    tab.tableLabel,
+      items:         tab.items || [],
+      totalSales:    total,
+      cashSales:     payMethod === 'cash'     ? total : 0,
+      transferSales: payMethod === 'transfer' ? total : 0,
+      posSales:      payMethod === 'pos'      ? total : 0,
+      paymentMethod: payMethod,
+      notes:         `Tab: ${tab.customerName} @ ${tab.tableLabel}`,
+      createdAt:     now,
     });
     await db.collection('tabs').doc(currentTabId).update({
-      status:'paid', paidAt:now,
-      paidBy:{id:staff.id,name:staff.name}, paymentMethod:payMethod
+      status: 'paid',
+      paidAt: now,
+      paidBy: { id: staff.id, name: staff.name },
+      paymentMethod: payMethod,
     });
     closePayModal();
     exitOrderView();
-    showAlert('alertBox',`Paid · ${tab.customerName} · ${N(total)}`,'alert-success');
-  } catch(e) {
-    showAlert('alertBox','Error: '+e.message,'alert-error');
+    showAlert('alertBox', `Paid · ${tab.customerName} · ${N(total)}`, 'alert-success');
+  } catch (e) {
+    showAlert('alertBox', 'Error: ' + e.message, 'alert-error');
   }
-  btn.disabled=false; btn.textContent='Confirm Payment';
+  btn.disabled = false; btn.textContent = 'Confirm Payment';
 }
 
 /* ════ MOBILE ════ */
@@ -911,20 +978,25 @@ function closeMobileCart() {
 
 /* ════ KEYBOARD ════ */
 document.addEventListener('keydown', e => {
-  if (e.key!=='Escape') return;
+  if (e.key !== 'Escape') return;
   if (document.getElementById('payModal').classList.contains('show'))    { closePayModal(); return; }
   if (document.getElementById('newTabModal').classList.contains('show')) { closeNewTabModal(); return; }
   if (document.getElementById('ovCart').classList.contains('mob-open'))  { closeMobileCart(); return; }
-  if (document.getElementById('orderView').style.display!=='none')       { exitOrderView(); return; }
+  if (document.getElementById('orderView').style.display !== 'none')     { exitOrderView(); return; }
 });
 
 /* ════ DEFAULT MENU FALLBACK ════ */
-const DEFAULT_FD = [
-  {name:'Water',price:300,category:'drinks',icon:'💧'},{name:'Soft Drink',price:500,category:'drinks',icon:'🥤'},
-  {name:'Juice',price:700,category:'drinks',icon:'🧃'},{name:'Beer',price:1000,category:'drinks',icon:'🍺'},
-  {name:'Chapman',price:1500,category:'drinks',icon:'🍹'},{name:'Ruby Sunrise',price:2000,category:'drinks',icon:'🍹'},
-  {name:'Cocktail',price:3500,category:'drinks',icon:'🍸'},{name:'Spirit (Single)',price:2500,category:'drinks',icon:'🥃'},
-  {name:'Spirit (Double)',price:4500,category:'drinks',icon:'🥃'},{name:'Wine (Glass)',price:3000,category:'drinks',icon:'🍷'},
+const DEFAULT_MENU = [
+  {name:'Water',price:300,category:'drinks',icon:'💧'},
+  {name:'Soft Drink',price:500,category:'drinks',icon:'🥤'},
+  {name:'Juice',price:700,category:'drinks',icon:'🧃'},
+  {name:'Beer',price:1000,category:'drinks',icon:'🍺'},
+  {name:'Chapman',price:1500,category:'drinks',icon:'🍹'},
+  {name:'Ruby Sunrise',price:2000,category:'drinks',icon:'🍹'},
+  {name:'Cocktail',price:3500,category:'drinks',icon:'🍸'},
+  {name:'Spirit (Single)',price:2500,category:'drinks',icon:'🥃'},
+  {name:'Spirit (Double)',price:4500,category:'drinks',icon:'🥃'},
+  {name:'Wine (Glass)',price:3000,category:'drinks',icon:'🍷'},
   {name:'Wine (Bottle)',price:14000,category:'drinks',icon:'🍷'},
   {name:'Chicken Skewers',price:8000,category:'food',section:'Starters',icon:'🍢'},
   {name:'Suya Skewers',price:8500,category:'food',section:'Starters',icon:'🍢'},
