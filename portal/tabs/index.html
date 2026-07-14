@@ -854,11 +854,11 @@ async function openTransferModal() {
       .filter(s => {
         if (s.id === currentServerId) return false;
         const dept = (s.department || '').toLowerCase();
-        return dept === 'lounge' || dept === 'bar';
+        return dept === 'lounge' || dept === 'bar' || dept === 'games' || dept.includes('bartend');
       })
       .sort((a, b) => (a.fullName || a.name || '').localeCompare(b.fullName || b.name || ''));
     if (!staffList.length) {
-      sel.innerHTML = '<option value="">No bar or lounge staff found</option>';
+      sel.innerHTML = '<option value="">No eligible staff found</option>';
       return;
     }
     sel.innerHTML = '<option value="">— Select staff —</option>' +
