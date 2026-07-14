@@ -455,14 +455,33 @@ async function createTab() {
 
 /* ════ LIST VIEW ════ */
 function subscribeList() {
+  let _initialized = false;
+  const _myServing = new Set(); // tab IDs where I am currently serving
+
   /* Active tabs listener */
   db.collection('tabs')
     .where('status', 'in', ['open', 'awaiting', 'awaiting-pos'])
     .onSnapshot(
       snap => {
+        const myId = staff?.id;
         const tabs = snap.docs
           .map(d => ({ id: d.id, ...d.data() }))
           .sort((a, b) => (a.openedAt?.seconds || 0) - (b.openedAt?.seconds || 0));
+
+        if (_initialized && myId) {
+          tabs.forEach(t => {
+            const servingMe = t.servingStaff?.id === myId;
+            if (servingMe && !_myServing.has(t.id)) {
+              showTransferBanner(t); // newly assigned to me
+            }
+          });
+        }
+
+        // Update tracking set
+        _myServing.clear();
+        tabs.forEach(t => { if (t.servingStaff?.id === myId) _myServing.add(t.id); });
+        _initialized = true;
+
         renderList(tabs);
       },
       err => {
@@ -935,6 +954,32 @@ async function sendToPOS() {
     showOvToast('Error: ' + e.message);
     btn.disabled = false; btn.textContent = 'Send to POS for Payment';
   }
+}
+
+/* ── Transfer banner (shown to recipient when a tab lands on them) ── */
+function showTransferBanner(t) {
+  try {
+    document.getElementById('_xferBanner')?.remove();
+    const b = document.createElement('div');
+    b.id = '_xferBanner';
+    b.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:9999;background:#162d1f;border-bottom:2px solid #C9A96E;color:#f5f2ec;font-family:Jost,sans-serif;display:flex;align-items:center;justify-content:space-between;padding:14px 20px;gap:12px';
+    b.innerHTML =
+      `<div style="display:flex;align-items:center;gap:10px">` +
+        `<span style="font-size:1.3rem">🔔</span>` +
+        `<div>` +
+          `<div style="font-weight:600;font-size:0.9rem;color:#C9A96E">Tab transferred to you</div>` +
+          `<div style="font-size:0.8rem;opacity:0.82">${esc(t.customerName)} · ${esc(t.tableLabel)}</div>` +
+        `</div>` +
+      `</div>` +
+      `<div style="display:flex;gap:8px;flex-shrink:0">` +
+        `<button onclick="enterOrderView('${esc(t.id)}');document.getElementById('_xferBanner')?.remove()" ` +
+          `style="padding:6px 14px;background:#C9A96E;color:#0d1f12;border:none;border-radius:6px;font-family:Jost,sans-serif;font-size:0.78rem;font-weight:600;cursor:pointer">View Tab</button>` +
+        `<button onclick="document.getElementById('_xferBanner')?.remove()" ` +
+          `style="padding:6px 10px;background:transparent;color:rgba(245,242,236,0.6);border:1px solid rgba(245,242,236,0.25);border-radius:6px;font-size:0.78rem;cursor:pointer">✕</button>` +
+      `</div>`;
+    document.body.appendChild(b);
+    setTimeout(() => document.getElementById('_xferBanner')?.remove(), 30000);
+  } catch (_) {}
 }
 
 /* ── Toast ── */
