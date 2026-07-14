@@ -873,10 +873,9 @@ async function openTransferModal() {
   document.getElementById('transferModal').style.display = 'flex';
   try {
     const snap = await db.collection('staff').where('active', '==', true).get();
-    const currentServerId = currentTab?.servingStaff?.id || currentTab?.openedBy?.id;
     const staffList = snap.docs.map(d => ({ id: d.id, ...d.data() }))
       .filter(s => {
-        if (s.id === currentServerId) return false;
+        if (s.id === staff?.id) return false; // never show yourself
         const dept = (s.department || '').toLowerCase();
         return dept === 'lounge' || dept === 'bar' || dept === 'games' || dept.includes('bartend');
       })
