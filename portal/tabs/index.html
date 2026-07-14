@@ -687,10 +687,18 @@ function renderMenuItems(cat) {
     </div>`).join('')}</div>`;
 }
 
+/* ── Ownership check — only the serving staff (or admin) may edit a tab ── */
+function isTabOwner() {
+  if (isAdmin) return true;
+  const servingId = currentTab?.servingStaff?.id || currentTab?.openedBy?.id;
+  return servingId && servingId === staff?.id;
+}
+
 /* ── Item tap via event delegation ── */
 document.getElementById('ovItems').addEventListener('click', async e => {
   const card = e.target.closest('.ov-ic');
   if (!card || !currentTabId) return;
+  if (!isTabOwner()) { showOvToast('This tab belongs to another staff member'); return; }
   card.classList.add('tapped');
   setTimeout(() => card.classList.remove('tapped'), 220);
 
@@ -764,10 +772,25 @@ function renderCartPanel() {
   const statusBar = document.getElementById('ovStatusBar');
   statusBar.style.display = t.status === 'awaiting-pos' ? 'flex' : 'none';
 
+  const canEdit = isTabOwner();
   const btnSend = document.getElementById('btnSendPOS');
   const atPOS   = t.status === 'awaiting-pos';
-  btnSend.disabled    = atPOS || !(t.items || []).length;
+  btnSend.disabled    = atPOS || !(t.items || []).length || !canEdit;
   btnSend.textContent = atPOS ? '✓ Sent to POS Terminal' : 'Send to POS for Payment';
+
+  // Show read-only notice for non-owners
+  let readOnlyBanner = document.getElementById('ovReadOnlyBanner');
+  if (!canEdit) {
+    if (!readOnlyBanner) {
+      readOnlyBanner = document.createElement('div');
+      readOnlyBanner.id = 'ovReadOnlyBanner';
+      readOnlyBanner.style.cssText = 'background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);color:rgba(239,68,68,0.85);font-size:0.75rem;padding:8px 12px;border-radius:6px;margin-bottom:10px;text-align:center;font-family:Jost,sans-serif';
+      readOnlyBanner.textContent = '👁 View only — transfer this tab to you to make changes';
+      document.getElementById('ovCartRows').before(readOnlyBanner);
+    }
+  } else {
+    readOnlyBanner?.remove();
+  }
 
   const items = t.items || [];
   const qty   = items.reduce((s, i) => s + (i.qty || 0), 0);
@@ -786,9 +809,9 @@ function renderCartPanel() {
     <div class="ov-cart-row">
       <div class="ov-cart-name">${esc(item.icon || '')} ${esc(item.name)}</div>
       <div class="ov-cart-qty">
-        <button class="ov-qty-btn" data-action="dec" data-idx="${idx}">−</button>
+        <button class="ov-qty-btn" data-action="dec" data-idx="${idx}" ${canEdit ? '' : 'disabled style="opacity:0.3;cursor:not-allowed"'}>−</button>
         <span class="ov-qty-num">${item.qty}</span>
-        <button class="ov-qty-btn" data-action="inc" data-idx="${idx}">+</button>
+        <button class="ov-qty-btn" data-action="inc" data-idx="${idx}" ${canEdit ? '' : 'disabled style="opacity:0.3;cursor:not-allowed"'}>+</button>
       </div>
       <div class="ov-cart-price">${N(item.total)}</div>
     </div>`).join('');
@@ -796,6 +819,7 @@ function renderCartPanel() {
 
 async function confirmClearTab() {
   if (!currentTabId || !currentTab?.items?.length) return;
+  if (!isTabOwner()) { showOvToast('This tab belongs to another staff member'); return; }
   if (!confirm('Remove all items from this tab?')) return;
   await db.collection('tabs').doc(currentTabId).update({ items: [], subtotal: 0 });
 }
