@@ -220,18 +220,21 @@ function cardHTML(s, isManager = false) {
   const data = encodeURIComponent(JSON.stringify({
     id:          s.id,
     name:        s.name,
+    alias:       s.alias       || '',
     department:  s.department,
-    role:        s.role || 'staff',
+    role:        s.role        || 'staff',
     accessLevel: s.accessLevel || '',
     posUsername: s.posUsername || '',
-    photoURL:    s.photoURL   || '',
+    photoURL:    s.photoURL    || '',
   }));
   const avatarHTML = s.photoURL
     ? `<div class="avatar"><img src="${s.photoURL}" alt="${s.name}"></div>`
     : `<div class="avatar">${avatarInitials(s.name)}</div>`;
+  const aliasTag = s.alias ? `<div style="font-size:0.68rem;opacity:0.55;margin-top:1px">${s.alias}</div>` : '';
   return `<div class="staff-card${isManager ? ' mgr' : ''}" onclick="openModal('${data}')">
     ${avatarHTML}
     <div class="staff-name">${s.name}</div>
+    ${aliasTag}
     <div class="staff-dept" style="${isManager ? 'color:rgba(201,169,110,0.5)' : ''}">${isManager ? 'Manager' : s.department}</div>
   </div>`;
 }
@@ -285,7 +288,8 @@ async function submitPassword(e) {
   const errEl    = document.getElementById('pwErr');
   const btn      = document.getElementById('pwBtn');
 
-  if (!s.posUsername) {
+  const loginId = s.posUsername || s.alias;
+  if (!loginId) {
     errEl.textContent = 'No POS account linked. Ask your manager to set one up.';
     return;
   }
@@ -294,48 +298,66 @@ async function submitPassword(e) {
   btn.disabled = true;
   btn.textContent = 'Verifying…';
 
-  const email = s.posUsername.trim().toLowerCase().replace(/\s+/g,'_') + '@eden54.pos';
+  const toEmail = id => id.trim().toLowerCase().replace(/\s+/g,'_') + '@eden54.pos';
 
+  // Try posUsername first; if not found, fall back to alias
+  let userCred;
   try {
-    const userCred = await auth.signInWithEmailAndPassword(email, password);
-    // Keep the Firebase Auth session alive — portal pages will verify it on each load.
-    // Write authUid back to the staff doc so Firestore rules can resolve the caller's role.
-    const authUid = userCred.user.uid;
-    db.collection('staff').doc(s.id).update({ authUid }).catch(() => {});
-    db.collection('staffByAuth').doc(authUid).set({
-      staffId:     s.id,
-      accessLevel: s.accessLevel || 'staff',
-      department:  s.department  || '',
-      active:      true,
-    }, { merge: true }).catch(() => {});
-
-    // Store staff profile and session timestamp, then redirect
-    setStaff({
-      id:          s.id,
-      name:        s.name,
-      department:  s.department,
-      role:        s.role,
-      accessLevel: s.accessLevel,
-      photoURL:    s.photoURL,
-    });
-    localStorage.setItem('eden54_login_at', Date.now());
-    const lvl = (s.accessLevel || s.role || '').toLowerCase().replace(/\s+/g,'');
-    const isPriv = ['ceo','superadmin','manager'].includes(lvl) || lvl.includes('manager');
-    const _r1 = sessionStorage.getItem('eden54_redirect'); sessionStorage.removeItem('eden54_redirect');
-    window.location.href = _r1 || (isPriv ? '/portal/dashboard/' : '/portal/home/');
-
-  } catch(ex) {
-    const map = {
-      'auth/wrong-password':     'Incorrect password. Try again.',
-      'auth/user-not-found':     'No POS account found. Ask your manager.',
-      'auth/too-many-requests':  'Too many attempts. Wait a moment and try again.',
-      'auth/invalid-credential': 'Incorrect password. Try again.',
-    };
-    errEl.textContent = map[ex.code] || 'Sign in failed. Please try again.';
-    btn.disabled = false;
-    btn.textContent = 'Sign In';
-    document.getElementById('pwInput').select();
+    userCred = await auth.signInWithEmailAndPassword(toEmail(s.posUsername || s.alias), password);
+  } catch(firstErr) {
+    if (s.alias && s.alias !== s.posUsername &&
+        (firstErr.code === 'auth/user-not-found' || firstErr.code === 'auth/invalid-credential')) {
+      try {
+        userCred = await auth.signInWithEmailAndPassword(toEmail(s.alias), password);
+      } catch(_) {
+        const map = {
+          'auth/wrong-password':     'Incorrect password. Try again.',
+          'auth/user-not-found':     'No POS account found. Ask your manager.',
+          'auth/too-many-requests':  'Too many attempts. Wait a moment and try again.',
+          'auth/invalid-credential': 'Incorrect password. Try again.',
+        };
+        errEl.textContent = map[firstErr.code] || 'Sign in failed. Please try again.';
+        btn.disabled = false; btn.textContent = 'Sign In';
+        document.getElementById('pwInput').select();
+        return;
+      }
+    } else {
+      const map = {
+        'auth/wrong-password':     'Incorrect password. Try again.',
+        'auth/user-not-found':     'No POS account found. Ask your manager.',
+        'auth/too-many-requests':  'Too many attempts. Wait a moment and try again.',
+        'auth/invalid-credential': 'Incorrect password. Try again.',
+      };
+      errEl.textContent = map[firstErr.code] || 'Sign in failed. Please try again.';
+      btn.disabled = false; btn.textContent = 'Sign In';
+      document.getElementById('pwInput').select();
+      return;
+    }
   }
+
+  // Auth succeeded — write session data and redirect
+  const authUid = userCred.user.uid;
+  db.collection('staff').doc(s.id).update({ authUid }).catch(() => {});
+  db.collection('staffByAuth').doc(authUid).set({
+    staffId:     s.id,
+    accessLevel: s.accessLevel || 'staff',
+    department:  s.department  || '',
+    active:      true,
+  }, { merge: true }).catch(() => {});
+
+  setStaff({
+    id:          s.id,
+    name:        s.name,
+    department:  s.department,
+    role:        s.role,
+    accessLevel: s.accessLevel,
+    photoURL:    s.photoURL,
+  });
+  localStorage.setItem('eden54_login_at', Date.now());
+  const lvl = (s.accessLevel || s.role || '').toLowerCase().replace(/\s+/g,'');
+  const isPriv = ['ceo','superadmin','manager'].includes(lvl) || lvl.includes('manager');
+  const _r1 = sessionStorage.getItem('eden54_redirect'); sessionStorage.removeItem('eden54_redirect');
+  window.location.href = _r1 || (isPriv ? '/portal/dashboard/' : '/portal/home/');
 }
 
 loadStaff();

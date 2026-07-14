@@ -75,9 +75,15 @@
           </div>
         </div>
 
-        <div class="form-group" style="margin-bottom:14px">
-          <label class="form-label">Full Name</label>
-          <input type="text" id="sName" class="form-control" placeholder="Full name" oninput="updateInitials(this.value,'addInitials')">
+        <div class="fg2" style="margin-bottom:14px">
+          <div class="form-group">
+            <label class="form-label">Full Name</label>
+            <input type="text" id="sName" class="form-control" placeholder="Full name" oninput="updateInitials(this.value,'addInitials')">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Alias <span style="color:var(--muted);font-size:0.7rem">(optional nickname)</span></label>
+            <input type="text" id="sAlias" class="form-control" placeholder="e.g. LJ, Chef Tunde">
+          </div>
         </div>
         <div class="fg2" style="margin-bottom:14px">
           <div class="form-group">
@@ -184,9 +190,15 @@
       </div>
     </div>
 
-    <div class="form-group" style="margin-bottom:14px">
-      <label class="form-label">Display Name</label>
-      <input type="text" id="editDisplayName" class="form-control" placeholder="Name shown on portal">
+    <div class="fg2" style="margin-bottom:14px">
+      <div class="form-group">
+        <label class="form-label">Display Name</label>
+        <input type="text" id="editDisplayName" class="form-control" placeholder="Name shown on portal">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Alias <span style="color:var(--muted);font-size:0.7rem">(optional nickname)</span></label>
+        <input type="text" id="editAlias" class="form-control" placeholder="e.g. LJ, Chef Tunde">
+      </div>
     </div>
     <div class="fg2" style="margin-bottom:14px">
       <div class="form-group">
@@ -466,6 +478,7 @@ async function addStaff() {
   const btn = document.getElementById('addBtn');
   btn.disabled = true; btn.textContent = 'Adding…';
   try {
+    const alias = document.getElementById('sAlias').value.trim();
     const docData = {
       name,
       role:        roleName,
@@ -476,6 +489,7 @@ async function addStaff() {
       photoURL:    '', active: true,
       addedAt:     firebase.firestore.FieldValue.serverTimestamp()
     };
+    if (alias) docData.alias = alias;
     if (posUsername) docData.posUsername = posUsername;
     const docRef = await db.collection('staff').add(docData);
 
@@ -494,6 +508,7 @@ async function addStaff() {
     }
 
     document.getElementById('sName').value        = '';
+    document.getElementById('sAlias').value        = '';
     document.getElementById('sSalary').value       = '';
     document.getElementById('sPhone').value        = '';
     document.getElementById('sPosUsername').value  = '';
@@ -521,7 +536,7 @@ async function loadStaff() {
       : `<span class="badge" style="background:rgba(255,255,255,0.06);color:var(--muted)">—</span>`;
     return `<tr>
       <td style="width:44px">${avatar}</td>
-      <td class="fw4">${s.name}</td>
+      <td class="fw4">${s.name}${s.alias ? `<div style="font-size:0.7rem;color:var(--muted);margin-top:1px">aka ${s.alias}</div>` : ''}</td>
       <td>${s.department}</td>
       <td>
         <div style="font-size:0.83rem;font-weight:400">${s.role||'—'}</div>
@@ -557,6 +572,7 @@ async function openEdit(id) {
   document.getElementById('editName').textContent = s.name;
   document.getElementById('editCurrentPhoto').value = s.photoURL || '';
   document.getElementById('editDisplayName').value = s.name || '';
+  document.getElementById('editAlias').value        = s.alias || '';
   populateRoleSelect('editRole', s.role || '');
   document.getElementById('editDept').value         = s.department;
   document.getElementById('editSalary').value       = s.basicSalary || 0;
@@ -601,9 +617,13 @@ async function saveEdit() {
     const editRoleSel  = document.getElementById('editRole');
     const editRoleName = editRoleSel.value;
     const editLevel    = editRoleSel.selectedOptions[0]?.dataset.level || 'staff';
+    const editAlias = document.getElementById('editAlias').value.trim();
     const editPosUsername = document.getElementById('editPosUsername').value.trim().toLowerCase().replace(/\s+/g,'_');
+    // If no posUsername but alias set, use alias as the login identifier
+    const resolvedPosUsername = editPosUsername || (editAlias ? editAlias.toLowerCase().replace(/\s+/g,'_') : '');
     const updates = {
       name:        newName,
+      alias:       editAlias || firebase.firestore.FieldValue.delete(),
       role:        editRoleName,
       accessLevel: editLevel,
       department:  document.getElementById('editDept').value,
@@ -611,7 +631,7 @@ async function saveEdit() {
       phone:       document.getElementById('editPhone').value.trim(),
       active:      document.getElementById('editActive').value === 'true'
     };
-    if (editPosUsername) updates.posUsername = editPosUsername;
+    if (resolvedPosUsername) updates.posUsername = resolvedPosUsername;
     const file = document.getElementById('ePhoto').files[0];
     if (file) {
       updates.photoURL = await uploadPhoto(file, id, 'editProgress', 'editFill');
