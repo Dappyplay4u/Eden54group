@@ -60,6 +60,13 @@
   .cal-event{display:none;}
   .cal-dot{width:6px;height:6px;}
 }
+/* Receipt print */
+@media print {
+  body > *:not(#rcptModal) { display: none !important; }
+  #rcptModal { position: static !important; background: none !important; padding: 0 !important; }
+  #rcptModal > div { box-shadow: none !important; border: none !important; max-width: 100% !important; }
+  #rcptNoPrint { display: none !important; }
+}
 </style>
 </head>
 <body>
@@ -225,6 +232,25 @@
           </div>
         </div>
 
+        <!-- CEO-only: discount + caution override -->
+        <div class="ceo-only" style="display:none;background:rgba(201,169,110,0.06);border:1px solid rgba(201,169,110,0.2);border-radius:8px;padding:14px;margin-bottom:14px">
+          <div style="font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--gold);margin-bottom:10px">CEO Adjustments</div>
+          <div class="fg2">
+            <div class="form-group">
+              <label class="form-label">Discount (₦)</label>
+              <input type="number" id="apDiscount" class="form-control" placeholder="0" min="0" oninput="calcBalance()">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Caution Fee Override (₦)</label>
+              <input type="number" id="apCautionOverride" class="form-control" placeholder="Auto-calculated" min="0" oninput="calcBalance()">
+            </div>
+          </div>
+          <div class="form-group" style="margin-top:4px">
+            <label class="form-label">Discount Reason</label>
+            <input type="text" id="apDiscountNote" class="form-control" placeholder="e.g. Loyal guest, bulk booking">
+          </div>
+        </div>
+
         <div class="form-group" style="margin:14px 0">
           <label class="form-label">Notes</label>
           <textarea id="apNotes" class="form-control" rows="2" placeholder="Special requests, access instructions, remarks…"></textarea>
@@ -325,13 +351,19 @@ populateSidebar(staff);
 buildNav(staff, 'apartments');
 
 /* Role-aware UI — hide Log New Rental for managers and HR */
-const _dept = (staff.department || '').toLowerCase();
-const _isManager  = staff.role === 'manager' || staff.role === 'superadmin';
+const _dept       = (staff.department || '').toLowerCase();
+const _rawLevel   = (staff.accessLevel || staff.role || '').toLowerCase().replace(/\s+/g,'');
+const _isCEO      = _rawLevel === 'ceo' || _rawLevel === 'superadmin';
+const _isManager  = _isCEO || staff.role === 'manager' || staff.role === 'superadmin';
 const _isHR       = _dept === 'hr';
 const _canLog     = !_isManager && !_isHR;
 if (!_canLog) {
   const panel = document.getElementById('logRentalPanel');
   if (panel) panel.style.display = 'none';
+}
+// Show CEO-only adjustment fields
+if (_isCEO) {
+  document.querySelectorAll('.ceo-only').forEach(el => el.style.display = '');
 }
 
 /* ── Helpers ── */
@@ -400,13 +432,21 @@ function calcTotal() {
   calcBalance();
 }
 function calcBalance() {
-  const total   = parseFloat(document.getElementById('apTotal').value) || 0;
-  const paid    = parseFloat(document.getElementById('apPaid').value)  || 0;
-  const rate    = parseFloat(document.getElementById('apRate').value)  || 0;
-  const caution = rate > 0 ? Math.round(rate * CAUTION_PCT) : 0;
+  const total    = parseFloat(document.getElementById('apTotal').value) || 0;
+  const paid     = parseFloat(document.getElementById('apPaid').value)  || 0;
+  const rate     = parseFloat(document.getElementById('apRate').value)  || 0;
+  const discount = parseFloat(document.getElementById('apDiscount')?.value) || 0;
+  const cautionOverride = parseFloat(document.getElementById('apCautionOverride')?.value) || 0;
+  const caution  = cautionOverride || (rate > 0 ? Math.round(rate * CAUTION_PCT) : 0);
+  const discountedTotal = Math.max(0, total - discount);
   if (total > 0 || paid > 0) {
     document.getElementById('balanceDisplay').style.display = 'block';
-    document.getElementById('bTotal').textContent = fmt(total);
+    const bTotalEl = document.getElementById('bTotal');
+    if (discount > 0) {
+      bTotalEl.innerHTML = `<span style="text-decoration:line-through;opacity:0.45;font-size:0.82rem">${fmt(total)}</span> ${fmt(discountedTotal)} <span style="color:#15803d;font-size:0.7rem">−${fmt(discount)}</span>`;
+    } else {
+      bTotalEl.textContent = fmt(total);
+    }
     document.getElementById('bPaid').textContent  = fmt(paid);
     const cautionRow = document.getElementById('bCautionRow');
     if (caution > 0) {
@@ -415,7 +455,7 @@ function calcBalance() {
     } else {
       cautionRow.style.display = 'none';
     }
-    const bal = total - paid;
+    const bal = discountedTotal - paid;
     const balEl = document.getElementById('bBalance');
     balEl.textContent = fmt(bal);
     balEl.className   = 'b-val' + (bal > 0 ? ' red' : '');
@@ -440,28 +480,38 @@ async function submitRental() {
     return showAlert('alertBox', 'Please fill all required fields.', 'alert-error');
   }
 
-  const nights     = nightsBetween(checkin, checkout);
-  const balance    = total - paid;
-  const cautionFee = rate > 0 ? Math.round(rate * CAUTION_PCT) : 0;
+  const nights          = nightsBetween(checkin, checkout);
+  const discount        = parseFloat(document.getElementById('apDiscount')?.value) || 0;
+  const cautionOverride = parseFloat(document.getElementById('apCautionOverride')?.value) || 0;
+  const discountNote    = document.getElementById('apDiscountNote')?.value.trim() || '';
+  const discountedTotal = Math.max(0, total - discount);
+  const balance         = discountedTotal - paid;
+  const cautionFee      = cautionOverride || (rate > 0 ? Math.round(rate * CAUTION_PCT) : 0);
+
+  const rentalData = {
+    guestName, phone,
+    email:     document.getElementById('apEmail').value.trim(),
+    unit,
+    bedrooms:  +bedrooms,
+    guests:    document.getElementById('apGuests').value,
+    checkin, checkout, nights, rate, total, paid, balance,
+    cautionFee, cautionStatus: 'held',
+    payMethod, payStatus,
+    notes:     document.getElementById('apNotes').value.trim(),
+    loggedBy:  staff.name,
+    status:    'checked-in',
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  };
+  if (discount > 0) {
+    rentalData.discount     = discount;
+    rentalData.discountNote = discountNote;
+  }
 
   try {
-    await db.collection('apartmentRentals').add({
-      guestName, phone,
-      email:     document.getElementById('apEmail').value.trim(),
-      unit,
-      bedrooms:  +bedrooms,
-      guests:    document.getElementById('apGuests').value,
-      checkin, checkout, nights, rate, total, paid, balance,
-      cautionFee, cautionStatus: 'held',
-      payMethod, payStatus,
-      notes:     document.getElementById('apNotes').value.trim(),
-      loggedBy:  staff.name,
-      status:    'checked-in',
-      createdAt: firebase.firestore.FieldValue.serverTimestamp()
-    });
+    await db.collection('apartmentRentals').add(rentalData);
     showAlert('alertBox', `Rental logged for ${guestName} ✓`, 'alert-success');
     // Reset form
-    ['apGuestName','apPhone','apEmail','apUnit','apBedrooms','apGuests','apCheckin','apCheckout','apRate','apTotal','apPaid','apPayMethod','apPayStatus','apNotes'].forEach(id => {
+    ['apGuestName','apPhone','apEmail','apUnit','apBedrooms','apGuests','apCheckin','apCheckout','apRate','apTotal','apPaid','apPayMethod','apPayStatus','apNotes','apDiscount','apCautionOverride','apDiscountNote'].forEach(id => {
       const el = document.getElementById(id);
       if (el) el.value = el.tagName === 'SELECT' ? '' : '';
     });
@@ -581,19 +631,22 @@ function loadActive() {
       }
       let html = '';
       active.forEach(r => {
-        const bal = (r.total||0) - (r.paid||0);
+        const effTotal = Math.max(0, (r.total||0) - (r.discount||0));
+        const bal = effTotal - (r.paid||0);
         html += `
           <div class="notif-row">
             <div class="notif-body">
               <div class="notif-name">${r.guestName} ${pillHtml(r.payStatus||'pending')}</div>
               <div class="notif-meta">
                 🏨 ${r.unit}${r.bedrooms ? ` · ${r.bedrooms} Bed` : ''} &nbsp;|&nbsp; 📅 ${fmtDate(r.checkin)} → ${fmtDate(r.checkout)} (${r.nights} night${r.nights!==1?'s':''})
-                <br>💰 Total: ${fmt(r.total)} &nbsp;|&nbsp; Paid: ${fmt(r.paid)} &nbsp;|&nbsp; <span style="color:${bal>0?'#dc2626':'#15803d'}">Balance: ${fmt(bal)}</span>
+                <br>💰 Total: ${r.discount > 0 ? `<span style="text-decoration:line-through;opacity:0.45">${fmt(r.total)}</span> ${fmt(effTotal)} <span style="color:#15803d;font-size:0.72rem">−${fmt(r.discount)} discount${r.discountNote ? ` (${r.discountNote})` : ''}</span>` : fmt(r.total)} &nbsp;|&nbsp; Paid: ${fmt(r.paid)} &nbsp;|&nbsp; <span style="color:${bal>0?'#dc2626':'#15803d'}">Balance: ${fmt(bal)}</span>
                 ${r.cautionFee ? `<br>🔐 Caution deposit: ${fmt(r.cautionFee)} <span style="color:#15803d">(refundable on checkout)</span>` : ''}
               </div>
               <div class="notif-actions">
                 <button class="btn btn-outline btn-sm" onclick="checkOut('${r.id}')">Check Out</button>
-                ${bal > 0 ? `<button class="btn btn-gold btn-sm" onclick="logPayment('${r.id}', ${r.total}, ${r.paid})">Record Payment</button>` : ''}
+                ${bal > 0 ? `<button class="btn btn-gold btn-sm" onclick="logPayment('${r.id}', ${effTotal}, ${r.paid})">Record Payment</button>` : ''}
+                <button class="btn btn-outline btn-sm" onclick="printReceipt('${r.id}')">🖨 Receipt</button>
+                ${_isCEO ? `<button class="btn btn-outline btn-sm ceo-only" onclick="openAdjustModal('${r.id}', ${r.total}, ${r.discount||0}, ${r.cautionFee||0}, '${(r.discountNote||'').replace(/'/g,"\\'")}')">Adjust</button>` : ''}
               </div>
             </div>
           </div>`;
@@ -611,11 +664,11 @@ async function checkOut(id) {
 }
 
 /* ── Record additional payment ── */
-async function logPayment(id, total, currentPaid) {
+async function logPayment(id, effTotal, currentPaid) {
   const amount = parseFloat(prompt('Enter amount received (₦):'));
   if (!amount || isNaN(amount)) return;
   const newPaid    = currentPaid + amount;
-  const newBalance = total - newPaid;
+  const newBalance = effTotal - newPaid;
   const newStatus  = newBalance <= 0 ? 'paid' : 'partial';
   await db.collection('apartmentRentals').doc(id).update({
     paid: newPaid,
@@ -624,6 +677,96 @@ async function logPayment(id, total, currentPaid) {
   });
   showAlert('alertBox', `Payment of ${fmt(amount)} recorded ✓`, 'alert-success');
   loadActive(); loadHistory();
+}
+
+/* ── Receipt ── */
+function closeRcpt() { document.getElementById('rcptModal').style.display = 'none'; }
+
+function printReceipt(id) {
+  db.collection('apartmentRentals').doc(id).get().then(doc => {
+    if (!doc.exists) return;
+    const r        = doc.data();
+    const effTotal = Math.max(0, (r.total||0) - (r.discount||0));
+    const bal      = effTotal - (r.paid||0);
+    const now      = new Date().toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+
+    let rows = '';
+    const row = (label, val, style='') => `<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #f0f0f0;${style}"><span style="color:#555">${label}</span><span style="font-weight:500;text-align:right">${val}</span></div>`;
+
+    rows += row('Guest', r.guestName);
+    rows += row('Phone', r.phone || '—');
+    rows += row('Unit', r.unit || '—');
+    rows += row('Bedrooms', r.bedrooms ? r.bedrooms + ' Bed' : '—');
+    rows += row('Check-in', fmtDate(r.checkin));
+    rows += row('Check-out', fmtDate(r.checkout));
+    rows += row('Nights', r.nights || '—');
+    rows += row('Rate / night', fmt(r.rate));
+    rows += `<div style="height:6px"></div>`;
+    if (r.discount > 0) {
+      rows += row('Subtotal', fmt(r.total));
+      rows += row('Discount', `− ${fmt(r.discount)}${r.discountNote ? ` <span style="font-size:0.7rem;font-weight:400;color:#888">(${r.discountNote})</span>` : ''}`, 'color:#15803d');
+    }
+    rows += row('Total', fmt(effTotal), 'font-size:0.9rem');
+    rows += row('Amount Paid', fmt(r.paid), 'color:#15803d');
+    rows += row('Balance Due', fmt(bal), bal > 0 ? 'color:#dc2626;font-weight:600' : 'color:#15803d');
+    if (r.cautionFee) rows += row('Caution Deposit', `${fmt(r.cautionFee)} <span style="font-size:0.68rem;color:#888">(refundable)</span>`);
+    rows += row('Payment Method', r.payMethod || '—');
+    rows += `<div style="height:6px"></div>`;
+    rows += row('Logged by', r.loggedBy || '—');
+    rows += row('Printed', now);
+
+    document.getElementById('rcptBody').innerHTML = rows;
+    document.getElementById('rcptModal').style.display = 'flex';
+  }).catch(e => showAlert('alertBox', 'Could not load receipt: ' + e.message, 'alert-error'));
+}
+
+/* ── CEO: Adjust discount & caution fee ── */
+let _adjustId = null;
+let _adjustTotal = 0;
+
+function openAdjustModal(id, total, curDiscount, curCaution, curNote) {
+  _adjustId    = id;
+  _adjustTotal = total;
+  document.getElementById('adjTotal').textContent      = fmt(total);
+  document.getElementById('adjDiscount').value         = curDiscount || '';
+  document.getElementById('adjCaution').value          = curCaution  || '';
+  document.getElementById('adjDiscountNote').value     = curNote     || '';
+  adjCalcPreview();
+  document.getElementById('adjModal').style.display    = 'flex';
+}
+
+function adjCalcPreview() {
+  const disc    = parseFloat(document.getElementById('adjDiscount').value) || 0;
+  const eff     = Math.max(0, _adjustTotal - disc);
+  document.getElementById('adjEffTotal').textContent = fmt(eff);
+}
+
+function closeAdjModal() {
+  document.getElementById('adjModal').style.display = 'none';
+  _adjustId = null;
+}
+
+async function submitAdjust() {
+  if (!_adjustId) return;
+  const disc    = parseFloat(document.getElementById('adjDiscount').value) || 0;
+  const caution = parseFloat(document.getElementById('adjCaution').value)  || 0;
+  const note    = document.getElementById('adjDiscountNote').value.trim();
+  const effTotal = Math.max(0, _adjustTotal - disc);
+  try {
+    const doc = await db.collection('apartmentRentals').doc(_adjustId).get();
+    const r   = doc.data();
+    const newBalance  = effTotal - (r.paid || 0);
+    const newStatus   = newBalance <= 0 ? 'paid' : (r.paid > 0 ? 'partial' : 'pending');
+    const updates = { cautionFee: caution, balance: newBalance, payStatus: newStatus };
+    if (disc > 0) { updates.discount = disc; updates.discountNote = note; }
+    else          { updates.discount = firebase.firestore.FieldValue.delete(); updates.discountNote = firebase.firestore.FieldValue.delete(); }
+    await db.collection('apartmentRentals').doc(_adjustId).update(updates);
+    closeAdjModal();
+    showAlert('alertBox', 'Rental adjusted ✓', 'alert-success');
+    loadActive(); loadHistory();
+  } catch(e) {
+    showAlert('alertBox', 'Error: ' + e.message, 'alert-error');
+  }
 }
 
 /* ── Rental history ── */
@@ -641,7 +784,8 @@ function loadHistory() {
     snap.forEach(doc => {
       const r = doc.data();
       if (filter !== 'all' && r.payStatus !== filter) return;
-      const bal = (r.total||0) - (r.paid||0);
+      const effTotal = Math.max(0, (r.total||0) - (r.discount||0));
+      const bal = effTotal - (r.paid||0);
       rows += `<tr>
         <td><strong>${r.guestName}</strong><br><span style="font-size:0.72rem;color:var(--muted)">${r.phone}</span></td>
         <td>${r.unit||'—'}</td>
@@ -649,13 +793,14 @@ function loadHistory() {
         <td>${fmtDate(r.checkin)}</td>
         <td>${fmtDate(r.checkout)}</td>
         <td style="text-align:center">${r.nights||0}</td>
-        <td>${fmt(r.total)}</td>
+        <td>${r.discount > 0 ? `<span style="text-decoration:line-through;opacity:0.45;font-size:0.75rem">${fmt(r.total)}</span><br>${fmt(effTotal)} <span style="color:#15803d;font-size:0.68rem">−${fmt(r.discount)}</span>` : fmt(r.total)}</td>
         <td>${fmt(r.paid)}</td>
         <td style="color:${bal>0?'#dc2626':'#15803d'}">${fmt(bal)}</td>
         <td>${r.payMethod||'—'}</td>
         <td>${pillHtml(r.payStatus||'pending')}</td>
-        <td>
+        <td style="white-space:nowrap;display:flex;gap:6px;flex-wrap:wrap;align-items:center;padding-top:10px">
           ${r.status !== 'checked-out' ? `<button class="btn btn-outline btn-sm" style="white-space:nowrap" onclick="checkOut('${doc.id}')">Check Out</button>` : '<span style="color:var(--muted);font-size:0.75rem">Checked out</span>'}
+          <button class="btn btn-outline btn-sm" style="white-space:nowrap" onclick="printReceipt('${doc.id}')">🖨 Receipt</button>
         </td>
       </tr>`;
     });
@@ -798,5 +943,59 @@ loadHistory();
 loadTodaySummary();
 loadCalendar();
 </script>
+
+<!-- Receipt Modal -->
+<div id="rcptModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:10000;align-items:center;justify-content:center;padding:16px">
+  <div style="background:#fff;color:#111;border-radius:12px;width:100%;max-width:380px;padding:0;font-family:'Jost',sans-serif;overflow:hidden">
+    <!-- Header -->
+    <div style="background:#0f2318;color:#c9a96e;text-align:center;padding:18px 16px 14px">
+      <div style="font-size:1.2rem;font-weight:500;letter-spacing:0.05em">Eden 54</div>
+      <div style="font-size:0.65rem;letter-spacing:0.18em;text-transform:uppercase;opacity:0.75;margin-top:2px">Apartment Rental Receipt</div>
+    </div>
+    <!-- Body -->
+    <div id="rcptBody" style="padding:18px 20px;font-size:0.82rem;line-height:1.7;color:#222"></div>
+    <!-- Footer -->
+    <div style="border-top:1px dashed #ddd;padding:12px 20px;text-align:center;font-size:0.68rem;color:#888">
+      Thank you for staying with us · Eden 54 Hospitality
+    </div>
+    <!-- Actions (hidden on print) -->
+    <div id="rcptNoPrint" style="display:flex;gap:10px;justify-content:flex-end;padding:12px 20px;border-top:1px solid #eee;background:#fafafa">
+      <button onclick="closeRcpt()" style="padding:8px 18px;border:1px solid #ccc;background:#fff;border-radius:7px;cursor:pointer;font-size:0.82rem">Close</button>
+      <button onclick="window.print()" style="padding:8px 18px;background:#0f2318;color:#c9a96e;border:none;border-radius:7px;cursor:pointer;font-size:0.82rem;font-weight:500">🖨 Print</button>
+    </div>
+  </div>
+</div>
+
+<!-- CEO Adjust Modal -->
+<div id="adjModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;align-items:center;justify-content:center;padding:16px">
+  <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;width:100%;max-width:420px;padding:24px 22px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
+      <div style="font-size:1rem;font-weight:600">CEO Adjustment</div>
+      <button onclick="closeAdjModal()" style="background:none;border:none;color:var(--muted);font-size:1.3rem;cursor:pointer;line-height:1">&times;</button>
+    </div>
+    <div style="font-size:0.78rem;color:var(--muted);margin-bottom:16px">Original total: <strong id="adjTotal" style="color:var(--text)"></strong></div>
+    <div class="fg2" style="margin-bottom:12px">
+      <div class="form-group">
+        <label class="form-label">Discount (₦)</label>
+        <input type="number" id="adjDiscount" class="form-control" placeholder="0" min="0" oninput="adjCalcPreview()">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Caution Fee (₦)</label>
+        <input type="number" id="adjCaution" class="form-control" placeholder="0" min="0">
+      </div>
+    </div>
+    <div class="form-group" style="margin-bottom:12px">
+      <label class="form-label">Discount Reason</label>
+      <input type="text" id="adjDiscountNote" class="form-control" placeholder="e.g. Loyal guest, negotiated rate">
+    </div>
+    <div style="background:rgba(201,169,110,0.07);border-radius:8px;padding:10px 12px;font-size:0.82rem;margin-bottom:18px">
+      Effective total after discount: <strong id="adjEffTotal" style="color:var(--gold)"></strong>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end">
+      <button class="btn btn-outline" onclick="closeAdjModal()">Cancel</button>
+      <button class="btn btn-gold" onclick="submitAdjust()">Save Adjustment</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
