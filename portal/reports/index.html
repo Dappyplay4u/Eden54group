@@ -1007,8 +1007,10 @@ async function loadSalesLeaders() {
   const today = new Date();
   const start = new Date(today);
   start.setDate(start.getDate() - siPeriod + 1);
-  const startStr = start.toISOString().split('T')[0];
-  const endStr   = today.toISOString().split('T')[0];
+  const startStr  = start.toISOString().split('T')[0];
+  const endStr    = today.toISOString().split('T')[0];
+  const startTs   = new Date(startStr + 'T00:00:00');
+  const endTs     = new Date(endStr   + 'T23:59:59');
 
   document.getElementById('siLabel').textContent =
     `Sales Intelligence — Last ${siPeriod} Day${siPeriod === 1 ? '' : 's'}`;
@@ -1019,25 +1021,98 @@ async function loadSalesLeaders() {
   siCache = null;
 
   try {
-    const snap = await db.collection('sales')
-      .where('date', '>=', startStr)
-      .where('date', '<=', endStr)
-      .get();
+    const [salesSnap, barbSnap, compSnap, aptSnap] = await Promise.all([
+      db.collection('sales').where('date','>=',startStr).where('date','<=',endStr).get(),
+      db.collection('barbing_reports').where('date','>=',startStr).where('date','<=',endStr).get(),
+      db.collection('pool_competitions').where('date','>=',startStr).where('date','<=',endStr).get(),
+      db.collection('apartmentRentals').where('createdAt','>=',startTs).where('createdAt','<=',endTs).get().catch(()=>({docs:[]})),
+    ]);
 
-    const sales = snap.docs.map(d => d.data());
+    const sales = salesSnap.docs.map(d => d.data());
+
+    /* ── Aggregate all revenue into byDate and byDept ── */
+    const byDate = {};
+    const byDept    = {};
+    const byDeptSec = {};
+    const byDeptProducts = {};
+
+    const addDay  = (d, amt) => { if (d) byDate[d] = (byDate[d]||0) + amt; };
+    const addDept = (sec, amt) => {
+      const label = SI_DEPT_LABELS[sec] || sec;
+      byDept[label]    = (byDept[label]||0) + amt;
+      byDeptSec[label] = sec;
+    };
+
+    // Sales (POS + manual)
+    const barbSalesStaff = new Set();
+    sales.forEach(s => {
+      const amt = saleTotal(s);
+      addDay(s.date, amt);
+      const sec = s.source === 'pos'
+        ? (s.section || 'events').toLowerCase()
+        : deptToSection(s.department);
+      addDept(sec, amt);
+      if (sec === 'barbing') {
+        if (s.staffId)   barbSalesStaff.add(s.staffId);
+        if (s.staffName) barbSalesStaff.add((s.staffName||'').toLowerCase().trim());
+      }
+      if (!byDeptProducts[sec]) byDeptProducts[sec] = {};
+      (s.items || []).forEach(item => {
+        const name = (item.name || '').trim() || '—';
+        if (!byDeptProducts[sec][name]) byDeptProducts[sec][name] = { qty:0, revenue:0 };
+        byDeptProducts[sec][name].qty     += (item.qty || 1);
+        byDeptProducts[sec][name].revenue += (item.total || (item.unitPrice||0)*(item.qty||1));
+      });
+    });
+
+    // Barbing service reports (dedup against POS/manual barbing sales)
+    if (!byDeptProducts['barbing']) byDeptProducts['barbing'] = {};
+    barbSnap.docs.forEach(d => {
+      const r = d.data();
+      const isDup = barbSalesStaff.has(r.staffId) || barbSalesStaff.has((r.staffName||'').toLowerCase().trim());
+      if (isDup) return;
+      const amt = r.totalRevenue || 0;
+      addDay(r.date, amt);
+      addDept('barbing', amt);
+      (r.services || []).forEach(svc => {
+        const name = (svc.type || 'Service').trim();
+        const rev  = svc.amount || 0;
+        if (!byDeptProducts['barbing'][name]) byDeptProducts['barbing'][name] = { qty:0, revenue:0 };
+        byDeptProducts['barbing'][name].qty     += 1;
+        byDeptProducts['barbing'][name].revenue += rev;
+      });
+    });
+
+    // Pool competitions
+    if (!byDeptProducts['games']) byDeptProducts['games'] = {};
+    compSnap.docs.forEach(d => {
+      const r   = d.data();
+      const amt = r.netRevenue || 0;
+      addDay(r.date, amt);
+      addDept('games', amt);
+      const type = (r.type || 'Competition').trim();
+      if (!byDeptProducts['games'][type]) byDeptProducts['games'][type] = { qty:0, revenue:0 };
+      byDeptProducts['games'][type].qty     += (r.players || 1);
+      byDeptProducts['games'][type].revenue += amt;
+    });
+
+    // Apartment rentals
+    if (!byDeptProducts['apt']) byDeptProducts['apt'] = {};
+    aptSnap.docs.forEach(d => {
+      const r  = d.data();
+      const ds = r.createdAt ? r.createdAt.toDate().toISOString().split('T')[0] : '';
+      const amt = r.paid || 0;
+      addDay(ds, amt);
+      addDept('apt', amt);
+      const unit = (r.unit || 'Apartment').trim();
+      if (!byDeptProducts['apt'][unit]) byDeptProducts['apt'][unit] = { qty:0, revenue:0 };
+      byDeptProducts['apt'][unit].qty     += (r.nights || 1);
+      byDeptProducts['apt'][unit].revenue += amt;
+    });
 
     /* ── Highest Sales Days ── */
-    const byDate = {};
-    sales.forEach(s => {
-      const d   = s.date || '';
-      const amt = saleTotal(s);
-      if (d) byDate[d] = (byDate[d] || 0) + amt;
-    });
-    const topDays = Object.entries(byDate)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 5);
-    const maxDay = topDays[0]?.[1] || 1;
-
+    const topDays = Object.entries(byDate).sort((a,b) => b[1]-a[1]).slice(0, 5);
+    const maxDay  = topDays[0]?.[1] || 1;
     document.getElementById('siTopDays').innerHTML = topDays.length
       ? topDays.map(([date, amt], i) => {
           const label = new Date(date + 'T12:00:00')
@@ -1054,39 +1129,14 @@ async function loadSalesLeaders() {
         }).join('')
       : '<div class="si-none">No sales data in this period</div>';
 
-    /* ── Department Rankings + per-dept products ── */
-    const byDept    = {};   // label → total revenue
-    const byDeptSec = {};   // label → section key
-    const byDeptProducts = {}; // section key → { productName: { qty, revenue } }
-
-    sales.forEach(s => {
-      const amt   = saleTotal(s);
-      const sec   = s.source === 'pos'
-        ? (s.section || 'events').toLowerCase()
-        : deptToSection(s.department);
-      const label = SI_DEPT_LABELS[sec] || (s.department || '📦 Other');
-      byDept[label]    = (byDept[label] || 0) + amt;
-      byDeptSec[label] = sec;
-
-      if (!byDeptProducts[sec]) byDeptProducts[sec] = {};
-      (s.items || []).forEach(item => {
-        const name = (item.name || '').trim() || '—';
-        if (!byDeptProducts[sec][name]) byDeptProducts[sec][name] = { qty:0, revenue:0 };
-        byDeptProducts[sec][name].qty     += (item.qty || 1);
-        byDeptProducts[sec][name].revenue += (item.total || (item.unitPrice||0)*(item.qty||1));
-      });
-    });
-
-    const topDepts = Object.entries(byDept)
-      .filter(([, v]) => v > 0)
-      .sort((a, b) => b[1] - a[1]);
-    const maxDept = topDepts[0]?.[1] || 1;
-
+    /* ── Department Rankings ── */
+    const topDepts = Object.entries(byDept).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]);
+    const maxDept  = topDepts[0]?.[1] || 1;
     document.getElementById('siTopDepts').innerHTML = topDepts.length
       ? topDepts.map(([name, amt], i) => {
-          const sec      = byDeptSec[name] || '';
-          const topProd  = Object.entries(byDeptProducts[sec] || {})
-            .sort((a, b) => b[1].revenue - a[1].revenue)[0];
+          const sec     = byDeptSec[name] || '';
+          const topProd = Object.entries(byDeptProducts[sec] || {})
+            .sort((a,b) => b[1].revenue - a[1].revenue)[0];
           const prodLine = topProd
             ? `<div class="si-top-prod">⭐ ${esc(topProd[0])} · ${N(topProd[1].revenue)} · ${topProd[1].qty} sold</div>`
             : '';
@@ -1103,7 +1153,7 @@ async function loadSalesLeaders() {
         }).join('')
       : '<div class="si-none">No department data</div>';
 
-    /* ── Build all-products list & dept tabs ── */
+    /* ── Best-Selling Products (POS sales only) ── */
     const allProductsMap = {};
     Object.values(byDeptProducts).forEach(deptMap => {
       Object.entries(deptMap).forEach(([name, d]) => {
@@ -1113,13 +1163,12 @@ async function loadSalesLeaders() {
       });
     });
     const allProducts = Object.entries(allProductsMap)
-      .filter(([, d]) => d.revenue > 0)
-      .sort((a, b) => b[1].revenue - a[1].revenue)
+      .filter(([,d]) => d.revenue > 0)
+      .sort((a,b) => b[1].revenue - a[1].revenue)
       .slice(0, 8);
 
     siCache = { byDeptProducts, allProducts };
 
-    // Dept filter tabs — only show depts that have product items
     const tabsEl = document.getElementById('siDeptTabs');
     if (tabsEl) {
       const deptsWithItems = Object.entries(byDeptProducts)
