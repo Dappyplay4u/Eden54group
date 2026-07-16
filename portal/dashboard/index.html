@@ -117,12 +117,19 @@ async function load() {
   const today = todayStr();
 
   // ── Sales ──────────────────────────────────────────────
-  const monthStart = today.slice(0,7) + '-01';
-  const [salesSnap, barbSnap, monthSnap, monthBarbSnap] = await Promise.all([
+  const monthStart  = today.slice(0,7) + '-01';
+  const todayStart  = new Date(today + 'T00:00:00');
+  const todayEnd    = new Date(today + 'T23:59:59');
+  const monthStartTs = new Date(monthStart + 'T00:00:00');
+  const monthEndTs   = new Date(today + 'T23:59:59');
+
+  const [salesSnap, barbSnap, monthSnap, monthBarbSnap, aptTodaySnap, aptMonthSnap] = await Promise.all([
     db.collection('sales').where('date','==',today).get(),
     db.collection('barbing_reports').where('date','==',today).get(),
     db.collection('sales').where('date','>=',monthStart).where('date','<=',today).get(),
     db.collection('barbing_reports').where('date','>=',monthStart).where('date','<=',today).get(),
+    db.collection('apartmentRentals').where('createdAt','>=',todayStart).where('createdAt','<=',todayEnd).get().catch(()=>({docs:[]})),
+    db.collection('apartmentRentals').where('createdAt','>=',monthStartTs).where('createdAt','<=',monthEndTs).get().catch(()=>({docs:[]})),
   ]);
 
   let todayTotal = 0, deptMap = {};
@@ -150,8 +157,19 @@ async function load() {
     todayTotal += amt;
     if (amt) deptMap['barbing'] = (deptMap['barbing'] || 0) + amt;
   });
+  // Include today's apartment rental payments
+  let aptTodayTotal = 0;
+  aptTodaySnap.docs.forEach(d => {
+    const r = d.data();
+    const amt = r.paid || 0;
+    aptTodayTotal += amt;
+  });
+  if (aptTodayTotal > 0) {
+    todayTotal += aptTodayTotal;
+    deptMap['Apartments'] = (deptMap['Apartments'] || 0) + aptTodayTotal;
+  }
   document.getElementById('statSales').textContent = fmtNaira(todayTotal);
-  document.getElementById('statSubs').textContent  = salesSnap.size + barbSnap.size;
+  document.getElementById('statSubs').textContent  = salesSnap.size + barbSnap.size + aptTodaySnap.docs.length;
 
   // Monthly total — dedup barbing_reports per day+staff against ALL barbing sales
   const monthPosBarbKeys = new Set();
@@ -173,6 +191,8 @@ async function load() {
     const byName = r.date && r.staffName ? monthPosBarbKeys.has(r.date + '_' + (r.staffName||'').toLowerCase().trim()) : false;
     if (!byId && !byName) monthTotal += r.totalRevenue || 0;
   });
+  // Include monthly apartment rental payments
+  aptMonthSnap.docs.forEach(d => { monthTotal += d.data().paid || 0; });
   document.getElementById('statMonth').textContent = fmtNaira(monthTotal);
 
   // ── Clocking & Attendance ─────────────────────────────
@@ -266,25 +286,82 @@ async function load() {
       </div>`;
   }
 
-  const recentSnap = await db.collection('sales').orderBy('date','desc').limit(20).get();
-  const tbody = document.getElementById('salesTable');
-  tbody.innerHTML = recentSnap.empty
-    ? '<tr><td colspan="7" style="text-align:center;padding:24px;color:#6a6b62">No sales recorded yet.</td></tr>'
-    : recentSnap.docs.map(d => {
-        const s = d.data();
-        return `<tr><td>${s.date}</td><td class="fw4">${saleName(s)}</td><td><span class="badge badge-info">${saleDept(s)}</span></td><td>${fmtNaira(saleCash(s))}</td><td>${fmtNaira(saleTransfer(s))}</td><td>${fmtNaira(salePOS(s))}</td><td class="fw4 text-gold">${fmtNaira(saleTotal(s))}</td></tr>`;
-      }).join('');
+  const [recentSnap, recentAptSnap] = await Promise.all([
+    db.collection('sales').orderBy('date','desc').limit(30).get(),
+    db.collection('apartmentRentals').orderBy('createdAt','desc').limit(20).get().catch(()=>({docs:[]})),
+  ]);
 
-  // Single range query instead of 7 sequential round trips
+  // Build unified rows: sales + apartment rentals, sorted by date desc
+  const recentRows = [];
+  recentSnap.docs.forEach(d => {
+    const s = d.data();
+    recentRows.push({ _date: s.date || '', _type: 'sale', ...s });
+  });
+  recentAptSnap.docs.forEach(d => {
+    const r = d.data();
+    const ds = r.createdAt ? r.createdAt.toDate().toISOString().split('T')[0] : (r.checkin || '');
+    const method = (r.payMethod || '').toLowerCase();
+    recentRows.push({
+      _date: ds, _type: 'apt',
+      date: ds, staffName: r.loggedBy || '—', department: 'Apartments',
+      guestName: r.guestName, unit: r.unit,
+      _cash:     method === 'cash'     ? (r.paid || 0) : 0,
+      _transfer: method === 'transfer' ? (r.paid || 0) : 0,
+      _pos:      method === 'pos'      ? (r.paid || 0) : 0,
+      _total:    r.paid || 0,
+    });
+  });
+  recentRows.sort((a, b) => b._date.localeCompare(a._date));
+
+  const tbody = document.getElementById('salesTable');
+  if (!recentRows.length) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:24px;color:#6a6b62">No sales recorded yet.</td></tr>';
+  } else {
+    tbody.innerHTML = recentRows.slice(0, 25).map(r => {
+      if (r._type === 'apt') {
+        const sub = r.guestName ? ` <span style="font-size:0.7rem;color:var(--muted);">(${r.guestName}${r.unit ? ' · ' + r.unit : ''})</span>` : '';
+        return `<tr>
+          <td>${r.date}</td>
+          <td class="fw4">${r.staffName}${sub}</td>
+          <td><span class="badge" style="background:rgba(201,169,110,0.15);color:#9A7A3A;border:1px solid rgba(201,169,110,0.3)">Apartments</span></td>
+          <td>${fmtNaira(r._cash)}</td>
+          <td>${fmtNaira(r._transfer)}</td>
+          <td>${fmtNaira(r._pos)}</td>
+          <td class="fw4 text-gold">${fmtNaira(r._total)}</td>
+        </tr>`;
+      }
+      return `<tr>
+        <td>${r.date}</td>
+        <td class="fw4">${saleName(r)}</td>
+        <td><span class="badge badge-info">${saleDept(r)}</span></td>
+        <td>${fmtNaira(saleCash(r))}</td>
+        <td>${fmtNaira(saleTransfer(r))}</td>
+        <td>${fmtNaira(salePOS(r))}</td>
+        <td class="fw4 text-gold">${fmtNaira(saleTotal(r))}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  // 7-day chart — sales + apartments
   const sevenAgo = (() => {
     const d = new Date(); d.setDate(d.getDate() - 6);
     return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
   })();
-  const weekSnap = await db.collection('sales').where('date','>=',sevenAgo).where('date','<=',today).get();
+  const sevenAgoTs = new Date(sevenAgo + 'T00:00:00');
+  const [weekSnap, aptWeekSnap] = await Promise.all([
+    db.collection('sales').where('date','>=',sevenAgo).where('date','<=',today).get(),
+    db.collection('apartmentRentals').where('createdAt','>=',sevenAgoTs).where('createdAt','<=',todayEnd).get().catch(()=>({docs:[]})),
+  ]);
   const byDate = {};
   weekSnap.forEach(x => {
     const s = x.data();
     byDate[s.date] = (byDate[s.date] || 0) + saleTotal(s);
+  });
+  aptWeekSnap.docs.forEach(x => {
+    const r = x.data();
+    if (!r.createdAt) return;
+    const ds = r.createdAt.toDate().toISOString().split('T')[0];
+    byDate[ds] = (byDate[ds] || 0) + (r.paid || 0);
   });
   const days = [], sales7 = [];
   for (let i = 6; i >= 0; i--) {
