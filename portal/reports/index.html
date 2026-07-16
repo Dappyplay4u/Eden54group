@@ -863,9 +863,11 @@ function renderGrandTotal(allSales, poolComps, allExpenses, aptRentals, barbRepo
     </div>`)
     .join('');
 
-  document.getElementById('grandTotal').textContent = N(gross);
-  document.getElementById('grandChips').innerHTML   = chips;
-  document.getElementById('grandBar').style.display = 'flex';
+  document.getElementById('grandTotal').textContent  = N(gross);
+  document.getElementById('grandChips').innerHTML    = chips;
+  const gb = document.getElementById('grandBar');
+  gb.style.display  = 'flex';
+  gb.dataset.hasData = '1';
 
   const netEl = document.getElementById('grandNet');
   if (netEl && totalExp > 0) {
@@ -1172,19 +1174,30 @@ const DEPT_CARD_MAP = {
 };
 
 function applyDeptFilterSingle(dept) {
-  const all = Object.values(DEPT_CARD_MAP);
-  if (dept === 'all') {
-    all.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = ''; });
-    // grandBar was already set by renderGrandTotal — don't override
-  } else {
-    all.forEach(id => {
-      const el = document.getElementById(id);
-      if (!el) return;
-      el.style.display = (DEPT_CARD_MAP[dept] === id) ? '' : 'none';
-    });
-    // Hide the all-dept grand bar when a single dept is selected
+  const all   = Object.values(DEPT_CARD_MAP);
+  const isAll = dept === 'all';
+
+  // Department cards — show only the selected one (or all)
+  all.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.style.display = isAll ? '' : (DEPT_CARD_MAP[dept] === id ? '' : 'none');
+  });
+
+  // Cross-department summaries — hidden when a single dept is selected
+  const summaryIds = ['grandBar', 'monthlySummary', 'salesLeaders'];
+  if (isAll) {
+    // Restore: re-run the summaries so their display state is correct
+    loadMonthlySummary();
+    if (siCache) document.getElementById('salesLeaders').style.display = 'block';
+    // grandBar is re-populated by renderGrandTotal via loadAll — just ensure not hidden
     const gb = document.getElementById('grandBar');
-    if (gb) gb.style.display = 'none';
+    if (gb && gb.dataset.hasData === '1') gb.style.display = 'flex';
+  } else {
+    summaryIds.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.style.display = 'none';
+    });
   }
 }
 
