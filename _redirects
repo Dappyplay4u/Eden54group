@@ -1,1 +1,3 @@
-/apartmentandlounge    /    200
+/birthday/*            /birthday/:splat    200
+/portal/*              /portal/:splat      200
+/apartmentandlounge    /                   200
