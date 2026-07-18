@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Oladapo's 40th · Lagos RSVP</title>
+<link rel="icon" type="image/jpeg" href="/logo/eden 54 logo.jpeg">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --deep: #0f2318;
+    --gold: #C9A96E;
+    --gold-light: rgba(201,169,110,0.12);
+    --text: #F5F2EC;
+    --muted: rgba(245,242,236,0.55);
+    --border: rgba(201,169,110,0.25);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    min-height: 100vh;
+    background: var(--deep);
+    color: var(--text);
+    font-family: 'Jost', sans-serif;
+    font-weight: 300;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 60px 20px 80px;
+    background-image:
+      radial-gradient(ellipse at 20% 0%, rgba(201,169,110,0.07) 0%, transparent 55%),
+      radial-gradient(ellipse at 80% 100%, rgba(201,169,110,0.05) 0%, transparent 55%);
+  }
+
+  /* HEADER */
+  .invite-header { text-align: center; margin-bottom: 36px; max-width: 580px; }
+  .invite-eyebrow { font-size: 0.68rem; letter-spacing: 0.4em; text-transform: uppercase; color: var(--gold); margin-bottom: 18px; }
+  .invite-name { font-family: 'Cormorant Garamond', serif; font-size: clamp(2.6rem, 8vw, 5rem); font-weight: 300; line-height: 1; margin-bottom: 6px; color: var(--gold); }
+  .invite-title { font-family: 'Cormorant Garamond', serif; font-size: clamp(1.1rem, 3vw, 1.6rem); font-weight: 300; letter-spacing: 0.18em; text-transform: uppercase; color: var(--text); margin-bottom: 20px; }
+  .invite-date-badge { display: inline-block; border: 1px solid var(--gold); padding: 10px 32px; font-size: 0.78rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--gold); margin-bottom: 12px; }
+  .invite-divider { width: 48px; height: 1px; background: var(--gold); opacity: 0.4; margin: 18px auto; }
+
+  /* INVITE IMAGE */
+  .invite-image-wrap { width: 100%; max-width: 700px; margin-bottom: 40px; border: 1px solid var(--border); box-shadow: 0 8px 48px rgba(201,169,110,0.12); }
+  .invite-image { width: 100%; display: block; }
+
+  /* VENUE STRIP */
+  .venue-strip {
+    width: 100%; max-width: 580px;
+    border: 1px solid var(--border);
+    background: rgba(201,169,110,0.05);
+    padding: 18px 24px;
+    margin-bottom: 32px;
+    display: flex; gap: 16px; align-items: flex-start;
+  }
+  .venue-icon { font-size: 1.6rem; flex-shrink: 0; margin-top: 2px; }
+  .venue-name { font-family: 'Cormorant Garamond', serif; font-size: 1.15rem; margin-bottom: 4px; }
+  .venue-meta { font-size: 0.75rem; color: var(--muted); line-height: 1.7; }
+  .venue-meta a { color: var(--gold); text-decoration: none; }
+
+  /* FORM CARD */
+  .form-card { width: 100%; max-width: 580px; border: 1px solid var(--border); padding: 44px 40px; background: rgba(255,255,255,0.02); }
+  .form-section-label { font-size: 0.65rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--gold); margin-bottom: 20px; opacity: 0.75; }
+  .form-group { margin-bottom: 22px; }
+  .form-label { display: block; font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+  .form-control { width: 100%; background: rgba(255,255,255,0.04); border: 1px solid var(--border); color: var(--text); font-family: 'Jost', sans-serif; font-size: 0.95rem; font-weight: 300; padding: 13px 16px; outline: none; transition: border-color 0.2s, background 0.2s; -webkit-appearance: none; }
+  .form-control:focus { border-color: rgba(201,169,110,0.6); background: rgba(255,255,255,0.06); }
+  .form-control::placeholder { color: rgba(245,242,236,0.22); }
+  select.form-control { cursor: pointer; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23C9A96E' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 16px center; padding-right: 40px; }
+  select.form-control option { background: #0f2318; color: #F5F2EC; }
+
+  .divider-line { width: 100%; height: 1px; background: var(--border); margin: 28px 0; }
+  .error-msg { font-size: 0.75rem; color: #e07070; margin-top: 6px; display: none; }
+
+  /* RSVP CONTACT NOTE */
+  .rsvp-note { background: rgba(201,169,110,0.06); border: 1px solid var(--border); padding: 14px 18px; margin-bottom: 24px; font-size: 0.8rem; color: var(--muted); line-height: 1.7; }
+  .rsvp-note strong { color: var(--gold); font-weight: 400; }
+
+  /* SUBMIT */
+  .btn-submit { width: 100%; padding: 16px; background: transparent; border: 1px solid var(--gold); color: var(--gold); font-family: 'Jost', sans-serif; font-size: 0.78rem; letter-spacing: 0.28em; text-transform: uppercase; cursor: pointer; transition: background 0.3s, color 0.3s; margin-top: 8px; }
+  .btn-submit:hover:not(:disabled) { background: var(--gold); color: #0f2318; }
+  .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-whatsapp { display: flex; align-items: center; justify-content: center; gap: 10px; }
+  .form-note { text-align: center; font-size: 0.7rem; color: var(--muted); margin-top: 14px; opacity: 0.55; }
+
+  /* SUCCESS */
+  .success-state { display: none; text-align: center; padding: 64px 40px; }
+  .success-icon { font-size: 3rem; margin-bottom: 24px; }
+  .success-title { font-family: 'Cormorant Garamond', serif; font-size: 2.4rem; font-weight: 300; margin-bottom: 12px; color: var(--gold); }
+  .success-sub { font-size: 0.88rem; color: var(--muted); line-height: 1.9; max-width: 360px; margin: 16px auto 0; }
+  .wa-btn { display: inline-flex; align-items: center; gap: 8px; margin-top: 28px; padding: 13px 28px; border: 1px solid #25d366; color: #25d366; font-size: 0.78rem; letter-spacing: 0.2em; text-transform: uppercase; text-decoration: none; transition: background 0.3s, color 0.3s; }
+  .wa-btn:hover { background: #25d366; color: #fff; }
+
+  /* GATE */
+  .gate-screen { position: fixed; inset: 0; background: var(--deep); background-image: radial-gradient(ellipse at 20% 0%, rgba(201,169,110,0.07) 0%, transparent 55%), radial-gradient(ellipse at 80% 100%, rgba(201,169,110,0.05) 0%, transparent 55%); z-index: 999; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 32px 20px; text-align: center; }
+  .gate-screen.hidden { display: none; }
+  .gate-logo { font-family: 'Cormorant Garamond', serif; font-size: 1rem; letter-spacing: 0.4em; text-transform: uppercase; color: var(--gold); margin-bottom: 48px; opacity: 0.6; }
+  .gate-title { font-family: 'Cormorant Garamond', serif; font-size: clamp(1.8rem, 5vw, 2.6rem); font-weight: 300; margin-bottom: 10px; }
+  .gate-title em { font-style: italic; color: var(--gold); }
+  .gate-sub { font-size: 0.82rem; color: var(--muted); margin-bottom: 36px; line-height: 1.7; max-width: 320px; }
+  .gate-input-wrap { width: 100%; max-width: 320px; margin-bottom: 14px; }
+  .gate-input { width: 100%; background: rgba(255,255,255,0.04); border: 1px solid var(--border); color: var(--text); font-family: 'Jost', sans-serif; font-size: 1.1rem; letter-spacing: 0.25em; text-align: center; text-transform: uppercase; padding: 15px 20px; outline: none; transition: border-color 0.2s; }
+  .gate-input:focus { border-color: rgba(201,169,110,0.6); }
+  .gate-input::placeholder { letter-spacing: 0.15em; font-size: 0.85rem; text-transform: none; opacity: 0.4; }
+  .gate-input.shake { animation: shake 0.4s ease; border-color: #e07070; }
+  @keyframes shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-8px)} 40%{transform:translateX(8px)} 60%{transform:translateX(-6px)} 80%{transform:translateX(6px)} }
+  .gate-error { font-size: 0.75rem; color: #e07070; margin-bottom: 16px; min-height: 18px; }
+  .gate-btn { width: 100%; max-width: 320px; padding: 14px; background: transparent; border: 1px solid var(--gold); color: var(--gold); font-family: 'Jost', sans-serif; font-size: 0.75rem; letter-spacing: 0.28em; text-transform: uppercase; cursor: pointer; transition: background 0.3s, color 0.3s; }
+  .gate-btn:hover { background: var(--gold); color: #0f2318; }
+
+  /* FOOTER */
+  .page-footer { margin-top: 48px; font-size: 0.65rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--muted); opacity: 0.3; text-align: center; }
+
+  @media (max-width: 600px) {
+    body { padding: 40px 16px 60px; }
+    .form-card { padding: 32px 20px; }
+    .invite-name { font-size: 2.4rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- GATE SCREEN -->
+<div class="gate-screen" id="gateScreen">
+  <div class="gate-logo">Oladapo's 40th &nbsp;&middot;&nbsp; Private Event</div>
+  <h2 class="gate-title">This is a <em>Private</em><br>Celebration</h2>
+  <p class="gate-sub">An invite code is required to access this page. Please check your invitation for the code.</p>
+  <div class="gate-input-wrap">
+    <input type="text" class="gate-input" id="gateInput" placeholder="Enter invite code" maxlength="20" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false">
+  </div>
+  <p class="gate-error" id="gateError"></p>
+  <button class="gate-btn" onclick="checkCode()">Enter</button>
+</div>
+
+<!-- HEADER -->
+<div class="invite-header">
+  <p class="invite-eyebrow">You Are Cordially Invited · Lagos</p>
+  <div class="invite-name">Oladapo's</div>
+  <div class="invite-title">40<sup style="font-size:0.55em;vertical-align:super">th</sup> Birthday Experience</div>
+  <div class="invite-date-badge">Saturday, July 25</div>
+  <div class="invite-divider"></div>
+  <p style="font-size:0.82rem;color:var(--muted);line-height:1.8">An unforgettable evening of great food, amazing vibes,<br>and premium experiences with family and friends.</p>
+  <p style="margin-top:12px;font-size:0.72rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--gold);opacity:0.7">Adults Only (21+) &nbsp;·&nbsp; No Kids Please</p>
+</div>
+
+<!-- INVITE IMAGE -->
+<div class="invite-image-wrap">
+  <img src="/oladapo_40th_invite_updated.png" alt="Oladapo's 40th Birthday Invite" class="invite-image">
+</div>
+
+<!-- VENUE -->
+<div class="venue-strip">
+  <div class="venue-icon">📍</div>
+  <div>
+    <div class="venue-name">Westend Sports Bar Akowonjo</div>
+    <div class="venue-meta">
+      Akowonjo Rd, Alimosho, Lagos, Nigeria<br>
+      <strong style="color:var(--gold)">Dinner &amp; Party Experience</strong> &nbsp;·&nbsp; Saturday, 25 July 2026<br>
+      <strong style="color:var(--gold)">7:00 PM — Till Mama Calls</strong><br>
+      Venue Phone: <a href="tel:+2348037227263">+234 803 722 7263</a>
+    </div>
+  </div>
+</div>
+
+<!-- RSVP FORM -->
+<div style="text-align:center;margin-bottom:28px;max-width:580px;width:100%">
+  <p style="font-size:0.72rem;letter-spacing:0.3em;text-transform:uppercase;color:var(--gold);margin-bottom:10px">RSVP</p>
+  <p style="font-size:0.88rem;color:var(--muted);line-height:1.8">Kindly confirm your attendance so we can plan for you.</p>
+</div>
+
+<div class="form-card">
+  <div id="formState">
+    <form id="rsvpForm" action="https://formsubmit.co/jegede.oladapo@ymail.com" method="POST" novalidate>
+
+      <input type="hidden" name="_subject" value="Oladapo's 40th Birthday RSVP — Lagos">
+      <input type="hidden" name="_captcha" value="false">
+      <input type="hidden" name="_cc" value="badexsen2001@yahoo.com">
+      <input type="hidden" name="_next" value="https://eden54group.com/birthday/ng-thanks.html">
+      <input type="hidden" name="_template" value="table">
+
+      <p class="form-section-label">Your Details</p>
+
+      <div class="form-group">
+        <label class="form-label" for="fullName">Full Name *</label>
+        <input type="text" id="fullName" name="Full Name" class="form-control" placeholder="Enter your full name">
+        <span class="error-msg" id="nameErr">Please enter your name.</span>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="phone">WhatsApp / Phone Number *</label>
+        <input type="tel" id="phone" name="Phone Number" class="form-control" placeholder="+234 000 000 0000">
+        <span class="error-msg" id="phoneErr">Please enter your phone number.</span>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="guests">Number of Guests (including yourself) *</label>
+        <select id="guests" name="Number of Guests" class="form-control">
+          <option value="">Select…</option>
+          <option value="1">1 — Just me</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="5">5</option>
+          <option value="6+">6 or more</option>
+        </select>
+        <span class="error-msg" id="guestsErr">Please select number of guests.</span>
+      </div>
+
+      <div class="divider-line"></div>
+
+      <div class="form-group" style="margin-bottom:0">
+        <label class="form-label" for="notes">Special Requests or Dietary Requirements</label>
+        <textarea id="notes" name="Special Requests" class="form-control" rows="3" placeholder="Allergies, dietary needs, anything we should know…" style="resize:vertical"></textarea>
+      </div>
+
+      <div style="margin-top:32px">
+        <button type="submit" class="btn-submit" id="submitBtn">Confirm My Attendance</button>
+        <p class="form-note">Come Ready to Eat &nbsp;&middot;&nbsp; Laugh &nbsp;&middot;&nbsp; Dance &nbsp;&middot;&nbsp; Celebrate</p>
+      </div>
+
+    </form>
+  </div>
+
+  <!-- SUCCESS -->
+  <div class="success-state" id="successState">
+    <div class="success-icon">🥂</div>
+    <div style="font-family:'Cormorant Garamond',serif;font-size:0.8rem;letter-spacing:0.4em;text-transform:uppercase;color:var(--gold);margin-bottom:16px;">Saturday, July 25 · Lagos</div>
+    <div class="success-title">See You There!</div>
+    <div class="invite-divider" style="margin:20px auto"></div>
+    <p class="success-sub">Your WhatsApp message has been prepared. Complete it to confirm your spot. We look forward to celebrating with you at Westend Sports Bar Akowonjo!</p>
+    <a id="waRetryLink" href="#" class="wa-btn" target="_blank">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+      Open WhatsApp Again
+    </a>
+    <p style="margin-top:20px;font-size:0.75rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);opacity:0.7;">Good Vibes &nbsp;&middot;&nbsp; Great Company &nbsp;&middot;&nbsp; Premium Experience</p>
+  </div>
+</div>
+
+<p class="page-footer">Good Vibes &nbsp;&middot;&nbsp; Great Company &nbsp;&middot;&nbsp; Great Food &nbsp;&middot;&nbsp; Premium Experience</p>
+
+<script>
+  const INVITE_CODE = 'OAT40';
+  const WA_NUMBER  = '2347069331026'; // Seun Oyegunle
+
+  /* ── Gate ── */
+  function checkCode() {
+    const input = document.getElementById('gateInput').value.trim().toUpperCase();
+    const err   = document.getElementById('gateError');
+    const inp   = document.getElementById('gateInput');
+    if (input === INVITE_CODE.toUpperCase()) {
+      document.getElementById('gateScreen').classList.add('hidden');
+    } else {
+      err.textContent = 'Incorrect code. Please check your invitation.';
+      inp.classList.remove('shake');
+      void inp.offsetWidth;
+      inp.classList.add('shake');
+      inp.value = '';
+      setTimeout(() => inp.classList.remove('shake'), 500);
+    }
+  }
+  document.getElementById('gateInput').addEventListener('keydown', e => { if (e.key === 'Enter') checkCode(); });
+
+  /* ── Show success if redirected back after formsubmit ── */
+  if (new URLSearchParams(window.location.search).get('done') === '1') {
+    document.getElementById('gateScreen').classList.add('hidden');
+    document.getElementById('formState').style.display    = 'none';
+    document.getElementById('successState').style.display = 'block';
+  }
+
+  /* ── Validate before form POST ── */
+  document.getElementById('rsvpForm').addEventListener('submit', function(e) {
+    const name   = document.getElementById('fullName').value.trim();
+    const phone  = document.getElementById('phone').value.trim();
+    const guests = document.getElementById('guests').value;
+
+    document.getElementById('nameErr').style.display   = name   ? 'none' : 'block';
+    document.getElementById('phoneErr').style.display  = phone  ? 'none' : 'block';
+    document.getElementById('guestsErr').style.display = guests ? 'none' : 'block';
+
+    if (!name || !phone || !guests) { e.preventDefault(); return; }
+
+    document.getElementById('submitBtn').disabled    = true;
+    document.getElementById('submitBtn').textContent = 'Sending…';
+  });
+</script>
+</body>
+</html>
