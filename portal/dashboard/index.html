@@ -75,9 +75,9 @@
         <a href="/portal/sales/" class="btn btn-outline btn-sm">+ New Report</a>
       </div>
       <div class="tbl-wrap">
-        <table style="min-width:560px">
-          <thead><tr><th>Date</th><th>Staff</th><th>Department</th><th>Cash</th><th>Transfer</th><th>POS</th><th>Total</th></tr></thead>
-          <tbody id="salesTable"><tr><td colspan="7" class="text-muted" style="text-align:center;padding:24px">Loading…</td></tr></tbody>
+        <table style="min-width:620px">
+          <thead><tr><th>Date</th><th>Time</th><th>Staff</th><th>Department</th><th>Cash</th><th>Transfer</th><th>POS</th><th>Total</th></tr></thead>
+          <tbody id="salesTable"><tr><td colspan="8" class="text-muted" style="text-align:center;padding:24px">Loading…</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -295,14 +295,24 @@ async function load() {
   const recentRows = [];
   recentSnap.docs.forEach(d => {
     const s = d.data();
-    recentRows.push({ _date: s.date || '', _type: 'sale', ...s });
+    let _ts = null, _timeStr = '—';
+    const _rawTs = s.createdAt || s.submittedAt || s.openedAt;
+    if (_rawTs && _rawTs.toDate) {
+      _ts = _rawTs.toDate();
+      _timeStr = _ts.toLocaleTimeString('en-NG', { hour: '2-digit', minute: '2-digit' });
+    } else if (s.time) {
+      _timeStr = s.time;
+    }
+    recentRows.push({ _date: s.date || '', _type: 'sale', _ts, _timeStr, ...s });
   });
   recentAptSnap.docs.forEach(d => {
     const r = d.data();
-    const ds = r.createdAt ? r.createdAt.toDate().toISOString().split('T')[0] : (r.checkin || '');
+    const aptTs = r.createdAt ? r.createdAt.toDate() : null;
+    const ds = aptTs ? aptTs.toISOString().split('T')[0] : (r.checkin || '');
+    const _timeStr = aptTs ? aptTs.toLocaleTimeString('en-NG', { hour: '2-digit', minute: '2-digit' }) : '—';
     const method = (r.payMethod || '').toLowerCase();
     recentRows.push({
-      _date: ds, _type: 'apt',
+      _date: ds, _type: 'apt', _ts: aptTs, _timeStr,
       date: ds, staffName: r.loggedBy || '—', department: 'Apartments',
       guestName: r.guestName, unit: r.unit,
       _cash:     method === 'cash'     ? (r.paid || 0) : 0,
@@ -311,17 +321,23 @@ async function load() {
       _total:    r.paid || 0,
     });
   });
-  recentRows.sort((a, b) => b._date.localeCompare(a._date));
+  recentRows.sort((a, b) => {
+    if (a._ts && b._ts) return b._ts - a._ts;
+    if (a._ts) return -1;
+    if (b._ts) return 1;
+    return b._date.localeCompare(a._date);
+  });
 
   const tbody = document.getElementById('salesTable');
   if (!recentRows.length) {
-    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:24px;color:#6a6b62">No sales recorded yet.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:24px;color:#6a6b62">No sales recorded yet.</td></tr>';
   } else {
     tbody.innerHTML = recentRows.slice(0, 25).map(r => {
       if (r._type === 'apt') {
         const sub = r.guestName ? ` <span style="font-size:0.7rem;color:var(--muted);">(${r.guestName}${r.unit ? ' · ' + r.unit : ''})</span>` : '';
         return `<tr>
           <td>${r.date}</td>
+          <td style="font-size:0.78rem;color:var(--muted);white-space:nowrap">${r._timeStr}</td>
           <td class="fw4">${r.staffName}${sub}</td>
           <td><span class="badge" style="background:rgba(201,169,110,0.15);color:#9A7A3A;border:1px solid rgba(201,169,110,0.3)">Apartments</span></td>
           <td>${fmtNaira(r._cash)}</td>
@@ -332,6 +348,7 @@ async function load() {
       }
       return `<tr>
         <td>${r.date}</td>
+        <td style="font-size:0.78rem;color:var(--muted);white-space:nowrap">${r._timeStr}</td>
         <td class="fw4">${saleName(r)}</td>
         <td><span class="badge badge-info">${saleDept(r)}</span></td>
         <td>${fmtNaira(saleCash(r))}</td>

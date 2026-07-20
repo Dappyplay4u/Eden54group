@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#0f2318">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Eden 54">
+<title>Customers · Eden 54 Portal</title>
+<link rel="icon" type="image/jpeg" href="/logo/eden 54 logo.jpeg">
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/portal/portal.css">
+<style>
+.cust-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 14px;
+  margin-top: 18px;
+}
+.cust-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px 18px;
+  cursor: pointer;
+  transition: border-color 0.18s, box-shadow 0.18s;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+.cust-card:hover { border-color: var(--gold); box-shadow: 0 2px 12px rgba(201,169,110,0.1); }
+.cust-avatar {
+  width: 44px; height: 44px; border-radius: 50%;
+  background: rgba(201,169,110,0.15);
+  border: 1px solid rgba(201,169,110,0.3);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.88rem; font-weight: 500; color: var(--gold);
+  flex-shrink: 0;
+}
+.cust-info { flex: 1; min-width: 0; }
+.cust-name { font-size: 0.9rem; font-weight: 400; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cust-phone { font-size: 0.75rem; color: var(--muted); margin-top: 2px; }
+.cust-stats { display: flex; gap: 12px; margin-top: 10px; flex-wrap: wrap; }
+.cust-stat { font-size: 0.7rem; color: var(--muted); }
+.cust-stat strong { color: var(--text); font-weight: 400; display: block; font-size: 0.82rem; }
+.dept-chips { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 8px; }
+.dept-chip {
+  font-size: 0.62rem; padding: 2px 8px; border-radius: 10px;
+  background: rgba(201,169,110,0.1); color: var(--gold);
+  border: 1px solid rgba(201,169,110,0.2); white-space: nowrap;
+}
+
+/* Detail modal */
+.detail-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+  z-index: 1000; display: none; align-items: flex-start; justify-content: flex-end;
+  padding: 0;
+}
+.detail-overlay.show { display: flex; }
+.detail-panel {
+  width: min(520px, 100vw);
+  height: 100vh;
+  background: var(--card);
+  border-left: 1px solid var(--border);
+  overflow-y: auto;
+  display: flex; flex-direction: column;
+  animation: slideIn 0.22s ease;
+}
+@keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
+.detail-hdr {
+  padding: 20px 22px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: flex-start; gap: 14px;
+  position: sticky; top: 0; background: var(--card); z-index: 1;
+}
+.detail-avatar {
+  width: 52px; height: 52px; border-radius: 50%;
+  background: rgba(201,169,110,0.15);
+  border: 1px solid rgba(201,169,110,0.3);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.1rem; font-weight: 500; color: var(--gold);
+  flex-shrink: 0;
+}
+.detail-hdr-info { flex: 1; min-width: 0; }
+.detail-name { font-size: 1.05rem; font-weight: 400; }
+.detail-phone { font-size: 0.78rem; color: var(--muted); margin-top: 3px; }
+.detail-close {
+  background: none; border: none; cursor: pointer;
+  font-size: 1.1rem; color: var(--muted); padding: 4px; line-height: 1;
+  flex-shrink: 0;
+}
+.detail-body { padding: 20px 22px; flex: 1; }
+
+.stat-row {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 10px; margin-bottom: 20px;
+}
+.stat-box {
+  background: rgba(201,169,110,0.05);
+  border: 1px solid var(--border);
+  border-radius: 6px; padding: 10px 12px;
+  text-align: center;
+}
+.stat-box-val { font-size: 1rem; font-weight: 400; color: var(--gold); }
+.stat-box-lbl { font-size: 0.6rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-top: 3px; }
+
+.detail-section { margin-bottom: 22px; }
+.detail-section-title {
+  font-size: 0.62rem; letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--muted); margin-bottom: 10px; padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+}
+.visit-row {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  padding: 9px 0; border-bottom: 1px solid rgba(0,0,0,0.04);
+  gap: 10px; font-size: 0.82rem;
+}
+.visit-row:last-child { border-bottom: none; }
+.visit-date { font-size: 0.72rem; color: var(--muted); margin-top: 2px; }
+.visit-time { font-size: 0.68rem; color: var(--gold); opacity: 0.7; }
+.visit-items { font-size: 0.7rem; color: var(--muted); margin-top: 3px; line-height: 1.5; }
+.visit-dept {
+  font-size: 0.62rem; padding: 2px 7px; border-radius: 10px;
+  background: rgba(201,169,110,0.1); color: var(--gold);
+  border: 1px solid rgba(201,169,110,0.2); white-space: nowrap; margin-top: 3px;
+  display: inline-block;
+}
+
+.bar-track { height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; margin-top: 5px; }
+.bar-fill { height: 100%; background: linear-gradient(to right, var(--gold), rgba(201,169,110,0.35)); border-radius: 2px; }
+
+.sort-btn {
+  font-size: 0.7rem; padding: 5px 12px;
+  border: 1px solid var(--border); background: transparent;
+  color: var(--muted); border-radius: 4px; cursor: pointer;
+  font-family: 'Jost', sans-serif; transition: all 0.15s;
+}
+.sort-btn:hover, .sort-btn.active { border-color: var(--gold); color: var(--gold); background: rgba(201,169,110,0.07); }
+.dept-tab {
+  font-size: 0.72rem; padding: 6px 14px;
+  border: 1px solid var(--border); background: transparent;
+  color: var(--muted); border-radius: 20px; cursor: pointer;
+  font-family: 'Jost', sans-serif; transition: all 0.15s; white-space: nowrap;
+}
+.dept-tab:hover { border-color: var(--gold); color: var(--gold); }
+.dept-tab.active { border-color: var(--gold); color: var(--gold); background: rgba(201,169,110,0.1); font-weight: 400; }
+
+.empty-state { text-align: center; padding: 48px 24px; color: var(--muted); font-size: 0.85rem; }
+.empty-state .big { font-size: 2.5rem; margin-bottom: 12px; }
+
+@media (max-width: 600px) {
+  .stat-row { grid-template-columns: repeat(2, 1fr); }
+  .detail-panel { width: 100vw; }
+}
+</style>
+</head>
+<body>
+<div class="sb-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+<aside class="sidebar" id="sidebar">
+  <div class="sb-brand"><div class="sb-brand-name">Eden 54</div><div class="sb-brand-sub">Staff Portal</div></div>
+  <nav class="sb-nav" id="sbNav"></nav>
+  <div class="sb-foot">
+    <div id="sidebarUser"></div>
+    <a class="sb-item" onclick="switchProfile()" style="cursor:pointer"><i class="sb-icon">🚪</i> Sign Out</a>
+  </div>
+</aside>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <button class="hamburger" onclick="toggleSidebar()"><div></div><div></div><div></div></button>
+      <h1>Customers</h1>
+    </div>
+    <div class="topbar-date" id="topDate"></div>
+  </div>
+
+  <div class="content">
+    <div id="alertBox" class="alert"></div>
+
+    <!-- Controls -->
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+      <input type="search" id="searchBox" class="form-control" placeholder="Search name or phone…"
+             style="max-width:280px;font-size:0.84rem" oninput="applyFilter()">
+      <div style="display:flex;gap:6px;margin-left:auto;flex-wrap:wrap">
+        <button class="sort-btn active" id="sortVisit"  onclick="setSort('visit')">Last Visit</button>
+        <button class="sort-btn"        id="sortSpend"  onclick="setSort('spend')">Top Spend</button>
+        <button class="sort-btn"        id="sortCount"  onclick="setSort('count')">Most Visits</button>
+      </div>
+    </div>
+
+    <!-- Department filter tabs -->
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:12px" id="deptTabs">
+      <button class="dept-tab active" data-dept="all"     onclick="setDept('all')">All Departments</button>
+      <button class="dept-tab"        data-dept="barbing" onclick="setDept('barbing')">💈 Barbing</button>
+      <button class="dept-tab"        data-dept="drinks"  onclick="setDept('drinks')">🍺 Bar & Drinks</button>
+      <button class="dept-tab"        data-dept="food"    onclick="setDept('food')">🍽️ Restaurant</button>
+      <button class="dept-tab"        data-dept="tab"     onclick="setDept('tab')">🍽️ Table Tabs</button>
+      <button class="dept-tab"        data-dept="apt"     onclick="setDept('apt')">🏠 Apartments</button>
+      <button class="dept-tab"        data-dept="games"   onclick="setDept('games')">🎮 Games</button>
+      <button class="dept-tab"        data-dept="events"  onclick="setDept('events')">🎪 Events</button>
+    </div>
+
+    <!-- Stats bar -->
+    <div style="display:flex;gap:20px;margin-top:14px;padding:14px 18px;background:var(--deep);border-radius:8px;flex-wrap:wrap">
+      <div style="font-size:0.7rem;color:rgba(245,242,236,0.45);letter-spacing:0.12em;text-transform:uppercase;align-self:center">Overview</div>
+      <div style="font-size:0.82rem;color:rgba(245,242,236,0.7)">Total customers: <strong id="statTotal" style="color:#C9A96E;font-weight:400">—</strong></div>
+      <div style="font-size:0.82rem;color:rgba(245,242,236,0.7)">Combined spend: <strong id="statSpend" style="color:#C9A96E;font-weight:400">—</strong></div>
+      <div style="font-size:0.82rem;color:rgba(245,242,236,0.7)">Avg visits: <strong id="statAvg" style="color:#C9A96E;font-weight:400">—</strong></div>
+    </div>
+
+    <!-- Customer grid -->
+    <div class="cust-grid" id="custGrid">
+      <div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--muted);font-size:0.85rem">Loading customers…</div>
+    </div>
+  </div>
+</div>
+
+<!-- Detail panel -->
+<div class="detail-overlay" id="detailOverlay" onclick="closeDetail(event)">
+  <div class="detail-panel" id="detailPanel">
+    <div class="detail-hdr">
+      <div class="detail-avatar" id="dAvatar">—</div>
+      <div class="detail-hdr-info">
+        <div class="detail-name" id="dName">—</div>
+        <div class="detail-phone" id="dPhone">—</div>
+        <div id="dFirstSeen" style="font-size:0.7rem;color:var(--muted);margin-top:3px"></div>
+      </div>
+      <button class="detail-close" onclick="closeDetailDirect()">✕</button>
+    </div>
+    <div class="detail-body" id="detailBody">
+      <div style="text-align:center;padding:40px;color:var(--muted)">Loading…</div>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="/portal/firebase-init.js"></script>
+<script>
+document.getElementById('topDate').textContent =
+  new Date().toLocaleDateString('en-NG', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+
+const staff = getStaff();
+requireAccess(staff, 'customers');
+populateSidebar(staff);
+buildNav(staff, 'customers');
+
+const DEPT_LABELS = {
+  barbing: '💈 Barbing', games: '🎮 Games', drinks: '🍺 Bar',
+  food: '🍽️ Food', apt: '🏠 Apartments', events: '🎪 Events', tab: '🍽️ Food (Tab)',
+};
+
+function deptFromSale(r) {
+  if (r.source === 'tab') return 'tab';
+  if (r.source === 'pos') return (r.section || 'events').toLowerCase();
+  const d = (r.department || '').toLowerCase().trim();
+  if (d === 'barbing salon' || d === 'barbing' || d === 'salon') return 'barbing';
+  if (d === 'bar') return 'drinks';
+  if (d === 'pool' || d === 'games') return 'games';
+  if (d === 'restaurant & lounge' || d === 'lounge') return 'food';
+  return 'events';
+}
+
+function initials(name) {
+  return (name || '?').split(' ').filter(Boolean).map(n => n[0]).join('').toUpperCase().slice(0, 2);
+}
+
+function fmtDate(str) {
+  if (!str) return '—';
+  return new Date(str + 'T12:00:00').toLocaleDateString('en-NG', { day:'numeric', month:'short', year:'numeric' });
+}
+
+function fmtTime(ts) {
+  if (!ts || !ts.toDate) return null;
+  return ts.toDate().toLocaleTimeString('en-NG', { hour:'2-digit', minute:'2-digit' });
+}
+
+let allCustomers = [];
+let sortMode    = 'visit';
+let deptFilter  = 'all';
+let deptPhones  = null; // null = show all; Set<string> = phone keys for active dept
+
+async function loadCustomers() {
+  const snap = await db.collection('customers').orderBy('lastVisit', 'desc').get();
+  allCustomers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  updateStats(allCustomers);
+  applyFilter();
+}
+
+function updateStats(list) {
+  const total      = list.length;
+  const totalSpend = list.reduce((s, c) => s + (c.totalSpend || 0), 0);
+  const avgVisits  = total ? (list.reduce((s, c) => s + (c.visitCount || 0), 0) / total).toFixed(1) : '0';
+  document.getElementById('statTotal').textContent = total.toLocaleString();
+  document.getElementById('statSpend').textContent = fmtNaira(totalSpend);
+  document.getElementById('statAvg').textContent   = avgVisits;
+}
+
+function setSort(mode) {
+  sortMode = mode;
+  document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('sort' + mode.charAt(0).toUpperCase() + mode.slice(1)).classList.add('active');
+  applyFilter();
+}
+
+async function setDept(dept) {
+  deptFilter = dept;
+  document.querySelectorAll('.dept-tab').forEach(b => b.classList.toggle('active', b.dataset.dept === dept));
+
+  if (dept === 'all') {
+    deptPhones = null;
+    applyFilter();
+    return;
+  }
+
+  // Show a brief loading state while querying sales history
+  document.getElementById('custGrid').innerHTML =
+    '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--muted);font-size:0.85rem">Loading…</div>';
+
+  const phones = new Set();
+
+  try {
+    if (dept === 'apt') {
+      // Apartments are in their own collection, not in sales
+      const snap = await db.collection('apartmentRentals').get();
+      snap.docs.forEach(d => {
+        const p = (d.data().phone || '').replace(/\D/g, '');
+        if (p.length >= 7) phones.add(p);
+      });
+    } else if (dept === 'tab') {
+      // Table tabs saved in sales with source='tab'
+      const snap = await db.collection('sales').where('source', '==', 'tab').get();
+      snap.docs.forEach(d => {
+        const p = (d.data().customerPhone || '').replace(/\D/g, '');
+        if (p) phones.add(p);
+      });
+    } else {
+      // POS sales keyed by section field
+      const snap = await db.collection('sales').where('section', '==', dept).get();
+      snap.docs.forEach(d => {
+        const p = (d.data().customerPhone || '').replace(/\D/g, '');
+        if (p) phones.add(p);
+      });
+    }
+
+    // Also catch customers already tagged via the depts array (belt-and-suspenders)
+    allCustomers.forEach(c => {
+      if ((c.depts || []).includes(dept)) {
+        const key = (c.phone || c.id || '').replace(/\D/g, '');
+        if (key) phones.add(key);
+      }
+    });
+
+    deptPhones = phones;
+  } catch (e) {
+    console.error('dept filter query:', e);
+    deptPhones = null; // fall back to showing all on error
+  }
+
+  applyFilter();
+}
+
+function applyFilter() {
+  const q = (document.getElementById('searchBox').value || '').toLowerCase().trim();
+  let list = [...allCustomers];
+
+  // Department filter using phone keys resolved from sales history
+  if (deptFilter !== 'all' && deptPhones !== null) {
+    list = list.filter(c => {
+      const key = (c.phone || c.id || '').replace(/\D/g, '');
+      return deptPhones.has(key);
+    });
+  }
+
+  // Text search — checks name, all aliases, and phone
+  if (q) {
+    list = list.filter(c =>
+      (c.name || '').toLowerCase().includes(q) ||
+      (c.phone || '').replace(/\D/g,'').includes(q.replace(/\D/g,'')) ||
+      (c.nameAliases || []).some(a => a.toLowerCase().includes(q))
+    );
+  }
+
+  // Sort
+  if (sortMode === 'spend') list.sort((a, b) => (b.totalSpend || 0) - (a.totalSpend || 0));
+  else if (sortMode === 'count') list.sort((a, b) => (b.visitCount || 0) - (a.visitCount || 0));
+
+  updateStats(list);
+  renderGrid(list);
+}
+
+function renderGrid(list) {
+  const grid = document.getElementById('custGrid');
+  if (!list.length) {
+    const deptName = deptFilter === 'all' ? '' : ` in ${DEPT_LABELS[deptFilter] || deptFilter}`;
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1">
+      <div class="big">👤</div>
+      <div>No customers found${deptName}</div>
+      <div style="margin-top:6px;font-size:0.78rem">${deptFilter === 'all'
+        ? 'Customers are created when a phone number is entered at the POS terminal'
+        : 'Try a different department or check that dept tags have been saved on existing customers'
+      }</div>
+    </div>`;
+    return;
+  }
+
+  grid.innerHTML = list.map(c => {
+    const depts = (c.depts || []).map(d => `<span class="dept-chip">${DEPT_LABELS[d] || d}</span>`).join('');
+    const aliases = (c.nameAliases || []).filter(a => a && a !== c.name);
+    const aliasLine = aliases.length
+      ? `<div style="font-size:0.68rem;color:var(--muted);margin-top:1px">Also known as: ${aliases.map(a => esc(a)).join(', ')}</div>`
+      : '';
+    return `<div class="cust-card" onclick="openDetail('${esc(c.id)}')">
+      <div class="cust-avatar">${esc(initials(c.name))}</div>
+      <div class="cust-info">
+        <div class="cust-name">${esc(c.name || 'Unknown')}</div>
+        ${aliasLine}
+        <div class="cust-phone">📱 ${esc(c.phone || c.id)}</div>
+        <div class="cust-stats">
+          <div class="cust-stat"><strong>${(c.visitCount || 0).toLocaleString()}</strong>Visits</div>
+          <div class="cust-stat"><strong>${fmtNaira(c.totalSpend || 0)}</strong>Total Spent</div>
+          <div class="cust-stat"><strong>${c.lastVisit ? fmtDate(c.lastVisit) : '—'}</strong>Last Visit</div>
+        </div>
+        ${depts ? `<div class="dept-chips">${depts}</div>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function openDetail(phoneKey) {
+  document.getElementById('detailOverlay').classList.add('show');
+  document.getElementById('detailBody').innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)">Loading history…</div>';
+
+  const cust = allCustomers.find(c => c.id === phoneKey);
+  if (cust) {
+    document.getElementById('dAvatar').textContent = initials(cust.name);
+    document.getElementById('dName').textContent   = cust.name || 'Unknown';
+    document.getElementById('dPhone').textContent  = '📱 ' + (cust.phone || phoneKey);
+    const aliases = (cust.nameAliases || []).filter(a => a && a !== cust.name);
+    const firstSeen = cust.createdAt && cust.createdAt.toDate
+      ? 'Customer since ' + cust.createdAt.toDate().toLocaleDateString('en-NG', { day:'numeric', month:'long', year:'numeric' })
+      : '';
+    document.getElementById('dFirstSeen').innerHTML =
+      (firstSeen ? `<span>${firstSeen}</span>` : '') +
+      (aliases.length ? `<span style="display:block;margin-top:2px;font-size:0.68rem;color:var(--muted)">Also known as: ${aliases.map(a=>esc(a)).join(', ')}</span>` : '');
+  }
+
+  try {
+    const snap = await db.collection('sales')
+      .where('customerPhone', '==', cust?.phone || phoneKey)
+      .get();
+
+    const sales = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    sales.sort((a, b) => {
+      const at = a.createdAt?.seconds || 0;
+      const bt = b.createdAt?.seconds || 0;
+      return bt - at || (b.date || '').localeCompare(a.date || '');
+    });
+
+    // Aggregations
+    const totalSpend = sales.reduce((s, r) => s + (saleTotal(r) || 0), 0);
+    const visitCount = sales.length;
+    const deptMap    = {};
+    const itemMap    = {};
+
+    sales.forEach(r => {
+      const dept = deptFromSale(r);
+      deptMap[dept] = (deptMap[dept] || 0) + (saleTotal(r) || 0);
+      (r.items || []).forEach(i => {
+        const name = i.name || '—';
+        if (!itemMap[name]) itemMap[name] = { qty: 0, revenue: 0 };
+        itemMap[name].qty     += (i.qty || 1);
+        itemMap[name].revenue += (i.total || (i.unitPrice || 0) * (i.qty || 1));
+      });
+    });
+
+    // Update customer dept tags on card while we have the data
+    const deptKeys = Object.keys(deptMap);
+    if (cust && deptKeys.length && (!cust.depts || cust.depts.length === 0)) {
+      db.collection('customers').doc(phoneKey).update({ depts: deptKeys }).catch(() => {});
+      cust.depts = deptKeys;
+    }
+
+    const topDepts  = Object.entries(deptMap).sort((a, b) => b[1] - a[1]);
+    const topItems  = Object.entries(itemMap).sort((a, b) => b[1].revenue - a[1].revenue).slice(0, 6);
+    const maxDept   = topDepts[0]?.[1] || 1;
+    const maxItem   = topItems[0]?.[1].revenue || 1;
+
+    const firstDate = sales.length ? (sales[sales.length - 1].date || '—') : '—';
+    const lastDate  = sales.length ? (sales[0].date || '—') : '—';
+
+    let html = `
+      <div class="stat-row">
+        <div class="stat-box"><div class="stat-box-val">${visitCount}</div><div class="stat-box-lbl">Visits</div></div>
+        <div class="stat-box"><div class="stat-box-val">${fmtNaira(totalSpend)}</div><div class="stat-box-lbl">Total Spent</div></div>
+        <div class="stat-box"><div class="stat-box-val">${fmtDate(firstDate)}</div><div class="stat-box-lbl">First Visit</div></div>
+        <div class="stat-box"><div class="stat-box-val">${fmtDate(lastDate)}</div><div class="stat-box-lbl">Last Visit</div></div>
+      </div>`;
+
+    // Department breakdown
+    if (topDepts.length) {
+      html += `<div class="detail-section">
+        <div class="detail-section-title">Where They Visit</div>`;
+      topDepts.forEach(([dept, amt]) => {
+        const pct = Math.round((amt / maxDept) * 100);
+        html += `<div style="margin-bottom:10px">
+          <div style="display:flex;justify-content:space-between;font-size:0.82rem;margin-bottom:4px">
+            <span>${DEPT_LABELS[dept] || dept}</span>
+            <span style="color:var(--gold)">${fmtNaira(amt)}</span>
+          </div>
+          <div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div>
+        </div>`;
+      });
+      html += `</div>`;
+    }
+
+    // Top items
+    if (topItems.length) {
+      html += `<div class="detail-section">
+        <div class="detail-section-title">What They Buy</div>`;
+      topItems.forEach(([name, d], i) => {
+        const pct = Math.round((d.revenue / maxItem) * 100);
+        html += `<div style="margin-bottom:8px">
+          <div style="display:flex;justify-content:space-between;font-size:0.8rem;margin-bottom:3px">
+            <span style="${i === 0 ? 'color:var(--gold)' : ''}">${esc(name)}</span>
+            <span style="color:var(--muted)">${d.qty}× · ${fmtNaira(d.revenue)}</span>
+          </div>
+          <div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div>
+        </div>`;
+      });
+      html += `</div>`;
+    }
+
+    // Visit history
+    if (sales.length) {
+      html += `<div class="detail-section">
+        <div class="detail-section-title">Visit History (${sales.length})</div>`;
+      sales.forEach(r => {
+        const t     = fmtTime(r.createdAt);
+        const dept  = deptFromSale(r);
+        const items = (r.items || []).map(i => `${i.qty}× ${esc(i.name)}`).join(', ');
+        const pm    = (r.paymentMethod || '').toUpperCase();
+        html += `<div class="visit-row">
+          <div style="min-width:0">
+            <div class="visit-date">${fmtDate(r.date)}${t ? '' : ''}</div>
+            ${t ? `<div class="visit-time">⏱ ${t}</div>` : ''}
+            ${items ? `<div class="visit-items">${items}</div>` : ''}
+            <span class="visit-dept">${DEPT_LABELS[dept] || dept}</span>
+          </div>
+          <div style="text-align:right;flex-shrink:0">
+            <div style="font-weight:400;color:var(--gold)">${fmtNaira(saleTotal(r))}</div>
+            ${pm ? `<div style="font-size:0.68rem;color:var(--muted);margin-top:2px">${pm}</div>` : ''}
+          </div>
+        </div>`;
+      });
+      html += `</div>`;
+    } else {
+      html += `<div class="empty-state"><div class="big">🛒</div><div>No purchase history found</div></div>`;
+    }
+
+    document.getElementById('detailBody').innerHTML = html;
+  } catch (e) {
+    document.getElementById('detailBody').innerHTML =
+      `<div style="color:#ef4444;padding:24px">Error loading history: ${esc(e.message)}</div>`;
+  }
+}
+
+function closeDetail(e) {
+  if (e.target === document.getElementById('detailOverlay')) closeDetailDirect();
+}
+function closeDetailDirect() {
+  document.getElementById('detailOverlay').classList.remove('show');
+}
+
+loadCustomers();
+</script>
+</body>
+</html>

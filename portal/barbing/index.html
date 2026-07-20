@@ -214,7 +214,8 @@ async function submitBarbing() {
       clientsServed: services.length,
       notes: document.getElementById('barbNotes').value.trim(),
       submittedById: currentStaff.id,
-      submittedAt: firebase.firestore.FieldValue.serverTimestamp()
+      submittedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      createdAt:   firebase.firestore.FieldValue.serverTimestamp(),
     });
     showAlert('alertBox','Report submitted!','alert-success');
     document.getElementById('barbCash').value = '';

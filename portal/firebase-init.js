@@ -166,6 +166,7 @@ function buildNav(staff, active) {
     html += a('/portal/activity/',          '🕵️', 'Staff Activity',     'activity');
     html += a('/portal/expenses/',          '🧾', 'Expenses',           'expenses');
     html += a('/portal/background-check/', '🔍', 'Background Checks',  'background-check');
+    html += a('/portal/customers/',         '👥', 'Customers',          'customers');
     html += sec('Admin');
     html += a('/portal/staff/',      '👤', 'Manage Staff',   'staff');
     html += sec('Apartments');
@@ -178,6 +179,7 @@ function buildNav(staff, active) {
     html += a('/portal/payroll/',           '💵', 'Payroll',            'payroll');
     html += a('/portal/expenses/',          '🧾', 'Expenses',           'expenses');
     html += a('/portal/background-check/', '🔍', 'Background Checks',  'background-check');
+    html += a('/portal/customers/',         '👥', 'Customers',          'customers');
     html += sec('Admin');
     html += a('/portal/staff/',             '👤', 'Manage Staff',       'staff');
     html += sec('Apartments');
@@ -351,6 +353,7 @@ function _checkAccess(staff, page) {
   const isHR      = _raw === 'hr' || dept === 'hr' || dept.includes('human resource');
   const rules = {
     dashboard:          isManager,
+    customers:          isManager || isHR,
     staff:              isManager || isHR,
     attendance:         isManager || isHR,
     payroll:            isManager || isHR,

@@ -918,9 +918,17 @@ async function completeSale() {
     if (custPhone) {
       const phoneKey = custPhone.replace(/\D/g,'');
       if (phoneKey.length >= 7) {
-        const custRef = db.collection('customers').doc(phoneKey);
-        await custRef.set({ name:customer||'Guest', phone:custPhone, createdAt:firebase.firestore.FieldValue.serverTimestamp() }, { merge:true });
-        await custRef.update({ lastVisit:dateStr, visitCount:firebase.firestore.FieldValue.increment(1), totalSpend:firebase.firestore.FieldValue.increment(total) });
+        const custRef  = db.collection('customers').doc(phoneKey);
+        const deptKey  = pendingTab ? 'tab' : activeCat;
+        const enteredName = customer || 'Guest';
+        await custRef.set({ name:enteredName, phone:custPhone, createdAt:firebase.firestore.FieldValue.serverTimestamp() }, { merge:true });
+        await custRef.update({
+          lastVisit:    dateStr,
+          visitCount:   firebase.firestore.FieldValue.increment(1),
+          totalSpend:   firebase.firestore.FieldValue.increment(total),
+          depts:        firebase.firestore.FieldValue.arrayUnion(deptKey),
+          nameAliases:  firebase.firestore.FieldValue.arrayUnion(enteredName),
+        });
       }
     }
 

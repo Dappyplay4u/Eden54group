@@ -509,6 +509,26 @@ async function submitRental() {
 
   try {
     await db.collection('apartmentRentals').add(rentalData);
+
+    // Register guest in the shared customers list
+    const phoneKey = phone.replace(/\D/g, '');
+    if (phoneKey.length >= 7) {
+      const custRef = db.collection('customers').doc(phoneKey);
+      await custRef.set({
+        name:      guestName,
+        phone:     phone,
+        email:     rentalData.email || '',
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      }, { merge: true });
+      await custRef.update({
+        lastVisit:   checkin,
+        visitCount:  firebase.firestore.FieldValue.increment(1),
+        totalSpend:  firebase.firestore.FieldValue.increment(paid),
+        depts:       firebase.firestore.FieldValue.arrayUnion('apt'),
+        nameAliases: firebase.firestore.FieldValue.arrayUnion(guestName),
+      });
+    }
+
     showAlert('alertBox', `Rental logged for ${guestName} ✓`, 'alert-success');
     // Reset form
     ['apGuestName','apPhone','apEmail','apUnit','apBedrooms','apGuests','apCheckin','apCheckout','apRate','apTotal','apPaid','apPayMethod','apPayStatus','apNotes','apDiscount','apCautionOverride','apDiscountNote'].forEach(id => {

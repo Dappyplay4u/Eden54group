@@ -273,6 +273,14 @@ document.getElementById('reportDate').value = todayStr();
 /* ── Helpers ── */
 function N(n) { return fmtNaira(n||0); }
 function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function entryTime(r) {
+  const ts = r.createdAt || r.submittedAt || r.openedAt;
+  if (ts && ts.toDate) {
+    return ts.toDate().toLocaleTimeString('en-NG', { hour: '2-digit', minute: '2-digit' });
+  }
+  if (r.time) return r.time;
+  return null;
+}
 function pill(ok, label) {
   return `<span class="pill-status ${ok?'pill-ok':'pill-none'}">${ok?'✓':'—'} ${label}</span>`;
 }
@@ -394,6 +402,7 @@ function salesRows(rows) {
     const auditLine = isPos
       ? `<div class="cash-breakdown">${(r.paymentMethod||'').toUpperCase()}${r.receivedBy ? ' · Rcvd: '+esc(r.receivedBy) : ''}${itemList ? ' · '+itemList : ''}</div>`
       : `<div class="cash-breakdown">Cash ${N(r.cashSales)} · Trans ${N(r.transferSales)} · POS ${N(r.posSales)}</div>`;
+    const t = entryTime(r);
     return `
     <div class="rev-row">
       <div>
@@ -404,6 +413,7 @@ function salesRows(rows) {
       <div style="text-align:right">
         ${auditLine}
         <div style="font-size:0.88rem;font-weight:400">${N(r.totalSales)}</div>
+        ${t ? `<div class="cash-breakdown" style="color:var(--muted)">⏱ ${t}</div>` : ''}
       </div>
     </div>`;
   }).join('');
@@ -440,10 +450,11 @@ function renderGames(date, posSales, poolComps, manualSales) {
         `<div class="match-row"><span style="color:var(--muted)">${esc(m.player1||'')} vs ${esc(m.player2||'')}</span>
          <span style="margin-left:auto">${N(m.stake||0)}</span></div>`
       ).join('');
+      const ct = entryTime(r);
       return `<div class="rev-row" style="flex-direction:column;align-items:flex-start;gap:6px">
         <div style="display:flex;width:100%;justify-content:space-between">
           <span><strong style="font-weight:400">${esc(r.type||'Competition')}</strong> · ${r.players||0} players</span>
-          <span class="cash-breakdown">by ${esc(r.staffName)}</span>
+          <span class="cash-breakdown">by ${esc(r.staffName)}${ct ? ' · ⏱ '+ct : ''}</span>
         </div>
         ${matchList}
         <div style="display:flex;gap:18px;font-size:0.78rem">
@@ -628,6 +639,7 @@ function renderBarbing(date, reports, posSales, salonSales) {
     html += `<div class="sub-label">Service Reports</div>`;
     html += realReports.map(r=>{
       const svcs = (r.services||[]).map(s=>`${s.type} ${N(s.amount)}`).join(' · ');
+      const t = entryTime(r);
       return `<div class="rev-row">
         <div>
           <strong style="font-weight:400">${esc(r.staffName)}</strong>
@@ -637,6 +649,7 @@ function renderBarbing(date, reports, posSales, salonSales) {
         <div style="text-align:right">
           <div class="cash-breakdown">${r.clientsServed||0} clients</div>
           <div style="font-weight:400;color:var(--gold)">${N(r.totalRevenue)}</div>
+          ${t ? `<div class="cash-breakdown" style="color:var(--muted)">⏱ ${t}</div>` : ''}
         </div>
       </div>`;
     }).join('');
@@ -701,6 +714,7 @@ function renderApartments(date, posSales, manualSales, rentals) {
     html += rentals.map(r => {
       const nights = r.nights || aptNights(r.checkin, r.checkout);
       const sCls   = r.payStatus==='paid' ? 'pill-ok' : r.payStatus==='partial' ? 'pill-warn' : 'pill-none';
+      const t = entryTime(r);
       return `<div class="rev-row">
         <div>
           <strong style="font-weight:400">${esc(r.guestName)}</strong>
@@ -711,6 +725,7 @@ function renderApartments(date, posSales, manualSales, rentals) {
           <span class="pill-status ${sCls}" style="margin-bottom:4px">${r.payStatus||'pending'}</span>
           <div class="cash-breakdown">Total ${N(r.total)} · Paid ${N(r.paid)}</div>
           ${r.balance>0?`<div class="cash-breakdown" style="color:#fca5a5">Bal ${N(r.balance)}</div>`:''}
+          ${t ? `<div class="cash-breakdown" style="color:var(--muted)">⏱ ${t}</div>` : ''}
         </div>
       </div>`;
     }).join('');
@@ -783,6 +798,7 @@ function renderExpenses(date, rows) {
       const receipt = e.photoUrl
         ? `<a href="${e.photoUrl}" target="_blank" style="color:var(--gold);font-size:0.75rem">View</a>`
         : '<span style="color:var(--muted)">—</span>';
+      const et = entryTime(e);
       return `<div class="rev-row">
         <div>
           <strong style="font-weight:400">${esc(e.staffName)}</strong>
@@ -792,6 +808,7 @@ function renderExpenses(date, rows) {
         <div style="text-align:right">
           ${receipt}
           <div style="font-weight:400;color:var(--gold);font-size:0.88rem">${N(e.amount)}</div>
+          ${et ? `<div class="cash-breakdown" style="color:var(--muted)">⏱ ${et}</div>` : ''}
         </div>
       </div>`;
     }).join('');

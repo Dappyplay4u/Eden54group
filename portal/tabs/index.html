@@ -440,6 +440,7 @@ async function createTab() {
       tableLabel,
       status: 'open',
       openedAt:     firebase.firestore.FieldValue.serverTimestamp(),
+      createdAt:    firebase.firestore.FieldValue.serverTimestamp(),
       openedBy:     { id: staff.id, name: staff.name },
       servingStaff: { id: staff.id, name: staff.name },
       items: [],

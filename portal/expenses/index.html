@@ -298,7 +298,8 @@ async function submitExpense() {
       photoUrl,
       staffId:   currentStaff.id,
       staffName: currentStaff.name,
-      submittedAt: firebase.firestore.FieldValue.serverTimestamp()
+      submittedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      createdAt:   firebase.firestore.FieldValue.serverTimestamp(),
     });
 
     showAlert('alertBox', 'Expense submitted!', 'alert-success');
