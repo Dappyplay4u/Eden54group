@@ -498,7 +498,8 @@ async function submitRental() {
     cautionFee, cautionStatus: 'held',
     payMethod, payStatus,
     notes:     document.getElementById('apNotes').value.trim(),
-    loggedBy:  staff.name,
+    loggedBy:   staff.name,
+    loggedById: staff.id,
     status:    'checked-in',
     createdAt: firebase.firestore.FieldValue.serverTimestamp()
   };

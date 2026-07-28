@@ -211,8 +211,10 @@ async function init() {
       if (s.active !== false) staffMap[s.id] = s;
     });
 
-    // Populate department dropdown
-    const depts = [...new Set(Object.values(staffMap).map(s => s.department).filter(Boolean))].sort();
+    // Populate department dropdown — always include Apartments even if no staff tagged to it
+    const deptSet = new Set(Object.values(staffMap).map(s => s.department).filter(Boolean));
+    deptSet.add('Apartments');
+    const depts = [...deptSet].sort();
     const deptSel = document.getElementById('filterDept');
     depts.forEach(d => { deptSel.innerHTML += `<option value="${d}">${d}</option>`; });
 
@@ -251,12 +253,12 @@ async function loadAll() {
 
   // When a department is chosen but no specific staff, build a staffId Set for client-side filtering
   let deptStaffIds = null;
-  if (deptKey && !staffId) {
+  if (deptKey && !staffId && deptKey !== 'Apartments') {
     deptStaffIds = new Set(Object.values(staffMap).filter(s => s.department === deptKey).map(s => s.id));
   }
 
   await Promise.all([
-    loadSales(staffId, dateFrom, dateTo, deptStaffIds),
+    loadSales(staffId, dateFrom, dateTo, deptStaffIds, deptKey),
     loadClocks(staffId, dateFrom, dateTo, deptStaffIds),
     loadUpdates(staffId, dateFrom, dateTo, deptStaffIds),
     loadExpenses(staffId, dateFrom, dateTo, deptStaffIds)
@@ -264,18 +266,21 @@ async function loadAll() {
 }
 
 /* ── Sales Records ── */
-async function loadSales(staffId, from, to, deptStaffIds) {
+async function loadSales(staffId, from, to, deptStaffIds, deptKey) {
   const el = document.getElementById('salesList');
   el.innerHTML = '<p class="text-muted" style="font-size:0.85rem">Loading…</p>';
   try {
-    // Query sales + barbing_reports in parallel; avoid composite index by filtering date client-side
-    const [rawSnap, barbSnap] = await Promise.all([
+    // Query sales + barbing_reports + apartmentRentals in parallel
+    const [rawSnap, barbSnap, aptSnap] = await Promise.all([
       staffId
         ? db.collection('sales').where('staffId','==',staffId).get()
         : db.collection('sales').where('date','>=',from).where('date','<=',to).get(),
       staffId
         ? db.collection('barbing_reports').where('staffId','==',staffId).get()
         : db.collection('barbing_reports').where('date','>=',from).where('date','<=',to).get(),
+      staffId
+        ? db.collection('apartmentRentals').where('loggedById','==',staffId).get()
+        : db.collection('apartmentRentals').get(),
     ]);
 
     // Normalize sales records: POS uses `amount`, manual uses `totalSales`
@@ -317,8 +322,37 @@ async function loadSales(staffId, from, to, deptStaffIds) {
       });
     });
 
-    // Apply department filter when set
-    if (deptStaffIds) rows = rows.filter(r => deptStaffIds.has(r.staffId));
+    // Merge apartment rentals
+    if (!deptKey || deptKey === 'Apartments') {
+      aptSnap.docs.forEach(d => {
+        const r = d.data();
+        const dt = r.checkin || '';
+        if (dt < from || dt > to) return;
+        const aptTotal    = r.paid || 0;
+        const aptCash     = r.payMethod === 'cash'     ? aptTotal : 0;
+        const aptTransfer = r.payMethod === 'transfer' ? aptTotal : 0;
+        const aptPOS      = r.payMethod === 'pos'      ? aptTotal : 0;
+        rows.push({
+          date:          dt,
+          staffName:     r.loggedBy || 'Reception',
+          staffId:       r.loggedById || '',
+          department:    'Apartments',
+          totalSales:    aptTotal,
+          cashSales:     aptCash,
+          transferSales: aptTransfer,
+          posSales:      aptPOS,
+          notes: `Guest: ${r.guestName || '—'} · Unit: ${r.unit || '—'} · ${r.nights || 1} night${(r.nights||1) !== 1 ? 's' : ''}`,
+          _aptRental: true,
+        });
+      });
+    }
+
+    // Apply department filter
+    if (deptKey === 'Apartments') {
+      rows = rows.filter(r => r._aptRental);
+    } else if (deptStaffIds) {
+      rows = rows.filter(r => !r._aptRental && deptStaffIds.has(r.staffId));
+    }
 
     let grand = 0, cash = 0, transfer = 0, pos = 0;
     rows.forEach(s => {
