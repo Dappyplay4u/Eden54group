@@ -1,0 +1,47 @@
+# Images — cache for 1 year (content-addressed by filename)
+/menu/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/hairstyles/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/drinks/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/venue/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/pool/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/barbing/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/explore/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/logo/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/birthday/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/*.png
+  Cache-Control: public, max-age=31536000, immutable
+
+/*.jpg
+  Cache-Control: public, max-age=31536000, immutable
+
+# Portal CSS/JS — cache 1 day, revalidate
+/portal/*.css
+  Cache-Control: public, max-age=86400
+
+/portal/*.js
+  Cache-Control: public, max-age=86400
+
+# HTML pages — always revalidate (content changes)
+/*.html
+  Cache-Control: no-cache
+
+/portal/*/
+  Cache-Control: no-cache
