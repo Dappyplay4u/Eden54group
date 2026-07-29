@@ -40,6 +40,13 @@
   <div class="content">
     <div id="alertBox" class="alert"></div>
 
+    <div style="margin-bottom:18px">
+      <label class="form-label" style="font-size:0.75rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px">Filter by Department</label>
+      <select id="deptFilter" class="form-control" style="max-width:260px" onchange="onDeptChange()">
+        <option value="">All Departments</option>
+      </select>
+    </div>
+
     <div class="g2">
       <!-- Mark Attendance -->
       <div class="card">
@@ -103,6 +110,19 @@ document.getElementById('monthFilter').value  = todayStr().slice(0, 7);
 
 let allStaff = [];
 
+function activeDept() { return document.getElementById('deptFilter').value; }
+
+function filteredStaff() {
+  const dept = activeDept();
+  return dept ? allStaff.filter(s => s.department === dept) : allStaff;
+}
+
+function onDeptChange() {
+  loadAttForm();
+  loadHistory();
+  loadMonthlySummary();
+}
+
 async function init() {
   try {
     // Simple orderBy('name') only — no composite index needed
@@ -111,6 +131,16 @@ async function init() {
       const s = { id: d.id, ...d.data() };
       if (s.active !== false) allStaff.push(s); // filter inactive client-side
     });
+
+    // Populate department dropdown
+    const depts = [...new Set(allStaff.map(s => s.department).filter(Boolean))].sort();
+    const sel = document.getElementById('deptFilter');
+    depts.forEach(d => {
+      const opt = document.createElement('option');
+      opt.value = opt.textContent = d;
+      sel.appendChild(opt);
+    });
+
     await loadAttForm();   // auto-load today
     loadHistory();
     loadMonthlySummary();
@@ -124,6 +154,7 @@ async function loadAttForm() {
   const date = document.getElementById('attDate').value;
   if (!date) return;
   const form = document.getElementById('attForm');
+  const staff = filteredStaff();
 
   if (!allStaff.length) {
     form.innerHTML = `<p class="text-muted" style="font-size:0.85rem">No staff found.
@@ -147,11 +178,12 @@ async function loadAttForm() {
     }
   } catch(e) {}
 
+  const dept = activeDept();
   const banner = hasRecord
-    ? `<div style="font-size:0.75rem;color:var(--ok);margin-bottom:12px;padding:6px 10px;background:rgba(22,163,74,0.08);border-radius:6px;border-left:3px solid var(--ok)">Saved record loaded for ${date}</div>`
+    ? `<div style="font-size:0.75rem;color:var(--ok);margin-bottom:12px;padding:6px 10px;background:rgba(22,163,74,0.08);border-radius:6px;border-left:3px solid var(--ok)">Saved record loaded for ${date}${dept ? ' · ' + dept : ''}</div>`
     : `<div style="font-size:0.75rem;color:var(--gold);margin-bottom:12px;padding:6px 10px;background:rgba(201,169,110,0.08);border-radius:6px;border-left:3px solid var(--gold)">No saved record for ${date} — mark and save below</div>`;
 
-  form.innerHTML = banner + allStaff.map(s => {
+  form.innerHTML = banner + staff.map(s => {
     const rec = existMap[s.id] || {};
     // Only pre-select if record exists, otherwise leave blank
     const cur = hasRecord ? (rec.status || 'Present') : '';
@@ -176,19 +208,35 @@ async function loadAttForm() {
 
 async function saveAttendance() {
   const date = document.getElementById('attDate').value;
+  const dept = activeDept();
   if (!date || !allStaff.length) return;
   const btn = document.querySelector('#attSaveWrap .btn');
   btn.disabled = true; btn.textContent = 'Saving…';
-  const records = allStaff.map(s => {
+
+  const visible = filteredStaff();
+  const newRecords = visible.map(s => {
     const checked = document.querySelector(`input[name="att_${s.id}"]:checked`);
     return { staffId: s.id, staffName: s.name, department: s.department, status: checked?.value || 'Present' };
   });
+
+  let finalRecords = newRecords;
+  if (dept) {
+    // Merge: keep other depts' existing records, replace this dept's records
+    try {
+      const snap = await db.collection('attendance').doc(date).get();
+      if (snap.exists) {
+        const others = (snap.data().records || []).filter(r => r.department !== dept);
+        finalRecords = [...others, ...newRecords];
+      }
+    } catch(e) {}
+  }
+
   try {
     await db.collection('attendance').doc(date).set({
-      date, records, markedBy: currentStaff.name,
+      date, records: finalRecords, markedBy: currentStaff.name,
       markedAt: firebase.firestore.FieldValue.serverTimestamp()
     });
-    showAlert('alertBox', 'Attendance saved for ' + date + '!', 'alert-success');
+    showAlert('alertBox', `Attendance saved for ${date}${dept ? ' · ' + dept : ''}!`, 'alert-success');
     loadHistory();
     loadMonthlySummary();
   } catch(e) {
@@ -206,13 +254,14 @@ async function loadHistory() {
       tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:16px;color:#6a6b62">No records yet.</td></tr>';
       return;
     }
+    const dept = activeDept();
     const docs = snap.docs
       .map(d => d.data())
       .filter(d => d.date)
       .sort((a, b) => b.date.localeCompare(a.date))
       .slice(0, 14);
     tbody.innerHTML = docs.map(a => {
-      const r = a.records || [];
+      const r = (a.records || []).filter(x => !dept || x.department === dept);
       const cnt = st => r.filter(x => x.status === st).length;
       return `<tr>
         <td class="fw4">${a.date}</td>
@@ -237,12 +286,14 @@ async function loadMonthlySummary() {
       .where('date', '>=', month + '-01')
       .where('date', '<=', month + '-31')
       .get();
-    if (snap.empty || !allStaff.length) {
+    const dept = activeDept();
+    const staffSubset = dept ? allStaff.filter(s => s.department === dept) : allStaff;
+    if (snap.empty || !staffSubset.length) {
       tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:16px;color:#6a6b62">No data for this month.</td></tr>';
       return;
     }
     const counts = {};
-    allStaff.forEach(s => counts[s.id] = { name: s.name, Present:0, Absent:0, Late:0, Leave:0 });
+    staffSubset.forEach(s => counts[s.id] = { name: s.name, Present:0, Absent:0, Late:0, Leave:0 });
     snap.forEach(d => {
       (d.data().records || []).forEach(r => {
         if (counts[r.staffId]) counts[r.staffId][r.status] = (counts[r.staffId][r.status]||0) + 1;

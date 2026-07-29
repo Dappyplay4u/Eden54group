@@ -100,11 +100,11 @@
         <div class="card-value gold" id="statPending">—</div>
       </div>
       <div class="card" style="padding:16px 20px">
-        <div class="card-label">Approved</div>
-        <div class="card-value" style="color:#5a9e6f" id="statApproved">—</div>
+        <div class="card-label">Cleared to Proceed</div>
+        <div class="card-value" style="color:#5a9e6f" id="statCleared">—</div>
       </div>
       <div class="card" style="padding:16px 20px">
-        <div class="card-label">Rejected</div>
+        <div class="card-label">Rejected / Do Not Hire</div>
         <div class="card-value" style="color:#e07070" id="statRejected">—</div>
       </div>
     </div>
@@ -123,6 +123,7 @@
         <button class="bc-tab" onclick="setFilter('pending',this)">Pending</button>
         <button class="bc-tab" onclick="setFilter('review',this)">Under Review</button>
         <button class="bc-tab" onclick="setFilter('approved',this)">Approved</button>
+        <button class="bc-tab" onclick="setFilter('cleared',this)">✓ Cleared</button>
         <button class="bc-tab" onclick="setFilter('rejected',this)">Rejected</button>
       </div>
 
@@ -181,10 +182,10 @@ db.collection('backgroundChecks').orderBy('submittedAt','desc').onSnapshot(snap 
 }, () => {});
 
 function renderStats() {
-  $('statTotal').textContent    = allDocs.length;
-  $('statPending').textContent  = allDocs.filter(d => d.status === 'pending').length;
-  $('statApproved').textContent = allDocs.filter(d => d.status === 'approved').length;
-  $('statRejected').textContent = allDocs.filter(d => d.status === 'rejected').length;
+  $('statTotal').textContent   = allDocs.length;
+  $('statPending').textContent = allDocs.filter(d => d.status === 'pending' || d.status === 'review').length;
+  $('statCleared').textContent = allDocs.filter(d => d.hrDecision === 'Cleared to proceed').length;
+  $('statRejected').textContent= allDocs.filter(d => d.status === 'rejected' || d.hrDecision === 'Do not hire').length;
 }
 
 function setFilter(f, btn) {
@@ -195,7 +196,9 @@ function setFilter(f, btn) {
 }
 
 function renderList() {
-  const list = curFilter === 'all' ? allDocs : allDocs.filter(d => d.status === curFilter);
+  const list = curFilter === 'all'     ? allDocs
+             : curFilter === 'cleared' ? allDocs.filter(d => d.hrDecision === 'Cleared to proceed')
+             : allDocs.filter(d => d.status === curFilter);
   const el = $('bcList');
   if (!list.length) { el.innerHTML = '<div class="empty-state">No submissions found.</div>'; return; }
 
@@ -211,19 +214,35 @@ function renderList() {
       d.policeUrl && {label:'Police Cert', url:d.policeUrl},
     ].filter(Boolean);
 
-    return `<div class="bc-card" onclick="openById('${d.id}')">
+    const isCleared   = d.hrDecision === 'Cleared to proceed';
+    const isDoNotHire = d.hrDecision === 'Do not hire';
+    const cardStyle   = isCleared
+      ? 'border-color:rgba(90,158,111,.6);background:rgba(90,158,111,.07);'
+      : isDoNotHire
+      ? 'border-color:rgba(224,112,112,.5);background:rgba(224,112,112,.05);'
+      : '';
+    const nameStyle   = isCleared ? 'color:#7ecf97;' : isDoNotHire ? 'color:#e07070;' : '';
+
+    return `<div class="bc-card" style="${cardStyle}" onclick="openById('${d.id}')">
       <div class="bc-card-top">
-        <div class="bc-initials">${initials}</div>
+        <div class="bc-initials" style="${isCleared ? 'background:#5a9e6f;' : isDoNotHire ? 'background:#c0534a;' : ''}">${initials}</div>
         <div class="bc-card-info">
-          <div class="bc-name">${esc(d.fullName||'Unknown')}</div>
+          <div class="bc-name" style="${nameStyle}">${esc(d.fullName||'Unknown')}</div>
           <div class="bc-meta">
             ${esc(d.position||'—')} &nbsp;·&nbsp; 📱 ${esc(d.phone||'—')} &nbsp;·&nbsp; 🗓 ${date}
             ${d.bvn ? ' &nbsp;·&nbsp; BVN: '+esc(d.bvn) : ''}
           </div>
           ${docs.length ? '<div class="bc-docs">'+docs.map(x=>`<a href="${x.url}" target="_blank" onclick="event.stopPropagation()" class="doc-link">📎 ${x.label}</a>`).join('')+'</div>' : ''}
         </div>
-        <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+        <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end">
           <span class="bc-status ${stClass}">${stLabel}</span>
+          ${isCleared
+            ? `<span class="bc-status" style="color:#fff;border-color:#5a9e6f;background:#5a9e6f">✓ Cleared</span>`
+            : isDoNotHire
+            ? `<span class="bc-status" style="color:#fff;border-color:#c0534a;background:#c0534a">✗ Do Not Hire</span>`
+            : d.hrDecision === 'Further verification needed'
+            ? `<span class="bc-status" style="color:#7ec8e3;border-color:rgba(126,200,227,.4);background:rgba(126,200,227,.08)">⚠ Verify</span>`
+            : ''}
           ${canDelete ? `<button class="bc-del-btn" title="Delete record" onclick="event.stopPropagation();deleteRecord('${d.id}','${esc(d.fullName||'this record')}')">🗑</button>` : ''}
         </div>
       </div>

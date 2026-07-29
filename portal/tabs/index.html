@@ -32,6 +32,15 @@
 .tab-stat-val{font-size:1.2rem;color:var(--gold)}
 .btn-del-tab{position:absolute;bottom:14px;right:14px;padding:4px 10px;background:transparent;border:1px solid rgba(220,38,38,0.3);color:rgba(220,38,38,0.6);border-radius:5px;font-family:'Jost',sans-serif;font-size:0.65rem;letter-spacing:0.08em;cursor:pointer;transition:all .2s;z-index:2}
 .btn-del-tab:hover{background:rgba(220,38,38,0.08);border-color:rgba(220,38,38,0.6);color:#fca5a5}
+/* Danger button */
+.btn-danger{background:rgba(220,38,38,.15);color:#fca5a5;border:1px solid rgba(220,38,38,.4)}
+.btn-danger:hover{background:rgba(220,38,38,.28);color:#fff}
+/* Recycle Bin */
+.rb-card{background:var(--card);border:1px solid rgba(224,112,112,.35);border-radius:10px;padding:14px 16px;margin-bottom:10px}
+.rb-card-top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.rb-name{font-size:0.92rem;font-weight:500;color:#e07070;margin-bottom:4px}
+.rb-meta{font-size:0.78rem;color:var(--muted);margin-bottom:2px}
+.rb-deleted-lbl{font-size:0.74rem;color:var(--muted)}
 /* History section */
 .hist-section{margin-top:28px;padding-top:20px;border-top:1px solid var(--border)}
 .hist-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
@@ -207,6 +216,7 @@
     <div style="display:flex;gap:8px;align-items:center">
       <div class="topbar-date" id="topDate"></div>
       <button class="btn btn-gold btn-sm" onclick="openNewTabModal()">+ New Tab</button>
+      <button class="btn btn-sm" id="recycleBinBtn" onclick="toggleRecycleBin()" style="display:none;background:rgba(224,112,112,.15);color:#e07070;border:1px solid rgba(224,112,112,.4)">🗑 Recycle Bin</button>
     </div>
   </div>
 
@@ -229,6 +239,14 @@
         <span style="font-size:0.82rem;color:var(--muted)" id="histSummary">—</span>
       </div>
       <div id="histList"></div>
+    </div>
+
+    <div id="recycleBinSection" style="display:none;margin-top:28px">
+      <div class="hist-hdr" style="border-color:rgba(224,112,112,.35)">
+        <span class="hist-hdr-lbl" style="color:#e07070">🗑 Recycle Bin</span>
+        <span style="font-size:0.82rem;color:var(--muted)">Soft-deleted tabs — permanently delete below</span>
+      </div>
+      <div id="recycleBinList" style="margin-top:12px"></div>
     </div>
   </div>
 </div>
@@ -376,6 +394,12 @@ const N = n => '₦' + Number(n || 0).toLocaleString('en-NG', { minimumFractionD
 /* ── Role flags ── */
 const _raw    = staff ? (staff.accessLevel || staff.role || '').toLowerCase().replace(/\s+/g, '') : '';
 const isAdmin = _raw === 'ceo' || _raw === 'superadmin' || _raw === 'manager' || _raw.includes('manager');
+const isCEO   = _raw === 'ceo' || _raw === 'superadmin';
+
+if (isCEO) {
+  const rbBtn = document.getElementById('recycleBinBtn');
+  if (rbBtn) rbBtn.style.display = '';
+}
 
 /* ── Constants ── */
 const TABLE_LABELS = [
@@ -844,15 +868,19 @@ async function confirmClearTab() {
   await db.collection('tabs').doc(currentTabId).update({ items: [], subtotal: 0 });
 }
 
-/* ════ DELETE TAB ════ */
+/* ════ DELETE TAB (soft-delete → Recycle Bin) ════ */
 async function deleteTab(tabId, customerName) {
   if (!isAdmin) return;
-  if (!confirm(`Delete tab for "${customerName}"?\n\nThis cannot be undone.`)) return;
+  if (!confirm(`Move tab for "${customerName}" to Recycle Bin?\n\nThe CEO can permanently delete it from the Recycle Bin.`)) return;
   try {
     const snap    = await db.collection('tabs').doc(tabId).get();
     const tabData = snap.exists ? snap.data() : {};
-    await db.collection('tabs').doc(tabId).delete();
-    writeAuditLog(staff, 'delete_tab', {
+    await db.collection('tabs').doc(tabId).update({
+      status:     'deleted',
+      deletedAt:  firebase.firestore.FieldValue.serverTimestamp(),
+      deletedBy:  { id: staff.id, name: staff.name },
+    });
+    writeAuditLog(staff, 'soft_delete_tab', {
       tabId,
       customerName: tabData.customerName || customerName,
       tableLabel:   tabData.tableLabel   || '',
@@ -860,19 +888,23 @@ async function deleteTab(tabId, customerName) {
       tabStatus:    tabData.status       || '',
       openedBy:     tabData.openedBy     || null,
     });
-    showAlert('alertBox', `Tab deleted: ${customerName}`, 'alert-success');
+    showAlert('alertBox', `Tab moved to Recycle Bin: ${customerName}`, 'alert-success');
   } catch (e) {
-    showAlert('alertBox', 'Error deleting tab: ' + e.message, 'alert-error');
+    showAlert('alertBox', 'Error: ' + e.message, 'alert-error');
   }
 }
 
 async function deleteCurrentTab() {
   if (!isAdmin || !currentTabId || !currentTab) return;
-  if (!confirm(`Delete tab for "${currentTab.customerName}"?\n\nThis cannot be undone.`)) return;
+  if (!confirm(`Move tab for "${currentTab.customerName}" to Recycle Bin?\n\nThe CEO can permanently delete it from the Recycle Bin.`)) return;
   try {
     const tabData = { ...currentTab };
-    await db.collection('tabs').doc(currentTabId).delete();
-    writeAuditLog(staff, 'delete_tab', {
+    await db.collection('tabs').doc(currentTabId).update({
+      status:     'deleted',
+      deletedAt:  firebase.firestore.FieldValue.serverTimestamp(),
+      deletedBy:  { id: staff.id, name: staff.name },
+    });
+    writeAuditLog(staff, 'soft_delete_tab', {
       tabId:        currentTabId,
       customerName: tabData.customerName,
       tableLabel:   tabData.tableLabel || '',
@@ -881,8 +913,74 @@ async function deleteCurrentTab() {
       openedBy:     tabData.openedBy   || null,
     });
     exitOrderView();
-    showAlert('alertBox', `Tab deleted: ${currentTab.customerName}`, 'alert-success');
+    showAlert('alertBox', `Tab moved to Recycle Bin: ${tabData.customerName}`, 'alert-success');
   } catch (e) { showOvToast('Error: ' + e.message); }
+}
+
+/* ════ RECYCLE BIN (CEO only) ════ */
+async function loadRecycleBin() {
+  const el = document.getElementById('recycleBinList');
+  if (!el) return;
+  el.innerHTML = '<p style="color:var(--muted);font-size:0.85rem;padding:12px 0">Loading…</p>';
+  try {
+    const snap = await db.collection('tabs').where('status', '==', 'deleted').get();
+    const docs = snap.docs
+      .map(d => ({ id: d.id, ...d.data() }))
+      .sort((a, b) => (b.deletedAt?.seconds || 0) - (a.deletedAt?.seconds || 0));
+    if (!docs.length) {
+      el.innerHTML = '<p style="color:var(--muted);font-size:0.85rem;padding:12px 0;text-align:center">Recycle Bin is empty.</p>';
+      return;
+    }
+    el.innerHTML = docs.map(t => {
+      const deletedWhen = t.deletedAt?.toDate?.() ? t.deletedAt.toDate().toLocaleString() : '—';
+      const deletedWho  = t.deletedBy?.name || '—';
+      const items       = (t.items || []).map(i => `${i.qty}× ${i.name}`).join(', ') || '—';
+      return `
+        <div class="rb-card" id="rbc-${t.id}">
+          <div class="rb-card-top">
+            <div>
+              <div class="rb-name">${esc(t.customerName || '—')}</div>
+              <div class="rb-meta">Table: ${esc(t.tableLabel || '—')} · Opened by: ${esc(t.openedBy?.name || '—')}</div>
+              <div class="rb-meta">Items: ${esc(items)}</div>
+              <div class="rb-meta">Total: <strong>${N(t.subtotal || 0)}</strong></div>
+            </div>
+            <div style="text-align:right">
+              <div class="rb-deleted-lbl">Deleted by ${esc(deletedWho)}</div>
+              <div class="rb-deleted-lbl">${deletedWhen}</div>
+              <button class="btn btn-danger btn-sm" style="margin-top:10px;font-size:0.78rem"
+                onclick="permanentDeleteTab('${t.id}','${esc(t.customerName||'')}')">Permanently Delete</button>
+            </div>
+          </div>
+        </div>`;
+    }).join('');
+  } catch (e) {
+    el.innerHTML = `<p style="color:#e07070;font-size:0.85rem;padding:12px 0">Error loading recycle bin: ${e.message}</p>`;
+  }
+}
+
+async function permanentDeleteTab(tabId, customerName) {
+  if (!isCEO) return;
+  if (!confirm(`Permanently delete tab for "${customerName}"?\n\nThis CANNOT be undone.`)) return;
+  try {
+    await db.collection('tabs').doc(tabId).delete();
+    writeAuditLog(staff, 'permanent_delete_tab', { tabId, customerName });
+    const card = document.getElementById(`rbc-${tabId}`);
+    if (card) card.remove();
+    const el = document.getElementById('recycleBinList');
+    if (el && !el.querySelector('.rb-card')) {
+      el.innerHTML = '<p style="color:var(--muted);font-size:0.85rem;padding:12px 0;text-align:center">Recycle Bin is empty.</p>';
+    }
+  } catch (e) {
+    alert('Error: ' + e.message);
+  }
+}
+
+function toggleRecycleBin() {
+  const section = document.getElementById('recycleBinSection');
+  if (!section) return;
+  const isHidden = section.style.display === 'none';
+  section.style.display = isHidden ? 'block' : 'none';
+  if (isHidden) loadRecycleBin();
 }
 
 /* ════ TRANSFER TAB ════ */

@@ -1299,16 +1299,18 @@ async function loadRange() {
   el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted);font-size:0.85rem">Loading…</div>';
 
   try {
-    const [salesSnap, barbSnap, compSnap] = await Promise.all([
+    const [salesSnap, barbSnap, compSnap, expSnap] = await Promise.all([
       db.collection('sales').where('date','>=',fromDate).where('date','<=',toDate).get(),
       db.collection('barbing_reports').where('date','>=',fromDate).where('date','<=',toDate).get(),
       db.collection('pool_competitions').where('date','>=',fromDate).where('date','<=',toDate).get(),
+      db.collection('expenses').where('date','>=',fromDate).where('date','<=',toDate).get(),
     ]);
     let aptDocs = [];
     try {
       const aptSnap = await db.collection('apartmentRentals').where('checkin','>=',fromDate).where('checkin','<=',toDate).get();
       aptDocs = aptSnap.docs;
     } catch(e) {}
+    const expRows = expSnap.docs.map(d => d.data());
 
     const DEPTS = ['barbing','games','drinks','food','apt','events'];
     const days  = {};
@@ -1363,7 +1365,7 @@ async function loadRange() {
       return;
     }
 
-    _rangeCache = { days, sortedDates, fromDate, toDate };
+    _rangeCache = { days, sortedDates, fromDate, toDate, expRows };
     renderRangeTable(_rangeCache, document.getElementById('filterDept').value);
 
   } catch(err) {
@@ -1424,6 +1426,60 @@ function renderRangeTable(cache, dept) {
     ${showTotal ? `<td style="font-weight:400;color:var(--gold)">${N(grandTot)}</td>` : ''}
   </tr>`;
 
+  // ── Expenses section ──
+  const DEPT_TO_EXP = {
+    barbing: ['salon'],
+    games:   ['pool', 'games'],
+    drinks:  ['bar'],
+    food:    ['kitchen', 'lounge'],
+    apt:     ['apartment'],
+    events:  ['events', 'management'],
+  };
+  const expDeptLabels = {
+    salon: 'Barbing Salon', lounge: 'Lounge', bar: 'Bar',
+    kitchen: 'Kitchen', apartment: 'Apartments', pool: 'Pool',
+    management: 'Management', games: 'Games', events: 'Events',
+  };
+  const allExp = cache.expRows || [];
+  const filteredExp = dept === 'all'
+    ? allExp
+    : allExp.filter(e => (DEPT_TO_EXP[dept] || []).includes((e.department||'').toLowerCase()));
+
+  let expHtml = '';
+  if (filteredExp.length) {
+    // Group by expense department
+    const byDeptExp = {};
+    filteredExp.forEach(e => {
+      const k = (e.department || 'other').toLowerCase();
+      if (!byDeptExp[k]) byDeptExp[k] = [];
+      byDeptExp[k].push(e);
+    });
+    let expGrand = 0;
+    Object.entries(byDeptExp).forEach(([dk, items]) => {
+      const dTotal = items.reduce((s,e) => s + (e.amount||0), 0);
+      expGrand += dTotal;
+      expHtml += `<div class="sub-label" style="margin-top:12px">${esc(expDeptLabels[dk] || dk)}</div>`;
+      expHtml += items.map(e => {
+        const et = entryTime(e);
+        const receipt = e.photoUrl ? `<a href="${e.photoUrl}" target="_blank" style="color:var(--gold);font-size:0.75rem">View</a>` : '';
+        return `<div class="rev-row">
+          <div>
+            <strong style="font-weight:400">${esc(e.staffName||'—')}</strong>
+            <div class="cash-breakdown">${esc(e.category||'')}${e.description ? ' · '+esc(e.description) : ''}</div>
+            <div class="cash-breakdown" style="color:var(--muted)">${esc(e.date||'')}</div>
+          </div>
+          <div style="text-align:right">
+            ${receipt}
+            <div style="font-weight:400;color:#ef4444">${N(e.amount)}</div>
+            ${et ? `<div class="cash-breakdown" style="color:var(--muted)">⏱ ${et}</div>` : ''}
+          </div>
+        </div>`;
+      }).join('');
+      expHtml += `<div style="display:flex;justify-content:flex-end;font-size:0.8rem;color:#ef4444;padding:4px 0 8px;border-bottom:1px solid var(--border)">${N(dTotal)}</div>`;
+    });
+    expHtml += `<div class="rev-total" style="margin-top:4px"><span>Total Expenses</span><span style="color:#ef4444">${N(expGrand)}</span></div>`;
+  }
+
   const colSpan = cols.length + (showTotal ? 2 : 1);
   document.getElementById('rangeResult').innerHTML = `<div class="dept-card">
     <div class="dept-header">
@@ -1444,6 +1500,12 @@ function renderRangeTable(cache, dept) {
           <tfoot>${tfoot}</tfoot>
         </table>
       </div>
+      ${filteredExp.length ? `
+      <div style="margin-top:24px;padding-top:16px;border-top:2px solid var(--border)">
+        <div style="font-size:0.68rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--muted);margin-bottom:8px">🧾 Expenses — ${fromDate} → ${toDate}</div>
+        ${expHtml}
+      </div>` : `
+      <div style="margin-top:20px;padding-top:14px;border-top:1px solid var(--border);font-size:0.82rem;color:var(--muted)">No expenses logged for this period${dept !== 'all' ? ' in this department' : ''}.</div>`}
     </div>
   </div>`;
 }
