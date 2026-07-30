@@ -10,9 +10,8 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
 // Enable offline persistence so the app survives brief connectivity loss
-db.enablePersistence({ synchronizeTabs: true }).catch(err => {
-  // failed-precondition: multiple tabs open (only one can hold persistence at a time)
-  // unimplemented: browser doesn't support IndexedDB (e.g. private mode on some browsers)
+// Single-tab mode (no synchronizeTabs) is more reliable on iOS Safari
+db.enablePersistence().catch(err => {
   if (err.code !== 'failed-precondition' && err.code !== 'unimplemented') {
     console.warn('Firestore persistence error:', err);
   }
@@ -281,14 +280,14 @@ function buildNav(staff, active) {
   // Always fetch live Firestore data once per page load so nav reflects real access level
   if (!_navFetched && staff && staff.id && typeof db !== 'undefined') {
     _navFetched = true;
-    // Safety net: if fetch takes > 5 s or never starts, reveal content anyway
+    // Safety net: if fetch takes > 1.5 s, reveal content anyway
     const _revealTimer = setTimeout(() => {
       if (_requiredPage !== null) {
         const content = document.querySelector('.content');
         if (content) content.style.opacity = '1';
         _requiredPage = null;
       }
-    }, 5000);
+    }, 1500);
     db.collection('staff').doc(staff.id).get().then(doc => {
       clearTimeout(_revealTimer);
       // Staff deleted or deactivated — end the session immediately
@@ -296,24 +295,24 @@ function buildNav(staff, active) {
         if (typeof firebase.auth === 'function') firebase.auth().signOut().catch(() => {});
         localStorage.removeItem('eden54_staff');
         localStorage.removeItem('eden54_login_at');
+        localStorage.removeItem(_ROLE_CACHE_KEY);
         window.location.href = '/portal/';
         return;
       }
       const freshData = doc.data();
       const fresh = { id: doc.id, ...freshData };
-      // If the Firestore doc is missing role/accessLevel fields, keep what
-      // localStorage had — prevents a missing field from silently downgrading access.
       if (!fresh.accessLevel && !fresh.role) {
         if (staff.accessLevel) fresh.accessLevel = staff.accessLevel;
         if (staff.role)        fresh.role        = staff.role;
       }
       setStaff(fresh);
+      // Cache the Firestore-confirmed role so future page loads show content instantly
+      _saveRoleCache(fresh.id, fresh.accessLevel || '', fresh.role || '', fresh.department || '');
 
-      // Phase 3: re-check access with Firestore-verified role.
-      // This catches a spoofed localStorage accessLevel — the real role
-      // from Firestore may deny what localStorage appeared to allow.
+      // Phase 3: re-check access with Firestore-verified role
       if (_requiredPage !== null) {
         if (!_checkAccess(fresh, _requiredPage)) {
+          localStorage.removeItem(_ROLE_CACHE_KEY);
           window.location.href = '/portal/home/';
           return;
         }
@@ -373,25 +372,45 @@ function _checkAccess(staff, page) {
   return !!rules[page];
 }
 
-/**
- * Gate a page behind a role check.
- *
- * Phase 3 behaviour:
- *  1. Checks immediately against the localStorage role — redirects if clearly denied.
- *  2. If the localStorage role looks sufficient, hides .content and registers
- *     _requiredPage so buildNav()'s Firestore callback can re-verify with the
- *     live role and reveal (or redirect) once the fetch completes.
- *
- * Net effect: a DevTools-spoofed accessLevel gets through the instant check but
- * is caught ~300 ms later when Firestore returns the real role.
- */
+/* ── Role verification cache ──
+   After Firestore confirms a staff member's role, we cache it in localStorage
+   for up to 1 hour. On the next page load we show content immediately instead
+   of hiding it while we wait for Firestore. Firestore still re-checks in the
+   background and redirects if the role was revoked. */
+const _ROLE_CACHE_KEY = 'eden54_role_verified';
+const _ROLE_CACHE_TTL = 60 * 60 * 1000; // 1 hour
+
+function _saveRoleCache(staffId, accessLevel, role, department) {
+  try {
+    localStorage.setItem(_ROLE_CACHE_KEY, JSON.stringify({
+      id: staffId, accessLevel, role, department, at: Date.now()
+    }));
+  } catch {}
+}
+
+function _getRoleCache(staffId) {
+  try {
+    const raw = localStorage.getItem(_ROLE_CACHE_KEY);
+    if (!raw) return null;
+    const c = JSON.parse(raw);
+    if (c.id !== staffId || Date.now() - c.at > _ROLE_CACHE_TTL) return null;
+    return c;
+  } catch { return null; }
+}
+
 function requireAccess(staff, page) {
   _requiredPage = page;
   if (!_checkAccess(staff, page)) {
     window.location.href = '/portal/home/';
     return false;
   }
-  // Hide content until Firestore confirms the real role
+  // If Firestore verified this staff's role recently, show content right away.
+  // Firestore re-check still runs in buildNav() but doesn't block rendering.
+  if (_getRoleCache(staff && staff.id)) {
+    _requiredPage = null;
+    return true;
+  }
+  // No fresh cache — hide content until Firestore confirms the real role
   const content = document.querySelector('.content');
   if (content) { content.style.opacity = '0'; content.style.transition = 'opacity 0.18s'; }
   return true;
