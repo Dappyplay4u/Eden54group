@@ -1,5 +1,5 @@
 // Eden 54 Portal — Service Worker
-const CACHE = 'eden54-sw-v2';
+const CACHE = 'eden54-sw-v3';
 
 // Pre-fetched on install — loaded on every portal page
 const PRECACHE = [
@@ -68,9 +68,11 @@ self.addEventListener('fetch', e => {
     return;
   }
 
-  // Cache-first: portal CSS and JS (already pre-cached)
+  // Stale-while-revalidate: portal CSS and JS
+  // Serves cached version instantly, fetches fresh copy in background so
+  // any update (e.g. new nav links) takes effect on the very next visit.
   if (url.hostname === self.location.hostname) {
-    e.respondWith(cacheFirst(request));
+    e.respondWith(staleWhileRevalidate(request));
     return;
   }
 });

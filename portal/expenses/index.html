@@ -105,13 +105,14 @@
           <div class="form-group">
             <label class="form-label">Department</label>
             <select id="expDept" class="form-control">
-              <option value="salon">Barbing Salon</option>
-              <option value="lounge">Lounge</option>
-              <option value="bar">Bar</option>
-              <option value="kitchen">Kitchen</option>
-              <option value="apartment">Apartment</option>
-              <option value="pool">Pool</option>
-              <option value="management">Management</option>
+              <option value="Management">Management</option>
+              <option value="Bar &amp; Lounge">Bar &amp; Lounge</option>
+              <option value="Kitchen">Kitchen</option>
+              <option value="Apartments">Apartments</option>
+              <option value="Pool">Pool</option>
+              <option value="Salon">Salon</option>
+              <option value="Front Desk">Front Desk</option>
+              <option value="HR">HR</option>
             </select>
           </div>
         </div>
@@ -215,7 +216,18 @@ document.getElementById('expDate').value = todayStr();
 const isManager = currentStaff.role === 'manager' || currentStaff.role === 'superadmin';
 const deptSel   = document.getElementById('expDept');
 if (!isManager) {
-  deptSel.value    = currentStaff.department || 'salon';
+  // Map legacy lowercase dept values to canonical names
+  const _legacyDept = {
+    lounge: 'Bar & Lounge', bar: 'Bar & Lounge', games: 'Bar & Lounge',
+    salon: 'Salon', barbing: 'Salon',
+    kitchen: 'Kitchen', pool: 'Pool',
+    apartment: 'Apartments', apartments: 'Apartments',
+    'front desk': 'Front Desk', receptionist: 'Front Desk',
+    hr: 'HR', management: 'Management',
+  };
+  const rawDept = (currentStaff.department || '').trim();
+  const canonical = _legacyDept[rawDept.toLowerCase()] || rawDept || 'Management';
+  deptSel.value    = canonical;
   deptSel.disabled = true;
 }
 

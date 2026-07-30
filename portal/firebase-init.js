@@ -178,6 +178,7 @@ function buildNav(staff, active) {
     html += a('/portal/payroll/',           '💵', 'Payroll',            'payroll');
     html += a('/portal/activity/',          '🕵️', 'Staff Activity',     'activity');
     html += a('/portal/expenses/',          '🧾', 'Expenses',           'expenses');
+    html += a('/portal/procurement/',       '🛒', 'Procurement',        'procurement');
     html += a('/portal/background-check/', '🔍', 'Background Checks',  'background-check');
     html += a('/portal/customers/',         '👥', 'Customers',          'customers');
     html += sec('Admin');
@@ -191,6 +192,7 @@ function buildNav(staff, active) {
     html += a('/portal/attendance/',        '👥', 'Attendance',        'attendance');
     html += a('/portal/payroll/',           '💵', 'Payroll',            'payroll');
     html += a('/portal/expenses/',          '🧾', 'Expenses',           'expenses');
+    html += a('/portal/procurement/',       '🛒', 'Procurement',        'procurement');
     html += a('/portal/background-check/', '🔍', 'Background Checks',  'background-check');
     html += a('/portal/customers/',         '👥', 'Customers',          'customers');
     html += sec('Admin');
@@ -350,13 +352,14 @@ function _checkAccess(staff, page) {
     payroll:            isManager || isHR,
     reports:            isManager || isHR,
     activity:           isManager,
+    procurement:        isManager || isHR,
     'background-check': isManager || isHR,
     expenses:   true,
     bar:        isManager || dept === 'bar' || dept.includes('lounge') || dept.includes('game'),
     kitchen:    isManager || dept === 'kitchen',
     barbing:    isManager,
     pool:       isManager || dept === 'pool',
-    apartments: isManager || isHR || dept === 'front desk' || dept === 'receptionist' || dept === 'lounge' || dept === 'apartments',
+    apartments: isManager || isHR || dept === 'front desk' || dept === 'receptionist' || dept.includes('lounge') || dept === 'apartments',
     tabs:       isManager || dept.includes('bar') || dept.includes('bartend') || dept.includes('lounge') || dept.includes('game'),
     pos:   isManager || isHR || dept === 'front desk' || dept === 'receptionist' || dept.includes('salon') || dept.includes('barbing'),
     sales: true, home: true, updates: true,

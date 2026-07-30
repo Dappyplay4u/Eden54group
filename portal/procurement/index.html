@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#0f2318">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Eden 54">
+<title>Procurement · Eden 54 Portal</title>
+<link rel="icon" type="image/jpeg" href="/logo/eden 54 logo.jpeg">
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/portal/portal.css">
+<style>
+/* ── Item rows ── */
+.pi-row{display:grid;grid-template-columns:1fr 68px 118px 88px 28px;gap:6px;align-items:center;margin-bottom:7px}
+@media(max-width:500px){.pi-row{grid-template-columns:1fr 52px 96px 74px 24px;gap:4px}}
+.pi-total{font-size:0.82rem;color:var(--gold);text-align:right;font-weight:500}
+.pi-remove{background:none;border:none;color:var(--muted);cursor:pointer;font-size:1rem;padding:0;line-height:1;transition:color .15s}
+.pi-remove:hover{color:#dc2626}
+
+/* ── Quick-add chips ── */
+.quick-chips{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:6px}
+.chip{display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border:1px solid var(--border);border-radius:20px;font-size:0.76rem;cursor:pointer;background:none;color:var(--text);transition:background .15s,border-color .15s;font-family:'Jost',sans-serif;white-space:nowrap;line-height:1.4}
+.chip:hover{background:rgba(201,169,110,0.1);border-color:var(--gold);color:var(--gold)}
+.chip.used{opacity:.4;pointer-events:none}
+.chip-price{font-size:0.68rem;color:var(--muted)}
+
+/* ── Item tracker ── */
+.itc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:10px}
+.itc-card{border:1px solid var(--border);border-radius:8px;padding:12px 14px;cursor:pointer;transition:border-color .15s}
+.itc-card:hover{border-color:var(--gold)}
+.itc-card.alert-high{border-color:rgba(220,38,38,.5);background:rgba(220,38,38,.03)}
+.itc-card.alert-mid{border-color:rgba(217,119,6,.4)}
+.itc-name{font-size:0.72rem;font-weight:500;color:var(--gold);text-transform:uppercase;letter-spacing:.07em;margin-bottom:9px;display:flex;justify-content:space-between;align-items:center;gap:4px}
+.itc-stat{font-size:0.76rem;color:var(--muted);margin-bottom:3px;display:flex;justify-content:space-between;gap:8px}
+.itc-stat strong{color:var(--text);font-weight:400}
+.itc-alert{font-size:0.68rem;margin-top:7px;padding:4px 7px;border-radius:4px;font-weight:500}
+.itc-alert.red{background:rgba(220,38,38,.12);color:#dc2626}
+.itc-alert.yellow{background:rgba(217,119,6,.12);color:#d97706}
+/* ── Price alert in form ── */
+.pi-warn{font-size:0.7rem;color:#d97706;margin:-3px 0 5px 2px;display:none}
+
+/* ── Pending cards ── */
+.proc-card{border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:14px}
+.proc-card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:10px}
+.proc-card-title{font-size:0.88rem;font-weight:500}
+.proc-card-meta{font-size:0.72rem;color:var(--muted);margin-top:2px;line-height:1.55}
+.proc-items-tbl{width:100%;font-size:0.78rem;border-collapse:collapse;margin:10px 0}
+.proc-items-tbl th{text-align:left;color:var(--muted);font-weight:400;padding:4px 6px 6px;border-bottom:1px solid var(--border)}
+.proc-items-tbl td{padding:5px 6px;border-bottom:1px solid rgba(255,255,255,0.04)}
+.proc-items-tbl tr:last-child td{border-bottom:none}
+.proc-total-row{display:flex;justify-content:space-between;align-items:center;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)}
+.proc-actions{display:flex;gap:8px}
+
+/* ── Status badges ── */
+.badge-pending{background:rgba(217,119,6,.15);color:#d97706}
+.badge-approved{background:rgba(22,163,74,.12);color:#16a34a}
+.badge-rejected{background:rgba(220,38,38,.12);color:#dc2626}
+
+/* ── Modal ── */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.62);z-index:8000;align-items:center;justify-content:center;padding:16px}
+.modal-overlay.open{display:flex}
+.modal-box{background:var(--card);border-radius:12px;width:100%;max-width:660px;max-height:92vh;display:flex;flex-direction:column;border:1px solid var(--border)}
+.modal-head{padding:18px 20px 14px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
+.modal-head h3{font-size:0.95rem;font-weight:500;margin:0}
+.modal-close{background:none;border:none;color:var(--muted);font-size:1.4rem;cursor:pointer;line-height:1;padding:0}
+.modal-body{padding:18px 20px;overflow-y:auto;flex:1}
+.modal-foot{padding:14px 20px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px;flex-shrink:0}
+.col-hdr{display:grid;grid-template-columns:1fr 68px 118px 88px 28px;gap:6px;padding:0 2px;margin-bottom:5px}
+@media(max-width:500px){.col-hdr{grid-template-columns:1fr 52px 96px 74px 24px;gap:4px}}
+.col-hdr span{font-size:0.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.col-hdr span:nth-child(4){text-align:right}
+
+/* ── History row ── */
+tr.proc-row{cursor:pointer}
+tr.proc-row:hover td{background:rgba(255,255,255,0.02)}
+</style>
+</head>
+<body>
+<div class="sb-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+<aside class="sidebar" id="sidebar">
+  <div class="sb-brand"><div class="sb-brand-name">Eden 54</div><div class="sb-brand-sub">Staff Portal</div></div>
+  <nav class="sb-nav" id="sbNav"></nav>
+  <div class="sb-foot"><div id="sidebarUser"></div><a class="sb-item" onclick="switchProfile()" style="cursor:pointer"><i class="sb-icon">🔄</i> Switch Profile</a></div>
+</aside>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <button class="hamburger" onclick="toggleSidebar()"><div></div><div></div><div></div></button>
+      <h1>Procurement</h1>
+    </div>
+    <div class="topbar-date" id="topDate"></div>
+  </div>
+  <div class="content">
+    <div id="alertBox" class="alert"></div>
+
+    <!-- Department filter -->
+    <div style="margin-bottom:20px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <label style="font-size:0.73rem;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;white-space:nowrap">Filter by Dept</label>
+      <select id="deptFilter" class="form-control" style="max-width:210px" onchange="onDeptChange()">
+        <option value="">All Departments</option>
+        <option value="Bar & Lounge">Bar & Lounge</option>
+        <option value="Kitchen">Kitchen</option>
+        <option value="Apartments">Apartments</option>
+        <option value="Pool">Pool</option>
+        <option value="Salon">Salon</option>
+        <option value="Front Desk">Front Desk</option>
+        <option value="HR">HR</option>
+        <option value="Management">Management</option>
+      </select>
+    </div>
+
+    <!-- Pending Approvals (CEO / HR only) -->
+    <div id="pendingSection" style="display:none;margin-bottom:24px">
+      <div class="card">
+        <div class="section-head">
+          <h2>Pending Approvals</h2>
+          <span id="pendingCount" class="badge badge-warn" style="display:none"></span>
+        </div>
+        <div id="pendingList"><p class="text-muted" style="font-size:0.85rem;padding:6px 0">No pending requests.</p></div>
+      </div>
+    </div>
+
+    <!-- Item Tracker -->
+    <div class="card" style="margin-bottom:24px">
+      <div class="section-head"><h2>Item Tracker</h2><span style="font-size:0.75rem;color:var(--muted)">Approved purchases only</span></div>
+      <div id="itemTrackerGrid" class="itc-grid">
+        <p class="text-muted" style="font-size:0.85rem;grid-column:1/-1">No history yet.</p>
+      </div>
+    </div>
+
+    <!-- History -->
+    <div class="card">
+      <div class="section-head">
+        <h2>Procurement History</h2>
+        <button class="btn btn-gold btn-sm" onclick="openModal()">+ New Procurement</button>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Title</th><th>Requested By</th><th>Date</th><th>Amount</th><th>Status</th><th></th></tr></thead>
+          <tbody id="historyTable"><tr><td colspan="6" style="text-align:center;padding:16px;color:#6a6b62">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- New / Re-order Procurement Modal -->
+<div class="modal-overlay" id="procModal">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h3 id="modalTitle">New Procurement Request</h3>
+      <button class="modal-close" onclick="closeModal()" aria-label="Close">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Title / Purpose</label>
+        <input type="text" id="procTitle" class="form-control" placeholder="e.g. Monthly Supplies, Kitchen Restock">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Department</label>
+        <select id="procDept" class="form-control" onchange="refreshChips()">
+          <option value="">Select Department</option>
+          <option value="Bar & Lounge">Bar & Lounge</option>
+          <option value="Kitchen">Kitchen</option>
+          <option value="Apartments">Apartments</option>
+          <option value="Pool">Pool</option>
+          <option value="Salon">Salon</option>
+          <option value="Front Desk">Front Desk</option>
+          <option value="HR">HR</option>
+          <option value="Management">Management</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Supplier <span style="color:var(--muted);font-weight:300">(optional)</span></label>
+        <input type="text" id="procSupplier" class="form-control" placeholder="Vendor or supplier name">
+      </div>
+
+      <!-- Quick-add chips (common + all past items) -->
+      <div class="form-group" style="margin-bottom:10px">
+        <label class="form-label" style="margin-bottom:6px">Items — click to add</label>
+        <div class="quick-chips" id="quickChips">
+          <span style="font-size:0.78rem;color:var(--muted)">Loading items…</span>
+        </div>
+        <p style="font-size:0.72rem;color:var(--muted);margin:4px 0 0">Prices shown are from the last purchase. Update before saving.</p>
+      </div>
+
+      <!-- Items list -->
+      <div class="form-group" style="margin-bottom:6px">
+        <div class="col-hdr">
+          <span>Item</span><span>Qty</span><span>Unit Price (₦)</span><span>Total</span><span></span>
+        </div>
+        <div id="itemsList"></div>
+        <button class="btn btn-outline btn-sm" onclick="addItemRow('',1,0)" style="margin-top:8px;width:100%">+ Add Custom Item</button>
+      </div>
+
+      <div style="display:flex;justify-content:flex-end;padding:10px 0 4px;border-top:1px solid var(--border);margin-top:8px">
+        <span style="font-size:0.82rem;color:var(--muted)">Grand Total:</span>
+        <strong id="grandTotal" style="margin-left:8px;color:var(--gold);font-size:0.9rem">₦0.00</strong>
+      </div>
+
+      <div class="form-group" style="margin-top:12px">
+        <label class="form-label">Notes <span style="color:var(--muted);font-weight:300">(optional)</span></label>
+        <textarea id="procNotes" class="form-control" rows="2" placeholder="Any additional details…"></textarea>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-gold" id="submitBtn" onclick="submitProcurement()">Submit Request</button>
+    </div>
+  </div>
+</div>
+
+<!-- Detail Modal -->
+<div class="modal-overlay" id="detailModal">
+  <div class="modal-box" style="max-width:620px">
+    <div class="modal-head">
+      <div>
+        <h3 id="dtTitle" style="margin:0 0 4px"></h3>
+        <span id="dtBadge" class="badge"></span>
+      </div>
+      <button class="modal-close" onclick="closeDetail()" aria-label="Close">×</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;font-size:0.82rem">
+        <div><span style="color:var(--muted)">Requested by</span><br><strong id="dtReqBy"></strong></div>
+        <div><span style="color:var(--muted)">Date</span><br><strong id="dtReqAt"></strong></div>
+        <div id="dtDeptRow" style="display:none;grid-column:1/-1"><span style="color:var(--muted)">Department</span><br><strong id="dtDept"></strong></div>
+        <div id="dtApprRow" style="display:none"><span id="dtApprLabel" style="color:var(--muted)">Approved by</span><br><strong id="dtApprBy"></strong></div>
+        <div id="dtApprDateRow" style="display:none"><span style="color:var(--muted)">Date</span><br><strong id="dtApprAt"></strong></div>
+        <div id="dtSupRow" style="display:none;grid-column:1/-1"><span style="color:var(--muted)">Supplier</span><br><strong id="dtSupplier"></strong></div>
+      </div>
+      <div id="dtItems"></div>
+      <div style="display:flex;justify-content:flex-end;padding:10px 0 0;border-top:1px solid var(--border);margin-top:8px">
+        <span style="font-size:0.82rem;color:var(--muted)">Total:</span>
+        <strong id="dtTotal" style="margin-left:8px;color:var(--gold)"></strong>
+      </div>
+      <div id="dtNotesRow" style="display:none;margin-top:12px;font-size:0.82rem">
+        <span style="color:var(--muted);display:block;margin-bottom:3px">Notes</span>
+        <span id="dtNotes"></span>
+      </div>
+    </div>
+    <div class="modal-foot" style="justify-content:space-between">
+      <button class="btn btn-sm" id="dtDelete" style="background:#dc2626;color:#fff;border-color:#dc2626;display:none" onclick="deleteProcurement(_detailId)">🗑 Delete</button>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-outline" onclick="closeDetail()">Close</button>
+        <button class="btn btn-gold btn-sm" id="dtReorder" onclick="reorderFrom(_detailId)">↺ Re-order</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Price History Modal -->
+<div class="modal-overlay" id="priceModal">
+  <div class="modal-box" style="max-width:580px">
+    <div class="modal-head">
+      <div>
+        <h3 id="pmTitle" style="margin:0 0 4px"></h3>
+        <span id="pmSummary" style="font-size:0.78rem;color:var(--muted)"></span>
+      </div>
+      <button class="modal-close" onclick="closePriceModal()" aria-label="Close">×</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px">
+        <div style="text-align:center;padding:10px;border:1px solid var(--border);border-radius:6px">
+          <div style="font-size:0.68rem;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.07em">Avg Price</div>
+          <div id="pmAvg" style="font-size:0.9rem;color:var(--gold);font-weight:500"></div>
+        </div>
+        <div style="text-align:center;padding:10px;border:1px solid var(--border);border-radius:6px">
+          <div style="font-size:0.68rem;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.07em">Min Price</div>
+          <div id="pmMin" style="font-size:0.9rem;color:#16a34a;font-weight:500"></div>
+        </div>
+        <div style="text-align:center;padding:10px;border:1px solid var(--border);border-radius:6px">
+          <div style="font-size:0.68rem;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.07em">Max Price</div>
+          <div id="pmMax" style="font-size:0.9rem;color:#dc2626;font-weight:500"></div>
+        </div>
+        <div style="text-align:center;padding:10px;border:1px solid var(--border);border-radius:6px">
+          <div style="font-size:0.68rem;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.07em">Total Qty</div>
+          <div id="pmQty" style="font-size:0.9rem;font-weight:500"></div>
+        </div>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Date</th><th>Procurement</th><th>Dept</th><th>Submitted By</th><th>Qty</th><th>Unit Price</th><th>vs Avg</th></tr></thead>
+          <tbody id="pmTable"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closePriceModal()">Close</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="/portal/firebase-init.js"></script>
+<script>
+const currentStaff = getStaff();
+requireAccess(currentStaff, 'procurement');
+populateSidebar(currentStaff);
+buildNav(currentStaff, 'procurement');
+document.getElementById('topDate').textContent =
+  new Date().toLocaleDateString('en-NG',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+
+const _raw     = (currentStaff.accessLevel || currentStaff.role || 'staff').toLowerCase().replace(/\s+/g,'');
+const isCEO    = _raw === 'ceo' || _raw === 'superadmin';
+const _dept    = (currentStaff.department || '').toLowerCase();
+const isHR     = _raw === 'hr' || _dept === 'hr' || _dept.includes('human resource');
+const canApprove = isCEO || isHR;
+
+if (canApprove) document.getElementById('pendingSection').style.display = 'block';
+
+// ── State ──────────────────────────────────────────────────────────────
+let _allProcs    = [];  // loaded procurement records
+let _itemHistory = {};  // name.toLowerCase() → aggregated stats (dept-filtered when active)
+let _detailId    = null;
+let _activeDept  = '';  // current dept filter ('', 'Bar / Lounge', 'Kitchen', etc.)
+
+// Department-specific quick-add items
+const DEPT_ITEMS = {
+  'Bar & Lounge': [
+    'Heineken','Guinness','Star Beer','Goldberg','Legend Extra Stout',
+    'Hennessey','Baileys','Smirnoff Vodka','Jack Daniel\'s','Campari','Ciroc',
+    'Malt Drinks','Coke','Fanta','Sprite','Bitter Lemon','Tonic Water',
+    'Red Bull','Table Water','Ice Blocks','Straws','Cocktail Mix','Napkins',
+  ],
+  'Kitchen': [
+    'Cow Meat','Goat Meat','Catfish','Chicken','Turkey','Pork',
+    'Rice','Beans','Plantain','Yam','Potatoes','Semolina','Garri',
+    'Tomatoes','Pepper','Onions','Vegetables','Eggs',
+    'Palm Oil','Vegetable Oil','Groundnut Oil',
+    'Maggi Cubes','Salt','Crayfish','Stockfish','Curry','Thyme',
+    'Flour','Cooking Gas',
+  ],
+  'Apartments': [
+    'Toilet Roll','Toilet Soap','Detergent','Bleach','Air Freshener',
+    'Mop & Bucket','Cleaning Sponge','Dustbin Bags','Hand Sanitizer',
+    'Shampoo','Body Wash','Laundry Liquid','Glass Cleaner',
+    'Lightbulbs','Batteries','Insecticide',
+  ],
+  'Pool': [
+    'Chlorine','Pool Acid','Pool Algaecide','Pool Brush',
+    'Life Jacket','Pool Noodles','Sunscreen','Pool Towels',
+    'Cleaning Chemicals','Pool Test Kit','Skimmer Net',
+  ],
+  'Salon': [
+    'Barbing Cream','Shaving Gel','Aftershave','Clipper Oil',
+    'Hair Clippers','Scissors','Combs','Brushes','Towels',
+    'Disinfectant','Shampoo','Conditioner','Hair Spray',
+    'Razors','Cotton Wool','Tissue Paper','Gloves',
+  ],
+  'Front Desk': [
+    'Printing Paper','Pens','Printer Ink','Files & Folders',
+    'Tissue Paper','Hand Sanitizer','Envelopes','Stapler & Pins',
+    'Receipt Book','Guest Register','Marker Pens',
+  ],
+  'HR': [
+    'Printing Paper','Pens','Notebooks','Printer Ink',
+    'Files & Folders','Stamps','Envelopes','Biro Pens',
+    'Correction Fluid','Binding Covers',
+  ],
+  'Management': [
+    'Petrol','Diesel','Cooking Gas','Tissue Paper','Toilet Roll',
+    'Printing Paper','Pens','Hand Sanitizer','Detergent',
+  ],
+};
+// Fallback when no dept selected
+const COMMON_ITEMS = ['Tissue Paper','Toilet Roll','Toilet Soap','Gas','Petrol','Diesel','Detergent'];
+
+function onDeptChange() {
+  _activeDept = document.getElementById('deptFilter').value;
+  buildItemHistory();
+  renderItemTracker();
+  buildChips();
+  renderHistory();
+  if (canApprove) renderPending();
+}
+
+// ── Log approved procurement to expenses ───────────────────────────────
+async function logToExpenses(proc) {
+  const itemsSummary = (proc.items || []).map(i => i.name + ' ×' + i.qty).join(', ');
+  const notesParts   = [
+    proc.supplier ? 'Supplier: ' + proc.supplier : '',
+    itemsSummary  ? 'Items: ' + itemsSummary      : '',
+    proc.notes    || '',
+  ].filter(Boolean).join(' | ');
+  await db.collection('expenses').add({
+    date:          todayStr(),
+    department:    proc.department || 'Management',
+    category:      'Procurement',
+    description:   proc.title,
+    amount:        proc.totalAmount || 0,
+    notes:         notesParts,
+    photoUrl:      null,
+    staffId:       currentStaff.id,
+    staffName:     currentStaff.name,
+    source:        'procurement',
+    procurementId: proc.id || null,
+    submittedAt:   firebase.firestore.FieldValue.serverTimestamp(),
+    createdAt:     firebase.firestore.FieldValue.serverTimestamp(),
+  });
+}
+
+// ── Build item history map ─────────────────────────────────────────────
+// When _activeDept is set, stats are scoped to that dept.
+// priceHistory always includes ALL depts (for cross-dept price comparison in the modal).
+function buildItemHistory() {
+  _itemHistory = {};
+  _allProcs.forEach(p => {
+    if (p.status !== 'approved') return;
+    const matchesDept = !_activeDept || p.department === _activeDept;
+    const date = p.requestedAt?.toDate ? p.requestedAt.toDate() : null;
+    (p.items || []).forEach(item => {
+      if (!item.name) return;
+      const key = item.name.trim().toLowerCase();
+      if (!_itemHistory[key]) {
+        _itemHistory[key] = {
+          displayName: item.name.trim(),
+          count: 0, totalSpent: 0, totalQty: 0,
+          lastPrice: 0, lastDate: null,
+          minPrice: Infinity, maxPrice: 0,
+          departments: new Set(),
+          priceHistory: [] // always all depts — for the price modal comparison view
+        };
+      }
+      const h = _itemHistory[key];
+      const price = item.unitPrice || 0;
+      const qty   = item.qty || 0;
+      // Track which depts have bought this item (used for filtered item tracker display)
+      h.departments.add(p.department || '');
+      // Stats (count, spend, lastPrice) are scoped to the active dept filter
+      if (matchesDept) {
+        h.count++;
+        h.totalSpent += item.total || 0;
+        h.totalQty   += qty;
+        if (price > 0) {
+          h.minPrice = Math.min(h.minPrice, price);
+          h.maxPrice = Math.max(h.maxPrice, price);
+        }
+        if (!h.lastDate || (date && date > h.lastDate)) {
+          h.lastDate  = date;
+          h.lastPrice = price;
+        }
+      }
+      // Price history always includes everything (anti-corruption cross-dept view)
+      h.priceHistory.push({
+        date, price, qty,
+        procTitle:   p.title,
+        submittedBy: p.requestedBy?.name || '—',
+        department:  p.department || '—',
+      });
+    });
+  });
+  // Compute avg price (from dept-scoped stats) and sort history newest-first
+  Object.values(_itemHistory).forEach(h => {
+    if (h.minPrice === Infinity) h.minPrice = 0;
+    // avgPrice uses only the dept-scoped priceHistory entries
+    const scoped = h.priceHistory.filter(r => r.price > 0 && (!_activeDept || r.department === _activeDept));
+    h.avgPrice = scoped.length ? scoped.reduce((s, r) => s + r.price, 0) / scoped.length : 0;
+    h.priceHistory.sort((a, b) => (b.date || 0) - (a.date || 0));
+  });
+}
+
+// ── Render Item Tracker cards ──────────────────────────────────────────
+function renderItemTracker() {
+  const grid  = document.getElementById('itemTrackerGrid');
+  // When a dept filter is active, only show items purchased by that dept
+  const items = Object.values(_itemHistory)
+    .filter(h => !_activeDept || h.departments.has(_activeDept))
+    .sort((a, b) => b.count - a.count);
+  if (!items.length) {
+    grid.innerHTML = `<p class="text-muted" style="font-size:0.85rem;grid-column:1/-1">${_activeDept ? 'No approved ' + _activeDept + ' procurement yet.' : 'No approved procurement history yet.'}</p>`;
+    return;
+  }
+  grid.innerHTML = items.map(h => {
+    // Price deviation: last price vs average
+    const dev     = h.avgPrice > 0 && h.lastPrice > 0 ? (h.lastPrice - h.avgPrice) / h.avgPrice * 100 : 0;
+    const devHigh = dev > 25;
+    const devMid  = dev > 10 && !devHigh;
+    const trendIcon = dev > 10 ? '↑' : dev < -5 ? '↓' : '→';
+    const trendColor = dev > 25 ? '#dc2626' : dev > 10 ? '#d97706' : '#16a34a';
+    const alertHtml = devHigh
+      ? `<div class="itc-alert red">⚠ Last price ${Math.round(dev)}% above avg</div>`
+      : devMid
+      ? `<div class="itc-alert yellow">↑ Last price ${Math.round(dev)}% above avg</div>`
+      : '';
+    return `<div class="itc-card${devHigh?' alert-high':devMid?' alert-mid':''}" onclick="openPriceModal('${h.displayName.toLowerCase().replace(/'/g,"\\'")}')">
+      <div class="itc-name">
+        <span>${esc(h.displayName)}</span>
+        <span style="color:${trendColor};font-size:0.85rem">${trendIcon}</span>
+      </div>
+      <div class="itc-stat"><span>Purchased</span><strong>${h.count}× (${h.totalQty} units)</strong></div>
+      <div class="itc-stat"><span>Avg price</span><strong>${fmtNaira(h.avgPrice)}</strong></div>
+      <div class="itc-stat"><span>Last price</span><strong style="color:${trendColor}">${fmtNaira(h.lastPrice)}</strong></div>
+      <div class="itc-stat"><span>Last bought</span><strong>${h.lastDate ? h.lastDate.toLocaleDateString('en-NG',{day:'2-digit',month:'short',year:'numeric'}) : '—'}</strong></div>
+      <div class="itc-stat"><span>Total spent</span><strong>${fmtNaira(h.totalSpent)}</strong></div>
+      ${alertHtml}
+    </div>`;
+  }).join('');
+}
+
+// ── Price history modal ────────────────────────────────────────────────
+function openPriceModal(key) {
+  const h = _itemHistory[key];
+  if (!h) return;
+  document.getElementById('pmTitle').textContent   = h.displayName;
+  document.getElementById('pmSummary').textContent = `${h.count} purchases · ${h.totalQty} total units`;
+  document.getElementById('pmAvg').textContent     = fmtNaira(h.avgPrice);
+  document.getElementById('pmMin').textContent     = fmtNaira(h.minPrice);
+  document.getElementById('pmMax').textContent     = fmtNaira(h.maxPrice);
+  document.getElementById('pmQty').textContent     = h.totalQty;
+
+  const avg = h.avgPrice;
+  document.getElementById('pmTable').innerHTML = h.priceHistory.map(r => {
+    const dev = avg > 0 && r.price > 0 ? (r.price - avg) / avg * 100 : 0;
+    const devCell = Math.abs(dev) < 1 ? '<span style="color:var(--muted)">—</span>'
+      : dev > 25 ? `<span style="color:#dc2626;font-weight:500">⚠ +${Math.round(dev)}%</span>`
+      : dev > 10 ? `<span style="color:#d97706">↑ +${Math.round(dev)}%</span>`
+      : dev < -5 ? `<span style="color:#16a34a">↓ ${Math.round(dev)}%</span>`
+      : `<span style="color:var(--muted)">+${Math.round(dev)}%</span>`;
+    const dateStr = r.date ? r.date.toLocaleDateString('en-NG',{day:'2-digit',month:'short',year:'numeric'}) : '—';
+    return `<tr>
+      <td>${dateStr}</td>
+      <td>${esc(r.procTitle)}</td>
+      <td style="white-space:nowrap"><span style="font-size:0.72rem;color:var(--muted)">${esc(r.department || '—')}</span></td>
+      <td>${esc(r.submittedBy)}</td>
+      <td>${r.qty}</td>
+      <td>${fmtNaira(r.price)}</td>
+      <td>${devCell}</td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:12px">No history.</td></tr>';
+
+  document.getElementById('priceModal').classList.add('open');
+}
+function closePriceModal() { document.getElementById('priceModal').classList.remove('open'); }
+document.getElementById('priceModal').addEventListener('click', function(e) { if (e.target === this) closePriceModal(); });
+
+// ── Quick-add chips ────────────────────────────────────────────────────
+// refreshChips(): rebuilds chip DOM based on selected dept + past history.
+// Respects _addedNames so already-added items stay greyed out.
+function refreshChips() {
+  const container = document.getElementById('quickChips');
+  if (!container) return;
+  container.innerHTML = '';
+
+  const dept = document.getElementById('procDept')?.value || '';
+  const base = DEPT_ITEMS[dept] || COMMON_ITEMS;
+
+  // Merge dept defaults + past items (deduplicated, past items appended after defaults)
+  const seen = new Set();
+  const merged = [];
+  base.forEach(n => { seen.add(n.toLowerCase()); merged.push(n); });
+  Object.values(_itemHistory)
+    .sort((a, b) => b.count - a.count)
+    .forEach(h => {
+      if (!seen.has(h.displayName.toLowerCase())) {
+        seen.add(h.displayName.toLowerCase());
+        merged.push(h.displayName);
+      }
+    });
+
+  merged.forEach(name => {
+    const hist = _itemHistory[name.toLowerCase()];
+    const btn  = document.createElement('button');
+    btn.className    = 'chip' + (_addedNames.has(name) ? ' used' : '');
+    btn.dataset.item = name;
+    const priceSpan  = hist && hist.lastPrice > 0
+      ? `<span class="chip-price">${fmtNaira(hist.lastPrice)}</span>` : '';
+    btn.innerHTML = '+ ' + esc(name) + priceSpan;
+    btn.addEventListener('click', function() {
+      if (_addedNames.has(name)) return;
+      _addedNames.add(name);
+      this.classList.add('used');
+      addItemRow(name, 1, hist ? hist.lastPrice : 0);
+    });
+    container.appendChild(btn);
+  });
+}
+
+// buildChips(): full reset — clears added-names state then redraws chips.
+// Called when opening a fresh modal or after data reload.
+function buildChips() {
+  _addedNames.clear();
+  refreshChips();
+}
+
+// ── Modal open / close ─────────────────────────────────────────────────
+let _rowId     = 0;
+const _addedNames = new Set();
+
+function openModal() {
+  document.getElementById('modalTitle').textContent  = 'New Procurement Request';
+  document.getElementById('procTitle').value         = '';
+  document.getElementById('procDept').value          = _activeDept || '';
+  document.getElementById('procSupplier').value      = '';
+  document.getElementById('procNotes').value         = '';
+  document.getElementById('itemsList').innerHTML     = '';
+  document.getElementById('grandTotal').textContent  = '₦0.00';
+  _rowId = 0;
+  buildChips();
+  document.getElementById('procModal').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('procModal').classList.remove('open');
+}
+document.getElementById('procModal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+// ── Re-order: pre-fill modal from a past procurement ──────────────────
+function reorderFrom(id) {
+  const p = _allProcs.find(x => x.id === id);
+  if (!p) return;
+  closeDetail();
+
+  document.getElementById('modalTitle').textContent  = '↺ Re-order: ' + p.title;
+  document.getElementById('procTitle').value         = p.title;
+  document.getElementById('procDept').value          = p.department || _activeDept || '';
+  document.getElementById('procSupplier').value      = p.supplier || '';
+  document.getElementById('procNotes').value         = '';
+  document.getElementById('itemsList').innerHTML     = '';
+  document.getElementById('grandTotal').textContent  = '₦0.00';
+  _rowId = 0;
+  buildChips();
+
+  (p.items || []).forEach(item => {
+    // Grey out chip if it matches
+    _addedNames.add(item.name);
+    document.querySelectorAll('.chip').forEach(c => {
+      if (c.dataset.item === item.name) c.classList.add('used');
+    });
+    addItemRow(item.name, item.qty, item.unitPrice);
+  });
+
+  document.getElementById('procModal').classList.add('open');
+}
+
+// ── Item rows ──────────────────────────────────────────────────────────
+function addItemRow(name, qty, price) {
+  _rowId++;
+  const id  = 'pir_' + _rowId;
+  const div = document.createElement('div');
+  div.className  = 'pi-row';
+  div.id         = id;
+  div.innerHTML  =
+    `<input type="text" class="form-control pi-name" placeholder="Item name" value="${esc(name || '')}" oninput="calcTotals()">` +
+    `<input type="number" class="form-control pi-qty" placeholder="Qty" min="1" value="${qty || 1}" oninput="calcTotals()">` +
+    `<input type="number" class="form-control pi-price" placeholder="0.00" min="0" step="0.01" value="${price || ''}" oninput="calcTotals()">` +
+    `<span class="pi-total">₦0.00</span>` +
+    `<button class="pi-remove" data-row="${id}" data-item="${esc(name||'')}" title="Remove">✕</button>` +
+    `<div class="pi-warn" style="grid-column:1/-1"></div>`;
+  document.getElementById('itemsList').appendChild(div);
+  div.querySelector('.pi-remove').addEventListener('click', function() {
+    const n = this.dataset.item;
+    document.getElementById(this.dataset.row)?.remove();
+    if (n) {
+      _addedNames.delete(n);
+      document.querySelectorAll('.chip').forEach(c => {
+        if (c.dataset.item === n) c.classList.remove('used');
+      });
+    }
+    calcTotals();
+  });
+  if (!name) div.querySelector('.pi-name').focus();
+  calcTotals();
+}
+
+function calcTotals() {
+  let grand = 0;
+  document.querySelectorAll('.pi-row').forEach(row => {
+    const nameVal = (row.querySelector('.pi-name')?.value || '').trim().toLowerCase();
+    const qty     = parseFloat(row.querySelector('.pi-qty')?.value)   || 0;
+    const price   = parseFloat(row.querySelector('.pi-price')?.value) || 0;
+    const total   = qty * price;
+    grand += total;
+    const span = row.querySelector('.pi-total');
+    if (span) span.textContent = fmtNaira(total);
+
+    // Price deviation warning — always uses global average (cross-dept comparison)
+    const warn = row.querySelector('.pi-warn');
+    if (warn) {
+      const hist = nameVal ? _itemHistory[nameVal] : null;
+      if (hist && price > 0 && hist.priceHistory.length) {
+        const priced = hist.priceHistory.filter(r => r.price > 0);
+        const globalAvg = priced.length ? priced.reduce((s, r) => s + r.price, 0) / priced.length : 0;
+        const dev = globalAvg > 0 ? (price - globalAvg) / globalAvg * 100 : 0;
+        if (dev > 25) {
+          warn.textContent = `⚠ Price is ${Math.round(dev)}% above the global average of ${fmtNaira(globalAvg)} — verify before submitting`;
+          warn.style.cssText = 'display:block;color:#dc2626;font-size:0.72rem;margin:-2px 0 6px 2px;grid-column:1/-1';
+        } else if (dev > 10) {
+          warn.textContent = `↑ Price is ${Math.round(dev)}% above global average (${fmtNaira(globalAvg)})`;
+          warn.style.cssText = 'display:block;color:#d97706;font-size:0.72rem;margin:-2px 0 6px 2px;grid-column:1/-1';
+        } else {
+          warn.style.display = 'none';
+        }
+      } else {
+        warn.style.display = 'none';
+      }
+    }
+  });
+  document.getElementById('grandTotal').textContent = fmtNaira(grand);
+}
+
+// ── Submit ─────────────────────────────────────────────────────────────
+async function submitProcurement() {
+  const title = document.getElementById('procTitle').value.trim();
+  const dept  = document.getElementById('procDept').value;
+  if (!title) { showAlert('alertBox','Enter a title for this procurement.','alert-error'); return; }
+  if (!dept)  { showAlert('alertBox','Select a department for this procurement.','alert-error'); return; }
+
+  const items = [];
+  let hasNameless = false;
+  document.querySelectorAll('.pi-row').forEach(row => {
+    const name  = row.querySelector('.pi-name').value.trim();
+    const qty   = parseFloat(row.querySelector('.pi-qty').value)   || 0;
+    const price = parseFloat(row.querySelector('.pi-price').value) || 0;
+    if (!name) { hasNameless = true; return; }
+    items.push({ name, qty, unitPrice: price, total: qty * price });
+  });
+  if (hasNameless || !items.length) {
+    showAlert('alertBox','Add at least one item and give each a name.','alert-error'); return;
+  }
+
+  const totalAmount = items.reduce((s, i) => s + i.total, 0);
+  const supplier    = document.getElementById('procSupplier').value.trim();
+  const notes       = document.getElementById('procNotes').value.trim();
+  const status      = canApprove ? 'approved' : 'pending';
+
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true; btn.textContent = 'Submitting…';
+
+  try {
+    const data = {
+      title, department: dept, items, totalAmount, supplier, notes, status,
+      requestedBy: { id: currentStaff.id, name: currentStaff.name },
+      requestedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      approvedBy: null, approvedAt: null,
+      rejectedBy: null, rejectedAt: null,
+    };
+    if (canApprove) {
+      data.approvedBy = { id: currentStaff.id, name: currentStaff.name };
+      data.approvedAt = firebase.firestore.FieldValue.serverTimestamp();
+    }
+    const docRef = await db.collection('procurements').add(data);
+    if (canApprove) await logToExpenses({ ...data, id: docRef.id });
+    closeModal();
+    showAlert('alertBox',
+      canApprove ? 'Procurement approved and logged to expenses.' : 'Procurement submitted — awaiting approval.',
+      'alert-success');
+    loadProcurements();
+  } catch(e) {
+    showAlert('alertBox','Error: ' + e.message,'alert-error');
+  }
+  btn.disabled = false; btn.textContent = 'Submit Request';
+}
+
+// ── CEO / HR actions ───────────────────────────────────────────────────
+async function approveProcurement(id) {
+  if (!canApprove) return;
+  try {
+    await db.collection('procurements').doc(id).update({
+      status: 'approved',
+      approvedBy: { id: currentStaff.id, name: currentStaff.name },
+      approvedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    });
+    const proc = _allProcs.find(x => x.id === id);
+    if (proc) await logToExpenses({ ...proc, id });
+    showAlert('alertBox','Procurement approved and logged to expenses.','alert-success');
+    loadProcurements();
+  } catch(e) { showAlert('alertBox','Error: ' + e.message,'alert-error'); }
+}
+
+async function rejectProcurement(id) {
+  if (!canApprove) return;
+  if (!confirm('Reject this procurement request?')) return;
+  try {
+    await db.collection('procurements').doc(id).update({
+      status: 'rejected',
+      rejectedBy: { id: currentStaff.id, name: currentStaff.name },
+      rejectedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    });
+    showAlert('alertBox','Procurement rejected.','alert-success');
+    loadProcurements();
+  } catch(e) { showAlert('alertBox','Error: ' + e.message,'alert-error'); }
+}
+
+// ── Detail modal ───────────────────────────────────────────────────────
+function openDetail(id) {
+  const p = _allProcs.find(x => x.id === id);
+  if (!p) return;
+  _detailId = id;
+
+  document.getElementById('dtTitle').textContent = p.title;
+
+  const badge = document.getElementById('dtBadge');
+  badge.textContent = p.status === 'approved' ? '✓ Approved' : p.status === 'rejected' ? '✕ Rejected' : '⏳ Pending';
+  badge.className   = 'badge ' + (p.status === 'approved' ? 'badge-approved' : p.status === 'rejected' ? 'badge-rejected' : 'badge-pending');
+
+  document.getElementById('dtReqBy').textContent = p.requestedBy?.name || '—';
+  document.getElementById('dtReqAt').textContent = fmtDate(p.requestedAt);
+
+  const deptRow = document.getElementById('dtDeptRow');
+  if (p.department) { document.getElementById('dtDept').textContent = p.department; deptRow.style.display = ''; }
+  else deptRow.style.display = 'none';
+
+  document.getElementById('dtDelete').style.display = isCEO ? '' : 'none';
+
+  const apprRow  = document.getElementById('dtApprRow');
+  const apprDate = document.getElementById('dtApprDateRow');
+  if (p.status === 'approved' && p.approvedBy) {
+    document.getElementById('dtApprLabel').textContent = 'Approved by';
+    document.getElementById('dtApprBy').textContent    = p.approvedBy.name;
+    document.getElementById('dtApprAt').textContent    = fmtDate(p.approvedAt);
+    apprRow.style.display = apprDate.style.display = '';
+  } else if (p.status === 'rejected' && p.rejectedBy) {
+    document.getElementById('dtApprLabel').textContent = 'Rejected by';
+    document.getElementById('dtApprBy').textContent    = p.rejectedBy.name;
+    document.getElementById('dtApprAt').textContent    = fmtDate(p.rejectedAt);
+    apprRow.style.display = apprDate.style.display = '';
+  } else {
+    apprRow.style.display = apprDate.style.display = 'none';
+  }
+
+  const supRow = document.getElementById('dtSupRow');
+  if (p.supplier) { document.getElementById('dtSupplier').textContent = p.supplier; supRow.style.display = ''; }
+  else supRow.style.display = 'none';
+
+  document.getElementById('dtItems').innerHTML = itemsHtml(p.items);
+  document.getElementById('dtTotal').textContent = fmtNaira(p.totalAmount || 0);
+
+  const notesRow = document.getElementById('dtNotesRow');
+  if (p.notes) { document.getElementById('dtNotes').textContent = p.notes; notesRow.style.display = ''; }
+  else notesRow.style.display = 'none';
+
+  document.getElementById('detailModal').classList.add('open');
+}
+
+async function deleteProcurement(id) {
+  if (!isCEO || !id) return;
+  if (!confirm('Permanently delete this procurement? This cannot be undone.')) return;
+  try {
+    const proc = _allProcs.find(x => x.id === id);
+    // If approved, also remove the linked expense entry
+    if (proc && proc.status === 'approved') {
+      const expSnap = await db.collection('expenses')
+        .where('procurementId', '==', id).get();
+      await Promise.all(expSnap.docs.map(d => d.ref.delete()));
+    }
+    await db.collection('procurements').doc(id).delete();
+    closeDetail();
+    showAlert('alertBox', 'Procurement deleted.', 'alert-success');
+    loadProcurements();
+  } catch(e) {
+    showAlert('alertBox', 'Error: ' + e.message, 'alert-error');
+  }
+}
+
+function closeDetail() {
+  document.getElementById('detailModal').classList.remove('open');
+  _detailId = null;
+}
+document.getElementById('detailModal').addEventListener('click', function(e) {
+  if (e.target === this) closeDetail();
+});
+
+// ── Helpers ────────────────────────────────────────────────────────────
+function fmtDate(ts) {
+  if (!ts) return '—';
+  const d = ts.toDate ? ts.toDate() : new Date(ts.seconds ? ts.seconds * 1000 : ts);
+  return d.toLocaleDateString('en-NG',{day:'2-digit',month:'short',year:'numeric'});
+}
+
+function itemsHtml(items) {
+  if (!items || !items.length) return '<em style="color:var(--muted);font-size:0.8rem">No items recorded.</em>';
+  return `<table class="proc-items-tbl">
+    <thead><tr><th>Item</th><th>Qty</th><th>Unit Price</th><th style="text-align:right">Total</th></tr></thead>
+    <tbody>${items.map(i =>
+      `<tr>
+        <td>${esc(i.name)}</td>
+        <td>${i.qty}</td>
+        <td>${fmtNaira(i.unitPrice || 0)}</td>
+        <td style="text-align:right">${fmtNaira(i.total || 0)}</td>
+      </tr>`).join('')}
+    </tbody>
+  </table>`;
+}
+
+// ── Render history table (respects _activeDept filter) ────────────────
+function renderHistory() {
+  const historyTable = document.getElementById('historyTable');
+  const visible = _activeDept ? _allProcs.filter(p => p.department === _activeDept) : _allProcs;
+  if (!visible.length) {
+    historyTable.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:16px;color:#6a6b62">${_activeDept ? 'No ' + _activeDept + ' procurement records yet.' : 'No procurement records yet.'}</td></tr>`;
+    return;
+  }
+  historyTable.innerHTML = visible.map(p => {
+    const sc = p.status === 'approved' ? 'badge-approved' : p.status === 'rejected' ? 'badge-rejected' : 'badge-pending';
+    const sl = p.status === 'approved' ? '✓ Approved' : p.status === 'rejected' ? '✕ Rejected' : '⏳ Pending';
+    const deptTag = p.department ? `<br><span style="font-size:0.68rem;color:var(--muted)">${esc(p.department)}</span>` : '';
+    return `<tr class="proc-row" onclick="openDetail('${p.id}')">
+      <td class="fw4" style="color:var(--gold)">${esc(p.title)}${deptTag}</td>
+      <td>${esc(p.requestedBy?.name||'—')}</td>
+      <td>${fmtDate(p.requestedAt)}</td>
+      <td>${fmtNaira(p.totalAmount||0)}</td>
+      <td><span class="badge ${sc}">${sl}</span></td>
+      <td><span style="font-size:0.75rem;color:var(--muted)">View →</span></td>
+    </tr>`;
+  }).join('');
+}
+
+// ── Render pending approvals (respects _activeDept filter) ─────────────
+function renderPending() {
+  if (!canApprove) return;
+  const pendingList = document.getElementById('pendingList');
+  const pending = _allProcs.filter(p => p.status === 'pending' && (!_activeDept || p.department === _activeDept));
+  const countEl = document.getElementById('pendingCount');
+  if (countEl) { countEl.textContent = pending.length ? pending.length + ' pending' : ''; countEl.style.display = pending.length ? '' : 'none'; }
+  pendingList.innerHTML = !pending.length
+    ? '<p class="text-muted" style="font-size:0.85rem;padding:6px 0">No pending requests.</p>'
+    : pending.map(p => {
+      const deptBadge = p.department
+        ? ` <span style="font-size:0.68rem;color:var(--muted);font-weight:300">· ${esc(p.department)}</span>` : '';
+      return `<div class="proc-card">
+        <div class="proc-card-head">
+          <div>
+            <div class="proc-card-title">${esc(p.title)}${deptBadge}</div>
+            <div class="proc-card-meta">By <strong>${esc(p.requestedBy?.name||'—')}</strong> · ${fmtDate(p.requestedAt)}${p.supplier ? '<br>Supplier: '+esc(p.supplier) : ''}</div>
+          </div>
+          <span class="badge badge-pending">⏳ Pending</span>
+        </div>
+        ${itemsHtml(p.items)}
+        ${p.notes ? `<div style="font-size:0.78rem;color:var(--muted);margin-top:6px">Notes: ${esc(p.notes)}</div>` : ''}
+        <div class="proc-total-row">
+          <strong style="font-size:0.88rem">Total: ${fmtNaira(p.totalAmount||0)}</strong>
+          <div class="proc-actions">
+            <button class="btn btn-sm" style="background:#dc2626;color:#fff;border-color:#dc2626" onclick="rejectProcurement('${p.id}')">✕ Reject</button>
+            <button class="btn btn-gold btn-sm" onclick="approveProcurement('${p.id}')">✓ Approve</button>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+}
+
+// ── Load ───────────────────────────────────────────────────────────────
+async function loadProcurements() {
+  document.getElementById('historyTable').innerHTML =
+    '<tr><td colspan="6" style="text-align:center;padding:16px;color:#6a6b62">Loading…</td></tr>';
+  try {
+    const snap = await db.collection('procurements')
+      .orderBy('requestedAt', 'desc')
+      .limit(150)
+      .get();
+    _allProcs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    buildItemHistory();
+    renderItemTracker();
+    buildChips();
+    renderHistory();
+    if (canApprove) renderPending();
+  } catch(e) {
+    document.getElementById('historyTable').innerHTML =
+      `<tr><td colspan="6" style="text-align:center;padding:16px;color:#fca5a5">Error: ${esc(e.message)}</td></tr>`;
+  }
+}
+
+loadProcurements();
+</script>
+</body>
+</html>
