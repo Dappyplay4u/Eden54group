@@ -9,6 +9,10 @@
     <meta name="apple-mobile-web-app-title" content="Eden 54">
 <title>Eden 54 · Staff Portal</title>
 <link rel="icon" type="image/jpeg" href="/logo/eden 54 logo.jpeg">
+<link rel="preconnect" href="https://www.gstatic.com">
+<link rel="preconnect" href="https://firestore.googleapis.com">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -175,42 +179,72 @@ if (saved) {
 }
 
 /* ── Staff loading ── */
+const STAFF_CACHE_KEY = 'eden54_staff_cache';
+const STAFF_CACHE_TTL = 60 * 60 * 1000; // 1 hour
+
+function getCachedStaff() {
+  try {
+    const raw = localStorage.getItem(STAFF_CACHE_KEY);
+    if (!raw) return null;
+    const { data, at } = JSON.parse(raw);
+    if (Date.now() - at > STAFF_CACHE_TTL) return null;
+    return data;
+  } catch { return null; }
+}
+
+function renderStaffList(list) {
+  const salon = [], others = [], managers = [];
+  list.forEach(s => {
+    const lvl = (s.accessLevel || s.role || '').toLowerCase().replace(/\s+/g,'');
+    if (['ceo','superadmin','manager','hr'].includes(lvl)) managers.push(s);
+    else if (s.department === 'salon') salon.push(s);
+    else others.push(s);
+  });
+  document.getElementById('loadingEl').style.display = 'none';
+  if (!salon.length && !others.length && !managers.length) {
+    document.getElementById('emptyEl').style.display = 'block'; return;
+  }
+  if (salon.length) {
+    document.getElementById('salonSection').style.display = 'block';
+    document.getElementById('salonGrid').innerHTML = salon.map(s => cardHTML(s)).join('');
+  }
+  if (others.length) {
+    if (salon.length) document.getElementById('div1').style.display = 'block';
+    document.getElementById('otherSection').style.display = 'block';
+    document.getElementById('otherGrid').innerHTML = others.map(s => cardHTML(s)).join('');
+  }
+  if (managers.length) {
+    if (salon.length || others.length) document.getElementById('div2').style.display = 'block';
+    document.getElementById('managerSection').style.display = 'block';
+    document.getElementById('managerGrid').innerHTML = managers.map(s => cardHTML(s, true)).join('');
+  }
+}
+
 async function loadStaff() {
+  // Show cached list instantly if available — no waiting for Firestore
+  const cached = getCachedStaff();
+  if (cached) renderStaffList(cached);
+
+  // Always fetch fresh from Firestore in the background
   try {
     const snap = await db.collection('staff').orderBy('name').get();
-    document.getElementById('loadingEl').style.display = 'none';
-    if (snap.empty) { document.getElementById('emptyEl').style.display = 'block'; return; }
-
-    const salon = [], others = [], managers = [];
+    if (snap.empty) {
+      if (!cached) { document.getElementById('loadingEl').style.display = 'none'; document.getElementById('emptyEl').style.display = 'block'; }
+      return;
+    }
+    const fresh = [];
     snap.forEach(d => {
       const s = { id: d.id, ...d.data() };
-      if (s.active === false) return;
-      const lvl = (s.accessLevel || s.role || '').toLowerCase().replace(/\s+/g,'');
-      if (['ceo','superadmin','manager','hr'].includes(lvl)) managers.push(s);
-      else if (s.department === 'salon') salon.push(s);
-      else others.push(s);
+      if (s.active !== false) fresh.push(s);
     });
-
-    if (salon.length) {
-      document.getElementById('salonSection').style.display = 'block';
-      document.getElementById('salonGrid').innerHTML = salon.map(s => cardHTML(s)).join('');
-    }
-    if (others.length) {
-      if (salon.length) document.getElementById('div1').style.display = 'block';
-      document.getElementById('otherSection').style.display = 'block';
-      document.getElementById('otherGrid').innerHTML = others.map(s => cardHTML(s)).join('');
-    }
-    if (managers.length) {
-      if (salon.length || others.length) document.getElementById('div2').style.display = 'block';
-      document.getElementById('managerSection').style.display = 'block';
-      document.getElementById('managerGrid').innerHTML = managers.map(s => cardHTML(s, true)).join('');
-    }
-    if (!salon.length && !others.length && !managers.length) {
-      document.getElementById('emptyEl').style.display = 'block';
-    }
+    // Save to cache then re-render (updates if staff list changed)
+    localStorage.setItem(STAFF_CACHE_KEY, JSON.stringify({ data: fresh, at: Date.now() }));
+    renderStaffList(fresh);
   } catch(e) {
-    document.getElementById('loadingEl').style.display = 'none';
-    document.getElementById('errorBox').style.display = 'block';
+    if (!cached) {
+      document.getElementById('loadingEl').style.display = 'none';
+      document.getElementById('errorBox').style.display = 'block';
+    }
     console.error(e);
   }
 }
