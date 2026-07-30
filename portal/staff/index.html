@@ -378,7 +378,7 @@ function renderRolesList() {
       <span style="width:7px;height:7px;border-radius:50%;background:${levelBadge};flex-shrink:0"></span>
       <span>${r.name}</span>
       <span style="font-size:0.65rem;color:var(--muted)">(${r.accessLevel})</span>
-      ${canDel ? `<button onclick="deleteRole('${r.id}','${r.name.replace(/'/g,"\\'")}')}" style="background:none;border:none;cursor:pointer;color:#dc2626;font-size:0.75rem;padding:0 0 0 4px;line-height:1">✕</button>` : ''}
+      ${canDel ? `<button onclick="deleteRole('${r.id}',${JSON.stringify(r.name)})" style="background:none;border:none;cursor:pointer;color:#dc2626;font-size:0.75rem;padding:0 0 0 4px;line-height:1">✕</button>` : ''}
     </div>`;
   }).join('');
 }
@@ -546,7 +546,7 @@ async function loadStaff() {
       <td><span class="badge badge-${s.active!==false?'ok':'err'}">${s.active!==false?'Active':'Inactive'}</span></td>
       <td style="display:flex;gap:6px;padding:10px 0">
         <button class="btn btn-outline btn-sm" onclick="openEdit('${d.id}')">Edit</button>
-        <button class="btn btn-sm" style="background:rgba(220,38,38,0.1);color:#dc2626;border:1px solid rgba(220,38,38,0.25)" onclick="deleteStaff('${d.id}','${s.name.replace(/'/g,"\\'")}')">Delete</button>
+        <button class="btn btn-sm" style="background:rgba(220,38,38,0.1);color:#dc2626;border:1px solid rgba(220,38,38,0.25)" onclick="deleteStaff('${d.id}',${JSON.stringify(s.name)})">Deactivate</button>
       </td>
     </tr>`;
   }).join('');
@@ -662,22 +662,24 @@ async function saveEdit() {
 }
 
 async function deleteStaff(id, name) {
-  // Fetch target record to check access level before deleting
+  // Fetch target record to check access level before deactivating
   const snap = await db.collection('staff').doc(id).get();
   const targetData  = snap.data() || {};
   const myLevel     = (staff.accessLevel || staff.role || '').toLowerCase().replace(/\s+/g,'');
   const iAmCEO      = myLevel === 'ceo' || myLevel === 'superadmin';
   const targetLevel = (targetData.accessLevel || targetData.role || '').toLowerCase().replace(/\s+/g,'');
   if ((targetLevel === 'ceo' || targetLevel === 'superadmin') && !iAmCEO) {
-    showAlert('alertBox', 'Only a CEO can delete another CEO\'s record.', 'alert-error');
+    showAlert('alertBox', 'Only a CEO can deactivate another CEO\'s record.', 'alert-error');
     return;
   }
-  if (!confirm(`Delete ${name}? This cannot be undone.`)) return;
+  if (!confirm(`Deactivate "${name}"?\n\nThis hides them from all forms and reports but keeps their history. Use this instead of permanent deletion.`)) return;
   try {
-    await db.collection('staff').doc(id).delete();
-    showAlert('alertBox', name + ' removed.', 'alert-success');
+    await db.collection('staff').doc(id).update({ active: false });
+    showAlert('alertBox', `${name} has been deactivated.`, 'alert-success');
     loadStaff();
-  } catch(e) { showAlert('alertBox', 'Error: ' + e.message, 'alert-error'); }
+  } catch(e) {
+    showAlert('alertBox', 'Error: ' + e.message, 'alert-error');
+  }
 }
 
 /* ── Reset POS Password ── */

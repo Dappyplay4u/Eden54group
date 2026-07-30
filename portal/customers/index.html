@@ -283,7 +283,7 @@ let deptFilter  = 'all';
 let deptPhones  = null; // null = show all; Set<string> = phone keys for active dept
 
 async function loadCustomers() {
-  const snap = await db.collection('customers').orderBy('lastVisit', 'desc').get();
+  const snap = await db.collection('customers').orderBy('lastVisit', 'desc').limit(300).get();
   allCustomers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
   updateStats(allCustomers);
   applyFilter();
@@ -324,21 +324,21 @@ async function setDept(dept) {
   try {
     if (dept === 'apt') {
       // Apartments are in their own collection, not in sales
-      const snap = await db.collection('apartmentRentals').get();
+      const snap = await db.collection('apartmentRentals').limit(500).get();
       snap.docs.forEach(d => {
         const p = (d.data().phone || '').replace(/\D/g, '');
         if (p.length >= 7) phones.add(p);
       });
     } else if (dept === 'tab') {
       // Table tabs saved in sales with source='tab'
-      const snap = await db.collection('sales').where('source', '==', 'tab').get();
+      const snap = await db.collection('sales').where('source', '==', 'tab').limit(500).get();
       snap.docs.forEach(d => {
         const p = (d.data().customerPhone || '').replace(/\D/g, '');
         if (p) phones.add(p);
       });
     } else {
       // POS sales keyed by section field
-      const snap = await db.collection('sales').where('section', '==', dept).get();
+      const snap = await db.collection('sales').where('section', '==', dept).limit(500).get();
       snap.docs.forEach(d => {
         const p = (d.data().customerPhone || '').replace(/\D/g, '');
         if (p) phones.add(p);
@@ -450,6 +450,7 @@ async function openDetail(phoneKey) {
   try {
     const snap = await db.collection('sales')
       .where('customerPhone', '==', cust?.phone || phoneKey)
+      .limit(100)
       .get();
 
     const sales = snap.docs.map(d => ({ id: d.id, ...d.data() }));

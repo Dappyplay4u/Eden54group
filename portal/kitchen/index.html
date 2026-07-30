@@ -117,7 +117,15 @@ async function submitKitchen() {
     lowAlert:(+document.getElementById(`kc_${i}`).value||0)<=item.low
   }));
   const lowItems=items.filter(x=>x.lowAlert).map(x=>x.name);
-  const btn=document.getElementById('submitBtn'); btn.disabled=true; btn.textContent='Saving…';
+  const btn=document.getElementById('submitBtn');
+  const existSnap = await db.collection('kitchen_inventory')
+    .where('date', '==', date)
+    .where('staffId', '==', staff.id)
+    .limit(1).get();
+  if (!existSnap.empty) {
+    if (!confirm('You already submitted a kitchen report today. Submit another one?')) return;
+  }
+  btn.disabled=true; btn.textContent='Saving…';
   try {
     await db.collection('kitchen_inventory').add({ date, items, notes, meals, lowItems, staffId:staff.id, staffName:staff.name, submittedAt:firebase.firestore.FieldValue.serverTimestamp() });
     showAlert('alertBox','Kitchen report saved!','alert-success');
@@ -129,10 +137,14 @@ async function submitKitchen() {
 }
 
 async function loadHistory() {
-  const snap=await db.collection('kitchen_inventory').orderBy('submittedAt','desc').limit(14).get();
   const tbody=document.getElementById('histTable');
-  tbody.innerHTML = snap.empty ? '<tr><td colspan="4" style="text-align:center;padding:16px;color:#6a6b62">No reports yet.</td></tr>'
-    : snap.docs.map(d=>{ const r=d.data(); return `<tr><td class="fw4">${r.date}</td><td>${r.meals||0} meals</td><td>${(r.lowItems||[]).length>0?`<span class="badge badge-warn">${r.lowItems.length} low</span>`:'<span class="badge badge-ok">All OK</span>'}</td><td>${r.staffName}</td></tr>`; }).join('');
+  try {
+    const snap=await db.collection('kitchen_inventory').orderBy('submittedAt','desc').limit(14).get();
+    tbody.innerHTML = snap.empty ? '<tr><td colspan="4" style="text-align:center;padding:16px;color:#6a6b62">No reports yet.</td></tr>'
+      : snap.docs.map(d=>{ const r=d.data(); return `<tr><td class="fw4">${r.date}</td><td>${r.meals||0} meals</td><td>${(r.lowItems||[]).length>0?`<span class="badge badge-warn">${r.lowItems.length} low</span>`:'<span class="badge badge-ok">All OK</span>'}</td><td>${r.staffName}</td></tr>`; }).join('');
+  } catch(e) {
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:16px;color:#ef4444">Error loading history.</td></tr>';
+  }
 }
 loadHistory();
 </script>

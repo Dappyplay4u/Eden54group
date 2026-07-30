@@ -188,22 +188,44 @@ let clockInTime = null, timerInt = null;
    No composite index needed.
 ═══════════════════════════════ */
 async function loadClockStatus() {
+  const autoClockIn = sessionStorage.getItem('eden54_auto_clockin') === '1';
   try {
     const snap = await db.collection('clockings').doc(clockDocId).get();
     if (!snap.exists) {
       setClockUI('out');
+      if (autoClockIn) {
+        sessionStorage.removeItem('eden54_auto_clockin');
+        document.getElementById('clockStatus').textContent = 'Signing you in…';
+        clockIn();
+      }
     } else {
       const d = snap.data();
       const sessions = d.sessions || [];
       const last = sessions[sessions.length - 1];
-      if (!last) { setClockUI('out'); return; }
+      if (!last) {
+        setClockUI('out');
+        if (autoClockIn) {
+          sessionStorage.removeItem('eden54_auto_clockin');
+          document.getElementById('clockStatus').textContent = 'Signing you in…';
+          clockIn();
+        }
+        return;
+      }
       clockInTime = last.clockIn ? last.clockIn.toDate() : null;
       if (last.clockOut) {
         const dur   = calcDur(last.clockIn.toDate(), last.clockOut.toDate());
         const total = calcTotal(sessions);
         setClockUI('done', { inTime: last.clockIn.toDate(), outTime: last.clockOut.toDate(), dur, total });
         document.getElementById('hoursWorked').textContent = total;
+        // They logged out and signed back in — clock them in again
+        if (autoClockIn) {
+          sessionStorage.removeItem('eden54_auto_clockin');
+          document.getElementById('clockStatus').textContent = 'Signing you in…';
+          clockIn();
+        }
       } else {
+        // Already clocked in — clear flag, no duplicate needed
+        sessionStorage.removeItem('eden54_auto_clockin');
         setClockUI('in', { inTime: clockInTime });
         startTimer(clockInTime);
       }
@@ -311,21 +333,25 @@ async function clockOut() {
   try {
     const now    = firebase.firestore.Timestamp.now();
     const docRef = db.collection('clockings').doc(clockDocId);
-    const snap   = await docRef.get();
-    const sessions = snap.data().sessions || [];
-    // Update the last session that has no clockOut
-    const idx = sessions.map(s => !s.clockOut).lastIndexOf(true);
-    if (idx === -1) { showAlert('alertBox', 'No active session to clock out of.', 'alert-error'); btn.disabled = false; btn.textContent = 'Clock Out'; return; }
-    sessions[idx] = {
-      ...sessions[idx],
-      clockOut: now,
-      clockOutLocation: loc ? { lat: loc.lat, lng: loc.lng, accuracy: loc.accuracy, distanceMeters, atFacility } : null
-    };
-    await docRef.update({ sessions });
+    let finalSessions, txIdx = -1;
+    await db.runTransaction(async tx => {
+      const snap = await tx.get(docRef);
+      const sessions = snap.exists ? (snap.data().sessions || []) : [];
+      txIdx = sessions.map(s => !s.clockOut).lastIndexOf(true);
+      if (txIdx === -1) return;
+      sessions[txIdx] = {
+        ...sessions[txIdx],
+        clockOut: now,
+        clockOutLocation: loc ? { lat: loc.lat, lng: loc.lng, accuracy: loc.accuracy, distanceMeters, atFacility } : null
+      };
+      tx.update(docRef, { sessions });
+      finalSessions = sessions;
+    });
+    if (txIdx === -1) { showAlert('alertBox', 'No active session to clock out of.', 'alert-error'); btn.disabled = false; btn.textContent = 'Clock Out'; return; }
     clearInterval(timerInt);
     document.getElementById('clockTimer').textContent = '';
     const dur   = calcDur(clockInTime, now.toDate());
-    const total = calcTotal(sessions);
+    const total = calcTotal(finalSessions);
     setClockUI('done', { inTime: clockInTime, outTime: now.toDate(), dur, total });
     document.getElementById('hoursWorked').textContent = total;
     const locNote = loc ? (atFacility ? ' · At facility' : ' · Remote (' + distanceMeters + 'm away)') : '';
@@ -339,25 +365,27 @@ async function clockOut() {
 
 async function autoMarkAttendance(date, hoursWorked) {
   try {
-    const attRef  = db.collection('attendance').doc(date);
-    const snap    = await attRef.get();
-    const record  = {
+    const attRef = db.collection('attendance').doc(date);
+    const record = {
       staffId: staff.id, staffName: staff.name, department: staff.department,
       status: 'Present', autoMarked: true, hoursWorked
     };
-    if (snap.exists) {
-      const records = snap.data().records || [];
-      const idx = records.findIndex(r => r.staffId === staff.id);
-      if (idx >= 0) {
-        // Don't override a manual 'Leave' decision, but update everything else
-        if (records[idx].status !== 'Leave') records[idx] = { ...records[idx], ...record };
+    await db.runTransaction(async tx => {
+      const snap = await tx.get(attRef);
+      if (snap.exists) {
+        const records = snap.data().records || [];
+        const idx = records.findIndex(r => r.staffId === staff.id);
+        if (idx >= 0) {
+          // Don't override a manual 'Leave' decision, but update everything else
+          if (records[idx].status !== 'Leave') records[idx] = { ...records[idx], ...record };
+        } else {
+          records.push(record);
+        }
+        tx.update(attRef, { records });
       } else {
-        records.push(record);
+        tx.set(attRef, { date, records: [record], markedBy: 'Auto', markedAt: firebase.firestore.FieldValue.serverTimestamp() });
       }
-      await attRef.update({ records });
-    } else {
-      await attRef.set({ date, records: [record], markedBy: 'Auto', markedAt: firebase.firestore.FieldValue.serverTimestamp() });
-    }
+    });
   } catch(e) {
     // Silent — attendance auto-mark is best-effort; don't interrupt the clock-out flow
   }
@@ -490,8 +518,11 @@ async function loadMySales(date) {
   body.innerHTML = '<div style="color:var(--muted);font-size:0.82rem;padding:6px 0">Loading…</div>';
 
   try {
-    // Query by staffId only, filter date client-side to avoid needing a composite index
-    const snap  = await db.collection('sales').where('staffId','==',staff.id).get();
+    // Query by staffId with 30-day window, filter exact date client-side
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    const fromDate = thirtyDaysAgo.toISOString().slice(0, 10);
+    const snap  = await db.collection('sales').where('staffId','==',staff.id).where('date','>=',fromDate).get();
     const sales = snap.docs.map(d => d.data()).filter(r => r.date === date);
 
     // Normalize POS docs to totalSales/cashSales/transferSales/posSales
@@ -582,13 +613,16 @@ async function loadMyReports() {
 
 function escHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
-function openLB(src){ document.getElementById('lbImg').src = src; document.getElementById('lb').classList.add('open'); }
-function closeLB(e){ if(e.target===document.getElementById('lb')) document.getElementById('lb').classList.remove('open'); }
+function openLB(src){ document.getElementById('lbImg').src = src; document.getElementById('lb').style.display = 'flex'; }
+function closeLB(e){ if(e.target===document.getElementById('lb')) document.getElementById('lb').style.display = 'none'; }
 
 /* ── Run ── */
 loadClockStatus();
 document.getElementById('salesDate').value = today;
 loadMySales(today);
 </script>
+<div id="lb" onclick="this.style.display='none'" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9999;align-items:center;justify-content:center;cursor:zoom-out">
+  <img id="lbImg" src="" alt="Staff photo" style="max-width:90vw;max-height:90vh;border-radius:10px;object-fit:contain">
+</div>
 </body>
 </html>

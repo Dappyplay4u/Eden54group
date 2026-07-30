@@ -146,6 +146,8 @@
 <script src="/portal/firebase-init.js"></script>
 <script>
 const staff = getStaff();
+if (!staff) throw 0;
+requireAccess(staff, 'updates');
 populateSidebar(staff);
 buildNav(staff, 'updates');
 document.getElementById('topDate').textContent = new Date().toLocaleDateString('en-NG',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
@@ -273,7 +275,7 @@ async function loadFeed(reset = true) {
     const u = d.data();
     const ts = u.createdAt ? u.createdAt.toDate().toLocaleString('en-NG',{dateStyle:'short',timeStyle:'short'}) : '';
     const avatarEl = u.authorPhoto
-      ? `<img class="feed-avatar-img" src="${u.authorPhoto}" alt="${u.staffName}">`
+      ? `<img class="feed-avatar-img" src="${esc(u.authorPhoto)}" alt="${esc(u.staffName)}">`
       : `<div class="feed-initials">${avatarInitials(u.staffName)}</div>`;
     const countClass = !u.photos?.length ? '' : u.photos.length === 1 ? 'count-1' : u.photos.length === 2 ? 'count-2' : u.photos.length === 3 ? 'count-3' : 'count-4plus';
     const photosEl = (u.photos||[]).length
@@ -282,8 +284,8 @@ async function loadFeed(reset = true) {
     return `<div class="feed-item">
       <div class="feed-header">
         ${avatarEl}
-        <div class="feed-meta"><strong>${u.staffName}</strong><span>${ts}</span></div>
-        <span class="feed-dept">${u.department}</span>
+        <div class="feed-meta"><strong>${esc(u.staffName)}</strong><span>${ts}</span></div>
+        <span class="feed-dept">${esc(u.department)}</span>
       </div>
       ${u.text ? `<div class="feed-text">${escHtml(u.text)}</div>` : ''}
       ${photosEl}

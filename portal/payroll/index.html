@@ -113,6 +113,7 @@ let payrollRows = {}, editingId = null;
 async function loadPayroll() {
   const month = document.getElementById('payMonth').value;
   payrollRows = {};
+  document.getElementById('payrollTable').innerHTML = '<div class="tbl-wrap"><table><tbody><tr><td colspan="9" style="text-align:center;padding:16px;color:var(--muted)">Loading payroll…</td></tr></tbody></table></div>';
   const existing = await db.collection('payroll').doc(month).get();
   if (existing.exists) {
     (existing.data().staff || []).forEach(s => payrollRows[s.staffId] = s);
@@ -160,12 +161,25 @@ function calcNet() {
   const n = (+document.getElementById('mBasic').value||0)+(+document.getElementById('mAllow').value||0)-(+document.getElementById('mDeduct').value||0)+(+document.getElementById('mBonus').value||0);
   document.getElementById('mNet').textContent = fmtNaira(n);
 }
-function applyEdit() {
+async function applyEdit() {
   const r = payrollRows[editingId];
   r.basic = +document.getElementById('mBasic').value||0; r.allowances = +document.getElementById('mAllow').value||0;
   r.deductions = +document.getElementById('mDeduct').value||0; r.bonus = +document.getElementById('mBonus').value||0;
   r.net = r.basic + r.allowances - r.deductions + r.bonus; r.status = document.getElementById('mStatus').value;
   document.getElementById('editModal').classList.remove('show'); renderTable();
+  const month = document.getElementById('payMonth').value;
+  if (month) {
+    const rows = Object.values(payrollRows);
+    try {
+      await db.collection('payroll').doc(month).set(
+        { staff: rows, totalPaid: rows.reduce((s, row) => s + (row.net || 0), 0) },
+        { merge: true }
+      );
+      showAlert('alertBox', `Pay for ${r.staffName} updated successfully!`, 'alert-success');
+    } catch(e) {
+      showAlert('alertBox', 'Error saving: ' + e.message, 'alert-error');
+    }
+  }
 }
 
 async function savePayroll() {

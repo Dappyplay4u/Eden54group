@@ -79,7 +79,7 @@ function switchProfile() {
 function populateSidebar(staff) {
   if (!staff) return;
   const el = document.getElementById('sidebarUser');
-  if (el) el.innerHTML = `<strong>${staff.name}</strong><span>${staff.department}</span>`;
+  if (el) el.innerHTML = `<strong>${esc(staff.name)}</strong><span>${esc(staff.department)}</span>`;
 }
 
 /**
@@ -625,4 +625,11 @@ function showAlert(id, msg, type = 'alert-success') {
 }
 function avatarInitials(name) {
   return (name || '?').split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+}
+
+/* ── Service Worker ── */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
+  });
 }

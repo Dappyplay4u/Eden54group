@@ -204,6 +204,10 @@ async function submitBarbing() {
     const amt  = +row.querySelector('.svc-amt').value || 0;
     if (amt > 0) services.push({ type, amount: amt });
   });
+  if (!services.length) {
+    showAlert('alertBox', 'Enter at least one service with an amount before saving.', 'alert-error');
+    return;
+  }
   const totalRevenue = services.reduce((s,x)=>s+x.amount, 0);
   const btn = document.getElementById('submitBtn'); btn.disabled=true; btn.textContent='Submitting…';
   try {
@@ -231,15 +235,19 @@ async function submitBarbing() {
 }
 
 async function loadToday() {
-  const snap = await db.collection('barbing_reports').where('date','==',todayStr()).get();
   const el = document.getElementById('todayBarb');
-  if (snap.empty) { el.textContent = 'No reports today yet.'; return; }
-  let html='', grand=0;
-  snap.forEach(d => { const r=d.data(); grand+=r.totalRevenue||0;
-    html+=`<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #e4e4df;font-size:0.84rem"><span><strong>${r.staffName}</strong> · ${r.clientsServed} services</span><span class="text-gold fw4">${fmtNaira(r.totalRevenue)}</span></div>`;
-  });
-  html+=`<div style="display:flex;justify-content:space-between;padding:9px 0;font-weight:400;font-size:0.88rem"><span>Total</span><span class="text-gold">${fmtNaira(grand)}</span></div>`;
-  el.innerHTML = html;
+  try {
+    const snap = await db.collection('barbing_reports').where('date','==',todayStr()).get();
+    if (snap.empty) { el.textContent = 'No reports today yet.'; return; }
+    let html='', grand=0;
+    snap.forEach(d => { const r=d.data(); grand+=r.totalRevenue||0;
+      html+=`<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #e4e4df;font-size:0.84rem"><span><strong>${r.staffName}</strong> · ${r.clientsServed} services</span><span class="text-gold fw4">${fmtNaira(r.totalRevenue)}</span></div>`;
+    });
+    html+=`<div style="display:flex;justify-content:space-between;padding:9px 0;font-weight:400;font-size:0.88rem"><span>Total</span><span class="text-gold">${fmtNaira(grand)}</span></div>`;
+    el.innerHTML = html;
+  } catch(e) {
+    el.textContent = 'Error loading today\'s summary.';
+  }
 }
 
 async function loadHistory() {

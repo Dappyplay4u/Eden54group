@@ -388,7 +388,7 @@ function timeAgo(ts) {
 }
 function pillHtml(status) {
   const map = { new:'pill-new', confirmed:'pill-confirmed', 'checked-in':'pill-checked-in', 'checked-out':'pill-checked-out', paid:'pill-paid', partial:'pill-partial', pending:'pill-pending' };
-  return `<span class="status-pill ${map[status]||''}">${status}</span>`;
+  return `<span class="status-pill ${map[status]||''}">${esc(status)}</span>`;
 }
 
 /* ── Nights + total calculation ── */
@@ -480,6 +480,9 @@ async function submitRental() {
     return showAlert('alertBox', 'Please fill all required fields.', 'alert-error');
   }
 
+  const btn = document.querySelector('#rentalForm button[type=submit]') || document.querySelector('button[onclick*="submitRental"]');
+  if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
+
   const nights          = nightsBetween(checkin, checkout);
   const discount        = parseFloat(document.getElementById('apDiscount')?.value) || 0;
   const cautionOverride = parseFloat(document.getElementById('apCautionOverride')?.value) || 0;
@@ -516,18 +519,17 @@ async function submitRental() {
     if (phoneKey.length >= 7) {
       const custRef = db.collection('customers').doc(phoneKey);
       await custRef.set({
-        name:      guestName,
-        phone:     phone,
-        email:     rentalData.email || '',
-        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        name:         guestName,
+        phone:        phone,
+        email:        rentalData.email || '',
+        createdAt:    firebase.firestore.FieldValue.serverTimestamp(),
+        lastVisit:    checkin,
+        visitCount:   firebase.firestore.FieldValue.increment(1),
+        totalSpend:   firebase.firestore.FieldValue.increment(paid),
+        depts:        firebase.firestore.FieldValue.arrayUnion('apt'),
+        nameAliases:  firebase.firestore.FieldValue.arrayUnion(guestName),
+        lastProperty: 'Apartments',
       }, { merge: true });
-      await custRef.update({
-        lastVisit:   checkin,
-        visitCount:  firebase.firestore.FieldValue.increment(1),
-        totalSpend:  firebase.firestore.FieldValue.increment(paid),
-        depts:       firebase.firestore.FieldValue.arrayUnion('apt'),
-        nameAliases: firebase.firestore.FieldValue.arrayUnion(guestName),
-      });
     }
 
     showAlert('alertBox', `Rental logged for ${guestName} ✓`, 'alert-success');
@@ -543,6 +545,8 @@ async function submitRental() {
     loadTodaySummary();
   } catch(e) {
     showAlert('alertBox', 'Error saving rental: ' + e.message, 'alert-error');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Log Rental'; }
   }
 }
 
@@ -560,7 +564,7 @@ function loadNotifications() {
           return tb - ta;
         });
 
-      const newCount = docs.filter(d => d.status === 'new').length;
+      const newCount = docs.filter(d => d.status === 'new' && !d.seenAt).length;
       document.getElementById('notifCount').textContent  = newCount;
       document.getElementById('notifBadge2').textContent = newCount;
       document.getElementById('notifCount').style.display  = newCount > 0 ? 'inline-flex' : 'none';
@@ -578,12 +582,12 @@ function loadNotifications() {
           <div class="notif-row" id="nr-${b.id}">
             <div class="notif-dot ${isNew ? '' : 'seen'}"></div>
             <div class="notif-body">
-              <div class="notif-name">${b.firstName} ${b.lastName} ${pillHtml(b.status)}</div>
+              <div class="notif-name">${esc(b.firstName)} ${esc(b.lastName)} ${pillHtml(b.status)}</div>
               <div class="notif-meta">
-                📱 ${b.phone} &nbsp;|&nbsp; 📧 ${b.email}<br>
-                🏨 ${b.unit || '—'} &nbsp;|&nbsp; 👥 ${b.guests} guest(s)<br>
+                📱 ${esc(b.phone)} &nbsp;|&nbsp; 📧 ${esc(b.email)}<br>
+                🏨 ${esc(b.unit) || '—'} &nbsp;|&nbsp; 👥 ${esc(b.guests)} guest(s)<br>
                 📅 Check-in: <strong>${fmtDate(b.checkin)}</strong> &nbsp;→&nbsp; Check-out: <strong>${fmtDate(b.checkout)}</strong>
-                ${b.requests ? `<br>📝 <em>${b.requests}</em>` : ''}
+                ${b.requests ? `<br>📝 <em>${esc(b.requests)}</em>` : ''}
               </div>
               <div class="notif-actions">
                 ${isNew ? `<button class="btn btn-gold btn-sm" onclick="confirmBooking('${b.id}')">✓ Confirm</button>` : ''}
@@ -607,18 +611,32 @@ async function confirmBooking(id) {
 
 async function declineBooking(id, guestName, status) {
   const msg = status === 'confirmed'
-    ? `Delete confirmed booking for ${guestName}?\n\nUse this for cancellations, refund requests, or non-payment after confirmation.`
-    : `Delete reservation for ${guestName}?\n\nUse this when no payment or deposit has been made.`;
+    ? `Cancel confirmed booking for ${guestName}?\n\nUse this for cancellations, refund requests, or non-payment after confirmation.`
+    : `Cancel reservation for ${guestName}?\n\nUse this when no payment or deposit has been made.`;
   if (!confirm(msg)) return;
-  await db.collection('apartmentBookings').doc(id).delete();
-  showAlert('alertBox', `Booking for ${guestName} deleted.`, 'alert-error');
+  await db.collection('apartmentBookings').doc(id).update({
+    status: 'cancelled',
+    cancelledAt: firebase.firestore.FieldValue.serverTimestamp(),
+    cancelledBy: { id: staff.id, name: staff.name },
+  });
+  writeAuditLog(staff, 'cancel_booking', { bookingId: id, guestName });
+  showAlert('alertBox', `Booking for ${guestName} cancelled.`, 'alert-error');
 }
 
 async function markAllSeen() {
   const snap = await db.collection('apartmentBookings').where('status','==','new').get();
+  if (snap.empty) { showAlert('alertBox', 'No new bookings to mark.', 'alert-success'); return; }
   const batch = db.batch();
-  snap.forEach(d => batch.update(d.ref, { status: 'confirmed' }));
-  await batch.commit();
+  snap.forEach(d => batch.update(d.ref, {
+    seenAt: firebase.firestore.FieldValue.serverTimestamp(),
+    seenBy: staff.name,
+  }));
+  try {
+    await batch.commit();
+    showAlert('alertBox', 'All bookings marked as seen.', 'alert-success');
+  } catch(e) {
+    showAlert('alertBox', 'Error: ' + e.message, 'alert-error');
+  }
 }
 
 function convertToRental(id) {
@@ -657,15 +675,15 @@ function loadActive() {
         html += `
           <div class="notif-row">
             <div class="notif-body">
-              <div class="notif-name">${r.guestName} ${pillHtml(r.payStatus||'pending')}</div>
+              <div class="notif-name">${esc(r.guestName)} ${pillHtml(r.payStatus||'pending')}</div>
               <div class="notif-meta">
-                🏨 ${r.unit}${r.bedrooms ? ` · ${r.bedrooms} Bed` : ''} &nbsp;|&nbsp; 📅 ${fmtDate(r.checkin)} → ${fmtDate(r.checkout)} (${r.nights} night${r.nights!==1?'s':''})
-                <br>💰 Total: ${r.discount > 0 ? `<span style="text-decoration:line-through;opacity:0.45">${fmt(r.total)}</span> ${fmt(effTotal)} <span style="color:#15803d;font-size:0.72rem">−${fmt(r.discount)} discount${r.discountNote ? ` (${r.discountNote})` : ''}</span>` : fmt(r.total)} &nbsp;|&nbsp; Paid: ${fmt(r.paid)} &nbsp;|&nbsp; <span style="color:${bal>0?'#dc2626':'#15803d'}">Balance: ${fmt(bal)}</span>
+                🏨 ${esc(r.unit)}${r.bedrooms ? ` · ${r.bedrooms} Bed` : ''} &nbsp;|&nbsp; 📅 ${fmtDate(r.checkin)} → ${fmtDate(r.checkout)} (${r.nights} night${r.nights!==1?'s':''})
+                <br>💰 Total: ${r.discount > 0 ? `<span style="text-decoration:line-through;opacity:0.45">${fmt(r.total)}</span> ${fmt(effTotal)} <span style="color:#15803d;font-size:0.72rem">−${fmt(r.discount)} discount${r.discountNote ? ` (${esc(r.discountNote)})` : ''}</span>` : fmt(r.total)} &nbsp;|&nbsp; Paid: ${fmt(r.paid)} &nbsp;|&nbsp; <span style="color:${bal>0?'#dc2626':'#15803d'}">Balance: ${fmt(bal)}</span>
                 ${r.cautionFee ? `<br>🔐 Caution deposit: ${fmt(r.cautionFee)} <span style="color:#15803d">(refundable on checkout)</span>` : ''}
               </div>
               <div class="notif-actions">
                 <button class="btn btn-outline btn-sm" onclick="checkOut('${r.id}')">Check Out</button>
-                ${bal > 0 ? `<button class="btn btn-gold btn-sm" onclick="logPayment('${r.id}', ${effTotal}, ${r.paid})">Record Payment</button>` : ''}
+                ${bal > 0 ? `<button class="btn btn-gold btn-sm" onclick="logPayment('${r.id}')">Record Payment</button>` : ''}
                 <button class="btn btn-outline btn-sm" onclick="printReceipt('${r.id}')">🖨 Receipt</button>
                 ${_isCEO ? `<button class="btn btn-outline btn-sm ceo-only" onclick="openAdjustModal('${r.id}', ${r.total}, ${r.discount||0}, ${r.cautionFee||0}, '${(r.discountNote||'').replace(/'/g,"\\'")}')">Adjust</button>` : ''}
               </div>
@@ -685,19 +703,34 @@ async function checkOut(id) {
 }
 
 /* ── Record additional payment ── */
-async function logPayment(id, effTotal, currentPaid) {
-  const amount = parseFloat(prompt('Enter amount received (₦):'));
-  if (!amount || isNaN(amount)) return;
-  const newPaid    = currentPaid + amount;
-  const newBalance = effTotal - newPaid;
-  const newStatus  = newBalance <= 0 ? 'paid' : 'partial';
-  await db.collection('apartmentRentals').doc(id).update({
-    paid: newPaid,
-    balance: newBalance,
-    payStatus: newStatus
-  });
-  showAlert('alertBox', `Payment of ${fmt(amount)} recorded ✓`, 'alert-success');
-  loadActive(); loadHistory();
+function logPayment(rentalId) {
+  window._paymentRentalId = rentalId;
+  document.getElementById('paymentAmount').value = '';
+  document.getElementById('paymentModal').style.display = 'flex';
+  setTimeout(() => document.getElementById('paymentAmount').focus(), 100);
+}
+
+async function confirmPayment() {
+  const rentalId = window._paymentRentalId;
+  const amount = parseFloat(document.getElementById('paymentAmount').value);
+  if (!amount || amount <= 0) { alert('Enter a valid amount.'); return; }
+  document.getElementById('paymentModal').style.display = 'none';
+  try {
+    const snap = await db.collection('apartmentRentals').doc(rentalId).get();
+    if (!snap.exists) return;
+    const r = snap.data();
+    const newPaid = (r.paid || 0) + amount;
+    await db.collection('apartmentRentals').doc(rentalId).update({
+      paid: newPaid,
+      paymentHistory: firebase.firestore.FieldValue.arrayUnion({
+        amount, paidAt: new Date().toISOString(), recordedBy: staff.name
+      }),
+    });
+    showAlert('alertBox', `Payment of ₦${amount.toLocaleString()} logged.`, 'alert-success');
+    loadActive();
+  } catch(e) {
+    showAlert('alertBox', 'Error: ' + e.message, 'alert-error');
+  }
 }
 
 /* ── Receipt ── */
@@ -983,6 +1016,21 @@ loadCalendar();
     <div id="rcptNoPrint" style="display:flex;gap:10px;justify-content:flex-end;padding:12px 20px;border-top:1px solid #eee;background:#fafafa">
       <button onclick="closeRcpt()" style="padding:8px 18px;border:1px solid #ccc;background:#fff;border-radius:7px;cursor:pointer;font-size:0.82rem">Close</button>
       <button onclick="window.print()" style="padding:8px 18px;background:#0f2318;color:#c9a96e;border:none;border-radius:7px;cursor:pointer;font-size:0.82rem;font-weight:500">🖨 Print</button>
+    </div>
+  </div>
+</div>
+
+<!-- Payment Modal -->
+<div id="paymentModal" class="modal-ov" style="display:none">
+  <div class="modal-card" style="max-width:340px">
+    <h3>Log Payment</h3>
+    <div class="form-group">
+      <label class="form-label">Amount Received (₦)</label>
+      <input type="number" id="paymentAmount" class="form-control" placeholder="0.00" min="0" step="0.01">
+    </div>
+    <div style="display:flex;gap:10px;margin-top:18px">
+      <button class="btn btn-outline" style="flex:1" onclick="document.getElementById('paymentModal').style.display='none'">Cancel</button>
+      <button class="btn btn-gold" style="flex:1" onclick="confirmPayment()">Save Payment</button>
     </div>
   </div>
 </div>

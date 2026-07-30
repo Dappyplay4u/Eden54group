@@ -157,11 +157,15 @@ async function submitPool() {
 }
 
 async function loadHistory() {
-  const snap=await db.collection('pool_competitions').orderBy('submittedAt','desc').limit(20).get();
   const tbody=document.getElementById('histTable');
-  tbody.innerHTML = snap.empty
-    ? '<tr><td colspan="6" style="text-align:center;padding:16px;color:#6a6b62">No sessions yet.</td></tr>'
-    : snap.docs.map(d=>{ const r=d.data(); return `<tr><td>${r.date}</td><td><span class="badge badge-info">${r.type}</span></td><td>${r.players}</td><td>${fmtNaira(r.cashCollected)}</td><td>${fmtNaira(r.prizePaid)}</td><td class="text-gold fw4">${fmtNaira(r.netRevenue)}</td></tr>`; }).join('');
+  try {
+    const snap=await db.collection('pool_competitions').orderBy('submittedAt','desc').limit(20).get();
+    tbody.innerHTML = snap.empty
+      ? '<tr><td colspan="6" style="text-align:center;padding:16px;color:#6a6b62">No sessions yet.</td></tr>'
+      : snap.docs.map(d=>{ const r=d.data(); return `<tr><td>${r.date}</td><td><span class="badge badge-info">${r.type}</span></td><td>${r.players}</td><td>${fmtNaira(r.cashCollected)}</td><td>${fmtNaira(r.prizePaid)}</td><td class="text-gold fw4">${fmtNaira(r.netRevenue)}</td></tr>`; }).join('');
+  } catch(e) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:16px;color:#ef4444">Error loading history.</td></tr>';
+  }
 }
 loadHistory();
 </script>

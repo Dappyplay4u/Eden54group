@@ -228,14 +228,14 @@ function cardHTML(s, isManager = false) {
     photoURL:    s.photoURL    || '',
   }));
   const avatarHTML = s.photoURL
-    ? `<div class="avatar"><img src="${s.photoURL}" alt="${s.name}"></div>`
+    ? `<div class="avatar"><img src="${esc(s.photoURL)}" alt="${esc(s.name)}"></div>`
     : `<div class="avatar">${avatarInitials(s.name)}</div>`;
-  const aliasTag = s.alias ? `<div style="font-size:0.68rem;opacity:0.55;margin-top:1px">${s.alias}</div>` : '';
+  const aliasTag = s.alias ? `<div style="font-size:0.68rem;opacity:0.55;margin-top:1px">${esc(s.alias)}</div>` : '';
   return `<div class="staff-card${isManager ? ' mgr' : ''}" onclick="openModal('${data}')">
     ${avatarHTML}
-    <div class="staff-name">${s.name}</div>
+    <div class="staff-name">${esc(s.name)}</div>
     ${aliasTag}
-    <div class="staff-dept" style="${isManager ? 'color:rgba(201,169,110,0.5)' : ''}">${isManager ? 'Manager' : s.department}</div>
+    <div class="staff-dept" style="${isManager ? 'color:rgba(201,169,110,0.5)' : ''}">${isManager ? 'Manager' : esc(s.department)}</div>
   </div>`;
 }
 
@@ -354,6 +354,7 @@ async function submitPassword(e) {
     photoURL:    s.photoURL,
   });
   localStorage.setItem('eden54_login_at', Date.now());
+  sessionStorage.setItem('eden54_auto_clockin', '1');
   const lvl = (s.accessLevel || s.role || '').toLowerCase().replace(/\s+/g,'');
   const isPriv = ['ceo','superadmin','manager'].includes(lvl) || lvl.includes('manager');
   const _r1 = sessionStorage.getItem('eden54_redirect'); sessionStorage.removeItem('eden54_redirect');

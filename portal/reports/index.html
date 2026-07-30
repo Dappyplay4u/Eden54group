@@ -1039,7 +1039,7 @@ async function loadSalesLeaders() {
 
   try {
     const [salesSnap, barbSnap, compSnap, aptSnap] = await Promise.all([
-      db.collection('sales').where('date','>=',startStr).where('date','<=',endStr).get(),
+      db.collection('sales').where('date','>=',startStr).where('date','<=',endStr).limit(5000).get(),
       db.collection('barbing_reports').where('date','>=',startStr).where('date','<=',endStr).get(),
       db.collection('pool_competitions').where('date','>=',startStr).where('date','<=',endStr).get(),
       db.collection('apartmentRentals').where('createdAt','>=',startTs).where('createdAt','<=',endTs).get().catch(()=>({docs:[]})),
@@ -1300,16 +1300,19 @@ async function loadRange() {
 
   try {
     const [salesSnap, barbSnap, compSnap, expSnap] = await Promise.all([
-      db.collection('sales').where('date','>=',fromDate).where('date','<=',toDate).get(),
+      db.collection('sales').where('date','>=',fromDate).where('date','<=',toDate).limit(10000).get(),
       db.collection('barbing_reports').where('date','>=',fromDate).where('date','<=',toDate).get(),
       db.collection('pool_competitions').where('date','>=',fromDate).where('date','<=',toDate).get(),
-      db.collection('expenses').where('date','>=',fromDate).where('date','<=',toDate).get(),
+      db.collection('expenses').where('date','>=',fromDate).where('date','<=',toDate).limit(2000).get(),
     ]);
     let aptDocs = [];
     try {
       const aptSnap = await db.collection('apartmentRentals').where('checkin','>=',fromDate).where('checkin','<=',toDate).get();
       aptDocs = aptSnap.docs;
-    } catch(e) {}
+    } catch(e) {
+      console.warn('Apartment rentals unavailable:', e.message);
+      showAlert('alertBox', 'Apartment rental data unavailable for this range.', 'alert-error');
+    }
     const expRows = expSnap.docs.map(d => d.data());
 
     const DEPTS = ['barbing','games','drinks','food','apt','events'];

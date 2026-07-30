@@ -140,6 +140,13 @@ async function submitBar() {
   }));
   const lowItems = items.filter(x => x.lowAlert).map(x => x.name);
   const btn = document.getElementById('submitBtn');
+  const existSnap = await db.collection('bar_stock')
+    .where('date', '==', date)
+    .where('staffId', '==', staff.id)
+    .limit(1).get();
+  if (!existSnap.empty) {
+    if (!confirm('You already submitted a bar report today. Submit another one?')) return;
+  }
   btn.disabled = true; btn.textContent = 'Saving…';
   try {
     await db.collection('bar_stock').add({
@@ -155,18 +162,22 @@ async function submitBar() {
 }
 
 async function loadHistory() {
-  const snap = await db.collection('bar_stock').orderBy('submittedAt','desc').limit(14).get();
   const tbody = document.getElementById('histTable');
-  if (snap.empty) { tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:16px;color:#6a6b62">No reports yet.</td></tr>'; return; }
-  tbody.innerHTML = snap.docs.map(d => {
-    const r = d.data();
-    return `<tr>
-      <td class="fw4">${r.date}</td>
-      <td>${(r.items||[]).length} items</td>
-      <td>${(r.lowItems||[]).length > 0 ? `<span class="badge badge-warn">${r.lowItems.length} low</span>` : '<span class="badge badge-ok">All OK</span>'}</td>
-      <td>${r.staffName}</td>
-    </tr>`;
-  }).join('');
+  try {
+    const snap = await db.collection('bar_stock').orderBy('submittedAt','desc').limit(14).get();
+    if (snap.empty) { tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:16px;color:#6a6b62">No reports yet.</td></tr>'; return; }
+    tbody.innerHTML = snap.docs.map(d => {
+      const r = d.data();
+      return `<tr>
+        <td class="fw4">${r.date}</td>
+        <td>${(r.items||[]).length} items</td>
+        <td>${(r.lowItems||[]).length > 0 ? `<span class="badge badge-warn">${r.lowItems.length} low</span>` : '<span class="badge badge-ok">All OK</span>'}</td>
+        <td>${r.staffName}</td>
+      </tr>`;
+    }).join('');
+  } catch(e) {
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:16px;color:#ef4444">Error loading history.</td></tr>';
+  }
 }
 </script>
 </body>

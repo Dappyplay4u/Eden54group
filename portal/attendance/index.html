@@ -210,10 +210,16 @@ async function saveAttendance() {
   const date = document.getElementById('attDate').value;
   const dept = activeDept();
   if (!date || !allStaff.length) return;
+  const visible = filteredStaff();
+  const unselected = visible.filter(s => !document.querySelector(`input[name="att_${s.id}"]:checked`));
+  if (unselected.length) {
+    showAlert('alertBox', `Please mark attendance for: ${unselected.map(s => s.name).join(', ')}`, 'alert-error');
+    return;
+  }
+
   const btn = document.querySelector('#attSaveWrap .btn');
   btn.disabled = true; btn.textContent = 'Saving…';
 
-  const visible = filteredStaff();
   const newRecords = visible.map(s => {
     const checked = document.querySelector(`input[name="att_${s.id}"]:checked`);
     return { staffId: s.id, staffName: s.name, department: s.department, status: checked?.value || 'Present' };
@@ -248,8 +254,13 @@ async function saveAttendance() {
 async function loadHistory() {
   const tbody = document.getElementById('histTable');
   try {
-    // Avoid orderBy on markedAt (needs index) — fetch and sort client-side
-    const snap = await db.collection('attendance').get();
+    // Avoid orderBy on markedAt (needs index) — fetch last 60 days and sort client-side
+    const sixtyDaysAgo = new Date();
+    sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
+    const fromDate = sixtyDaysAgo.toISOString().slice(0, 10);
+    const snap = await db.collection('attendance')
+      .where('date', '>=', fromDate)
+      .get();
     if (snap.empty) {
       tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:16px;color:#6a6b62">No records yet.</td></tr>';
       return;
@@ -282,9 +293,12 @@ async function loadMonthlySummary() {
   if (!month) return;
   const tbody = document.getElementById('monthTable');
   try {
+    const [yr, mo] = month.split('-').map(Number);
+    const lastDay = new Date(yr, mo, 0).getDate();
+    const toDate = `${month}-${String(lastDay).padStart(2,'0')}`;
     const snap = await db.collection('attendance')
       .where('date', '>=', month + '-01')
-      .where('date', '<=', month + '-31')
+      .where('date', '<=', toDate)
       .get();
     const dept = activeDept();
     const staffSubset = dept ? allStaff.filter(s => s.department === dept) : allStaff;

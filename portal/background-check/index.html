@@ -243,7 +243,7 @@ function renderList() {
             : d.hrDecision === 'Further verification needed'
             ? `<span class="bc-status" style="color:#7ec8e3;border-color:rgba(126,200,227,.4);background:rgba(126,200,227,.08)">⚠ Verify</span>`
             : ''}
-          ${canDelete ? `<button class="bc-del-btn" title="Delete record" onclick="event.stopPropagation();deleteRecord('${d.id}','${esc(d.fullName||'this record')}')">🗑</button>` : ''}
+          ${canDelete ? `<button class="bc-del-btn" title="Delete record" onclick="event.stopPropagation();deleteRecord('${d.id}',${JSON.stringify(d.fullName||'this record')})">🗑</button>` : ''}
         </div>
       </div>
     </div>`;
@@ -383,7 +383,7 @@ function openModal(d) {
       </div>
       <div style="display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin-top:8px">
         <button class="btn-save-hr" onclick="saveHR('${d.id}')">Save Office Record</button>
-        ${canDelete ? `<button class="btn-delete-rec" onclick="deleteRecord('${d.id}','${esc(d.fullName||'this record')}')">Delete Record</button>` : ''}
+        ${canDelete ? `<button class="btn-delete-rec" onclick="deleteRecord('${d.id}',${JSON.stringify(d.fullName||'this record')})">Delete Record</button>` : ''}
       </div>
     </div>`;
 
