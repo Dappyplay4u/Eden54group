@@ -1,6 +1,5 @@
 // Eden 54 Portal — Service Worker
-// Caches Firebase SDKs, fonts, and static assets so the PWA loads fast from home screen.
-const CACHE = 'eden54-sw-v1';
+const CACHE = 'eden54-sw-v2';
 
 // Pre-fetched on install — loaded on every portal page
 const PRECACHE = [
@@ -36,7 +35,7 @@ self.addEventListener('fetch', e => {
 
   const url = new URL(request.url);
 
-  // Never intercept Firebase backend calls — let Firebase SDK handle these directly
+  // Never intercept Firebase backend calls
   if (
     url.hostname.includes('firestore.googleapis.com') ||
     url.hostname.includes('identitytoolkit.googleapis.com') ||
@@ -45,8 +44,7 @@ self.addEventListener('fetch', e => {
     url.hostname.includes('firebasestorage.googleapis.com')
   ) return;
 
-  // Cache-first: Firebase SDKs and Google Fonts
-  // These URLs are version-pinned or stable — safe to serve from cache indefinitely
+  // Cache-first: Firebase SDKs and Google Fonts (version-pinned / stable)
   if (
     url.hostname === 'www.gstatic.com' ||
     url.hostname === 'fonts.googleapis.com' ||
@@ -56,16 +54,23 @@ self.addEventListener('fetch', e => {
     return;
   }
 
-  // Cache-first: images (already have 1-year Netlify headers)
+  // Cache-first: images (1-year Netlify headers)
   if (request.destination === 'image') {
     e.respondWith(cacheFirst(request));
     return;
   }
 
-  // Network-first: all portal pages and assets
-  // Tries network so updates always apply; falls back to cache when offline
+  // Stale-while-revalidate: portal HTML pages
+  // Serves from cache instantly so nav between pages feels immediate,
+  // fetches fresh copy in the background so next visit gets any updates.
+  if (request.destination === 'document' && url.hostname === self.location.hostname) {
+    e.respondWith(staleWhileRevalidate(request));
+    return;
+  }
+
+  // Cache-first: portal CSS and JS (already pre-cached)
   if (url.hostname === self.location.hostname) {
-    e.respondWith(networkFirst(request));
+    e.respondWith(cacheFirst(request));
     return;
   }
 });
@@ -85,16 +90,14 @@ async function cacheFirst(request) {
   }
 }
 
-async function networkFirst(request) {
-  try {
-    const response = await fetch(request);
-    if (response.ok) {
-      const cache = await caches.open(CACHE);
-      cache.put(request, response.clone());
-    }
+async function staleWhileRevalidate(request) {
+  const cache  = await caches.open(CACHE);
+  const cached = await cache.match(request);
+  // Fetch fresh in the background — updates cache for next visit
+  const fetchPromise = fetch(request).then(response => {
+    if (response.ok) cache.put(request, response.clone());
     return response;
-  } catch {
-    const cached = await caches.match(request);
-    return cached || new Response('Offline', { status: 503 });
-  }
+  }).catch(() => null);
+  // Return cached immediately if available, otherwise wait for network
+  return cached || fetchPromise;
 }
