@@ -1,3 +1,17 @@
+// Preconnect to Firebase backends so the SSL/TLS handshake is done
+// before the SDK makes its first request — cuts 500ms-2s on mobile Safari.
+(function() {
+  ['https://firestore.googleapis.com',
+   'https://identitytoolkit.googleapis.com',
+   'https://securetoken.googleapis.com',
+   'https://firebase.googleapis.com'].forEach(function(href) {
+    var l = document.createElement('link'); l.rel = 'preconnect'; l.href = href; l.crossOrigin = 'anonymous';
+    document.head.appendChild(l);
+    var d = document.createElement('link'); d.rel = 'dns-prefetch'; d.href = href;
+    document.head.appendChild(d);
+  });
+})();
+
 const firebaseConfig = {
   apiKey: "AIzaSyAexUjhTx1iBiivwB8rUdK52ANleN1DFAg",
   authDomain: "eden54.firebaseapp.com",
@@ -213,28 +227,6 @@ function buildNav(staff, active) {
 
   // Booking popup notification bell for manager/CEO/HR
   if (!document.getElementById('aptNotifBtn')) initBookingNotifications(staff);
-
-  const canSeeApts = isManager || isHR || isFrontDesk;
-  if (canSeeApts && typeof db !== 'undefined') {
-    db.collection('apartmentBookings')
-      .where('status', '==', 'new')
-      .onSnapshot(snap => {
-        const count = snap.size;
-        const aptLink = document.querySelector('#sbNav a[href="/portal/apartments/"]');
-        if (!aptLink) return;
-        let badge = aptLink.querySelector('.sb-notif-badge');
-        if (!badge) {
-          badge = document.createElement('span');
-          badge.className = 'sb-notif-badge';
-          badge.style.cssText = 'display:inline-flex;align-items:center;justify-content:center;background:#dc2626;color:#fff;border-radius:50%;width:18px;height:18px;font-size:0.6rem;font-weight:600;margin-left:auto;flex-shrink:0';
-          aptLink.style.display = 'flex';
-          aptLink.style.alignItems = 'center';
-          aptLink.appendChild(badge);
-        }
-        badge.textContent  = count;
-        badge.style.display = count > 0 ? 'inline-flex' : 'none';
-      }, () => {});
-  }
 
   const switchBtn = document.querySelector('.sb-foot a[onclick]');
   if (switchBtn) {
@@ -506,6 +498,21 @@ function initBookingNotifications(staff) {
       if (badge) {
         badge.textContent = newCount;
         badge.style.display = newCount > 0 ? 'inline-flex' : 'none';
+      }
+      // Also update the sidebar link badge (replaces the separate listener that was in buildNav)
+      const aptLink = document.querySelector('#sbNav a[href="/portal/apartments/"]');
+      if (aptLink) {
+        let sbBadge = aptLink.querySelector('.sb-notif-badge');
+        if (!sbBadge) {
+          sbBadge = document.createElement('span');
+          sbBadge.className = 'sb-notif-badge';
+          sbBadge.style.cssText = 'display:inline-flex;align-items:center;justify-content:center;background:#dc2626;color:#fff;border-radius:50%;width:18px;height:18px;font-size:0.6rem;font-weight:600;margin-left:auto;flex-shrink:0';
+          aptLink.style.display = 'flex';
+          aptLink.style.alignItems = 'center';
+          aptLink.appendChild(sbBadge);
+        }
+        sbBadge.textContent = newCount;
+        sbBadge.style.display = newCount > 0 ? 'inline-flex' : 'none';
       }
       const count = snap.size;
 
