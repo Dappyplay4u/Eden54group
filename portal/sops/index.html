@@ -1,0 +1,1234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#0f2318">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Eden 54">
+<title>SOPs · Eden 54 Portal</title>
+<link rel="icon" type="image/jpeg" href="/logo/eden 54 logo.jpeg">
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/portal/portal.css">
+<style>
+  /* ── SOP grid & cards ── */
+  .sop-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(272px, 1fr));
+    gap: 16px;
+  }
+  .sop-card {
+    background: #fff;
+    border: 1px solid #e4e4df;
+    border-radius: 8px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .sop-card:hover { border-color: #C9A96E; box-shadow: 0 2px 10px rgba(0,0,0,.07); }
+  .sop-card-title { font-size: 1rem; font-weight: 400; color: #0f2318; line-height: 1.35; }
+  .sop-card-pos   { font-size: 0.8rem; color: #6a6b62; margin-top: 2px; }
+  .sop-card-badges { display: flex; gap: 6px; flex-wrap: wrap; }
+  .badge-ver  { background: #f5f9f5; border: 1px solid #C9A96E; color: #0f2318; font-size: 0.68rem; padding: 2px 8px; border-radius: 20px; }
+  .badge-role { background: #0f2318; color: #C9A96E;  font-size: 0.68rem; padding: 2px 8px; border-radius: 20px; }
+  .badge-dept { background: #1a3a26; color: #C9A96E;  font-size: 0.68rem; padding: 2px 8px; border-radius: 20px; }
+
+  /* ── Tabs ── */
+  .tab-bar { display: flex; border-bottom: 2px solid #e4e4df; margin-bottom: 24px; }
+  .tab-btn {
+    padding: 10px 22px; background: none; border: none;
+    border-bottom: 2px solid transparent; margin-bottom: -2px;
+    cursor: pointer; font-family: 'Jost', sans-serif;
+    font-size: 0.88rem; color: #6a6b62;
+    transition: color 0.2s, border-color 0.2s;
+  }
+  .tab-btn.active { color: #0f2318; border-bottom-color: #C9A96E; font-weight: 500; }
+
+  /* ── SOP Viewer overlay ── */
+  .sop-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,.55);
+    z-index: 900; display: none; overflow-y: auto; padding: 24px 16px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .sop-overlay.open { display: block; }
+  .sop-overlay-inner {
+    background: #f8f8f5; border-radius: 10px;
+    max-width: 840px; margin: 0 auto; padding: 28px 24px;
+    position: relative;
+  }
+  .sop-overlay-close {
+    position: absolute; top: 14px; right: 14px;
+    background: #fff; border: 1px solid #e4e4df; border-radius: 50%;
+    width: 32px; height: 32px; font-size: 1.1rem; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; color: #6a6b62;
+    z-index: 1;
+  }
+  /* ── SOP Document ── */
+  .sop-doc { max-width: 780px; margin: 0 auto; }
+  .sop-cover {
+    background: linear-gradient(135deg, #0f2318 0%, #1a3a26 100%);
+    color: #fff; padding: 26px 30px; border-radius: 8px; margin-bottom: 18px;
+  }
+  .sop-cover-sup { font-size: 0.68rem; letter-spacing: 0.14em; text-transform: uppercase; color: #C9A96E; margin-bottom: 10px; }
+  .sop-cover-title { font-size: 1.3rem; font-weight: 400; line-height: 1.3; margin-bottom: 5px; }
+  .sop-cover-pos { font-size: 0.85rem; color: rgba(255,255,255,.6); margin-bottom: 16px; }
+  .sop-cover-meta {
+    display: flex; gap: 18px; flex-wrap: wrap;
+    border-top: 1px solid rgba(255,255,255,.15); padding-top: 12px;
+    font-size: 0.77rem; color: rgba(255,255,255,.55);
+  }
+  .sop-cover-meta span strong { color: #C9A96E; font-weight: 400; margin-right: 4px; }
+  .sop-block { margin-bottom: 12px; border: 1px solid #e4e4df; border-radius: 6px; overflow: hidden; }
+  .sop-block-head {
+    background: #0f2318; color: #fff;
+    padding: 8px 14px; display: flex; align-items: center; gap: 12px;
+  }
+  .sop-block-head.sub { background: #1a3a26; }
+  .sop-num {
+    background: #C9A96E; color: #0f2318;
+    font-size: 0.66rem; font-weight: 500; padding: 2px 7px;
+    border-radius: 4px; min-width: 32px; text-align: center; flex-shrink: 0;
+  }
+  .sop-block-head.sub .sop-num { background: transparent; border: 1px solid rgba(201,169,110,.5); color: #C9A96E; }
+  .sop-heading { font-size: 0.88rem; font-weight: 400; letter-spacing: 0.02em; }
+  .sop-body { padding: 13px 14px; background: #fff; }
+  .sop-body p { font-size: 0.855rem; color: #3a3b34; line-height: 1.7; margin: 0 0 8px; }
+  .sop-body p:last-child { margin-bottom: 0; }
+  .sop-items { list-style: none; padding: 0; margin: 8px 0 0; }
+  .sop-items li {
+    display: flex; gap: 10px; padding: 7px 0;
+    border-bottom: 1px solid #f0efe9;
+    font-size: 0.855rem; line-height: 1.6; color: #3a3b34;
+  }
+  .sop-items li:last-child { border-bottom: none; }
+  .sop-item-n {
+    min-width: 20px; height: 20px; border-radius: 50%;
+    background: #C9A96E; color: #0f2318;
+    font-size: 0.65rem; font-weight: 500;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; margin-top: 3px;
+  }
+  .sop-item-t { flex: 1; }
+  .sop-item-t strong { font-weight: 500; color: #0f2318; }
+  .sop-footer { display: flex; justify-content: center; gap: 10px; margin-top: 22px; padding-top: 16px; border-top: 1px solid #e4e4df; }
+
+  /* ── Editor ── */
+  .ed-section {
+    border: 1px solid #e4e4df; border-radius: 6px;
+    padding: 14px; margin-bottom: 10px; background: #fdfdfc;
+  }
+  .ed-section-hd { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .fg-num-title { display: grid; grid-template-columns: 80px 1fr; gap: 8px; margin-bottom: 8px; }
+  .btn-sm {
+    padding: 4px 10px; font-size: 0.75rem; border-radius: 4px;
+    border: 1px solid #e4e4df; background: #fff;
+    cursor: pointer; font-family: 'Jost', sans-serif; color: #3a3b34;
+    transition: border-color 0.15s;
+  }
+  .btn-sm:hover { border-color: #C9A96E; }
+  .btn-sm.danger { border-color: #ef4444; color: #ef4444; }
+  .btn-sm.danger:hover { background: #fef2f2; }
+  .btn-sm.gold { border-color: #C9A96E; color: #0f2318; }
+
+  .check-grid { display: flex; flex-wrap: wrap; gap: 10px; }
+  .check-label {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 0.84rem; cursor: pointer; padding: 4px 10px;
+    border: 1px solid #e4e4df; border-radius: 20px; background: #fff;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .check-label:has(input:checked) { border-color: #C9A96E; background: #f5f9f5; }
+  .check-label input { cursor: pointer; }
+
+  /* ── Print ── */
+  @media print {
+    .sidebar, .topbar, .sop-overlay-close, .sop-footer,
+    .tab-bar, #panelAll { display: none !important; }
+    .sop-overlay { display: block !important; position: static;
+      background: none; padding: 0; overflow: visible; }
+    .sop-overlay-inner { background: none; padding: 0; box-shadow: none; }
+    .sop-cover { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .sop-block-head { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+  @media (max-width: 600px) {
+    .sop-overlay-inner { padding: 18px 14px; }
+    .sop-cover { padding: 20px; }
+  }
+</style>
+</head>
+<body>
+<div class="sb-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+<aside class="sidebar" id="sidebar">
+  <div class="sb-brand"><div class="sb-brand-name">Eden 54</div><div class="sb-brand-sub">Staff Portal</div></div>
+  <nav class="sb-nav" id="sbNav"></nav>
+  <div class="sb-foot"><div id="sidebarUser"></div><a class="sb-item" onclick="switchProfile()" style="cursor:pointer"><i class="sb-icon">🔄</i> Switch Profile</a></div>
+</aside>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <button class="hamburger" onclick="toggleSidebar()"><div></div><div></div><div></div></button>
+      <h1>Standard Operating Procedures</h1>
+    </div>
+    <div class="topbar-date" id="topDate"></div>
+  </div>
+
+  <div class="content">
+    <div id="alertBox" class="alert"></div>
+
+    <div class="tab-bar" id="tabBar">
+      <button class="tab-btn active" onclick="switchTab('my')"  id="tabMy">My SOPs</button>
+      <button class="tab-btn"        onclick="switchTab('all')" id="tabAll" style="display:none">Manage SOPs</button>
+    </div>
+
+    <!-- My SOPs -->
+    <div id="panelMy">
+      <div id="mySopGrid" class="sop-grid">
+        <p class="text-muted" style="font-size:0.85rem">Loading…</p>
+      </div>
+    </div>
+
+    <!-- All SOPs (CEO / HR) -->
+    <div id="panelAll" style="display:none">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:10px">
+        <div style="font-size:0.84rem;color:#6a6b62" id="allSopCount"></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn" id="loadDefaultsBtn" onclick="seedMissingSops()" style="display:none">Load Default SOPs</button>
+          <button class="btn btn-gold" onclick="openEditor(null)">+ New SOP</button>
+        </div>
+      </div>
+      <div id="allSopGrid" class="sop-grid"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ── SOP Viewer overlay ── -->
+<div class="sop-overlay" id="sopOverlay">
+  <div class="sop-overlay-inner">
+    <button class="sop-overlay-close" onclick="closeViewer()" title="Close">×</button>
+    <div class="sop-doc" id="sopDocContent"></div>
+    <div class="sop-footer">
+      <button class="btn" onclick="window.print()">Print / Save PDF</button>
+      <button class="btn" onclick="closeViewer()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── SOP Editor modal (CEO / HR) ── -->
+<div class="modal" id="sopEditorModal">
+  <div class="modal-box" style="max-width:700px;width:100%">
+    <div class="modal-head">
+      <span id="edModalTitle">New SOP</span>
+      <button class="modal-x" onclick="closeEditor()">×</button>
+    </div>
+    <div class="modal-body" style="max-height:70vh;overflow-y:auto">
+      <div id="edAlert" class="alert" style="margin-bottom:12px;display:none"></div>
+
+      <div class="fg2">
+        <div class="form-group">
+          <label class="form-label">SOP Title</label>
+          <input type="text" id="edTitle" class="form-control" placeholder="e.g. Facility Manager SOP">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Position / Role</label>
+          <input type="text" id="edPosition" class="form-control" placeholder="e.g. Facility Manager">
+        </div>
+      </div>
+      <div class="fg2" style="margin-bottom:4px">
+        <div class="form-group">
+          <label class="form-label">Version</label>
+          <input type="text" id="edVersion" class="form-control" placeholder="1.0">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Location</label>
+          <input type="text" id="edLocation" class="form-control" value="Eden54">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Assign to Roles</label>
+        <div class="check-grid" id="edRolesGrid"></div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Assign to Departments</label>
+        <div class="check-grid" id="edDeptsGrid"></div>
+      </div>
+
+      <div class="divider"></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <strong style="font-size:0.88rem">Sections</strong>
+        <button class="btn-sm gold" onclick="addEdSection()">+ Add Section</button>
+      </div>
+      <div id="edSections"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" onclick="closeEditor()">Cancel</button>
+      <button class="btn btn-gold" id="edSaveBtn" onclick="saveSop()">Save SOP</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="/portal/firebase-init.js"></script>
+<script>
+const currentStaff = getStaff();
+requireAccess(currentStaff, 'sops');
+populateSidebar(currentStaff);
+buildNav(currentStaff, 'sops');
+document.getElementById('topDate').textContent =
+  new Date().toLocaleDateString('en-NG', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+const _rawRole  = (currentStaff.accessLevel || currentStaff.role || '').toLowerCase().replace(/\s+/g,'');
+const isCEO     = _rawRole === 'superadmin' || _rawRole === 'ceo';
+const isManager = isCEO || _rawRole === 'manager' || _rawRole.includes('manager');
+const isHR      = _rawRole === 'hr' || (currentStaff.department||'').toLowerCase().includes('hr');
+const canManage = isCEO || isHR;
+
+if (canManage) {
+  document.getElementById('tabAll').style.display = '';
+}
+
+// ── Constants ──────────────────────────────────────────────────────────────
+const ALL_ROLES = [
+  { value: 'superadmin', label: 'CEO / Admin' },
+  { value: 'manager',    label: 'Manager' },
+  { value: 'hr',         label: 'HR' },
+];
+const ALL_DEPTS = [
+  'Bar & Lounge', 'Kitchen', 'Apartments', 'Pool', 'Salon', 'Front Desk'
+];
+
+// ── State ──────────────────────────────────────────────────────────────────
+let _allSops   = [];
+let _editSopId = null;
+
+// ── Load ───────────────────────────────────────────────────────────────────
+async function loadSops() {
+  try {
+    const snap = await db.collection('sops').where('isActive', '==', true).get();
+    _allSops = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    _allSops.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
+    renderMySops();
+    if (canManage) {
+      renderAllSops();
+      if (!_allSops.length) seedDefault();
+    }
+  } catch(e) {
+    console.error('loadSops:', e);
+    document.getElementById('mySopGrid').innerHTML =
+      '<p style="font-size:0.85rem;color:#ef4444">Error loading SOPs. Check your connection.</p>';
+  }
+}
+
+// ── Render: My SOPs ────────────────────────────────────────────────────────
+function renderMySops() {
+  const grid = document.getElementById('mySopGrid');
+  // CEO and HR see every SOP regardless of assignment
+  if (isCEO || isHR) {
+    if (!_allSops.length) {
+      grid.innerHTML = '<div class="card" style="padding:24px;text-align:center;color:#6a6b62;font-size:0.875rem">No SOPs yet. Use "Manage SOPs" to load or create them.</div>';
+      return;
+    }
+    grid.innerHTML = _allSops.map(s => sopCard(s, false)).join('');
+    return;
+  }
+  // Managers see all SOPs; other staff see only those assigned to their role/dept
+  const role = (_rawRole || '');
+  const dept = (currentStaff.department || '').trim();
+  const mine = _allSops.filter(s => {
+    if (isManager) return true;
+    const roles = s.assignedRoles || [];
+    const depts = s.assignedDepts || [];
+    return roles.includes(role) || depts.some(d => d === dept);
+  });
+  if (!mine.length) {
+    grid.innerHTML = '<div class="card" style="padding:24px;text-align:center;color:#6a6b62;font-size:0.875rem">No SOPs assigned to your role yet.</div>';
+    return;
+  }
+  grid.innerHTML = mine.map(s => sopCard(s, false)).join('');
+}
+
+// ── Render: All SOPs ───────────────────────────────────────────────────────
+const _DEFAULT_SOP_COUNT = 8; // Facility Manager + 7 role SOPs
+function renderAllSops() {
+  const grid  = document.getElementById('allSopGrid');
+  const count = document.getElementById('allSopCount');
+  count.textContent = `${_allSops.length} SOP${_allSops.length !== 1 ? 's' : ''}`;
+  // Show the "Load Default SOPs" button whenever some defaults are missing
+  const loadBtn = document.getElementById('loadDefaultsBtn');
+  if (loadBtn) loadBtn.style.display = _allSops.length < _DEFAULT_SOP_COUNT ? '' : 'none';
+  if (!_allSops.length) {
+    grid.innerHTML = '<div class="card" style="padding:24px;text-align:center;color:#6a6b62;font-size:0.875rem">No SOPs yet. Click "Load Default SOPs" to set up all roles, or "+ New SOP" to create one manually.</div>';
+    return;
+  }
+  grid.innerHTML = _allSops.map(s => sopCard(s, true)).join('');
+}
+
+// ── SOP card HTML ──────────────────────────────────────────────────────────
+function sopCard(s, showAdmin) {
+  const roleLabels = (s.assignedRoles || []).map(r => {
+    const f = ALL_ROLES.find(x => x.value === r);
+    return `<span class="badge-role">${f ? f.label : r}</span>`;
+  }).join('');
+  const deptLabels = (s.assignedDepts || []).map(d =>
+    `<span class="badge-dept">${esc(d)}</span>`
+  ).join('');
+
+  const adminBtns = showAdmin
+    ? `<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:auto">
+         <button class="btn-sm" onclick="viewSop('${esc(s.id)}')">View</button>
+         <button class="btn-sm gold" onclick="openEditor('${esc(s.id)}')">Edit</button>
+         <button class="btn-sm danger" onclick="confirmDelete('${esc(s.id)}','${esc(s.title||'')}')">Delete</button>
+       </div>`
+    : `<button class="btn btn-gold" onclick="viewSop('${esc(s.id)}')" style="width:100%;margin-top:auto">View SOP</button>`;
+
+  return `<div class="sop-card">
+    <div>
+      <div class="sop-card-title">${esc(s.title || 'Untitled SOP')}</div>
+      <div class="sop-card-pos">${esc(s.position || '')}</div>
+    </div>
+    <div class="sop-card-badges">
+      <span class="badge-ver">v${esc(s.version || '1.0')}</span>
+      ${roleLabels}${deptLabels}
+    </div>
+    ${adminBtns}
+  </div>`;
+}
+
+// ── Tab switch ─────────────────────────────────────────────────────────────
+function switchTab(tab) {
+  document.getElementById('panelMy').style.display  = tab === 'my'  ? '' : 'none';
+  document.getElementById('panelAll').style.display = tab === 'all' ? '' : 'none';
+  document.getElementById('tabMy').classList.toggle('active',  tab === 'my');
+  document.getElementById('tabAll').classList.toggle('active', tab === 'all');
+}
+
+// ── Viewer ─────────────────────────────────────────────────────────────────
+function viewSop(id) {
+  const s = _allSops.find(x => x.id === id);
+  if (!s) return;
+  document.getElementById('sopDocContent').innerHTML = renderSopDoc(s);
+  document.getElementById('sopOverlay').classList.add('open');
+  document.getElementById('sopOverlay').scrollTop = 0;
+}
+function closeViewer() {
+  document.getElementById('sopOverlay').classList.remove('open');
+}
+document.getElementById('sopOverlay').addEventListener('click', e => {
+  if (e.target === document.getElementById('sopOverlay')) closeViewer();
+});
+
+function renderSopDoc(s) {
+  let html = `<div class="sop-cover">
+    <div class="sop-cover-sup">Standard Operating Procedure</div>
+    <div class="sop-cover-title">${esc(s.title || '')}</div>
+    <div class="sop-cover-pos">${esc(s.position || '')}</div>
+    <div class="sop-cover-meta">
+      <span><strong>Location:</strong>${esc(s.location || 'Eden54')}</span>
+      <span><strong>Version:</strong>${esc(s.version || '1.0')}</span>
+    </div>
+  </div>`;
+
+  (s.sections || []).forEach(sec => {
+    const num = (sec.number || '').trim();
+    const isSub = num && !num.endsWith('.0') && num.includes('.');
+    html += `<div class="sop-block">
+      <div class="sop-block-head${isSub ? ' sub' : ''}">
+        <span class="sop-num">${esc(num)}</span>
+        <span class="sop-heading">${esc(sec.heading || '')}</span>
+      </div>
+      <div class="sop-body">
+        ${sec.body ? `<p>${esc(sec.body).replace(/\n/g,'<br>')}</p>` : ''}
+        ${renderItems(sec.items)}
+      </div>
+    </div>`;
+  });
+  return html;
+}
+
+function renderItems(items) {
+  if (!items || !items.length) return '';
+  const lis = items.filter(Boolean).map((item, i) => {
+    const ci = item.indexOf(': ');
+    let inner;
+    if (ci !== -1) {
+      inner = `<strong>${esc(item.substring(0, ci))}:</strong> ${esc(item.substring(ci + 2))}`;
+    } else {
+      inner = esc(item);
+    }
+    return `<li><div class="sop-item-n">${i+1}</div><div class="sop-item-t">${inner}</div></li>`;
+  }).join('');
+  return `<ol class="sop-items">${lis}</ol>`;
+}
+
+// ── Editor ─────────────────────────────────────────────────────────────────
+function buildCheckGrid(containerId, options, checked, valueKey, labelKey) {
+  document.getElementById(containerId).innerHTML = options.map(o => {
+    const val   = typeof o === 'string' ? o : o[valueKey];
+    const label = typeof o === 'string' ? o : o[labelKey];
+    const chk   = (checked || []).includes(val) ? 'checked' : '';
+    return `<label class="check-label"><input type="checkbox" value="${esc(val)}" ${chk}> ${esc(label)}</label>`;
+  }).join('');
+}
+
+function openEditor(id) {
+  _editSopId = id;
+  const existing = id ? _allSops.find(x => x.id === id) : null;
+
+  document.getElementById('edModalTitle').textContent = id ? 'Edit SOP' : 'New SOP';
+  document.getElementById('edTitle').value    = existing?.title    || '';
+  document.getElementById('edPosition').value = existing?.position || '';
+  document.getElementById('edVersion').value  = existing?.version  || '1.0';
+  document.getElementById('edLocation').value = existing?.location || 'Eden54';
+  document.getElementById('edAlert').style.display = 'none';
+
+  buildCheckGrid('edRolesGrid', ALL_ROLES, existing?.assignedRoles || [], 'value', 'label');
+  buildCheckGrid('edDeptsGrid', ALL_DEPTS, existing?.assignedDepts || [], null, null);
+
+  renderEdSections(existing?.sections || []);
+  document.getElementById('sopEditorModal').classList.add('open');
+}
+
+function closeEditor() {
+  document.getElementById('sopEditorModal').classList.remove('open');
+}
+
+function renderEdSections(sections) {
+  document.getElementById('edSections').innerHTML = sections.map((sec, i) =>
+    edSectionHtml(i, sec, sections.length)
+  ).join('');
+}
+
+function edSectionHtml(i, sec, total) {
+  return `<div class="ed-section" id="edSec${i}" data-idx="${i}">
+    <div class="ed-section-hd">
+      <span style="font-size:0.82rem;font-weight:500;color:#6a6b62">Section ${i+1}</span>
+      <div style="display:flex;gap:6px">
+        ${i > 0        ? `<button class="btn-sm" onclick="moveSection(${i},-1)">↑</button>` : ''}
+        ${i < total-1  ? `<button class="btn-sm" onclick="moveSection(${i},1)">↓</button>`  : ''}
+        <button class="btn-sm danger" onclick="removeSection(${i})">Remove</button>
+      </div>
+    </div>
+    <div class="fg-num-title">
+      <div class="form-group" style="margin-bottom:0">
+        <label class="form-label" style="font-size:0.72rem">Number</label>
+        <input type="text" class="form-control sec-number" placeholder="2.1" value="${esc(sec.number||'')}">
+      </div>
+      <div class="form-group" style="margin-bottom:0">
+        <label class="form-label" style="font-size:0.72rem">Heading</label>
+        <input type="text" class="form-control sec-heading" placeholder="Section heading" value="${esc(sec.heading||'')}">
+      </div>
+    </div>
+    <div class="form-group" style="margin:8px 0 0">
+      <label class="form-label" style="font-size:0.72rem">Introductory Paragraph (optional)</label>
+      <textarea class="form-control sec-body" rows="2" placeholder="Opening sentence or paragraph for this section…">${esc(sec.body||'')}</textarea>
+    </div>
+    <div class="form-group" style="margin:8px 0 0">
+      <label class="form-label" style="font-size:0.72rem">Items — one per line. Use "Label: Description" for bold labels.</label>
+      <textarea class="form-control sec-items" rows="4" placeholder="Punctuality: Arrive on time before the first shift.&#10;Grooming: Be in full, clean uniform at all times.">${esc((sec.items||[]).join('\n'))}</textarea>
+    </div>
+  </div>`;
+}
+
+function collectEdSections() {
+  return [...document.querySelectorAll('#edSections .ed-section')].map(el => ({
+    number:  el.querySelector('.sec-number').value.trim(),
+    heading: el.querySelector('.sec-heading').value.trim(),
+    body:    el.querySelector('.sec-body').value.trim(),
+    items:   el.querySelector('.sec-items').value.split('\n').map(l => l.trim()).filter(Boolean),
+  }));
+}
+
+function addEdSection() {
+  const current = collectEdSections();
+  current.push({ number: '', heading: '', body: '', items: [] });
+  renderEdSections(current);
+  document.getElementById('edSections').lastElementChild?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function removeSection(i) {
+  const sections = collectEdSections();
+  sections.splice(i, 1);
+  renderEdSections(sections);
+}
+
+function moveSection(i, dir) {
+  const sections = collectEdSections();
+  const j = i + dir;
+  if (j < 0 || j >= sections.length) return;
+  [sections[i], sections[j]] = [sections[j], sections[i]];
+  renderEdSections(sections);
+}
+
+async function saveSop() {
+  const title    = document.getElementById('edTitle').value.trim();
+  const position = document.getElementById('edPosition').value.trim();
+  const version  = document.getElementById('edVersion').value.trim() || '1.0';
+  const location = document.getElementById('edLocation').value.trim() || 'Eden54';
+
+  const assignedRoles = [...document.querySelectorAll('#edRolesGrid input:checked')].map(x => x.value);
+  const assignedDepts = [...document.querySelectorAll('#edDeptsGrid input:checked')].map(x => x.value);
+  const sections = collectEdSections();
+
+  const alertEl = document.getElementById('edAlert');
+  if (!title) {
+    alertEl.className = 'alert alert-error';
+    alertEl.textContent = 'Please enter a title for this SOP.';
+    alertEl.style.display = 'block';
+    return;
+  }
+  alertEl.style.display = 'none';
+
+  const btn = document.getElementById('edSaveBtn');
+  btn.disabled = true; btn.textContent = 'Saving…';
+
+  const data = {
+    title, position, version, location,
+    assignedRoles, assignedDepts, sections,
+    isActive: true,
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    updatedBy: currentStaff.name || currentStaff.id,
+  };
+
+  try {
+    if (_editSopId) {
+      await db.collection('sops').doc(_editSopId).update(data);
+    } else {
+      data.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+      data.createdBy = currentStaff.name || currentStaff.id;
+      await db.collection('sops').add(data);
+    }
+    closeEditor();
+    await loadSops();
+    showAlert('alertBox', _editSopId ? 'SOP updated.' : 'SOP created.', 'alert-success');
+  } catch(e) {
+    console.error(e);
+    alertEl.className = 'alert alert-error';
+    alertEl.textContent = 'Error saving SOP. Please try again.';
+    alertEl.style.display = 'block';
+  }
+
+  btn.disabled = false; btn.textContent = 'Save SOP';
+}
+
+async function confirmDelete(id, title) {
+  if (!confirm(`Delete "${title}"?\n\nThis SOP will no longer be visible to any staff. This cannot be undone.`)) return;
+  try {
+    await db.collection('sops').doc(id).delete();
+    await loadSops();
+    showAlert('alertBox', 'SOP deleted.', 'alert-success');
+  } catch(e) {
+    showAlert('alertBox', 'Error deleting SOP.', 'alert-error');
+  }
+}
+
+// ── Default seed: all role SOPs ─────────────────────────────────────────────
+// Seeds only SOPs whose titles don't already exist in Firestore.
+// Called automatically when empty, and manually via the "Load Default SOPs" button.
+async function seedMissingSops() {
+  const loadBtn = document.getElementById('loadDefaultsBtn');
+  if (loadBtn) { loadBtn.disabled = true; loadBtn.textContent = 'Loading…'; }
+  await seedDefault();
+  if (loadBtn) { loadBtn.disabled = false; loadBtn.textContent = 'Load Default SOPs'; }
+}
+async function seedDefault() {
+  const SOPS = [
+    // ── Facility Manager ────────────────────────────────────────────────────
+    {
+      title: 'Facility Manager Standard Operating Procedure',
+      position: 'Facility Manager',
+      assignedRoles: ['manager', 'superadmin'], assignedDepts: [],
+      sections: [
+        {
+          number: '1.0', heading: 'Introduction & Purpose',
+          body: 'This SOP outlines the daily operational duties and management philosophy for the Facility Manager at Eden54. The purpose is to ensure a consistent, exceptional, and profitable experience for all guests across the apartments, steakhouse, game lounge, and bar. A manager must lead with a systematic approach, taking ownership of every aspect of the business. The core principle is that a manager should never have to ask, "What am I supposed to do today?"—the system will guide them.',
+          items: []
+        },
+        { number: '2.0', heading: 'The Daily Management System', body: 'A manager\'s day at Eden54 is divided into eight (8) distinct phases, ensuring comprehensive oversight of all operations.', items: [] },
+        {
+          number: '2.1', heading: 'Arrival & Personal Check', body: 'Before managing others, the manager must first check themselves.',
+          items: [
+            'Punctuality: Arrive on time to allow for a full assessment of the day\'s readiness before the first shift or guest arrival.',
+            'Grooming & Uniform: Be in full, clean uniform and present a professional appearance. This sets the standard for all staff.',
+            'Review Day\'s Overview: Check all reservations (apartments, restaurant, lounge). Review any messages, emails, and complaints from the previous day. Assess staffing levels against expected business volume. Review and acknowledge the day\'s sales and financial targets.'
+          ]
+        },
+        {
+          number: '2.2', heading: 'Walk the Entire Operation', body: 'Never sit in the office first.',
+          items: [
+            'The Walkthrough: Upon arrival, conduct a comprehensive walkthrough of the entire property. Look at everything through the guest\'s eyes.',
+            'Areas to Inspect: Entrance and reception · Dining areas and game lounge · Bar · Toilets (must be clean and stocked) · Kitchen and BOH (Back of House) areas · Stores and stock areas · Staff areas · Outdoor areas and apartment entrances.'
+          ]
+        },
+        {
+          number: '2.3', heading: 'Opening Check', body: 'The property must be guest-ready before opening time.',
+          items: [
+            'Environment & Ambiance: Ensure all lighting and air conditioning are working correctly. Music and AV systems are set appropriately for the time of day.',
+            'Readiness: All tables in the restaurant and lounge are set correctly · Menus are clean, presentable, and available · Kitchen is prepped and ready for service · Bar is fully set and stocked · POS and payment systems are operational · Cash float and opening cash are verified.',
+            'Cleanliness: Confirm all cleaning checklists for the restaurant, bar, lounge, and toilets are completed.'
+          ]
+        },
+        {
+          number: '2.4', heading: 'Pre-Shift Meeting', body: 'Everyone should know what is happening before service starts.',
+          items: [
+            'Mandatory Briefing: Conduct a pre-shift meeting with all staff (FOH, BOH, bartenders, lounge attendants).',
+            'Agenda — Reservations & VIPs: Highlight all reservations, special occasions, and VIP guests · Menu & Lounge: Review any sold-out items, daily specials, and signature offerings · Targets: Reiterate daily sales targets and upselling focuses · Service Reminders: Brief staff on key service standards · Staff Positions: Assign and confirm all staff positions for the shift · Challenges: Discuss expected challenges and strategies.'
+          ]
+        },
+        {
+          number: '2.5', heading: 'Manage the Floor (Service)', body: 'You cannot manage what you cannot see.',
+          items: [
+            'The Manager\'s Post: The manager should never disappear into the office. Be present on the floor at all times during service.',
+            'Active Supervision: Guest Experience: Proactively observe guest interactions and satisfaction · Table Turns: Monitor table turnover to maximize seating capacity · Food & Beverage: Check ticket times and food presentation before it leaves the pass · Cleanliness: Continuously monitor and enforce cleanliness standards · Support: Actively support the team during peak pressure times · Address Issues: Handle any complaints immediately and with ownership · Upselling: Coach opportunities for staff to upsell.'
+          ]
+        },
+        {
+          number: '2.6', heading: 'Control the Kitchen & Bar', body: 'The manager must constantly communicate with BOH. If there is a problem, know before the guest complains.',
+          items: [
+            'Relentless Monitoring: Be in constant communication with the Head Chef and Head Bartender.',
+            'Key Controls: Order Times: Monitor the pace of all tickets · Consistency & Presentation: Ensure food quality and plating meet Eden54\'s standards · Portion Control: Verify portion sizes are adhered to for cost control · Stock Availability: Monitor sold-out items and stock shortages · Wastage: Oversee and track all food and beverage wastage.'
+          ]
+        },
+        {
+          number: '2.7', heading: 'Guest Experience Check', body: 'The manager owns the guest experience. Do not wait for complaints.',
+          items: [
+            'Walk the Floor: Proactively and frequently walk the floor in all areas during service.',
+            'Engage & Ask: Are guests comfortable? (Apartment guests, diners, lounge guests) · Is their food/service on time? · Is the table/area clean? · Does anyone need anything?',
+            'Observation: "Manage by walking around" is key to pre-empting issues and personalizing service for every guest.'
+          ]
+        },
+        {
+          number: '2.8', heading: 'Staff Management', body: 'A facility manager is also managing people.',
+          items: [
+            'Consistent Leadership: Attendance: Monitor staff punctuality and breaks · Service Correction: Correct service issues in real-time · Positioning: Keep all staff in their designated positions · Phone Usage: Monitor and enforce professional phone usage policies · Coaching: Coach staff on the spot instead of shouting · Recognition: Verbally recognize and encourage good performance · Misconduct: Address any misconduct or serious issues consistently and immediately.'
+          ]
+        },
+        {
+          number: '3.0', heading: 'Sales & Cost Control', body: 'A busy restaurant is not automatically a profitable restaurant. The manager must understand the numbers.',
+          items: [
+            'Daily Monitoring: Sales: Total daily sales across all departments (steakhouse, bar, lounge) · Guest Count: Total guests served · Average Spend: Average spend per guest · Menu/Bar Analysis: Best-selling and slow-moving items · Discrepancies: Monitor Discounts, Voids, and Complimentary items · Wastage: Review all wastage logs · Stock Issues: Address any stock discrepancies · Cash/POS: Ensure cash and POS systems balance with sales.'
+          ]
+        },
+        {
+          number: '4.0', heading: 'Closing Check', body: 'Before leaving, ensure the property is secured and ready for the next day.',
+          items: [
+            'Mandatory Closing Walk: Guests: Ensure all guests have been attended to and have left · Service Areas: Tables are cleared; Kitchen and Bar are closed properly · Equipment: All equipment is switched off and secured · Cleanliness: Final cleanliness checks (including toilets) complete · Security: All stock is secured, and the premises are locked/alarmed · Finances: Cash and POS are reconciled for the day · Waste: Waste is recorded and disposed of · Future Prep: Tomorrow\'s reservations reviewed, staff signed out.'
+          ]
+        },
+        {
+          number: '5.0', heading: 'Daily Manager\'s Report', body: 'If it isn\'t recorded, it becomes difficult to manage. Before leaving, the manager must submit a daily report covering the following:',
+          items: [
+            'Sales: Total revenue for the day.',
+            'Guest Count: Total number of guests served.',
+            'Average Spend: Average spend per guest.',
+            'Complaints: Details of any guest complaints.',
+            'Compliments: Any positive guest feedback received.',
+            'Incidents: Any operational or security incidents.',
+            'Wastage: Summary of food and beverage wastage.',
+            'Stock Issues: Any notable stock shortages or delivery issues.',
+            'Staff Issues: Any staff attendance or performance issues.',
+            'Maintenance Issues: Any maintenance or repair issues to be addressed.',
+            'Outstanding Tasks: Tasks to be handed over to the next manager.',
+            'Manager\'s Recommendations: Suggestions for improvement.'
+          ]
+        }
+      ]
+    },
+
+    // ── Bar & Lounge Attendant ───────────────────────────────────────────────
+    {
+      title: 'Bar & Lounge Attendant Standard Operating Procedure',
+      position: 'Bar & Lounge Attendant',
+      assignedRoles: [], assignedDepts: ['Bar & Lounge'],
+      sections: [
+        {
+          number: '1.0', heading: 'Introduction & Purpose',
+          body: 'This SOP defines the daily duties and service standards for Bar & Lounge Attendants at Eden54. Your role is to deliver exceptional drink service, maintain a well-stocked and clean bar, and ensure every guest enjoys an outstanding experience in the lounge. Consistency, speed, and professionalism are the foundation of bar service at Eden54.',
+          items: []
+        },
+        {
+          number: '2.0', heading: 'Arrival & Station Setup', body: 'Before the first guest is served, your station must be fully prepared.',
+          items: [
+            'Punctuality: Arrive before opening time and report to your station immediately. Inform your supervisor immediately if you will be late.',
+            'Personal Presentation: Be in full, clean uniform. Nails must be clean and trimmed. Hair must be tied back if long.',
+            'Bar Setup: Stock all spirits, beers, mixers, and ice to required par levels. Ensure all glasses are clean, polished, and correctly positioned.',
+            'Equipment Check: Verify ice machine, bottle cooler, blenders, and bottle openers are all operational. Report any faults to the manager immediately.',
+            'Mise en Place: Prepare all garnishes (lemon wedges, straws, napkins, cocktail accessories). Confirm all drink menus are clean and in place.'
+          ]
+        },
+        {
+          number: '3.0', heading: 'Service Standards', body: 'Every guest interaction must reflect Eden54\'s standard of excellence.',
+          items: [
+            'Greeting: Acknowledge every guest who approaches the bar or is seated in your section within 30 seconds with a warm, genuine smile.',
+            'Order Taking: Take orders promptly and accurately. Repeat the order back to the guest to confirm. Never make assumptions.',
+            'Speed & Accuracy: Prepare all drinks accurately and serve within a reasonable time. Prioritize quality over speed.',
+            'Upselling: Proactively suggest premium spirits, cocktails, and add-ons where appropriate. Never pressure a guest.',
+            'Professionalism: Maintain pleasant, professional conversation. Do not discuss personal matters with guests. Remain attentive to the floor at all times. Never use your personal phone while serving.'
+          ]
+        },
+        {
+          number: '4.0', heading: 'Tab & POS Management', body: 'All sales must be recorded accurately via the POS system or Table Tabs.',
+          items: [
+            'Record All Sales: Every drink sold must be entered into the POS or a table tab before it is served. Never serve without recording.',
+            'Tab Management: When opening a table tab, confirm the guest\'s name and table number. Keep the tab updated with every order.',
+            'Payment: Process payments accurately using the correct payment method. Count change carefully before handing it over. Issue receipts for every transaction.',
+            'Discrepancies: Report any discrepancy between physical stock and POS records to the manager immediately. Do not attempt to resolve shortfalls yourself.'
+          ]
+        },
+        {
+          number: '5.0', heading: 'Stock & Inventory Control', body: 'Stock management is a core responsibility of every bar attendant.',
+          items: [
+            'Par Levels: Know the par levels for all items. Restock proactively — never allow items to run out during service.',
+            'Wastage: Record all wastage, breakages, and spillages honestly in the wastage log. Do not conceal errors.',
+            'Portion Control: Use the correct measures for all spirits and cocktail ingredients. Never free-pour unless explicitly authorized by the manager.',
+            'Low Stock: Inform the manager of any items running low so they can be procured in time.'
+          ]
+        },
+        {
+          number: '6.0', heading: 'Hygiene & Cleanliness', body: 'A clean bar is a professional bar.',
+          items: [
+            'Bar Surface: Wipe down the bar surface after every round of service. Do not allow dirty glasses, spills, or waste to accumulate at any time.',
+            'Glass Hygiene: All glassware must be washed and polished before use. Never serve a guest in a chipped, dirty, or cloudy glass.',
+            'Personal Hygiene: Wash hands regularly, especially after handling waste or touching your face. Use a clean service cloth exclusively for bar work.',
+            'Ice Hygiene: Use an ice scoop at all times — never use a glass to scoop ice. Keep the ice bin covered when not in use.',
+            'Floor & Area: Keep the bar floor and surrounding lounge area clear of spills and debris throughout the shift.'
+          ]
+        },
+        {
+          number: '7.0', heading: 'Closing Procedures', body: 'A properly closed bar protects stock integrity and sets up the next shift for success.',
+          items: [
+            'Last Orders: Call last orders and ensure all pending drinks are served before closing time.',
+            'Stock Count: Count and record all remaining stock at the end of shift. Report any significant variances to the manager.',
+            'Cleaning: Thoroughly clean and sanitize all bar surfaces, equipment, blenders, and storage areas.',
+            'Storage: Secure all spirits, beers, and perishable mixers properly. Do not leave opened bottles unsecured overnight.',
+            'Cash & Handover: Count your cash float and report to the manager. Inform the next shift or manager of any ongoing tabs, low stock items, or guest issues before leaving.'
+          ]
+        }
+      ]
+    },
+
+    // ── Kitchen Staff ────────────────────────────────────────────────────────
+    {
+      title: 'Kitchen Staff Standard Operating Procedure',
+      position: 'Kitchen Staff',
+      assignedRoles: [], assignedDepts: ['Kitchen'],
+      sections: [
+        {
+          number: '1.0', heading: 'Introduction & Purpose',
+          body: 'This SOP outlines the daily duties and kitchen standards for all Kitchen Staff at Eden54. The kitchen is the engine of the restaurant — food quality, speed, consistency, and safety are non-negotiable. Every dish that leaves the kitchen is a direct reflection of Eden54\'s brand.',
+          items: []
+        },
+        {
+          number: '2.0', heading: 'Personal Hygiene & Arrival', body: 'Food safety begins before any food is touched.',
+          items: [
+            'Punctuality: Arrive on time for your shift. Clock in using the portal attendance system. Inform your supervisor immediately if you will be late.',
+            'Uniform: Be in full, clean kitchen uniform — chef\'s coat, apron, and non-slip shoes. Long hair must be secured under a hair net at all times.',
+            'Handwashing: Wash hands thoroughly with soap for at least 20 seconds upon arrival and before handling any food. Repeat after handling raw meat, waste, or touching your face.',
+            'Fitness for Work: Do not come to work if you are ill — especially with vomiting, diarrhea, or a skin infection. Inform your supervisor and stay home.',
+            'Personal Items: Watches, rings, and bracelets must be removed before handling food. Nail polish is not permitted in the kitchen.'
+          ]
+        },
+        {
+          number: '3.0', heading: 'Station Setup & Mise-en-Place', body: 'A prepared kitchen is an efficient kitchen.',
+          items: [
+            'Station Check: Before service begins, ensure your station is clean, sanitized, and fully stocked with the correct tools and ingredients.',
+            'Mise-en-Place: Prepare all ingredients for your section — chopping, measuring, marinating — before the first order arrives. Nothing should be scrambled during service.',
+            'Equipment: Check that all equipment at your station is operational. Report any faults to the manager immediately.',
+            'Cold Storage: Confirm all perishables are stored at the correct temperature. Check refrigerator and freezer temperatures at the start of every shift and record in the log.'
+          ]
+        },
+        {
+          number: '4.0', heading: 'Cooking & Service Standards', body: 'Consistency and quality are expected with every single dish.',
+          items: [
+            'Ticket Management: Acknowledge every ticket as it arrives. Call out tickets to the team. Prioritize based on ticket time — oldest first.',
+            'Recipes: Follow Eden54 recipes and portion sizes exactly. Do not improvise on portion sizes or recipes without manager approval.',
+            'Presentation: Every dish must be plated to Eden54\'s standard before leaving the pass. Check your own presentation before calling food away.',
+            'Communication: Call out clearly when items are ready for the pass. Communicate proactively with the floor team and manager on ticket progress.',
+            'Allergens: Take all allergen requests with the utmost seriousness. Confirm allergen requirements with the manager before preparation begins.'
+          ]
+        },
+        {
+          number: '5.0', heading: 'Food Safety & Storage', body: 'Eden54 maintains strict food safety standards at all times.',
+          items: [
+            'FIFO: Always use First In, First Out (FIFO) stock rotation — oldest stock is used first. Label and date all items placed into storage.',
+            'Temperature Control: Raw meat must be stored at or below 4°C. Cooked food must be held above 63°C during service or cooled and refrigerated within 2 hours.',
+            'Cross-Contamination: Use separate chopping boards and utensils for raw meat, cooked food, and vegetables. Never allow cross-contamination under any circumstances.',
+            'Wastage: Record all food wastage accurately in the wastage log. Inform the manager of any significant or recurring wastage immediately.'
+          ]
+        },
+        {
+          number: '6.0', heading: 'Closing & Deep Clean', body: 'A clean kitchen is a safe kitchen and a legal requirement.',
+          items: [
+            'Service Close: Once service is complete, properly store all remaining prepped food with labels, dates, and correct temperatures.',
+            'Equipment Clean: Deep clean all equipment — grill, oven, fryer, work surfaces, and cutting boards. Follow the posted cleaning schedule for your station.',
+            'Floors & Drains: Sweep and mop the kitchen floor. Clean all floor drains at the end of every shift.',
+            'Waste: Dispose of all food waste into the correct bins. Remove waste bags from the kitchen at the end of service.',
+            'Sign-Off: Do not leave until your supervisor has checked and approved your station\'s cleanliness for the night.'
+          ]
+        }
+      ]
+    },
+
+    // ── Apartments Staff ─────────────────────────────────────────────────────
+    {
+      title: 'Apartments Staff Standard Operating Procedure',
+      position: 'Apartments Staff',
+      assignedRoles: [], assignedDepts: ['Apartments'],
+      sections: [
+        {
+          number: '1.0', heading: 'Introduction & Purpose',
+          body: 'This SOP defines the service standards and daily procedures for Apartments Staff at Eden54. Guests staying in our apartments expect a hotel-standard experience. Their comfort, privacy, and security are your primary responsibility. Every apartment must be serviced to an impeccable standard, and every guest interaction must be warm, professional, and attentive.',
+          items: []
+        },
+        {
+          number: '2.0', heading: 'Shift Start & Handover', body: 'Begin every shift with a complete picture of the current occupancy and all pending tasks.',
+          items: [
+            'Punctuality: Arrive on time and report to your supervisor before beginning any work.',
+            'Handover: Receive a full handover from the outgoing shift — occupied apartments, guest issues, maintenance faults, and any outstanding requests.',
+            'Key Register: Check and confirm the key register. Every key must be accounted for at the start of your shift.',
+            'Occupancy Plan: Know which apartments are occupied, checking out, and due for check-in today. Prioritize your servicing schedule accordingly.'
+          ]
+        },
+        {
+          number: '3.0', heading: 'Room Servicing Standards', body: 'Every serviced apartment must meet Eden54\'s standard before a guest returns or a new guest arrives.',
+          items: [
+            'Cleaning Sequence: Follow the standard sequence — remove dirty linens, dust all surfaces, clean bathroom, mop floors, make the bed, replace amenities, final inspection.',
+            'Linen & Towels: Replace all used linen and towels with freshly laundered items. Inspect linens for stains or damage before making the bed.',
+            'Bathroom: The bathroom must be spotlessly clean. Scrub the toilet, sink, shower/bath, and tiles. Refill soap, shampoo, and toilet roll to the required level.',
+            'Amenities: Ensure all provided amenities (bottled water, toiletries, tissues) are fully restocked to the standard for each apartment type.',
+            'Final Inspection: Before marking an apartment ready, check under the bed, inside drawers, and the bathroom for any guest left items or missed areas.'
+          ]
+        },
+        {
+          number: '4.0', heading: 'Guest Check-In & Check-Out', body: 'Guest arrivals and departures must be handled smoothly and professionally.',
+          items: [
+            'Check-Out: At check-out, accompany the guest to their apartment to confirm they have all their belongings and that there is no damage. Collect the key and note any issues.',
+            'Damage: If damage is found at checkout, inform the manager immediately before the guest leaves. Never directly accuse a guest — always involve the manager.',
+            'Check-In Ready: For check-in, ensure the apartment has been fully serviced and inspected. Escort the guest to their apartment and walk them through the amenities.',
+            'Key Handover: Hand over the key to the guest in person and explain the check-out process. Record the handover in the key register immediately.'
+          ]
+        },
+        {
+          number: '5.0', heading: 'Guest Requests & Service', body: 'Every guest request must be acknowledged and acted on promptly.',
+          items: [
+            'Response Time: Acknowledge all guest requests within 5 minutes and fulfill them within 15 minutes where possible.',
+            'Extra Amenities: Provide extra towels, pillows, or amenities on request. Always knock and announce yourself before entering a guest\'s apartment.',
+            'Privacy: Never enter an occupied apartment without knocking and receiving a verbal response. Respect any "Do Not Disturb" request completely.',
+            'Complaints: Listen to complaints calmly and without argument. Apologize sincerely, resolve what you can immediately, and escalate anything beyond your authority to the manager.'
+          ]
+        },
+        {
+          number: '6.0', heading: 'Security & Key Management', body: 'Security of guests and keys is a serious and non-negotiable responsibility.',
+          items: [
+            'Key Security: Never leave apartment keys unattended or hand them to any person other than the registered guest. A lost key must be reported to the manager immediately.',
+            'Access Control: Do not allow unauthorized persons into any apartment. If someone claims to be a guest\'s visitor, verification must come through the manager.',
+            'Suspicious Activity: Report any suspicious persons, behavior, or items found in or around apartments to the manager immediately.',
+            'Valuables: If a guest leaves valuables in the apartment, note this and handle with extreme care. Found items after checkout must be handed to the manager and logged.'
+          ]
+        },
+        {
+          number: '7.0', heading: 'End-of-Shift Report', body: 'A thorough handover protects the operation and ensures no guest is left without care.',
+          items: [
+            'Apartment Status: Report the current status of every apartment — clean and ready, occupied, needs service, or under maintenance.',
+            'Faults & Issues: Report all maintenance issues (broken fixtures, leaking taps, non-working AC) to the manager and log them.',
+            'Key Register: Confirm all keys are accounted for and the register is updated and balanced before you leave.',
+            'Handover: Brief the incoming shift on any ongoing guest requests, unresolved issues, or special arrangements for arriving guests.'
+          ]
+        }
+      ]
+    },
+
+    // ── Pool Attendant ───────────────────────────────────────────────────────
+    {
+      title: 'Pool Attendant Standard Operating Procedure',
+      position: 'Pool Attendant',
+      assignedRoles: [], assignedDepts: ['Pool'],
+      sections: [
+        {
+          number: '1.0', heading: 'Introduction & Purpose',
+          body: 'This SOP defines the daily duties and safety standards for Pool Attendants at Eden54. Guest safety is the highest priority — the pool must be supervised and maintained to the highest standard at all times. A clean, safe, and well-managed pool is a premium amenity that defines the Eden54 experience.',
+          items: []
+        },
+        {
+          number: '2.0', heading: 'Opening & Chemical Testing', body: 'The pool must be tested and approved before any guest enters the water.',
+          items: [
+            'Punctuality: Arrive before the pool opens. The pool must never be accessible to guests without an attendant present at all times.',
+            'Water Testing: Test pool water chemistry (chlorine, pH, alkalinity) at the start of every shift using the pool test kit. Record all readings in the pool log.',
+            'Chemical Treatment: Adjust chemicals as needed based on test results. Follow correct dosage instructions — never add chemicals near swimmers.',
+            'Clarity Check: Inspect pool water for clarity — you must be able to see the bottom clearly. Cloudy or discoloured water means the pool is closed to guests until resolved. Inform the manager.',
+            'Safety Equipment: Confirm all safety equipment (life ring, rescue pole, first aid kit) is present, functional, and within immediate reach before opening.'
+          ]
+        },
+        {
+          number: '3.0', heading: 'Guest Safety & Supervision', body: 'Safety supervision is the primary and most important duty of the Pool Attendant.',
+          items: [
+            'Constant Watch: Never leave the pool unattended while guests are in the water. Maintain a clear, unobstructed line of sight to all areas of the pool at all times.',
+            'Pool Rules: Enforce pool rules firmly but politely — no running, no diving in shallow areas, no glass in the pool area, no unsupervised children.',
+            'Children: Children must always be supervised by a parent or guardian. Alert parents immediately if young children are near the pool edge unsupervised.',
+            'Emergencies: In case of a drowning or accident, act immediately — call for help, use rescue equipment, and administer basic first aid if trained. Alert the manager without delay.',
+            'Non-Swimmers: If a guest appears to be struggling in the water, intervene immediately. Do not wait to be certain — act early.'
+          ]
+        },
+        {
+          number: '4.0', heading: 'Pool Area Maintenance', body: 'The pool area must be clean, organized, and inviting at all times.',
+          items: [
+            'Loungers & Furniture: Arrange pool loungers and furniture neatly before the pool opens. Wipe down loungers at the start of the shift and after each guest use.',
+            'Deck Cleanliness: Keep the pool deck clear of towels, food waste, and litter. Perform a sweep of the deck every 30 minutes during operating hours.',
+            'Skimming: Skim the pool surface for leaves, insects, and debris at least every hour. Check and empty skimmer baskets when full.',
+            'Toilets & Change Areas: Monitor the cleanliness of poolside toilets and changing areas. Report any issues to housekeeping and restock toilet paper and soap.'
+          ]
+        },
+        {
+          number: '5.0', heading: 'Guest Service', body: 'Pool guests should feel attended to and welcome throughout their visit.',
+          items: [
+            'Greeting: Greet guests entering the pool area warmly. Assist with towels, lounger arrangement, or any requests.',
+            'Pool Rules Briefing: Inform guests of pool rules and closing times upon arrival — do this politely and early, before issues arise.',
+            'Service Requests: For food or drink orders, direct guests to the bar or lounge and inform the relevant staff. Do not take beverage orders yourself.'
+          ]
+        },
+        {
+          number: '6.0', heading: 'Closing & Lock-Up', body: 'The pool must be safely and securely closed at the end of each day.',
+          items: [
+            'Last Guests: Inform guests 15 minutes before closing time. Ensure all guests have exited the pool before beginning the closing procedure.',
+            'Evening Treatment: Conduct the end-of-day chemical treatment as per the maintenance schedule. Record all readings in the pool log.',
+            'Equipment Storage: Remove, dry, and store all pool accessories (noodles, life jackets, floats) in the designated storage area.',
+            'Secure: Switch off pool lighting, lock the pool gate, and confirm the area is fully secured before leaving.',
+            'Pool Log: Update the pool log with the day\'s chemical readings, any incidents or accidents, guest attendance, and any maintenance needs for the next shift.'
+          ]
+        }
+      ]
+    },
+
+    // ── Salon (Barbing) Staff ────────────────────────────────────────────────
+    {
+      title: 'Salon Staff Standard Operating Procedure',
+      position: 'Salon / Barbing Staff',
+      assignedRoles: [], assignedDepts: ['Salon'],
+      sections: [
+        {
+          number: '1.0', heading: 'Introduction & Purpose',
+          body: 'This SOP defines the service and hygiene standards for Salon Staff at Eden54. Guests visiting the salon expect a clean, professional, and skillfully delivered service. Your personal conduct, hygiene standards, and technical ability directly represent the Eden54 brand. Every client must leave satisfied.',
+          items: []
+        },
+        {
+          number: '2.0', heading: 'Station Setup & Personal Presentation', body: 'Your station and personal appearance must be impeccable before the first client arrives.',
+          items: [
+            'Punctuality: Arrive before your first scheduled appointment or before the salon opens. Inform your supervisor immediately if you will be late.',
+            'Personal Presentation: Be in a clean uniform at all times. Nails must be neatly trimmed. Hair must be clean and well-groomed — you are a direct advertisement for the salon\'s standards.',
+            'Station Setup: Clean and arrange your workstation before opening. All tools must be clean, sterilized, and correctly placed. Your chair, mirror, and work surface must be neat and professional.',
+            'Supplies: Confirm you have sufficient supplies (barbing cream, clipper oil, shaving gel, tissue, towels) for the shift. Inform the manager of any shortages before service begins.'
+          ]
+        },
+        {
+          number: '3.0', heading: 'Client Service Standards', body: 'Every client interaction must be professional, welcoming, and attentive.',
+          items: [
+            'Greeting: Welcome every client warmly as they enter. Address them respectfully and make them feel comfortable from the moment they sit down.',
+            'Consultation: Before beginning any service, ask the client clearly what they would like. Confirm your understanding before you start. Never assume.',
+            'Service Delivery: Deliver the requested service to the highest standard. Be thorough, careful, and take genuine pride in your work.',
+            'During Service: Maintain professional conversation. Do not use your personal phone during a service. Give the client your full, undivided attention.',
+            'Completion: Before removing the cape, show the client the finished result (using a hand mirror) and ask if they are satisfied. Make any adjustments they request promptly and without complaint.'
+          ]
+        },
+        {
+          number: '4.0', heading: 'Tool Care & Sanitization', body: 'Tool hygiene protects your clients and upholds your professional reputation.',
+          items: [
+            'Between Every Client: After every client, clean all tools with a clean cloth, remove all hair, and disinfect with an approved sanitizer or alcohol spray before the next client.',
+            'Clippers: Oil clipper blades after every use to maintain performance and blade life. Check blade sharpness regularly — blunt blades cause discomfort and injury.',
+            'Towels & Capes: Use a fresh, clean towel and cape for every single client. Never reuse a towel from a previous client without washing.',
+            'Razors: Single-use razor blades must be disposed of in the sharps bin after every client. Never reuse a blade on a different client under any circumstances.',
+            'Deep Clean: Deep clean all tools and your station at the end of every working day, including the clipper motor and all blade guards.'
+          ]
+        },
+        {
+          number: '5.0', heading: 'POS & Service Recording', body: 'Every service performed must be recorded and paid for via the POS system.',
+          items: [
+            'Record Every Service: Enter every service into the POS before the client leaves. No exceptions — do not allow a client to leave without a completed payment transaction.',
+            'Payment: Accept cash, bank transfer, or card/POS payment. Issue a receipt for every transaction without exception.',
+            'Discrepancies: Report any discrepancies in payments or POS records to the manager immediately. Do not attempt to handle cash shortfalls yourself.'
+          ]
+        },
+        {
+          number: '6.0', heading: 'Closing Procedures', body: 'End every shift with your station clean, tools secured, and all records complete.',
+          items: [
+            'Client Area: Remove all cut hair from the floor, chair, and surfaces. Sweep and clean the entire salon area before leaving.',
+            'Tools: Clean, oil, and securely store all tools. Do not leave clippers, scissors, or razors out overnight.',
+            'Supplies: Take a quick inventory of your supplies. Report items that need restocking to the manager.',
+            'Cash Handover: Count your cash and present it to the manager along with the POS daily summary for reconciliation.'
+          ]
+        }
+      ]
+    },
+
+    // ── Front Desk / Receptionist ────────────────────────────────────────────
+    {
+      title: 'Front Desk Receptionist Standard Operating Procedure',
+      position: 'Front Desk Receptionist',
+      assignedRoles: [], assignedDepts: ['Front Desk'],
+      sections: [
+        {
+          number: '1.0', heading: 'Introduction & Purpose',
+          body: 'This SOP outlines the daily duties and service standards for Front Desk and Receptionist staff at Eden54. You are the first point of contact for every guest and visitor — your professionalism, warmth, and efficiency create the guest\'s very first impression of Eden54. That impression must always be exceptional.',
+          items: []
+        },
+        {
+          number: '2.0', heading: 'Opening Preparation', body: 'A fully prepared reception desk sets the standard for the entire day.',
+          items: [
+            'Punctuality: Arrive before the property opens. The reception desk must never be unmanned during operating hours.',
+            'Desk Presentation: Ensure the reception area is clean, tidy, and professionally presented. All stationery must be organized and the desk must be free of personal items.',
+            'System Check: Log into the reservation system, POS, and all communication channels. Confirm everything is operational. Report any technical faults to the manager immediately.',
+            'Bookings Review: Review all reservations, expected check-ins, and check-outs for the day. Make note of VIP guests or any special arrangements.',
+            'Coordination: Liaise with the Apartments team at shift start — confirm which rooms are clean and ready for expected check-ins.'
+          ]
+        },
+        {
+          number: '3.0', heading: 'Guest Reception & Service', body: 'Every guest must be received with warmth and professionalism.',
+          items: [
+            'Greeting: Stand to greet every arriving guest. Make eye contact, smile, and use a professional greeting within seconds of their arrival.',
+            'Apartment Guests: For apartment check-ins, confirm the reservation details and request a form of identification.',
+            'Walk-In Enquiries: Handle walk-in enquiries for the restaurant, lounge, salon, or pool with accurate, confident information on availability, pricing, and services.',
+            'Guest Comfort: While guests wait, offer seating and provide an accurate wait time update. Never leave a guest standing unacknowledged for more than 30 seconds.',
+            'Complaints: Listen to complaints without interruption. Apologize sincerely, resolve what you can immediately, and escalate anything beyond your authority to the manager.'
+          ]
+        },
+        {
+          number: '4.0', heading: 'Reservation & Booking Management', body: 'Accurate bookings are the foundation of a smooth, professional operation.',
+          items: [
+            'Record Keeping: Record all reservations accurately — guest name, contact number, check-in/check-out dates, apartment or table requirement, and number of guests.',
+            'Confirmation: Confirm every booking with the guest verbally and inform the relevant department (Apartments, Restaurant, Lounge) immediately.',
+            'Modifications: Process any changes to reservations immediately and update all relevant parties. Log all modifications with a time stamp.',
+            'Cancellations: Apply the cancellation policy correctly. Inform the manager of all cancellations so the space can be re-offered promptly.'
+          ]
+        },
+        {
+          number: '5.0', heading: 'POS & Payment Handling', body: 'All transactions must be processed accurately and honestly.',
+          items: [
+            'Process Payments: Handle all payments — for apartments, services, and front-desk charges — accurately through the POS system.',
+            'Receipts: Issue a receipt for every payment. Verify the amount received matches the amount entered in the POS before the guest steps away.',
+            'Cash Handling: Count and verify all cash payments at the time of receipt. Do not accept damaged or suspicious notes — inform the manager.',
+            'Cash Float: Count and confirm your cash float at the start and end of every shift. Report any discrepancies to the manager before leaving.'
+          ]
+        },
+        {
+          number: '6.0', heading: 'Communication & Coordination', body: 'The reception desk is the communication hub of Eden54.',
+          items: [
+            'Internal Communication: Relay all guest requests, arrivals, and special instructions to the appropriate department without delay.',
+            'Telephone: Answer all incoming calls within 3 rings. Use a professional greeting. Take accurate messages and relay them to the right person immediately.',
+            'Guest Information: Know Eden54\'s services, pricing, operating hours, and local area so you can assist guests with confidence.',
+            'Confidentiality: Never share guest information with any unauthorized person. Guest privacy is a non-negotiable obligation.'
+          ]
+        },
+        {
+          number: '7.0', heading: 'Closing & Shift Handover', body: 'A thorough handover ensures uninterrupted, consistent service.',
+          items: [
+            'Outstanding Items: Note all pending guest requests, unresolved issues, and expected late arrivals for the incoming shift.',
+            'Cash Reconciliation: Count and reconcile the cash float. Hand over to the manager or next shift with a signed confirmation.',
+            'Desk: Tidy the reception area and ensure all documents are filed or secured before leaving.',
+            'Verbal Handover: Brief the incoming receptionist on the day\'s events, VIP guests, any issues, and all outstanding follow-up items.'
+          ]
+        }
+      ]
+    },
+
+    // ── HR Officer ───────────────────────────────────────────────────────────
+    {
+      title: 'HR Officer Standard Operating Procedure',
+      position: 'HR Officer',
+      assignedRoles: ['hr'], assignedDepts: [],
+      sections: [
+        {
+          number: '1.0', heading: 'Introduction & Purpose',
+          body: 'This SOP defines the daily duties and responsibilities of the HR Officer at Eden54. The HR function ensures that all staff management, payroll, performance, and compliance matters are handled professionally, fairly, and accurately. The HR Officer is a trusted custodian of staff data and a key partner to the manager in all people-related decisions.',
+          items: []
+        },
+        {
+          number: '2.0', heading: 'Daily Attendance Management', body: 'Accurate attendance records are fundamental to payroll, trust, and accountability.',
+          items: [
+            'Review Attendance: At the start of every working day, review the portal attendance records. Identify and note any absences, late arrivals, or early departures from the previous day.',
+            'Unauthorized Absences: Attempt to contact any staff member who is absent without prior approval. Record the reason and outcome of every contact in the staff file.',
+            'Attendance Alerts: Flag patterns of repeat lateness or unauthorized absence to the manager promptly. Patterns must be investigated and addressed — they do not resolve themselves.',
+            'Record Accuracy: Verify that all attendance records are accurate and up to date. Address any system discrepancies with the relevant staff member and correct the record.'
+          ]
+        },
+        {
+          number: '3.0', heading: 'Payroll Processing', body: 'Payroll must be calculated accurately, on time, and with full transparency.',
+          items: [
+            'Timesheet Verification: At the end of each pay period, verify total hours or days worked for each staff member against the attendance records. Investigate and resolve all discrepancies.',
+            'Salary Calculation: Calculate salaries, deductions, and applicable bonuses according to agreed terms. Cross-check with the manager before final submission.',
+            'Deductions: Apply authorized deductions only (advances, disciplinary deductions). Document every deduction with a clear reference and written reason.',
+            'Payslip: Prepare and issue a payslip to every staff member on payday showing gross pay, all deductions, and net pay. No staff member should be left uninformed of their pay breakdown.',
+            'Records: Maintain a complete payroll record for every pay period. Records must be secure, accurate, and available to the manager and CEO on request.'
+          ]
+        },
+        {
+          number: '4.0', heading: 'Staff Onboarding & Exit', body: 'A structured onboarding process sets new staff up for success from day one.',
+          items: [
+            'New Staff: For every new hire, complete the onboarding checklist — collect ID and required documentation, create the portal staff profile, assign the correct role and department, and ensure they receive their role\'s SOP.',
+            'Orientation: Brief new staff on Eden54\'s values, rules, working hours, pay structure, and dress code before their first shift begins.',
+            'Probation Monitoring: Monitor all new staff during their probation period. Document any performance concerns and address them early and constructively.',
+            'Staff Exit: When a staff member leaves, complete the proper exit process — collect all keys and access items, deactivate their portal account, process final pay, and update all records.'
+          ]
+        },
+        {
+          number: '5.0', heading: 'Disciplinary & Performance Management', body: 'All disciplinary and performance matters must be handled consistently, fairly, and in line with Eden54\'s policies.',
+          items: [
+            'Documentation: Document all disciplinary incidents accurately — what happened, who was involved, when, and what action was taken. Verbal accounts without records are not sufficient.',
+            'Verbal Warning: Issue verbal warnings for minor first-time offences. Record the warning in the staff file with date and signature.',
+            'Written Warning: For repeated offences or more serious misconduct, issue a written warning. This must be signed by the staff member and countersigned by the manager.',
+            'Gross Misconduct: Cases of theft, violence, or major policy violations must be escalated to the manager and CEO immediately. Follow proper suspension and investigation procedures — do not act unilaterally.',
+            'Performance Reviews: Conduct regular performance reviews for all staff. Provide honest, constructive feedback and set clear, measurable improvement targets where required.'
+          ]
+        },
+        {
+          number: '6.0', heading: 'Record Keeping & Compliance', body: 'Accurate and secure record keeping is both a legal requirement and an operational necessity.',
+          items: [
+            'Staff Files: Maintain a complete, up-to-date file for every staff member — employment records, contracts, warnings, and all correspondence.',
+            'Confidentiality: All staff information is strictly confidential. Never share any personal staff information with unauthorized persons under any circumstances.',
+            'Data Security: Keep all physical records in a locked location. Digital records must be access-restricted.',
+            'Legal Compliance: Ensure Eden54\'s employment practices comply with relevant Nigerian labour law, including correct pay, leave entitlements, and working conditions.'
+          ]
+        },
+        {
+          number: '7.0', heading: 'HR Reporting', body: 'Regular HR reports keep management informed and enable good people decisions.',
+          items: [
+            'Weekly Report: Submit a weekly HR summary to the manager covering attendance rates, any disciplinary matters, open positions, and any staff welfare concerns.',
+            'Monthly Report: Prepare a monthly HR report covering staff headcount, turnover, payroll summary, any training completed, and all ongoing HR matters.',
+            'Escalation: Escalate any HR matter that requires a CEO or manager decision promptly. Do not delay escalation on sensitive or time-critical matters.'
+          ]
+        }
+      ]
+    }
+  ];
+
+  try {
+    // Only create SOPs whose title doesn't already exist — safe to call repeatedly
+    const existingTitles = new Set(_allSops.map(s => s.title));
+    const missing = SOPS.filter(s => !existingTitles.has(s.title));
+    if (!missing.length) return;
+    await Promise.all(missing.map(s => db.collection('sops').add({
+      location: 'Eden54',
+      version: s.version || '1.0',
+      isActive: true,
+      createdBy: 'system',
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      ...s
+    })));
+    await loadSops();
+    showAlert('alertBox', `${missing.length} default SOP${missing.length !== 1 ? 's' : ''} loaded.`, 'alert-success');
+  } catch(e) {
+    console.error('Seed error:', e);
+    showAlert('alertBox', 'Error loading default SOPs.', 'alert-error');
+  }
+}
+
+// ── Boot ───────────────────────────────────────────────────────────────────
+loadSops();
+</script>
+</body>
+</html>

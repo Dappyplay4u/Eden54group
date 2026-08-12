@@ -185,6 +185,8 @@ function buildNav(staff, active) {
     html += a('/portal/staff/',      '👤', 'Manage Staff',   'staff');
     html += sec('Apartments');
     html += a('/portal/apartments/', '🏨', 'Apartment Rentals', 'apartments');
+    html += sec('Resources');
+    html += a('/portal/sops/', '📄', 'SOPs', 'sops');
   } else if (isHR) {
     html += sec('Reports');
     html += a('/portal/reports/',    '📋', 'All Reports',    'reports');
@@ -199,6 +201,8 @@ function buildNav(staff, active) {
     html += a('/portal/staff/',             '👤', 'Manage Staff',       'staff');
     html += sec('Apartments');
     html += a('/portal/apartments/', '🏨', 'Apartment Rentals', 'apartments');
+    html += sec('Resources');
+    html += a('/portal/sops/', '📄', 'SOPs', 'sops');
   } else {
     const reportLinks = [
       canReport.sales      && a('/portal/sales/',      '📋', 'Report',      'sales'),
@@ -213,6 +217,8 @@ function buildNav(staff, active) {
       html += sec('Reports');
       html += reportLinks.join('');
     }
+    html += sec('Resources');
+    html += a('/portal/sops/', '📄', 'SOPs', 'sops');
   }
 
   const isPOSStaff = isManager || isHR || isFrontDesk
@@ -362,6 +368,7 @@ function _checkAccess(staff, page) {
     apartments: isManager || isHR || dept === 'front desk' || dept === 'receptionist' || dept.includes('lounge') || dept === 'apartments',
     tabs:       isManager || dept.includes('bar') || dept.includes('bartend') || dept.includes('lounge') || dept.includes('game'),
     pos:   isManager || isHR || dept === 'front desk' || dept === 'receptionist' || dept.includes('salon') || dept.includes('barbing'),
+    sops:  true,
     sales: true, home: true, updates: true,
   };
   return !!rules[page];
