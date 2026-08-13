@@ -143,6 +143,50 @@
   .check-label:has(input:checked) { border-color: #C9A96E; background: #f5f9f5; }
   .check-label input { cursor: pointer; }
 
+  /* ── Editor modal overlay ── */
+  #sopEditorModal {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,.55);
+    z-index: 9000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+  }
+  .modal-box {
+    background: var(--card, #f8f8f5);
+    border: 1px solid var(--border, #e4e4df);
+    border-radius: 12px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    max-height: 90vh;
+    width: 100%;
+  }
+  .modal-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 20px; border-bottom: 1px solid var(--border, #e4e4df);
+    font-size: 0.9rem; font-weight: 500; flex-shrink: 0;
+    background: var(--card, #f8f8f5);
+  }
+  .modal-body { flex: 1; overflow-y: auto; padding: 18px 20px; }
+  .modal-foot {
+    display: flex; gap: 8px; justify-content: flex-end;
+    padding: 12px 20px; border-top: 1px solid var(--border, #e4e4df);
+    flex-shrink: 0; background: var(--card, #f8f8f5);
+  }
+  .modal-x {
+    background: none; border: 1px solid var(--border, #e4e4df);
+    border-radius: 50%; width: 30px; height: 30px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 1.1rem; color: #6a6b62; flex-shrink: 0;
+    font-family: inherit;
+  }
+  @media (max-width: 600px) {
+    #sopEditorModal { padding: 10px; }
+    .modal-body { padding: 14px 14px; }
+    .modal-head, .modal-foot { padding: 12px 14px; }
+  }
   /* ── Print ── */
   @media print {
     .sidebar, .topbar, .sop-overlay-close, .sop-footer,
@@ -294,6 +338,22 @@ if (canManage) {
   document.getElementById('tabAll').style.display = '';
 }
 
+// ── Legacy dept name → canonical mapping (same as expenses page) ───────────
+const _LEGACY_DEPT = {
+  lounge: 'Bar & Lounge', bar: 'Bar & Lounge', 'bar & lounge': 'Bar & Lounge', games: 'Bar & Lounge',
+  salon: 'Salon', barbing: 'Salon',
+  kitchen: 'Kitchen',
+  pool: 'Pool',
+  apartment: 'Apartments', apartments: 'Apartments',
+  'front desk': 'Front Desk', receptionist: 'Front Desk',
+  hr: 'HR',
+  management: 'Management',
+};
+function _canonDept(raw) {
+  const lower = (raw || '').trim().toLowerCase();
+  return _LEGACY_DEPT[lower] || (raw || '').trim();
+}
+
 // ── Constants ──────────────────────────────────────────────────────────────
 const ALL_ROLES = [
   { value: 'superadmin', label: 'CEO / Admin' },
@@ -340,12 +400,14 @@ function renderMySops() {
   }
   // Managers see all SOPs; other staff see only those assigned to their role/dept
   const role = (_rawRole || '');
-  const dept = (currentStaff.department || '').trim();
+  const dept = _canonDept(currentStaff.department || ''); // normalise legacy names
   const mine = _allSops.filter(s => {
     if (isManager) return true;
     const roles = s.assignedRoles || [];
     const depts = s.assignedDepts || [];
-    return roles.includes(role) || depts.some(d => d === dept);
+    // case-insensitive dept match handles any remaining capitalisation differences
+    return roles.includes(role) ||
+           depts.some(d => d.toLowerCase() === dept.toLowerCase());
   });
   if (!mine.length) {
     grid.innerHTML = '<div class="card" style="padding:24px;text-align:center;color:#6a6b62;font-size:0.875rem">No SOPs assigned to your role yet.</div>';
@@ -492,11 +554,11 @@ function openEditor(id) {
   buildCheckGrid('edDeptsGrid', ALL_DEPTS, existing?.assignedDepts || [], null, null);
 
   renderEdSections(existing?.sections || []);
-  document.getElementById('sopEditorModal').classList.add('open');
+  document.getElementById('sopEditorModal').style.display = 'flex';
 }
 
 function closeEditor() {
-  document.getElementById('sopEditorModal').classList.remove('open');
+  document.getElementById('sopEditorModal').style.display = 'none';
 }
 
 function renderEdSections(sections) {
@@ -1226,6 +1288,11 @@ async function seedDefault() {
     showAlert('alertBox', 'Error loading default SOPs.', 'alert-error');
   }
 }
+
+// Close editor modal on backdrop click
+document.getElementById('sopEditorModal').addEventListener('click', e => {
+  if (e.target === document.getElementById('sopEditorModal')) closeEditor();
+});
 
 // ── Boot ───────────────────────────────────────────────────────────────────
 loadSops();

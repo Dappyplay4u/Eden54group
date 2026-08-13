@@ -118,7 +118,7 @@ select.fc option{background:var(--deep)}
 /* ── Mobile-only elements (hidden on desktop) ── */
 #mobileBack{display:none;background:none;border:none;color:var(--gold);font-family:'Jost',sans-serif;font-size:0.82rem;cursor:pointer;padding:0;flex-shrink:0}
 #mobCartActions{display:none;justify-content:center;gap:20px;padding:10px 0 2px;border-top:1px solid var(--border);margin-top:4px}
-#mobBar{display:none;position:fixed;bottom:0;left:0;right:0;z-index:400;background:var(--deep2);border-top:1px solid rgba(201,169,110,0.3);padding:11px 16px;align-items:center;justify-content:space-between;gap:12px}
+#mobBar{display:none;position:fixed;bottom:0;left:0;right:0;z-index:400;background:var(--deep2);border-top:1px solid rgba(201,169,110,0.3);padding:11px 16px;padding-bottom:max(11px,env(safe-area-inset-bottom));align-items:center;justify-content:space-between;gap:12px}
 #mobBar.show{display:flex}
 #mobMenuBtn{display:none;position:absolute;top:10px;right:12px;z-index:50;background:var(--card2);border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:6px 12px;font-family:'Jost',sans-serif;font-size:0.72rem;letter-spacing:0.08em;cursor:pointer}
 
@@ -173,7 +173,7 @@ select.fc option{background:var(--deep)}
   .pos-hdr{display:none}
   /* Single-column body; items fill all available height */
   .pos-body{display:block;height:100%;overflow:hidden}
-  .items-panel{height:100%;overflow-y:auto;padding-bottom:72px}
+  .items-panel{height:100%;overflow-y:auto;padding-bottom:calc(72px + env(safe-area-inset-bottom))}
   /* 3-column item grid on mobile */
   .item-grid{grid-template-columns:repeat(3,1fr)}
   /* Cart panel: hidden until opened as full-screen sheet */

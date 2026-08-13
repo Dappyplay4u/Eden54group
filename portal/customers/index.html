@@ -246,6 +246,8 @@ const staff = getStaff();
 requireAccess(staff, 'customers');
 populateSidebar(staff);
 buildNav(staff, 'customers');
+const _rawRole = (staff.accessLevel || staff.role || '').toLowerCase().replace(/\s+/g,'');
+const _isCEO = _rawRole === 'ceo' || _rawRole === 'superadmin';
 
 const DEPT_LABELS = {
   barbing: '💈 Barbing', games: '🎮 Games', drinks: '🍺 Bar',
@@ -424,6 +426,7 @@ function renderGrid(list) {
           <div class="cust-stat"><strong>${c.lastVisit ? fmtDate(c.lastVisit) : '—'}</strong>Last Visit</div>
         </div>
         ${depts ? `<div class="dept-chips">${depts}</div>` : ''}
+        ${_isCEO ? `<div style="margin-top:10px"><button onclick="event.stopPropagation();deleteCustomer('${esc(c.id)}','${(c.name||'Unknown').replace(/'/g,"\\'")}',this)" style="border:1px solid #dc2626;color:#dc2626;background:none;padding:3px 10px;border-radius:4px;cursor:pointer;font-size:0.7rem;font-family:inherit;border-radius:4px">Delete</button></div>` : ''}
       </div>
     </div>`;
   }).join('');
@@ -573,6 +576,20 @@ function closeDetail(e) {
 }
 function closeDetailDirect() {
   document.getElementById('detailOverlay').classList.remove('show');
+}
+
+async function deleteCustomer(phoneKey, name, btn) {
+  if (!confirm(`Permanently delete the customer record for ${name}?\n\nThis removes their profile but NOT their sales history.\n\nThis cannot be undone.`)) return;
+  if (btn) { btn.disabled = true; btn.textContent = 'Deleting…'; }
+  try {
+    await db.collection('customers').doc(phoneKey).delete();
+    allCustomers = allCustomers.filter(c => c.id !== phoneKey);
+    applyFilter();
+    showAlert('alertBox', `Customer record for ${name} deleted.`, 'alert-success');
+  } catch(e) {
+    if (btn) { btn.disabled = false; btn.textContent = 'Delete'; }
+    showAlert('alertBox', 'Error: ' + e.message, 'alert-error');
+  }
 }
 
 loadCustomers();

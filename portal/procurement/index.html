@@ -877,7 +877,7 @@ function fmtDate(ts) {
 
 function itemsHtml(items) {
   if (!items || !items.length) return '<em style="color:var(--muted);font-size:0.8rem">No items recorded.</em>';
-  return `<table class="proc-items-tbl">
+  return `<div class="tbl-wrap"><table class="proc-items-tbl" style="min-width:320px">
     <thead><tr><th>Item</th><th>Qty</th><th>Unit Price</th><th style="text-align:right">Total</th></tr></thead>
     <tbody>${items.map(i =>
       `<tr>
@@ -887,7 +887,7 @@ function itemsHtml(items) {
         <td style="text-align:right">${fmtNaira(i.total || 0)}</td>
       </tr>`).join('')}
     </tbody>
-  </table>`;
+  </table></div>`;
 }
 
 // ── Render history table (respects _activeDept filter) ────────────────

@@ -133,7 +133,7 @@ function renderTable() {
   const rows = Object.values(payrollRows);
   const grand = rows.reduce((s,r) => s+(r.net||0), 0);
   document.getElementById('grandTotal').textContent = fmtNaira(grand);
-  document.getElementById('payrollTable').innerHTML = `<div class="tbl-wrap"><table>
+  document.getElementById('payrollTable').innerHTML = `<div class="tbl-wrap"><table style="min-width:720px">
     <thead><tr><th>Staff</th><th>Dept</th><th>Basic</th><th>Allowances</th><th>Deductions</th><th>Bonus</th><th>Net Pay</th><th>Status</th><th></th></tr></thead>
     <tbody>${rows.map(r => `<tr>
       <td class="fw4">${r.staffName}</td><td>${r.department}</td>
@@ -232,7 +232,7 @@ async function loadSalaryDirectory() {
       byDept[d].push(s);
     });
 
-    let html = '<div class="tbl-wrap"><table><thead><tr><th>Staff</th><th>Department</th><th>Role</th><th style="text-align:right">Basic Salary</th></tr></thead><tbody>';
+    let html = '<div class="tbl-wrap"><table style="min-width:420px"><thead><tr><th>Staff</th><th>Department</th><th>Role</th><th style="text-align:right">Basic Salary</th></tr></thead><tbody>';
     Object.entries(byDept).sort((a,b)=>a[0].localeCompare(b[0])).forEach(([, members]) => {
       members.sort((a,b)=>(a.name||'').localeCompare(b.name||''));
       members.forEach(s => {

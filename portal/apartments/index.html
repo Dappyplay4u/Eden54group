@@ -12,6 +12,9 @@
 <link href="https://fonts.googleapis.com/css2?family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/portal/portal.css">
 <style>
+/* ── Modals ── */
+.modal-ov{position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9000;display:none;align-items:center;justify-content:center;padding:16px}
+.modal-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:24px 22px;width:100%;max-height:92vh;overflow-y:auto}
 .notif-badge{display:inline-flex;align-items:center;justify-content:center;background:#dc2626;color:#fff;border-radius:50%;width:20px;height:20px;font-size:0.65rem;font-weight:500;margin-left:6px;vertical-align:middle;}
 .notif-row{display:flex;align-items:flex-start;gap:14px;padding:14px 0;border-bottom:1px solid var(--border);}
 .notif-row:last-child{border-bottom:none;}
@@ -53,12 +56,35 @@
 .cal-event.ev-in{background:rgba(21,128,61,0.12);color:#15803d;}
 .cal-event.ev-out{background:rgba(220,38,38,0.1);color:#dc2626;}
 .cal-event.ev-res{background:rgba(59,130,246,0.1);color:#3b82f6;}
-/* Mobile: compact calendar cells */
+/* Mobile: compact calendar cells + general responsive fixes */
 @media(max-width:600px){
+  /* Calendar */
   .cal-day{min-height:40px;padding:3px 4px;}
   .cal-day .cal-num{font-size:0.72rem;margin-bottom:1px;}
   .cal-event{display:none;}
   .cal-dot{width:6px;height:6px;}
+
+  /* Active guest meta: break long run-on lines */
+  .notif-meta { word-break:break-word; overflow-wrap:break-word; }
+
+  /* Active guest action buttons: ensure wrapping, min touch size */
+  .notif-actions { gap:6px; }
+  .notif-actions .btn { min-height:36px; padding:6px 12px; }
+
+  /* Form grids: collapse to single column on phones */
+  .fg2 { grid-template-columns: 1fr !important; }
+
+  /* Check-in modal review grid: shrink label column */
+  #ciStep2 [style*="grid-template-columns:110px"] { grid-template-columns: 90px 1fr !important; }
+
+  /* Modals: tighter padding on small screens */
+  .modal-card { padding: 18px 14px !important; }
+
+  /* Log rental form: full-width submit */
+  #logRentalPanel .btn[style*="width:100%"] { font-size: 0.9rem; min-height: 44px; }
+
+  /* Rental history buttons: ensure touch-friendly size */
+  #histTable .btn { min-height: 34px; font-size: 0.72rem; }
 }
 /* Receipt print */
 @media print {
@@ -105,7 +131,10 @@
 
       <!-- ── LOG NEW RENTAL (front desk only) ── -->
       <div class="card" id="logRentalPanel">
-        <div class="section-head"><h2>Log New Rental</h2></div>
+        <div class="section-head">
+          <h2>Log Rental</h2>
+          <span style="font-size:0.72rem;color:var(--muted)" id="prefillBanner" style="display:none"></span>
+        </div>
 
         <div class="fg2" style="margin-bottom:14px">
           <div class="form-group">
@@ -350,13 +379,14 @@ requireAccess(staff, 'apartments');
 populateSidebar(staff);
 buildNav(staff, 'apartments');
 
-/* Role-aware UI — hide Log New Rental for managers and HR */
-const _dept       = (staff.department || '').toLowerCase();
-const _rawLevel   = (staff.accessLevel || staff.role || '').toLowerCase().replace(/\s+/g,'');
-const _isCEO      = _rawLevel === 'ceo' || _rawLevel === 'superadmin';
-const _isManager  = _isCEO || staff.role === 'manager' || staff.role === 'superadmin';
-const _isHR       = _dept === 'hr';
-const _canLog     = !_isManager && !_isHR;
+/* Role-aware UI */
+const _dept        = (staff.department || '').toLowerCase();
+const _rawLevel    = (staff.accessLevel || staff.role || '').toLowerCase().replace(/\s+/g,'');
+const _isCEO       = _rawLevel === 'ceo' || _rawLevel === 'superadmin';
+const _isManager   = _isCEO || staff.role === 'manager' || staff.role === 'superadmin';
+const _isHR        = _dept === 'hr';
+const _isFrontDesk = _dept === 'front desk' || _dept === 'receptionist' || _dept.includes('front');
+const _canLog      = _isCEO || _isManager || _isFrontDesk;
 if (!_canLog) {
   const panel = document.getElementById('logRentalPanel');
   if (panel) panel.style.display = 'none';
@@ -387,7 +417,7 @@ function timeAgo(ts) {
   return Math.floor(sec/86400) + 'd ago';
 }
 function pillHtml(status) {
-  const map = { new:'pill-new', confirmed:'pill-confirmed', 'checked-in':'pill-checked-in', 'checked-out':'pill-checked-out', paid:'pill-paid', partial:'pill-partial', pending:'pill-pending' };
+  const map = { new:'pill-new', confirmed:'pill-confirmed', 'checked-in':'pill-checked-in', 'checked-out':'pill-checked-out', paid:'pill-paid', partial:'pill-partial', pending:'pill-pending', converted:'pill-confirmed', cancelled:'pill-checked-out' };
   return `<span class="status-pill ${map[status]||''}">${esc(status)}</span>`;
 }
 
@@ -503,7 +533,7 @@ async function submitRental() {
     notes:     document.getElementById('apNotes').value.trim(),
     loggedBy:   staff.name,
     loggedById: staff.id,
-    status:    'checked-in',
+    status:    'confirmed',
     createdAt: firebase.firestore.FieldValue.serverTimestamp()
   };
   if (discount > 0) {
@@ -532,6 +562,16 @@ async function submitRental() {
       }, { merge: true });
     }
 
+    // Mark the source website booking as converted (if this rental came from one)
+    if (_prefillBookingId) {
+      await db.collection('apartmentBookings').doc(_prefillBookingId).update({
+        status:      'converted',
+        convertedAt: firebase.firestore.FieldValue.serverTimestamp(),
+        convertedBy: staff.name,
+      }).catch(() => {});
+      _prefillBookingId = null;
+    }
+
     showAlert('alertBox', `Rental logged for ${guestName} ✓`, 'alert-success');
     // Reset form
     ['apGuestName','apPhone','apEmail','apUnit','apBedrooms','apGuests','apCheckin','apCheckout','apRate','apTotal','apPaid','apPayMethod','apPayStatus','apNotes','apDiscount','apCautionOverride','apDiscountNote'].forEach(id => {
@@ -540,6 +580,8 @@ async function submitRental() {
     });
     document.getElementById('nightsDisplay').style.display = 'none';
     document.getElementById('balanceDisplay').style.display = 'none';
+    const banner = document.getElementById('prefillBanner');
+    if (banner) { banner.textContent = ''; banner.style.display = 'none'; }
     loadActive();
     loadHistory();
     loadTodaySummary();
@@ -590,9 +632,10 @@ function loadNotifications() {
                 ${b.requests ? `<br>📝 <em>${esc(b.requests)}</em>` : ''}
               </div>
               <div class="notif-actions">
-                ${isNew ? `<button class="btn btn-gold btn-sm" onclick="confirmBooking('${b.id}')">✓ Confirm</button>` : ''}
-                <button class="btn btn-outline btn-sm" onclick="convertToRental('${b.id}')">+ Log as Rental</button>
-                <button class="btn btn-sm" style="border:1px solid #dc2626;color:#dc2626;background:none;min-height:36px;padding:8px 14px;border-radius:4px;cursor:pointer;font-family:'Jost',sans-serif;font-size:0.72rem;letter-spacing:0.08em" onclick="declineBooking('${b.id}','${(b.firstName||'').replace(/'/g,"\\'")} ${(b.lastName||'').replace(/'/g,"\\'")}','${b.status||'new'}')">✕ Delete</button>
+                ${b.status === 'new' ? `<button class="btn btn-gold btn-sm" onclick="confirmBooking('${b.id}')">✓ Confirm</button>` : ''}
+                ${(b.status === 'new' || b.status === 'confirmed') ? `<button class="btn btn-outline btn-sm" onclick="openQuickLogModal('${b.id}')">+ Log as Rental</button>` : ''}
+                ${b.status === 'converted' ? `<span style="font-size:0.75rem;color:#15803d;padding:0 4px">✓ Logged as rental</span>` : ''}
+                <button class="btn btn-sm" style="border:1px solid #dc2626;color:#dc2626;background:none;min-height:36px;padding:8px 14px;border-radius:4px;cursor:pointer;font-family:'Jost',sans-serif;font-size:0.72rem;letter-spacing:0.08em" onclick="deleteBooking('${b.id}','${(b.firstName||'').replace(/'/g,"\\'")} ${(b.lastName||'').replace(/'/g,"\\'")}')">✕ Delete</button>
               </div>
             </div>
             <div class="notif-time">${timeAgo(b.createdAt)}</div>
@@ -609,18 +652,14 @@ async function confirmBooking(id) {
   await db.collection('apartmentBookings').doc(id).update({ status: 'confirmed' });
 }
 
-async function declineBooking(id, guestName, status) {
-  const msg = status === 'confirmed'
-    ? `Cancel confirmed booking for ${guestName}?\n\nUse this for cancellations, refund requests, or non-payment after confirmation.`
-    : `Cancel reservation for ${guestName}?\n\nUse this when no payment or deposit has been made.`;
-  if (!confirm(msg)) return;
-  await db.collection('apartmentBookings').doc(id).update({
-    status: 'cancelled',
-    cancelledAt: firebase.firestore.FieldValue.serverTimestamp(),
-    cancelledBy: { id: staff.id, name: staff.name },
-  });
-  writeAuditLog(staff, 'cancel_booking', { bookingId: id, guestName });
-  showAlert('alertBox', `Booking for ${guestName} cancelled.`, 'alert-error');
+async function deleteBooking(id, guestName) {
+  if (!confirm(`Permanently delete the reservation for ${guestName}?\n\nThis removes it from the list and cannot be undone.`)) return;
+  try {
+    await db.collection('apartmentBookings').doc(id).delete();
+    showAlert('alertBox', `Reservation for ${guestName} deleted.`, 'alert-success');
+  } catch(e) {
+    showAlert('alertBox', 'Error deleting reservation: ' + e.message, 'alert-error');
+  }
 }
 
 async function markAllSeen() {
@@ -639,18 +678,50 @@ async function markAllSeen() {
   }
 }
 
-function convertToRental(id) {
-  db.collection('apartmentBookings').doc(id).get().then(doc => {
+/* ── Pre-fill main form from a website booking ── */
+let _prefillBookingId = null;
+
+function openQuickLogModal(bookingId) {
+  db.collection('apartmentBookings').doc(bookingId).get().then(doc => {
+    if (!doc.exists) return;
     const b = doc.data();
-    document.getElementById('apGuestName').value = `${b.firstName} ${b.lastName}`;
-    document.getElementById('apPhone').value     = b.phone;
-    document.getElementById('apEmail').value     = b.email;
-    document.getElementById('apCheckin').value   = b.checkin;
-    document.getElementById('apCheckout').value  = b.checkout;
+    _prefillBookingId = bookingId;
+
+    // Fill every available field from the booking
+    document.getElementById('apGuestName').value = (`${b.firstName || ''} ${b.lastName || ''}`).trim();
+    document.getElementById('apPhone').value     = b.phone   || '';
+    document.getElementById('apEmail').value     = b.email   || '';
+    document.getElementById('apGuests').value    = b.guests  || '1';
+    document.getElementById('apUnit').value      = b.unit    || '';
+    document.getElementById('apCheckin').value   = b.checkin || '';
+    document.getElementById('apCheckout').value  = b.checkout || '';
     document.getElementById('apNotes').value     = b.requests || '';
+
+    // Trigger auto-fills (rate, bedrooms, nights, total)
+    apUnitChanged();
     calcNights();
-    document.getElementById('apGuestName').scrollIntoView({ behavior: 'smooth', block: 'center' });
-    showAlert('alertBox', 'Booking details pre-filled — add payment info and click Log Rental.', 'alert-success');
+
+    // Make sure the form panel is visible (CEO/Manager/FrontDesk)
+    const panel = document.getElementById('logRentalPanel');
+    if (panel) {
+      panel.style.display = '';
+      // Briefly highlight the card so staff know where to look
+      panel.style.transition = 'box-shadow 0.3s';
+      panel.style.boxShadow  = '0 0 0 3px rgba(201,169,110,0.55)';
+      setTimeout(() => { panel.style.boxShadow = ''; }, 2200);
+      panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    const banner = document.getElementById('prefillBanner');
+    if (banner) {
+      banner.textContent = `Pre-filled from online booking · ${b.firstName} ${b.lastName}`;
+      banner.style.display = '';
+    }
+
+    showAlert('alertBox',
+      `Booking details for ${b.firstName} ${b.lastName} pre-filled — review, add payment info, then click Log Rental.`,
+      'alert-success'
+    );
   });
 }
 
@@ -675,15 +746,24 @@ function loadActive() {
         html += `
           <div class="notif-row">
             <div class="notif-body">
-              <div class="notif-name">${esc(r.guestName)} ${pillHtml(r.payStatus||'pending')}</div>
+              <div class="notif-name">
+                ${esc(r.guestName)}
+                ${r.status === 'confirmed'
+                  ? '<span class="status-pill pill-pending" style="margin-left:6px">Awaiting Check-in</span>'
+                  : '<span class="status-pill pill-checked-in" style="margin-left:6px">Checked In</span>'}
+                ${pillHtml(r.payStatus||'pending')}
+              </div>
               <div class="notif-meta">
-                🏨 ${esc(r.unit)}${r.bedrooms ? ` · ${r.bedrooms} Bed` : ''} &nbsp;|&nbsp; 📅 ${fmtDate(r.checkin)} → ${fmtDate(r.checkout)} (${r.nights} night${r.nights!==1?'s':''})
-                <br>💰 Total: ${r.discount > 0 ? `<span style="text-decoration:line-through;opacity:0.45">${fmt(r.total)}</span> ${fmt(effTotal)} <span style="color:#15803d;font-size:0.72rem">−${fmt(r.discount)} discount${r.discountNote ? ` (${esc(r.discountNote)})` : ''}</span>` : fmt(r.total)} &nbsp;|&nbsp; Paid: ${fmt(r.paid)} &nbsp;|&nbsp; <span style="color:${bal>0?'#dc2626':'#15803d'}">Balance: ${fmt(bal)}</span>
+                🏨 ${esc(r.unit)}${r.bedrooms ? ` · ${r.bedrooms} Bed` : ''}<br>📅 ${fmtDate(r.checkin)} → ${fmtDate(r.checkout)} (${r.nights} night${r.nights!==1?'s':''})
+                <br>💰 Total: ${r.discount > 0 ? `<span style="text-decoration:line-through;opacity:0.45">${fmt(r.total)}</span> ${fmt(effTotal)} <span style="color:#15803d;font-size:0.72rem">−${fmt(r.discount)} discount${r.discountNote ? ` (${esc(r.discountNote)})` : ''}</span>` : fmt(r.total)} · Paid: ${fmt(r.paid)} · <span style="color:${bal>0?'#dc2626':'#15803d'}">Balance: ${fmt(bal)}</span>
                 ${r.cautionFee ? `<br>🔐 Caution deposit: ${fmt(r.cautionFee)} <span style="color:#15803d">(refundable on checkout)</span>` : ''}
+                ${r.idType ? `<br>🪪 ${esc(r.idType)}: ${esc(r.idNumber||'—')} &nbsp;|&nbsp; 📍 ${esc(r.address||'—')}` : ''}
               </div>
               <div class="notif-actions">
-                <button class="btn btn-outline btn-sm" onclick="checkOut('${r.id}')">Check Out</button>
-                ${bal > 0 ? `<button class="btn btn-gold btn-sm" onclick="logPayment('${r.id}')">Record Payment</button>` : ''}
+                ${r.status === 'confirmed'
+                  ? `<button class="btn btn-gold btn-sm" onclick="openCheckinModal('${r.id}', '${(r.guestName||'').replace(/'/g,"\\'")}')">✓ Check In Guest</button>`
+                  : `<button class="btn btn-outline btn-sm" onclick="checkOut('${r.id}')">Check Out</button>`}
+                ${bal > 0 ? `<button class="btn btn-outline btn-sm" onclick="logPayment('${r.id}')">Record Payment</button>` : ''}
                 <button class="btn btn-outline btn-sm" onclick="printReceipt('${r.id}')">🖨 Receipt</button>
                 ${_isCEO ? `<button class="btn btn-outline btn-sm ceo-only" onclick="openAdjustModal('${r.id}', ${r.total}, ${r.discount||0}, ${r.cautionFee||0}, '${(r.discountNote||'').replace(/'/g,"\\'")}')">Adjust</button>` : ''}
               </div>
@@ -692,6 +772,86 @@ function loadActive() {
       });
       document.getElementById('activeList').innerHTML = html;
     });
+}
+
+/* ── Check in ── */
+let _ciRentalId = null;
+
+function openCheckinModal(id, guestName) {
+  _ciRentalId = id;
+  document.getElementById('ciGuestLabel').textContent =
+    `Checking in: ${guestName}`;
+  document.getElementById('ciIdType').value   = '';
+  document.getElementById('ciIdNumber').value = '';
+  document.getElementById('ciAddress').value  = '';
+  document.getElementById('ciVerifiedCheck').checked = false;
+  document.getElementById('ciStep1').style.display = '';
+  document.getElementById('ciStep2').style.display = 'none';
+  document.getElementById('ciModalTitle').textContent = 'Guest Check-in — Step 1 of 2';
+  document.getElementById('checkinModal').style.display = 'flex';
+  setTimeout(() => document.getElementById('ciIdType').focus(), 100);
+}
+
+function closeCheckinModal() {
+  document.getElementById('checkinModal').style.display = 'none';
+  _ciRentalId = null;
+}
+
+function reviewCheckIn() {
+  const idType   = document.getElementById('ciIdType').value;
+  const idNumber = document.getElementById('ciIdNumber').value.trim();
+  const address  = document.getElementById('ciAddress').value.trim();
+
+  if (!idType || !idNumber || !address) {
+    alert('Please fill in ID type, ID number and home address before proceeding.');
+    return;
+  }
+
+  // Populate review panel
+  document.getElementById('rv-idType').textContent   = idType;
+  document.getElementById('rv-idNumber').textContent = idNumber;
+  document.getElementById('rv-address').textContent  = address;
+  document.getElementById('ciVerifiedCheck').checked = false;
+
+  document.getElementById('ciStep1').style.display = 'none';
+  document.getElementById('ciStep2').style.display = '';
+  document.getElementById('ciModalTitle').textContent = 'Guest Check-in — Step 2 of 2';
+}
+
+function goBackToEntry() {
+  document.getElementById('ciStep1').style.display = '';
+  document.getElementById('ciStep2').style.display = 'none';
+  document.getElementById('ciModalTitle').textContent = 'Guest Check-in — Step 1 of 2';
+}
+
+async function confirmCheckIn() {
+  if (!document.getElementById('ciVerifiedCheck').checked) {
+    alert('Please confirm you have physically verified the guest\'s ID before proceeding.');
+    return;
+  }
+
+  const idType   = document.getElementById('ciIdType').value;
+  const idNumber = document.getElementById('ciIdNumber').value.trim();
+  const address  = document.getElementById('ciAddress').value.trim();
+
+  const btn = document.getElementById('ciConfirmBtn');
+  btn.disabled = true; btn.textContent = 'Saving…';
+
+  try {
+    await db.collection('apartmentRentals').doc(_ciRentalId).update({
+      idType, idNumber, address,
+      status:      'checked-in',
+      checkedInAt: firebase.firestore.FieldValue.serverTimestamp(),
+      checkedInBy: staff.name,
+    });
+    closeCheckinModal();
+    showAlert('alertBox', 'Guest checked in ✓ — ID verified and address recorded.', 'alert-success');
+    loadActive(); loadHistory();
+  } catch(e) {
+    showAlert('alertBox', 'Error: ' + e.message, 'alert-error');
+  }
+
+  btn.disabled = false; btn.textContent = 'Confirm Check-in';
 }
 
 /* ── Check out ── */
@@ -719,9 +879,14 @@ async function confirmPayment() {
     const snap = await db.collection('apartmentRentals').doc(rentalId).get();
     if (!snap.exists) return;
     const r = snap.data();
-    const newPaid = (r.paid || 0) + amount;
+    const newPaid      = (r.paid || 0) + amount;
+    const effTotal     = Math.max(0, (r.total || 0) - (r.discount || 0));
+    const newBalance   = effTotal - newPaid;
+    const newPayStatus = newBalance <= 0 ? 'paid' : (newPaid > 0 ? 'partial' : 'pending');
     await db.collection('apartmentRentals').doc(rentalId).update({
-      paid: newPaid,
+      paid:       newPaid,
+      balance:    newBalance,
+      payStatus:  newPayStatus,
       paymentHistory: firebase.firestore.FieldValue.arrayUnion({
         amount, paidAt: new Date().toISOString(), recordedBy: staff.name
       }),
@@ -841,7 +1006,7 @@ function loadHistory() {
       const effTotal = Math.max(0, (r.total||0) - (r.discount||0));
       const bal = effTotal - (r.paid||0);
       rows += `<tr>
-        <td><strong>${r.guestName}</strong><br><span style="font-size:0.72rem;color:var(--muted)">${r.phone}</span></td>
+        <td><strong>${esc(r.guestName||'—')}</strong><br><span style="font-size:0.72rem;color:var(--muted)">${esc(r.phone||'—')}</span></td>
         <td>${r.unit||'—'}</td>
         <td style="text-align:center">${r.bedrooms ? r.bedrooms + ' Bed' : '—'}</td>
         <td>${fmtDate(r.checkin)}</td>
@@ -852,14 +1017,30 @@ function loadHistory() {
         <td style="color:${bal>0?'#dc2626':'#15803d'}">${fmt(bal)}</td>
         <td>${r.payMethod||'—'}</td>
         <td>${pillHtml(r.payStatus||'pending')}</td>
-        <td style="white-space:nowrap;display:flex;gap:6px;flex-wrap:wrap;align-items:center;padding-top:10px">
-          ${r.status !== 'checked-out' ? `<button class="btn btn-outline btn-sm" style="white-space:nowrap" onclick="checkOut('${doc.id}')">Check Out</button>` : '<span style="color:var(--muted);font-size:0.75rem">Checked out</span>'}
+        <td style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;padding-top:10px">
+          ${r.status === 'checked-in'  ? `<button class="btn btn-outline btn-sm" style="white-space:nowrap" onclick="checkOut('${doc.id}')">Check Out</button>` : ''}
+          ${r.status === 'confirmed'   ? `<span style="color:#b45309;font-size:0.75rem">Awaiting Check-In</span>` : ''}
+          ${r.status === 'checked-out' ? `<span style="color:var(--muted);font-size:0.75rem">Checked out</span>` : ''}
           <button class="btn btn-outline btn-sm" style="white-space:nowrap" onclick="printReceipt('${doc.id}')">🖨 Receipt</button>
+          ${_isCEO ? `<button class="btn btn-sm" style="white-space:nowrap;border:1px solid #dc2626;color:#dc2626;background:none;font-family:inherit;cursor:pointer;border-radius:6px;padding:4px 10px;font-size:0.73rem" onclick="deleteHistoryRental('${doc.id}','${(r.guestName||'').replace(/'/g,"\\'")}')">Delete</button>` : ''}
         </td>
       </tr>`;
     });
-    tbody.innerHTML = rows || '<tr><td colspan="11" style="text-align:center;padding:20px;color:var(--muted)">No matching records.</td></tr>';
+    tbody.innerHTML = rows || '<tr><td colspan="12" style="text-align:center;padding:20px;color:var(--muted)">No matching records.</td></tr>';
   });
+}
+
+/* ── CEO: delete rental record ── */
+async function deleteHistoryRental(id, guestName) {
+  if (!confirm(`Permanently delete the rental record for ${guestName}?\n\nThis cannot be undone.`)) return;
+  try {
+    await db.collection('apartmentRentals').doc(id).delete();
+    showAlert('alertBox', `Record for ${guestName} deleted.`, 'alert-success');
+    loadHistory();
+    loadActive();
+  } catch(e) {
+    showAlert('alertBox', 'Error: ' + e.message, 'alert-error');
+  }
 }
 
 /* ── Today's summary ── */
@@ -1016,6 +1197,73 @@ loadCalendar();
     <div id="rcptNoPrint" style="display:flex;gap:10px;justify-content:flex-end;padding:12px 20px;border-top:1px solid #eee;background:#fafafa">
       <button onclick="closeRcpt()" style="padding:8px 18px;border:1px solid #ccc;background:#fff;border-radius:7px;cursor:pointer;font-size:0.82rem">Close</button>
       <button onclick="window.print()" style="padding:8px 18px;background:#0f2318;color:#c9a96e;border:none;border-radius:7px;cursor:pointer;font-size:0.82rem;font-weight:500">🖨 Print</button>
+    </div>
+  </div>
+</div>
+
+<!-- Check-in Modal -->
+<div id="checkinModal" class="modal-ov" style="display:none">
+  <div class="modal-card" style="max-width:480px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+      <h3 style="margin:0" id="ciModalTitle">Guest Check-in</h3>
+      <button class="btn btn-outline btn-sm" onclick="closeCheckinModal()">✕</button>
+    </div>
+    <p id="ciGuestLabel" style="font-size:0.82rem;color:var(--muted);margin-bottom:18px"></p>
+
+    <!-- ── Step 1: Enter details ── -->
+    <div id="ciStep1">
+      <div class="fg2" style="margin-bottom:14px">
+        <div class="form-group">
+          <label class="form-label">ID Type *</label>
+          <select id="ciIdType" class="form-control">
+            <option value="">Select…</option>
+            <option value="NIN">NIN (National ID)</option>
+            <option value="International Passport">International Passport</option>
+            <option value="Driver's Licence">Driver's Licence</option>
+            <option value="Voter's Card">Voter's Card</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">ID Number *</label>
+          <input type="text" id="ciIdNumber" class="form-control" placeholder="e.g. 12345678901">
+        </div>
+      </div>
+      <div class="form-group" style="margin-bottom:18px">
+        <label class="form-label">Home Address *</label>
+        <textarea id="ciAddress" class="form-control" rows="2" placeholder="Street address, city, state…"></textarea>
+      </div>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-outline" style="flex:1" onclick="closeCheckinModal()">Cancel</button>
+        <button class="btn btn-gold" style="flex:1" onclick="reviewCheckIn()">Review Details →</button>
+      </div>
+    </div>
+
+    <!-- ── Step 2: Review & confirm ── -->
+    <div id="ciStep2" style="display:none">
+      <div style="border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:16px">
+        <div style="background:rgba(201,169,110,0.07);padding:8px 14px;font-size:0.68rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted)">Review — confirm details are correct</div>
+        <div style="padding:14px">
+          <div style="display:grid;grid-template-columns:110px 1fr;gap:8px 12px;font-size:0.85rem">
+            <span style="color:var(--muted)">ID Type</span>
+            <strong id="rv-idType"></strong>
+            <span style="color:var(--muted)">ID Number</span>
+            <strong id="rv-idNumber"></strong>
+            <span style="color:var(--muted)">Home Address</span>
+            <strong id="rv-address" style="white-space:pre-wrap"></strong>
+          </div>
+        </div>
+      </div>
+
+      <label style="display:flex;align-items:flex-start;gap:10px;padding:12px 14px;background:rgba(220,38,38,0.05);border:1px solid rgba(220,38,38,0.2);border-radius:6px;cursor:pointer;margin-bottom:18px;font-size:0.82rem">
+        <input type="checkbox" id="ciVerifiedCheck" style="margin-top:2px;accent-color:#dc2626;width:16px;height:16px;flex-shrink:0">
+        <span>I have <strong>physically inspected</strong> the guest's ID and confirmed the details above are correct.</span>
+      </label>
+
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-outline" style="flex:1" onclick="goBackToEntry()">← Edit</button>
+        <button class="btn btn-gold" style="flex:1" id="ciConfirmBtn" onclick="confirmCheckIn()">Confirm Check-in</button>
+      </div>
     </div>
   </div>
 </div>
