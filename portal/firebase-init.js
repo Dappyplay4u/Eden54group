@@ -172,14 +172,17 @@ function buildNav(staff, active) {
 
   if (isManager) {
     html += sec('Reports');
-    html += a('/portal/reports/',    '📋', 'All Reports',      'reports');
-    html += a('/portal/occupancy/', '🏨', 'Occupancy Report', 'occupancy');
+    html += a('/portal/reports/',              '📋', 'All Reports',         'reports');
+    html += a('/portal/occupancy/',            '🏨', 'Occupancy Report',    'occupancy');
+    html += a('/portal/bar/reconciliation/',   '🔄', 'Bar Reconciliation',  'bar-recon');
+    html += sec('Bar');
+    html += a('/portal/bar/',         '🍺', 'Bar Stock',        'bar');
+    html += a('/portal/procurement/', '🛒', 'Procurement',      'procurement');
     html += sec('HR & Operations');
     html += a('/portal/attendance/',        '👥', 'Attendance',        'attendance');
     html += a('/portal/payroll/',           '💵', 'Payroll',            'payroll');
     html += a('/portal/activity/',          '🕵️', 'Staff Activity',     'activity');
     html += a('/portal/expenses/',          '🧾', 'Expenses',           'expenses');
-    html += a('/portal/procurement/',       '🛒', 'Procurement',        'procurement');
     html += a('/portal/background-check/', '🔍', 'Background Checks',  'background-check');
     html += a('/portal/customers/',         '👥', 'Customers',          'customers');
     html += sec('Admin');
@@ -190,8 +193,9 @@ function buildNav(staff, active) {
     html += a('/portal/sops/', '📄', 'SOPs', 'sops');
   } else if (isHR) {
     html += sec('Reports');
-    html += a('/portal/reports/',    '📋', 'All Reports',      'reports');
-    html += a('/portal/occupancy/', '🏨', 'Occupancy Report', 'occupancy');
+    html += a('/portal/reports/',              '📋', 'All Reports',         'reports');
+    html += a('/portal/occupancy/',            '🏨', 'Occupancy Report',    'occupancy');
+    html += a('/portal/bar/reconciliation/',   '🔄', 'Bar Reconciliation',  'bar-recon');
     html += sec('HR');
     html += a('/portal/attendance/',        '👥', 'Attendance',        'attendance');
     html += a('/portal/payroll/',           '💵', 'Payroll',            'payroll');
@@ -371,7 +375,8 @@ function _checkAccess(staff, page) {
     tabs:       isManager || dept.includes('bar') || dept.includes('bartend') || dept.includes('lounge') || dept.includes('game'),
     pos:   isManager || isHR || dept === 'front desk' || dept === 'receptionist' || dept.includes('salon') || dept.includes('barbing'),
     sops:      true,
-    occupancy: isManager || isHR,
+    occupancy:    isManager || isHR,
+    'bar-recon':  isManager || isHR,
     sales: true, home: true, updates: true,
   };
   return !!rules[page];

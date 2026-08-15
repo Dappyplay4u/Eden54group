@@ -140,11 +140,11 @@
 .ov-cart-row{padding:9px 14px;display:flex;align-items:center;gap:8px;border-bottom:1px solid rgba(255,255,255,0.04)}
 .ov-cart-name{flex:1;font-size:0.82rem;min-width:0;color:rgba(245,242,236,0.92)}
 .ov-cart-qty{display:flex;align-items:center;gap:5px;flex-shrink:0}
-.ov-qty-btn{width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,0.07);
+.ov-qty-btn{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.07);
   border:1px solid rgba(201,169,110,0.15);color:rgba(245,242,236,0.92);cursor:pointer;
-  display:flex;align-items:center;justify-content:center;font-size:0.85rem}
+  display:flex;align-items:center;justify-content:center;font-size:0.9rem;-webkit-tap-highlight-color:transparent}
 .ov-qty-btn:hover{border-color:#C9A96E;color:#C9A96E}
-.ov-qty-num{font-size:0.83rem;font-weight:500;min-width:18px;text-align:center;color:rgba(245,242,236,0.92)}
+.ov-qty-num{font-size:0.83rem;font-weight:500;min-width:20px;text-align:center;color:rgba(245,242,236,0.92)}
 .ov-cart-price{font-size:0.82rem;color:#C9A96E;min-width:68px;text-align:right;flex-shrink:0}
 .ov-cart-foot{border-top:1px solid rgba(201,169,110,0.15);padding:14px 16px;flex-shrink:0}
 .ov-total-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
@@ -409,15 +409,123 @@ const TABLE_LABELS = [
 ];
 const FOOD_SECTIONS = ['Starters','Salads','Mains','Specials'];
 
+const DEFAULT_BAR_DRINKS = [
+  { name:'André Rosé',           section:'Champagne',    icon:'🍾', price:25000 },
+  { name:'Moët Rosé',            section:'Champagne',    icon:'🍾', price:45000 },
+  { name:'Martini Rosé',         section:'Champagne',    icon:'🍾', price:20000 },
+  { name:'Bottega',              section:'Champagne',    icon:'🍾', price:30000 },
+  { name:'Veuve Clicquot',       section:'Champagne',    icon:'🍾', price:55000 },
+  { name:'Bel Air',              section:'Champagne',    icon:'🍾', price:60000 },
+  { name:'Azul',                 section:'Champagne',    icon:'🍾', price:35000 },
+  { name:'Glenfiddich 23yr',     section:'Whiskey',      icon:'🥃', price:75000 },
+  { name:'Glenfiddich 18yr',     section:'Whiskey',      icon:'🥃', price:55000 },
+  { name:'Glenfiddich 15yr',     section:'Whiskey',      icon:'🥃', price:45000 },
+  { name:'Glenfiddich 12yr',     section:'Whiskey',      icon:'🥃', price:35000 },
+  { name:"Jack Daniel's",        section:'Whiskey',      icon:'🥃', price:20000 },
+  { name:'Johnnie Walker Red',   section:'Whiskey',      icon:'🥃', price:18000 },
+  { name:'Johnnie Walker Black', section:'Whiskey',      icon:'🥃', price:25000 },
+  { name:'Johnnie Walker Gold',  section:'Whiskey',      icon:'🥃', price:40000 },
+  { name:'Jameson',              section:'Whiskey',      icon:'🥃', price:18000 },
+  { name:'Jameson Black Barrel', section:'Whiskey',      icon:'🥃', price:25000 },
+  { name:'Singleton',            section:'Whiskey',      icon:'🥃', price:30000 },
+  { name:'Casamigos',            section:'Tequila',      icon:'🥃', price:40000 },
+  { name:'Don Julio',            section:'Tequila',      icon:'🥃', price:45000 },
+  { name:'Heineken Bottle',      section:'Beer',         icon:'🍺', price:1200  },
+  { name:'Heineken Can',         section:'Beer',         icon:'🍺', price:1200  },
+  { name:'Guinness Stout',       section:'Beer',         icon:'🍺', price:1000  },
+  { name:'Trophy',               section:'Beer',         icon:'🍺', price:800   },
+  { name:'Star',                 section:'Beer',         icon:'🍺', price:800   },
+  { name:'Budweiser',            section:'Beer',         icon:'🍺', price:1200  },
+  { name:'Harp',                 section:'Beer',         icon:'🍺', price:800   },
+  { name:'Legend Extra Stout',   section:'Beer',         icon:'🍺', price:1000  },
+  { name:'Life Beer',            section:'Beer',         icon:'🍺', price:800   },
+  { name:'Goldberg',             section:'Beer',         icon:'🍺', price:800   },
+  { name:'Desperados',           section:'Beer',         icon:'🍺', price:1500  },
+  { name:'Hero',                 section:'Beer',         icon:'🍺', price:800   },
+  { name:'33 Export',            section:'Beer',         icon:'🍺', price:800   },
+  { name:'Flying Fish',          section:'Beer',         icon:'🍺', price:1200  },
+  { name:'Hennessy XO',          section:'Brandy',       icon:'🥃', price:85000 },
+  { name:'Hennessy VSOP',        section:'Brandy',       icon:'🥃', price:65000 },
+  { name:'Hennessy VS',          section:'Brandy',       icon:'🥃', price:42000 },
+  { name:'Martell VS',           section:'Brandy',       icon:'🥃', price:38000 },
+  { name:'Martell Swift',        section:'Brandy',       icon:'🥃', price:48000 },
+  { name:'Rémy Martin',          section:'Brandy',       icon:'🥃', price:55000 },
+  { name:'Smirnoff Vodka',       section:'Gin/Vodka',    icon:'🍸', price:15000 },
+  { name:"Gordon's Gin (Large)", section:'Gin/Vodka',    icon:'🍸', price:18000 },
+  { name:"Gordon's Gin (Small)", section:'Gin/Vodka',    icon:'🍸', price:12000 },
+  { name:'Four Cousins',         section:'Wine',         icon:'🍷', price:8000  },
+  { name:'Agor',                 section:'Wine',         icon:'🍷', price:7000  },
+  { name:'Carlo Rossi',          section:'Wine',         icon:'🍷', price:6000  },
+  { name:'Best Cream (Big)',     section:'Liqueur',      icon:'🥂', price:22000 },
+  { name:'Best Cream (Small)',   section:'Liqueur',      icon:'🥂', price:14000 },
+  { name:'Baileys',              section:'Liqueur',      icon:'🥂', price:28000 },
+  { name:'Exotic',               section:'Juice',        icon:'🧃', price:800   },
+  { name:'Hollandia',            section:'Juice',        icon:'🧃', price:600   },
+  { name:'Chivita',              section:'Juice',        icon:'🧃', price:800   },
+  { name:'V-Smartick',           section:'Juice',        icon:'🧃', price:800   },
+  { name:'Campari (Small)',      section:'Aperitifs',    icon:'🍶', price:4500  },
+  { name:'Campari (Medium)',     section:'Aperitifs',    icon:'🍶', price:8000  },
+  { name:'Campari (Big)',        section:'Aperitifs',    icon:'🍶', price:14000 },
+  { name:'Novick Vodka',         section:'Aperitifs',    icon:'🍶', price:3000  },
+  { name:'Ombra Ribbena',        section:'Aperitifs',    icon:'🍶', price:3000  },
+  { name:'Magic Moment (Small)', section:'Aperitifs',    icon:'🍶', price:2500  },
+  { name:'Kumeling (Medium)',    section:'Aperitifs',    icon:'🍶', price:4000  },
+  { name:'Kumeling (Big)',       section:'Aperitifs',    icon:'🍶', price:7000  },
+  { name:'Action Bitters',       section:'Aperitifs',    icon:'🍶', price:2500  },
+  { name:'Origin Bitters',       section:'Aperitifs',    icon:'🍶', price:2500  },
+  { name:'Ballamour Bitters',    section:'Aperitifs',    icon:'🍶', price:2500  },
+  { name:'Ashanti Bitters',      section:'Aperitifs',    icon:'🍶', price:2500  },
+  { name:'Coco Samba',           section:'Aperitifs',    icon:'🍶', price:3500  },
+  { name:'Lacoco',               section:'Aperitifs',    icon:'🍶', price:3500  },
+  { name:'Mineral Water',        section:'Soft Drinks',  icon:'💧', price:500   },
+  { name:'Vitamalt',             section:'Soft Drinks',  icon:'🥤', price:600   },
+  { name:'Malt',                 section:'Soft Drinks',  icon:'🥤', price:600   },
+  { name:'Ribena',               section:'Soft Drinks',  icon:'🥤', price:700   },
+  { name:'Fayrouz',              section:'Soft Drinks',  icon:'🥤', price:700   },
+  { name:'Black Bullet',         section:'Energy Drinks',icon:'⚡', price:1000  },
+  { name:'Blue Bullet',          section:'Energy Drinks',icon:'⚡', price:1000  },
+  { name:'Power Horse',          section:'Energy Drinks',icon:'⚡', price:1000  },
+  { name:'Monster',              section:'Energy Drinks',icon:'⚡', price:1500  },
+  { name:'Red Bull',             section:'Energy Drinks',icon:'⚡', price:1500  },
+  { name:'Smirnoff Black Ice',   section:'Energy Drinks',icon:'⚡', price:1000  },
+  { name:'Smirnoff White Ice',   section:'Energy Drinks',icon:'⚡', price:1000  },
+  { name:'Predator',             section:'Energy Drinks',icon:'⚡', price:1000  },
+  { name:'Absolut Vodka',        section:'Bar Spirits',  icon:'🍸', price:15000 },
+  { name:'Bombay Sapphire',      section:'Bar Spirits',  icon:'🍸', price:20000 },
+  { name:'Bacardi Rum',          section:'Bar Spirits',  icon:'🍸', price:15000 },
+  { name:'Triple Sec',           section:'Bar Spirits',  icon:'🍸', price:5000  },
+  { name:'Captain Morgan',       section:'Bar Spirits',  icon:'🍸', price:15000 },
+  { name:'Real Lemon',           section:'Bar Spirits',  icon:'🍸', price:1500  },
+  { name:'Malibu Rum',           section:'Bar Spirits',  icon:'🍸', price:15000 },
+  { name:'Kalahari',             section:'Bar Spirits',  icon:'🍸', price:4000  },
+  { name:'Peach Schnapps',       section:'Bar Spirits',  icon:'🍸', price:6000  },
+  { name:'Camino Real Tequila',  section:'Bar Spirits',  icon:'🍸', price:12000 },
+  { name:'Black Iceland',        section:'Bar Spirits',  icon:'🍸', price:4000  },
+  { name:'Blue Curaçao',         section:'Bar Spirits',  icon:'🍸', price:5000  },
+  { name:'Kahlúa',               section:'Bar Spirits',  icon:'🍸', price:8000  },
+  { name:'Grenadine',            section:'Bar Spirits',  icon:'🍸', price:2000  },
+  { name:'Shisha Pot',           section:'Shisha',       icon:'💨', price:8000  },
+  { name:'Cube Coal',            section:'Shisha',       icon:'💨', price:1000  },
+  { name:'Shisha Flavour',       section:'Shisha',       icon:'💨', price:2000  },
+  { name:'Electric Coal Burner', section:'Shisha',       icon:'💨', price:0     },
+].map(i => ({
+  ...i, category:'drinks', active:true,
+  stockKey: i.name.toLowerCase().replace(/[^a-z0-9]+/g,'_').replace(/^_|_$/g,''),
+}));
+
 /* ── State ── */
 let menuItems    = [];
 let gameItems    = [];
-let currentTabId = null;
-let currentTab   = null;
-let tabUnsub     = null;
-let payMethod    = 'cash';
-let selTable     = '';
-let activeCat    = 'drinks';
+let currentTabId    = null;
+let currentTab      = null;
+let tabUnsub        = null;
+let payMethod       = 'cash';
+let selTable        = '';
+let activeCat       = 'drinks';
+let activeDrinkCat  = '';
+
+const DRINK_SECTIONS  = ['Cocktails','Champagne','Whiskey','Tequila','Beer','Brandy','Gin/Vodka','Wine','Liqueur','Juice','Aperitifs','Soft Drinks','Energy Drinks','Bar Spirits','Shisha'];
+const DRINK_SEC_ICONS = { Cocktails:'🍹', Champagne:'🍾', Whiskey:'🥃', Tequila:'🥃', Beer:'🍺', Brandy:'🥃', 'Gin/Vodka':'🍸', Wine:'🍷', Liqueur:'🥂', Juice:'🧃', Aperitifs:'🍶', 'Soft Drinks':'🥤', 'Energy Drinks':'⚡', 'Bar Spirits':'🍸', Shisha:'💨', Other:'🥤' };
 
 /* ════ TABLE PILLS ════ */
 (function () {
@@ -660,11 +768,42 @@ function exitOrderView() {
 async function loadMenu() {
   try {
     const snap = await db.collection('menuItems').where('active', '==', true).get();
-    menuItems = snap.docs.map(d => ({ id: d.id, ...d.data() }))
-      .filter(i => i.category === 'drinks' || i.category === 'food');
-    if (!menuItems.length) menuItems = DEFAULT_MENU;
+    let allItems = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+    // Seed bar drinks if none have a stockKey yet
+    const hasBarDrinks = allItems.some(i => i.stockKey);
+    if (!hasBarDrinks) {
+      const b = db.batch();
+      DEFAULT_BAR_DRINKS.forEach(i => b.set(db.collection('menuItems').doc(), i));
+      await b.commit();
+      const fresh = await db.collection('menuItems').where('active','==',true).get();
+      allItems = fresh.docs.map(d => ({ id: d.id, ...d.data() }));
+    } else {
+      // Patch any missing bar drinks added after initial seed
+      const existingSlugs = new Set(allItems.filter(i=>i.stockKey).map(i=>i.stockKey));
+      const missing = DEFAULT_BAR_DRINKS.filter(i => !existingSlugs.has(i.stockKey));
+      if (missing.length) {
+        const b = db.batch();
+        missing.forEach(i => b.set(db.collection('menuItems').doc(), i));
+        await b.commit();
+        const fresh = await db.collection('menuItems').where('active','==',true).get();
+        allItems = fresh.docs.map(d => ({ id: d.id, ...d.data() }));
+      }
+    }
+
+    // Patch cocktail drinks that are missing their section
+    const COCKTAIL_NAMES = new Set(['Chapman','Ruby Sunrise','Cocktail','Zesty Cinnamon Splash','Ruby Spark']);
+    const needsPatch = allItems.filter(i => i.category==='drinks' && COCKTAIL_NAMES.has(i.name) && !i.section);
+    if (needsPatch.length) {
+      const b = db.batch();
+      needsPatch.forEach(i => b.update(db.collection('menuItems').doc(i.id), { section:'Cocktails' }));
+      await b.commit();
+      needsPatch.forEach(i => { i.section = 'Cocktails'; });
+    }
+
+    menuItems = allItems.filter(i => (i.category === 'drinks' || i.category === 'food') && i.active !== false);
   } catch (e) {
-    menuItems = DEFAULT_MENU;
+    menuItems = [];
   }
   try {
     const gsnap = await db.collection('gamePrices').get();
@@ -693,10 +832,16 @@ function buildCatTabs() {
 }
 
 function setCat(cat, btn) {
+  if (cat !== 'drinks') activeDrinkCat = '';
   activeCat = cat;
   document.querySelectorAll('.ov-cat').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   renderMenuItems(cat);
+}
+
+function selectDrinkCat(cat) {
+  activeDrinkCat = cat;
+  renderMenuItems('drinks');
 }
 
 function renderMenuItems(cat) {
@@ -712,7 +857,44 @@ function renderMenuItems(cat) {
     return;
   }
   if (cat === 'drinks') {
-    items = menuItems.filter(i => i.category === 'drinks');
+    const drinkItems = menuItems.filter(i => i.category === 'drinks');
+    if (!drinkItems.length) {
+      el.innerHTML = '<div style="color:rgba(245,242,236,0.38);padding:12px;font-size:0.82rem">No drinks configured.</div>';
+      return;
+    }
+    if (!activeDrinkCat) {
+      // Level 1 — category picker tiles
+      const counts = {};
+      drinkItems.forEach(i => { const s = i.section || 'Other'; counts[s] = (counts[s]||0)+1; });
+      const orderedSecs = [...DRINK_SECTIONS.filter(s => counts[s])];
+      if (counts['Other']) orderedSecs.push('Other');
+      el.innerHTML = `<div class="ov-grid">${orderedSecs.map(sec => {
+        const cnt = counts[sec]; const icon = DRINK_SEC_ICONS[sec] || '🥤';
+        return `<div class="ov-ic" style="cursor:pointer" onclick="selectDrinkCat('${esc(sec)}')">
+          <div class="ov-ic-icon" style="font-size:2.2rem">${icon}</div>
+          <div class="ov-ic-name">${esc(sec)}</div>
+          <div class="ov-ic-price">${cnt} item${cnt!==1?'s':''}</div>
+        </div>`;
+      }).join('')}</div>`;
+    } else {
+      // Level 2 — items within chosen category
+      const catItems = activeDrinkCat === 'Other'
+        ? drinkItems.filter(i => !i.section)
+        : drinkItems.filter(i => i.section === activeDrinkCat);
+      const icon = DRINK_SEC_ICONS[activeDrinkCat] || '🥤';
+      el.innerHTML =
+        `<div style="margin-bottom:12px">
+          <button onclick="selectDrinkCat('')" style="background:none;border:1px solid rgba(201,169,110,0.25);border-radius:20px;padding:6px 14px;color:rgba(245,242,236,0.5);font-family:inherit;font-size:0.76rem;cursor:pointer;letter-spacing:0.06em">← All Drinks</button>
+        </div>
+        <div style="font-size:0.6rem;letter-spacing:0.22em;text-transform:uppercase;color:#C9A96E;margin:0 0 10px;font-weight:500">${icon} ${esc(activeDrinkCat)}</div>
+        <div class="ov-grid">${catItems.map(item => `
+          <div class="ov-ic" data-name="${esc(item.name)}" data-price="${item.price}" data-icon="${esc(item.icon||'🥤')}" data-cat="drinks" data-stockkey="${esc(item.stockKey||'')}">
+            <div class="ov-ic-icon">${item.icon||'🥤'}</div>
+            <div class="ov-ic-name">${esc(item.name)}</div>
+            <div class="ov-ic-price">${N(item.price)}</div>
+          </div>`).join('')}</div>`;
+    }
+    return;
   } else {
     const sec = cat.replace('food__', '');
     items = sec === 'Other'
@@ -751,6 +933,7 @@ document.getElementById('ovItems').addEventListener('click', async e => {
     icon: card.dataset.icon,
     unitPrice: parseFloat(card.dataset.price),
     category: card.dataset.cat,
+    ...(card.dataset.stockkey ? { stockKey: card.dataset.stockkey } : {}),
   };
   const ref = db.collection('tabs').doc(currentTabId);
   try {

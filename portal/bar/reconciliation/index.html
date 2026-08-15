@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#0f2318">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Eden 54">
+<title>Bar Reconciliation · Eden 54 Portal</title>
+<link rel="icon" type="image/jpeg" href="/logo/eden 54 logo.jpeg">
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/portal/portal.css">
+<style>
+.period-btn{padding:7px 16px;border:1px solid var(--border);border-radius:20px;background:none;color:var(--text);font-size:0.76rem;cursor:pointer;font-family:'Jost',sans-serif;transition:background .15s,border-color .15s,color .15s;white-space:nowrap;line-height:1.4;flex-shrink:0;min-height:36px;min-width:36px}
+.period-btn:hover{background:rgba(201,169,110,.12);border-color:var(--gold);color:var(--gold)}
+.period-btn.active{background:var(--gold);border-color:var(--gold);color:#0f2318;font-weight:500}
+.period-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+@media(max-width:540px){.period-row{flex-wrap:nowrap;overflow-x:auto;padding-bottom:6px;-webkit-overflow-scrolling:touch;scrollbar-width:none}.period-row::-webkit-scrollbar{display:none}}
+.item-chip{font-size:0.72rem;padding:3px 10px;border-radius:12px;background:rgba(201,169,110,0.1);color:var(--gold);border:1px solid rgba(201,169,110,0.2)}
+.summary-pill{display:inline-flex;align-items:center;gap:5px;padding:6px 13px;border-radius:20px;font-size:0.75rem}
+#summaryRow{flex-wrap:wrap;gap:8px}
+@media(max-width:540px){#summaryRow{gap:6px}.summary-pill{font-size:0.7rem;padding:5px 10px}}
+</style>
+</head>
+<body>
+<div class="sb-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+<aside class="sidebar" id="sidebar">
+  <div class="sb-brand"><div class="sb-brand-name">Eden 54</div><div class="sb-brand-sub">Staff Portal</div></div>
+  <nav class="sb-nav" id="sbNav"></nav>
+  <div class="sb-foot"><div id="sidebarUser"></div><a class="sb-item" onclick="switchProfile()" style="cursor:pointer"><i class="sb-icon">🔄</i> Switch Profile</a></div>
+</aside>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <button class="hamburger" onclick="toggleSidebar()"><div></div><div></div><div></div></button>
+      <h1>Bar Reconciliation</h1>
+    </div>
+    <div class="topbar-date" id="topDate"></div>
+  </div>
+  <div class="content">
+    <div id="alertBox" class="alert"></div>
+
+    <div class="card">
+      <div class="section-head" style="flex-wrap:wrap;gap:8px">
+        <div>
+          <h2>Sales vs Stock Reconciliation</h2>
+          <p style="font-size:0.78rem;color:var(--muted);margin-top:4px">
+            Compare what the stock count says was consumed (Opening + Received − Closing)
+            against what POS recorded as sold. A positive variance means stock disappeared
+            without a POS record — possible spillage, theft, or staff consumption.
+          </p>
+        </div>
+      </div>
+
+      <!-- Period selector -->
+      <div class="period-row">
+        <button class="period-btn"        data-p="today"  onclick="setPeriod('today')">Today</button>
+        <button class="period-btn"        data-p="week"   onclick="setPeriod('week')">This Week</button>
+        <button class="period-btn active" data-p="month"  onclick="setPeriod('month')">This Month</button>
+        <button class="period-btn"        data-p="year"   onclick="setPeriod('year')">This Year</button>
+        <button class="period-btn"        data-p="custom" onclick="setPeriod('custom')">Custom</button>
+      </div>
+
+      <!-- Custom date range -->
+      <div id="customWrap" style="display:none;gap:8px;align-items:flex-end;flex-wrap:wrap;margin-bottom:18px">
+        <div class="form-group" style="margin:0">
+          <label class="form-label">From</label>
+          <input type="date" id="dateFrom" class="form-control" style="min-width:150px">
+        </div>
+        <div class="form-group" style="margin:0">
+          <label class="form-label">To</label>
+          <input type="date" id="dateTo" class="form-control" style="min-width:150px">
+        </div>
+        <button class="btn btn-gold" onclick="runCustom()">Load Report</button>
+      </div>
+
+      <!-- Summary pills -->
+      <div id="summaryRow" style="display:none;flex-wrap:wrap;gap:8px;margin-bottom:18px"></div>
+
+      <!-- Table scrolls horizontally on mobile; Category column hidden on small screens via CSS -->
+      <div class="tbl-wrap">
+        <table style="min-width:520px;width:100%">
+          <thead><tr>
+            <th style="text-align:left">Item</th>
+            <th>Category</th>
+            <th style="text-align:center" title="Sum of (Opening + Received − Closing) across all stock reports in the period">Stock Consumed</th>
+            <th style="text-align:center" title="Units recorded as sold through POS and Tabs">POS Qty</th>
+            <th style="text-align:center" title="Stock Consumed − POS Qty. Positive = unaccounted loss. Negative = POS over-recorded.">Variance</th>
+            <th style="text-align:right">POS Revenue</th>
+          </tr></thead>
+          <tbody id="recoTbody">
+            <tr><td colspan="6" style="text-align:center;padding:32px;color:var(--muted)">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="/portal/firebase-init.js"></script>
+<script>
+const staff = getStaff();
+requireAccess(staff, 'bar-recon');
+populateSidebar(staff);
+buildNav(staff, 'bar-recon');
+document.getElementById('topDate').textContent =
+  new Date().toLocaleDateString('en-NG',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+
+let _period = 'month';
+
+function setPeriod(p) {
+  _period = p;
+  document.querySelectorAll('.period-btn').forEach(b => b.classList.toggle('active', b.dataset.p === p));
+  const cw = document.getElementById('customWrap');
+  cw.style.display = p === 'custom' ? 'flex' : 'none';
+  if (p !== 'custom') loadRecon(p, null, null);
+}
+
+function runCustom() {
+  const s = document.getElementById('dateFrom').value;
+  const e = document.getElementById('dateTo').value;
+  if (!s || !e) { showAlert('alertBox','Select both a start and end date.','alert-error'); return; }
+  if (s > e)    { showAlert('alertBox','Start date must be on or before the end date.','alert-error'); return; }
+  loadRecon('custom', s, e);
+}
+
+function dateRange(period, cs, ce) {
+  if (period === 'custom') return { start: cs, end: ce };
+  const t = new Date();
+  const pad = n => String(n).padStart(2,'0');
+  const fmt = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+  if (period === 'today')  { const s = fmt(t); return { start: s, end: s }; }
+  if (period === 'week')   {
+    const mon = new Date(t); mon.setDate(t.getDate() - ((t.getDay()+6)%7));
+    const sun = new Date(mon); sun.setDate(mon.getDate() + 6);
+    return { start: fmt(mon), end: fmt(sun) };
+  }
+  if (period === 'month') {
+    return { start: fmt(new Date(t.getFullYear(),t.getMonth(),1)),
+             end:   fmt(new Date(t.getFullYear(),t.getMonth()+1,0)) };
+  }
+  if (period === 'year') { return { start:`${t.getFullYear()}-01-01`, end:`${t.getFullYear()}-12-31` }; }
+  return null;
+}
+
+async function loadRecon(period, cs, ce) {
+  const tbody   = document.getElementById('recoTbody');
+  const summary = document.getElementById('summaryRow');
+  tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:32px;color:var(--muted)">Loading…</td></tr>`;
+  summary.style.display = 'none';
+
+  const rng = dateRange(period, cs, ce);
+  if (!rng) return;
+
+  try {
+    const [stockSnap, salesSnap] = await Promise.all([
+      db.collection('bar_stock').where('date','>=',rng.start).where('date','<=',rng.end).get(),
+      db.collection('sales').where('date','>=',rng.start).where('date','<=',rng.end).get(),
+    ]);
+
+    // Aggregate stock consumed per item from daily bar_stock submissions
+    const stockData = {};  // name -> { sold, category }
+    stockSnap.docs.forEach(d => {
+      (d.data().items||[]).forEach(item => {
+        if (!item.name) return;
+        if (!stockData[item.name]) stockData[item.name] = { sold:0, category: item.category||'' };
+        stockData[item.name].sold += (item.sold||0);
+      });
+    });
+
+    if (!Object.keys(stockData).length) {
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:36px;color:var(--muted)">
+        <div style="font-size:1.5rem;margin-bottom:8px">📋</div>
+        No bar stock reports found for this period.<br>
+        <span style="font-size:0.75rem;margin-top:6px;display:inline-block">
+          Bar leads submit counts from
+          <a href="/portal/bar/" style="color:var(--gold)">Bar Stock</a> —
+          reconciliation data will appear here once reports are filed.
+        </span>
+      </td></tr>`;
+      return;
+    }
+
+    // Bar item names come from actual stock reports — no hardcoded list needed
+    const barNames = new Set(Object.keys(stockData));
+
+    // Aggregate POS qty + revenue for bar items only
+    const posData = {};
+    salesSnap.docs.forEach(d => {
+      (d.data().items||[]).forEach(item => {
+        if (!item.name || !barNames.has(item.name)) return;
+        if (!posData[item.name]) posData[item.name] = { qty:0, revenue:0 };
+        posData[item.name].qty     += (item.qty||0);
+        posData[item.name].revenue += (item.total||0);
+      });
+    });
+
+    // Group by category preserving stock report order
+    const catOrder = [], catItems = {};
+    Object.entries(stockData).forEach(([name, d]) => {
+      const cat = d.category || 'Other';
+      if (!catItems[cat]) { catItems[cat] = []; catOrder.push(cat); }
+      catItems[cat].push(name);
+    });
+
+    let rows = '';
+    let totSC=0, totPOS=0, totRev=0, totVar=0, activeRows=0;
+
+    catOrder.forEach(cat => {
+      let catRows = '';
+      catItems[cat].forEach(name => {
+        const sc  = stockData[name].sold;
+        const pq  = posData[name]?.qty || 0;
+        const rev = posData[name]?.revenue || 0;
+        if (sc === 0 && pq === 0) return;
+        activeRows++;
+        const variance = sc - pq;
+        totSC += sc; totPOS += pq; totRev += rev; totVar += variance;
+
+        let vColor, vBg, vLabel;
+        if (variance === 0)    { vColor='#16a34a'; vBg='rgba(22,163,74,0.09)';  vLabel='0'; }
+        else if (variance > 0) { vColor='#dc2626'; vBg='rgba(220,38,38,0.08)';  vLabel='+'+variance; }
+        else                   { vColor='#d97706'; vBg='rgba(217,119,6,0.08)';   vLabel=String(variance); }
+
+        catRows += `<tr>
+          <td style="padding-left:20px;font-weight:400">${esc(name)}</td>
+          <td><span class="item-chip">${esc(cat)}</span></td>
+          <td style="text-align:center">${sc}</td>
+          <td style="text-align:center">${pq}</td>
+          <td style="text-align:center">
+            <span style="display:inline-block;padding:3px 10px;border-radius:10px;font-size:0.74rem;font-weight:500;color:${vColor};background:${vBg}">${vLabel}</span>
+          </td>
+          <td style="text-align:right;font-variant-numeric:tabular-nums">₦${rev.toLocaleString('en-NG')}</td>
+        </tr>`;
+      });
+      if (catRows) {
+        rows += `<tr style="background:rgba(255,255,255,0.025)">
+          <td colspan="6" style="padding:8px 14px 4px;font-size:0.6rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);font-weight:400">${esc(cat)}</td>
+        </tr>` + catRows;
+      }
+    });
+
+    if (!activeRows) {
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:32px;color:var(--muted)">All items show zero consumption and POS sales for this period.</td></tr>`;
+      return;
+    }
+
+    // Totals row
+    const tvColor = totVar===0?'#16a34a':totVar>0?'#dc2626':'#d97706';
+    rows += `<tr style="border-top:2px solid var(--border);font-weight:500">
+      <td colspan="2" style="padding:11px 14px">TOTAL — ${activeRows} item${activeRows!==1?'s':''}</td>
+      <td style="text-align:center">${totSC}</td>
+      <td style="text-align:center">${totPOS}</td>
+      <td style="text-align:center;color:${tvColor};font-weight:600">${totVar>0?'+':''}${totVar}</td>
+      <td style="text-align:right;font-variant-numeric:tabular-nums">₦${totRev.toLocaleString('en-NG')}</td>
+    </tr>`;
+    tbody.innerHTML = rows;
+
+    // Summary pills
+    const varLabel = totVar===0?'No variance':totVar>0?`+${totVar} units unaccounted`:`${Math.abs(totVar)} units over-POS`;
+    const varBg    = totVar===0?'rgba(22,163,74,0.09)':totVar>0?'rgba(220,38,38,0.08)':'rgba(217,119,6,0.08)';
+    const varColor = tvColor;
+    const pill = (icon, txt, bg, color) =>
+      `<span class="summary-pill" style="background:${bg};color:${color};border:1px solid ${color}44">${icon} ${txt}</span>`;
+    summary.innerHTML =
+      pill('📋', `${stockSnap.size} stock report${stockSnap.size!==1?'s':''}`, 'rgba(201,169,110,0.1)', '#C9A96E') +
+      pill('🧾', `${salesSnap.size} sale${salesSnap.size!==1?'s':''}`,         'rgba(201,169,110,0.1)', '#C9A96E') +
+      pill('💰', `₦${totRev.toLocaleString('en-NG')} POS revenue`,             'rgba(22,163,74,0.09)', '#16a34a') +
+      `<span class="summary-pill" style="background:${varBg};color:${varColor};border:1px solid ${varColor}44">
+        ${totVar===0?'✓':totVar>0?'⚠':'ℹ'} ${varLabel}
+      </span>`;
+    summary.style.display = 'flex';
+
+  } catch(e) {
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:24px;color:#ef4444">Error loading report: ${esc(e.message)}</td></tr>`;
+  }
+}
+
+// Auto-load on page open
+loadRecon('month', null, null);
+</script>
+</body>
+</html>
