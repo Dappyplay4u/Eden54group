@@ -97,12 +97,14 @@
             <select id="sDept" class="form-control">
               <option value="Management">Management</option>
               <option value="HR">HR</option>
+              <option value="Front Desk">Front Desk</option>
               <option value="Bar &amp; Lounge">Bar &amp; Lounge</option>
               <option value="Kitchen">Kitchen</option>
+              <option value="Housekeeping">Housekeeping</option>
+              <option value="Games">Games</option>
               <option value="Apartments">Apartments</option>
-              <option value="Pool">Pool</option>
               <option value="Salon">Salon</option>
-              <option value="Front Desk">Front Desk</option>
+              <option value="Security">Security</option>
             </select>
           </div>
         </div>
@@ -213,12 +215,14 @@
         <select id="editDept" class="form-control">
           <option value="Management">Management</option>
           <option value="HR">HR</option>
+          <option value="Front Desk">Front Desk</option>
           <option value="Bar &amp; Lounge">Bar &amp; Lounge</option>
           <option value="Kitchen">Kitchen</option>
+          <option value="Housekeeping">Housekeeping</option>
+          <option value="Games">Games</option>
           <option value="Apartments">Apartments</option>
-          <option value="Pool">Pool</option>
           <option value="Salon">Salon</option>
-          <option value="Front Desk">Front Desk</option>
+          <option value="Security">Security</option>
         </select>
       </div>
     </div>
@@ -313,16 +317,30 @@ document.getElementById('topDate').textContent = new Date().toLocaleDateString('
 let allRoles = [];
 
 const DEFAULT_ROLES = [
-  { name: 'CEO',            accessLevel: 'ceo'     },
-  { name: 'Manager',        accessLevel: 'manager' },
-  { name: 'HR',             accessLevel: 'hr'      },
-  { name: 'Chef',           accessLevel: 'staff'   },
-  { name: 'Waiter',         accessLevel: 'staff'   },
-  { name: 'Bartender',      accessLevel: 'staff'   },
-  { name: 'Stylist',        accessLevel: 'staff'   },
-  { name: 'Game Attendant', accessLevel: 'staff'   },
-  { name: 'Cashier',        accessLevel: 'staff'   },
-  { name: 'Receptionist',   accessLevel: 'staff'   },
+  { name: 'CEO',               accessLevel: 'ceo'     },
+  { name: 'Manager',           accessLevel: 'manager' },
+  { name: 'HR',                accessLevel: 'hr'      },
+  // Front Desk
+  { name: 'Receptionist',      accessLevel: 'staff'   },
+  { name: 'Cashier',           accessLevel: 'staff'   },
+  // Bar & Lounge
+  { name: 'Mixologist',        accessLevel: 'staff'   },
+  { name: 'Barman',            accessLevel: 'staff'   },
+  { name: 'Bartender',         accessLevel: 'staff'   },
+  { name: 'Waiter',            accessLevel: 'staff'   },
+  // Kitchen
+  { name: 'Chef',              accessLevel: 'staff'   },
+  { name: 'Cook',              accessLevel: 'staff'   },
+  { name: 'Kitchen Assistant', accessLevel: 'staff'   },
+  { name: 'Barbecue Chef',     accessLevel: 'staff'   },
+  // Housekeeping
+  { name: 'Housekeeper',       accessLevel: 'staff'   },
+  // Pool
+  { name: 'Game Attendant',    accessLevel: 'staff'   },
+  // Salon
+  { name: 'Stylist',           accessLevel: 'staff'   },
+  // Security — payroll only, no portal module access
+  { name: 'Security',          accessLevel: 'staff'   },
 ];
 
 async function loadRoles() {

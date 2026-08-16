@@ -152,11 +152,11 @@ function buildNav(staff, active) {
 
   const canReport = {
     sales:      true,
-    bar:        isManager || dept === 'bar' || dept.includes('lounge') || dept.includes('game'),
+    bar:        isManager || dept === 'bar' || dept.includes('lounge') || dept.includes('game') || dept === 'games',
     kitchen:    isManager || dept === 'kitchen',
     barbing:    isManager,   // salon staff use POS — only managers submit barbing reports
-    pool:       isManager || dept === 'pool',
-    apartments: isManager || isHR || isFrontDesk,
+    pool:       isManager || dept === 'games',
+    apartments: isManager || isHR || isFrontDesk || dept.includes('housekeeping'),
   };
 
   const a = (href, icon, label, page) => {
@@ -190,7 +190,8 @@ function buildNav(staff, active) {
     html += sec('Apartments');
     html += a('/portal/apartments/', '🏨', 'Apartment Rentals', 'apartments');
     html += sec('Resources');
-    html += a('/portal/sops/', '📄', 'SOPs', 'sops');
+    html += a('/portal/sops/',      '📄', 'SOPs',     'sops');
+    html += a('/portal/training/',  '🎓', 'Training', 'training');
   } else if (isHR) {
     html += sec('Reports');
     html += a('/portal/reports/',              '📋', 'All Reports',         'reports');
@@ -208,7 +209,8 @@ function buildNav(staff, active) {
     html += sec('Apartments');
     html += a('/portal/apartments/', '🏨', 'Apartment Rentals', 'apartments');
     html += sec('Resources');
-    html += a('/portal/sops/', '📄', 'SOPs', 'sops');
+    html += a('/portal/sops/',      '📄', 'SOPs',     'sops');
+    html += a('/portal/training/',  '🎓', 'Training', 'training');
   } else {
     const reportLinks = [
       canReport.sales      && a('/portal/sales/',      '📋', 'Report',      'sales'),
@@ -224,12 +226,13 @@ function buildNav(staff, active) {
       html += reportLinks.join('');
     }
     html += sec('Resources');
-    html += a('/portal/sops/', '📄', 'SOPs', 'sops');
+    html += a('/portal/sops/',      '📄', 'SOPs',     'sops');
+    html += a('/portal/training/',  '🎓', 'Training', 'training');
   }
 
   const isPOSStaff = isManager || isHR || isFrontDesk
     || dept.includes('salon') || dept.includes('barbing');
-  const isTabsStaff = isManager || dept.includes('bar') || dept.includes('bartend') || dept.includes('lounge') || dept.includes('game');
+  const isTabsStaff = isManager || dept.includes('bar') || dept.includes('bartend') || dept.includes('lounge') || dept.includes('game') || dept === 'games';
   if (isPOSStaff || isTabsStaff) {
     html += sec('POS');
     if (isPOSStaff) html += a('/portal/pos/', '🖥️', 'POS Terminal', 'pos');
@@ -367,14 +370,15 @@ function _checkAccess(staff, page) {
     procurement:        isManager || isHR,
     'background-check': isManager || isHR,
     expenses:   true,
-    bar:        isManager || dept === 'bar' || dept.includes('lounge') || dept.includes('game'),
+    bar:        isManager || dept === 'bar' || dept.includes('lounge') || dept.includes('game') || dept === 'games',
     kitchen:    isManager || dept === 'kitchen',
     barbing:    isManager,
-    pool:       isManager || dept === 'pool',
-    apartments: isManager || isHR || dept === 'front desk' || dept === 'receptionist' || dept.includes('lounge') || dept === 'apartments',
-    tabs:       isManager || dept.includes('bar') || dept.includes('bartend') || dept.includes('lounge') || dept.includes('game'),
+    pool:       isManager || dept === 'games',
+    apartments: isManager || isHR || dept === 'front desk' || dept === 'receptionist' || dept.includes('lounge') || dept === 'apartments' || dept.includes('housekeeping'),
+    tabs:       isManager || dept.includes('bar') || dept.includes('bartend') || dept.includes('lounge') || dept.includes('game') || dept === 'games',
     pos:   isManager || isHR || dept === 'front desk' || dept === 'receptionist' || dept.includes('salon') || dept.includes('barbing'),
     sops:      true,
+    training:  true,
     occupancy:    isManager || isHR,
     'bar-recon':  isManager || isHR,
     sales: true, home: true, updates: true,

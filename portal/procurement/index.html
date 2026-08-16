@@ -57,6 +57,7 @@
 .badge-pending{background:rgba(217,119,6,.15);color:#d97706}
 .badge-approved{background:rgba(22,163,74,.12);color:#16a34a}
 .badge-rejected{background:rgba(220,38,38,.12);color:#dc2626}
+.badge-received{background:rgba(37,99,235,.12);color:#2563eb}
 
 /* ── Modal ── */
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.62);z-index:8000;align-items:center;justify-content:center;padding:16px}
@@ -244,8 +245,9 @@ tr.proc-row:hover td{background:rgba(255,255,255,0.02)}
     </div>
     <div class="modal-foot" style="justify-content:space-between">
       <button class="btn btn-sm" id="dtDelete" style="background:#dc2626;color:#fff;border-color:#dc2626;display:none" onclick="deleteProcurement(_detailId)">🗑 Delete</button>
-      <div style="display:flex;gap:10px">
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
         <button class="btn btn-outline" onclick="closeDetail()">Close</button>
+        <button class="btn btn-sm" id="dtReceive" style="background:#2563eb;color:#fff;border-color:#2563eb;display:none" onclick="markReceived(_detailId)">📦 Mark as Received</button>
         <button class="btn btn-gold btn-sm" id="dtReorder" onclick="reorderFrom(_detailId)">↺ Re-order</button>
       </div>
     </div>
@@ -323,10 +325,44 @@ let _activeDept  = '';  // current dept filter ('', 'Bar / Lounge', 'Kitchen', e
 // Department-specific quick-add items
 const DEPT_ITEMS = {
   'Bar & Lounge': [
-    'Heineken','Guinness','Star Beer','Goldberg','Legend Extra Stout',
-    'Hennessey','Baileys','Smirnoff Vodka','Jack Daniel\'s','Campari','Ciroc',
-    'Malt Drinks','Coke','Fanta','Sprite','Bitter Lemon','Tonic Water',
-    'Red Bull','Table Water','Ice Blocks','Straws','Cocktail Mix','Napkins',
+    // Champagne
+    'André Rosé','Moët Rosé','Martini Rosé','Bottega','Veuve Clicquot','Bel Air','Azul',
+    // Whiskey
+    'Glenfiddich 23yr','Glenfiddich 18yr','Glenfiddich 15yr','Glenfiddich 12yr',
+    'Jack Daniel\'s','Johnnie Walker Red','Johnnie Walker Black','Johnnie Walker Gold',
+    'Jameson','Jameson Black Barrel','Singleton',
+    // Tequila
+    'Casamigos','Don Julio',
+    // Beer
+    'Heineken Bottle','Heineken Can','Guinness Stout','Trophy','Star','Budweiser','Harp',
+    'Legend Extra Stout','Life Beer','Goldberg','Desperados','Hero','33 Export','Flying Fish',
+    // Brandy
+    'Hennessy XO','Hennessy VSOP','Hennessy VS','Martell VS','Martell Swift','Rémy Martin',
+    // Gin & Vodka
+    'Smirnoff Vodka','Gordon\'s Gin (Large)','Gordon\'s Gin (Small)',
+    // Wines
+    'Four Cousins','Agor','Carlo Rossi',
+    // Liqueur
+    'Best Cream (Big)','Best Cream (Small)','Baileys',
+    // Juice
+    'Exotic','Hollandia','Chivita','V-Smartick',
+    // Aperitifs & Bitters
+    'Campari (Small)','Campari (Medium)','Campari (Big)','Novick Vodka','Ombra Ribbena',
+    'Magic Moment (Small)','Kumeling (Medium)','Kumeling (Big)',
+    'Action Bitters','Origin Bitters','Ballamour Bitters','Ashanti Bitters','Coco Samba','Lacoco',
+    // Soft Drinks
+    'Mineral Water','Vitamalt','Malt','Ribena','Fayrouz',
+    // Energy Drinks
+    'Black Bullet','Blue Bullet','Power Horse','Monster','Red Bull',
+    'Smirnoff Black Ice','Smirnoff White Ice','Predator',
+    // Cocktail Ingredients
+    'Absolut Vodka','Bombay Sapphire','Bacardi Rum','Triple Sec','Captain Morgan',
+    'Real Lemon','Malibu Rum','Kalahari','Peach Schnapps','Camino Real Tequila',
+    'Black Iceland','Blue Curaçao','Kahlúa','Grenadine',
+    // Shisha
+    'Shisha Pot','Cube Coal','Shisha Flavour','Electric Coal Burner',
+    // Supplies
+    'Ice Blocks','Straws','Napkins','Cocktail Glasses','Shot Glasses',
   ],
   'Kitchen': [
     'Cow Meat','Goat Meat','Catfish','Chicken','Turkey','Pork',
@@ -411,7 +447,7 @@ async function logToExpenses(proc) {
 function buildItemHistory() {
   _itemHistory = {};
   _allProcs.forEach(p => {
-    if (p.status !== 'approved') return;
+    if (p.status !== 'approved' && p.status !== 'received') return;
     const matchesDept = !_activeDept || p.department === _activeDept;
     const date = p.requestedAt?.toDate ? p.requestedAt.toDate() : null;
     (p.items || []).forEach(item => {
@@ -798,8 +834,10 @@ function openDetail(id) {
   document.getElementById('dtTitle').textContent = p.title;
 
   const badge = document.getElementById('dtBadge');
-  badge.textContent = p.status === 'approved' ? '✓ Approved' : p.status === 'rejected' ? '✕ Rejected' : '⏳ Pending';
-  badge.className   = 'badge ' + (p.status === 'approved' ? 'badge-approved' : p.status === 'rejected' ? 'badge-rejected' : 'badge-pending');
+  const _statusLabel = { approved:'✓ Approved', rejected:'✕ Rejected', received:'📦 Received', pending:'⏳ Pending' };
+  const _statusClass = { approved:'badge-approved', rejected:'badge-rejected', received:'badge-received', pending:'badge-pending' };
+  badge.textContent = _statusLabel[p.status] || '⏳ Pending';
+  badge.className   = 'badge ' + (_statusClass[p.status] || 'badge-pending');
 
   document.getElementById('dtReqBy').textContent = p.requestedBy?.name || '—';
   document.getElementById('dtReqAt').textContent = fmtDate(p.requestedAt);
@@ -809,6 +847,8 @@ function openDetail(id) {
   else deptRow.style.display = 'none';
 
   document.getElementById('dtDelete').style.display = isCEO ? '' : 'none';
+  document.getElementById('dtReceive').style.display =
+    (p.status === 'approved' && p.department === 'Bar & Lounge' && canApprove) ? '' : 'none';
 
   const apprRow  = document.getElementById('dtApprRow');
   const apprDate = document.getElementById('dtApprDateRow');
@@ -860,6 +900,45 @@ async function deleteProcurement(id) {
   }
 }
 
+function itemSlug(name) {
+  return name.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
+}
+
+async function markReceived(id) {
+  const proc = _allProcs.find(x => x.id === id);
+  if (!proc || !canApprove) return;
+  const itemCount = (proc.items || []).length;
+  if (!confirm(`Mark "${proc.title}" as received?\n\n${itemCount} item(s) will be added to the bar stock ledger. This cannot be undone.`)) return;
+
+  const btn = document.getElementById('dtReceive');
+  btn.disabled = true; btn.textContent = 'Saving…';
+  try {
+    const batch = db.batch();
+    batch.update(db.collection('procurements').doc(id), {
+      status:     'received',
+      receivedBy: { id: currentStaff.id, name: currentStaff.name },
+      receivedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    });
+    (proc.items || []).forEach(item => {
+      if (!item.name) return;
+      const ref = db.collection('barStockLevels').doc(itemSlug(item.name));
+      batch.set(ref, {
+        name: item.name,
+        qty:  firebase.firestore.FieldValue.increment(item.qty || 0),
+        lastProcuredAt: firebase.firestore.FieldValue.serverTimestamp(),
+        lastUpdatedAt:  firebase.firestore.FieldValue.serverTimestamp(),
+      }, { merge: true });
+    });
+    await batch.commit();
+    closeDetail();
+    showAlert('alertBox', `📦 Received — ${itemCount} item(s) added to bar stock ledger.`, 'alert-success');
+    loadProcurements();
+  } catch(e) {
+    btn.disabled = false; btn.textContent = '📦 Mark as Received';
+    showAlert('alertBox', 'Error: ' + e.message, 'alert-error');
+  }
+}
+
 function closeDetail() {
   document.getElementById('detailModal').classList.remove('open');
   _detailId = null;
@@ -899,8 +978,8 @@ function renderHistory() {
     return;
   }
   historyTable.innerHTML = visible.map(p => {
-    const sc = p.status === 'approved' ? 'badge-approved' : p.status === 'rejected' ? 'badge-rejected' : 'badge-pending';
-    const sl = p.status === 'approved' ? '✓ Approved' : p.status === 'rejected' ? '✕ Rejected' : '⏳ Pending';
+    const sc = p.status === 'approved' ? 'badge-approved' : p.status === 'received' ? 'badge-received' : p.status === 'rejected' ? 'badge-rejected' : 'badge-pending';
+    const sl = p.status === 'approved' ? '✓ Approved' : p.status === 'received' ? '📦 Received' : p.status === 'rejected' ? '✕ Rejected' : '⏳ Pending';
     const deptTag = p.department ? `<br><span style="font-size:0.68rem;color:var(--muted)">${esc(p.department)}</span>` : '';
     return `<tr class="proc-row" onclick="openDetail('${p.id}')">
       <td class="fw4" style="color:var(--gold)">${esc(p.title)}${deptTag}</td>

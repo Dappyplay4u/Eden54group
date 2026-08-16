@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#0f2318">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Eden 54">
+<title>Training · Eden 54 Portal</title>
+<link rel="icon" type="image/jpeg" href="/logo/eden 54 logo.jpeg">
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/portal/portal.css">
+<style>
+.role-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}
+.role-tab{padding:6px 14px;border:1px solid var(--border);border-radius:20px;background:none;color:var(--muted);font-size:0.74rem;cursor:pointer;font-family:'Jost',sans-serif;transition:.15s;white-space:nowrap}
+.role-tab:hover{border-color:var(--gold);color:var(--gold)}
+.role-tab.active{background:var(--gold);border-color:var(--gold);color:#0f2318;font-weight:500}
+
+.video-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:16px;margin-bottom:6px}
+.video-card{border:1px solid var(--border);border-radius:10px;overflow:hidden;background:rgba(255,255,255,0.025);display:flex;flex-direction:column;transition:border-color .15s;position:relative}
+.video-card:hover{border-color:rgba(201,169,110,0.4)}
+.video-card.custom-card{border-color:rgba(201,169,110,0.2)}
+.video-thumb{position:relative;aspect-ratio:16/9;background:#0a1a10;overflow:hidden;flex-shrink:0}
+.video-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.video-thumb-fallback{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:2.2rem;color:var(--muted)}
+.play-badge{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:44px;height:44px;border-radius:50%;background:rgba(220,38,38,0.9);display:flex;align-items:center;justify-content:center;pointer-events:none}
+.play-badge svg{width:18px;height:18px;fill:#fff;margin-left:2px}
+.custom-badge{position:absolute;top:8px;left:8px;background:rgba(201,169,110,0.85);color:#0f2318;font-size:0.6rem;font-weight:500;padding:2px 7px;border-radius:10px;letter-spacing:.04em}
+.video-body{padding:13px 14px;flex:1;display:flex;flex-direction:column;gap:5px}
+.video-title{font-size:0.83rem;font-weight:500;color:var(--text);line-height:1.35}
+.video-channel{font-size:0.69rem;color:var(--muted)}
+.video-desc{font-size:0.73rem;color:var(--muted);line-height:1.45;flex:1}
+.assigned-note{font-size:0.7rem;color:var(--gold);margin-top:4px;display:flex;align-items:center;gap:4px}
+.video-actions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.btn-watch{padding:6px 13px;border-radius:6px;background:rgba(220,38,38,0.12);color:#ef4444;border:1px solid rgba(220,38,38,0.25);font-size:0.74rem;font-family:'Jost',sans-serif;cursor:pointer;font-weight:500;text-decoration:none;display:inline-block;text-align:center;transition:.15s;white-space:nowrap}
+.btn-watch:hover{background:rgba(220,38,38,0.22);border-color:#ef4444}
+.btn-assign{padding:6px 12px;border-radius:6px;background:rgba(201,169,110,0.08);color:var(--gold);border:1px solid rgba(201,169,110,0.25);font-size:0.73rem;font-family:'Jost',sans-serif;cursor:pointer;transition:.15s;white-space:nowrap}
+.btn-assign:hover{background:rgba(201,169,110,0.18)}
+.btn-remove-vid{padding:5px 10px;border-radius:6px;background:rgba(220,38,38,0.07);color:#ef4444;border:1px solid rgba(220,38,38,0.18);font-size:0.71rem;font-family:'Jost',sans-serif;cursor:pointer;transition:.15s;white-space:nowrap}
+.btn-remove-vid:hover{background:rgba(220,38,38,0.18)}
+
+.section-label{font-size:0.62rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);font-weight:400;margin:22px 0 12px}
+.assigned-banner{background:rgba(201,169,110,0.06);border:1px solid rgba(201,169,110,0.18);border-radius:8px;padding:12px 16px;margin-bottom:20px;font-size:0.78rem;color:var(--gold)}
+
+.asgn-row{display:flex;align-items:flex-start;gap:12px;padding:11px 0;border-bottom:1px solid var(--border)}
+.asgn-row:last-child{border-bottom:none}
+.asgn-info{flex:1;min-width:0}
+.asgn-title{font-size:0.82rem;color:var(--text);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.asgn-meta{font-size:0.7rem;color:var(--muted);margin-top:3px}
+.btn-remove{padding:4px 10px;border-radius:5px;background:rgba(220,38,38,0.08);color:#ef4444;border:1px solid rgba(220,38,38,0.2);font-size:0.71rem;font-family:'Jost',sans-serif;cursor:pointer;white-space:nowrap;flex-shrink:0}
+.btn-remove:hover{background:rgba(220,38,38,0.18)}
+
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:1000;display:flex;align-items:center;justify-content:center;padding:16px;overflow-y:auto}
+.modal-box{background:var(--card-bg,#0f2318);border:1px solid var(--border);border-radius:12px;padding:22px 20px;width:100%;max-width:440px;box-shadow:0 8px 40px rgba(0,0,0,.5)}
+.modal-title{font-size:0.95rem;font-weight:500;margin-bottom:16px;color:var(--text)}
+.modal-video-name{font-size:0.78rem;color:var(--gold);margin-bottom:14px;line-height:1.4;padding:8px 12px;background:rgba(201,169,110,0.06);border-radius:6px;border:1px solid rgba(201,169,110,0.15)}
+.modal-actions{display:flex;gap:8px;margin-top:18px;justify-content:flex-end}
+.thumb-preview{width:100%;aspect-ratio:16/9;background:#0a1a10;border-radius:6px;overflow:hidden;margin-top:8px;display:none}
+.thumb-preview img{width:100%;height:100%;object-fit:cover}
+
+@media(max-width:600px){
+  .role-tabs{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .role-tabs::-webkit-scrollbar{display:none}
+  .video-grid{grid-template-columns:1fr}
+  .modal-box{padding:18px 15px}
+}
+</style>
+</head>
+<body>
+<div class="sb-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+<aside class="sidebar" id="sidebar">
+  <div class="sb-brand"><div class="sb-brand-name">Eden 54</div><div class="sb-brand-sub">Staff Portal</div></div>
+  <nav class="sb-nav" id="sbNav"></nav>
+  <div class="sb-foot"><div id="sidebarUser"></div><a class="sb-item" onclick="switchProfile()" style="cursor:pointer"><i class="sb-icon">🚪</i> Sign Out</a></div>
+</aside>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <button class="hamburger" onclick="toggleSidebar()"><div></div><div></div><div></div></button>
+      <h1>Training</h1>
+    </div>
+    <div class="topbar-date" id="topDate"></div>
+  </div>
+  <div class="content">
+    <div id="alertBox" class="alert"></div>
+
+    <div class="card">
+      <div class="section-head" style="flex-wrap:wrap;gap:10px;align-items:flex-start">
+        <div style="flex:1">
+          <h2 id="pageHeading">Training Videos</h2>
+          <p style="font-size:0.78rem;color:var(--muted);margin-top:4px" id="pageSubtitle">
+            Training videos assigned to your role by management.
+          </p>
+        </div>
+        <div style="display:flex;gap:8px;flex-shrink:0;flex-wrap:wrap;align-items:center">
+          <button id="addVideoBtn" style="display:none" class="btn btn-gold" onclick="openAddModal()" style="padding:8px 16px;font-size:0.8rem">＋ Add Video</button>
+          <div id="viewToggle" style="display:none;gap:8px">
+            <button class="role-tab active" id="tabLibrary"     onclick="switchView('library')">📚 Library</button>
+            <button class="role-tab"        id="tabAssignments" onclick="switchView('assignments')">📌 Assign <span id="asgBadge" style="display:none;background:#ef4444;color:#fff;border-radius:10px;padding:1px 6px;font-size:0.65rem;margin-left:4px"></span></button>
+          </div>
+        </div>
+      </div>
+
+      <div id="roleFilterWrap" style="display:none;margin-bottom:4px">
+        <div class="section-label">Browse by Role</div>
+        <div class="role-tabs" id="roleTabs"></div>
+      </div>
+
+      <!-- Library -->
+      <div id="viewLibrary">
+        <div id="assignedSection" style="display:none">
+          <div class="assigned-banner">📌 Courses assigned to your role by management</div>
+          <div class="video-grid" id="assignedGrid"></div>
+          <div class="section-label" style="margin-top:20px">All Training Videos for Your Role</div>
+        </div>
+        <div id="trainingContent">
+          <div style="text-align:center;padding:40px;color:var(--muted)">Loading…</div>
+        </div>
+      </div>
+
+      <!-- Assignments management -->
+      <div id="viewAssignments" style="display:none">
+        <div class="section-label" style="margin-top:0">Active Assignments</div>
+        <div id="assignmentsList"><div style="text-align:center;padding:30px;color:var(--muted)">Loading…</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Assign modal -->
+<div class="modal-overlay" id="assignModal" style="display:none" onclick="if(event.target===this)closeAssignModal()">
+  <div class="modal-box">
+    <div class="modal-title">Assign Course</div>
+    <div class="modal-video-name" id="modalVideoTitle"></div>
+    <div class="form-group" style="margin-bottom:12px">
+      <label class="form-label">Assign to</label>
+      <select id="assignTarget" class="form-control">
+        <option value="">Select department or role…</option>
+        <optgroup label="By Department">
+          <option value="dept:Management">Management</option>
+          <option value="dept:HR">HR</option>
+          <option value="dept:Front Desk">Front Desk</option>
+          <option value="dept:Bar &amp; Lounge">Bar &amp; Lounge</option>
+          <option value="dept:Kitchen">Kitchen</option>
+          <option value="dept:Housekeeping">Housekeeping</option>
+          <option value="dept:Games">Games</option>
+          <option value="dept:Apartments">Apartments</option>
+          <option value="dept:Salon">Salon</option>
+          <option value="dept:Security">Security</option>
+        </optgroup>
+        <optgroup label="By Role">
+          <option value="role:CEO">CEO</option><option value="role:Manager">Manager</option>
+          <option value="role:HR">HR</option><option value="role:Receptionist">Receptionist</option>
+          <option value="role:Cashier">Cashier</option><option value="role:Mixologist">Mixologist</option>
+          <option value="role:Barman">Barman</option><option value="role:Bartender">Bartender</option>
+          <option value="role:Waiter">Waiter</option><option value="role:Chef">Chef</option>
+          <option value="role:Cook">Cook</option><option value="role:Kitchen Assistant">Kitchen Assistant</option>
+          <option value="role:Barbecue Chef">Barbecue Chef</option><option value="role:Housekeeper">Housekeeper</option>
+          <option value="role:Game Attendant">Game Attendant</option><option value="role:Stylist">Stylist</option>
+          <option value="role:Security">Security</option>
+        </optgroup>
+      </select>
+    </div>
+    <div class="form-group" style="margin-bottom:0">
+      <label class="form-label">Note <span style="color:var(--muted)">(optional)</span></label>
+      <input type="text" id="assignNote" class="form-control" placeholder="e.g. Watch before your first shift">
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeAssignModal()">Cancel</button>
+      <button class="btn btn-gold" id="assignConfirmBtn" onclick="confirmAssign()">Assign</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Video modal -->
+<div class="modal-overlay" id="addModal" style="display:none" onclick="if(event.target===this)closeAddModal()">
+  <div class="modal-box" style="max-width:480px">
+    <div class="modal-title">Add Training Video</div>
+    <div class="form-group" style="margin-bottom:12px">
+      <label class="form-label">YouTube URL</label>
+      <input type="url" id="addUrl" class="form-control" placeholder="https://www.youtube.com/watch?v=…" oninput="previewThumb(this.value)">
+      <div class="thumb-preview" id="thumbPreview"><img id="thumbImg" src="" alt=""></div>
+    </div>
+    <div class="form-group" style="margin-bottom:12px">
+      <label class="form-label">Title</label>
+      <input type="text" id="addTitle" class="form-control" placeholder="Video title">
+    </div>
+    <div class="form-group" style="margin-bottom:12px">
+      <label class="form-label">Channel / Creator</label>
+      <input type="text" id="addChannel" class="form-control" placeholder="e.g. Gordon Ramsay">
+    </div>
+    <div class="form-group" style="margin-bottom:12px">
+      <label class="form-label">Short Description</label>
+      <input type="text" id="addDesc" class="form-control" placeholder="What will staff learn from this video?">
+    </div>
+    <div class="form-group" style="margin-bottom:0">
+      <label class="form-label">Role</label>
+      <select id="addRole" class="form-control">
+        <option value="">Select a role…</option>
+        <option>CEO</option><option>Manager</option><option>HR</option>
+        <option>Receptionist</option><option>Cashier</option>
+        <option>Mixologist</option><option>Barman</option><option>Bartender</option>
+        <option>Waiter</option><option>Chef</option><option>Cook</option>
+        <option>Kitchen Assistant</option><option>Barbecue Chef</option>
+        <option>Housekeeper</option><option>Game Attendant</option>
+        <option>Stylist</option><option>Security</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeAddModal()">Cancel</button>
+      <button class="btn btn-gold" id="addConfirmBtn" onclick="confirmAdd()">Add Video</button>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm remove modal -->
+<div class="modal-overlay" id="removeModal" style="display:none" onclick="if(event.target===this)closeRemoveModal()">
+  <div class="modal-box" style="max-width:380px">
+    <div class="modal-title">Remove Video</div>
+    <p style="font-size:0.82rem;color:var(--muted);margin-bottom:6px">Remove this video from the training library?</p>
+    <p id="removeVideoName" style="font-size:0.8rem;color:var(--text);font-weight:500;padding:8px 12px;background:rgba(220,38,38,0.06);border-radius:6px;border:1px solid rgba(220,38,38,0.15);margin-bottom:0"></p>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeRemoveModal()">Cancel</button>
+      <button class="btn" id="removeConfirmBtn" onclick="confirmRemove()" style="background:rgba(220,38,38,0.15);color:#ef4444;border-color:rgba(220,38,38,0.3)">Remove</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="/portal/firebase-init.js"></script>
+<script>
+const staff = getStaff();
+requireAccess(staff, 'training');
+populateSidebar(staff);
+buildNav(staff, 'training');
+document.getElementById('topDate').textContent =
+  new Date().toLocaleDateString('en-NG',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+
+const _raw      = (staff.accessLevel || staff.role || 'staff').toLowerCase();
+const isCEO     = _raw === 'ceo' || _raw === 'superadmin';
+const isMgr     = isCEO || _raw === 'manager' || _raw.includes('manager');
+const isHR      = _raw.includes('hr') || _raw.includes('human');
+const canManage = isMgr || isHR;
+const myRole    = staff.role  || '';
+const myDept    = (staff.department || '').toLowerCase();
+
+// ── Hardcoded default library ──────────────────────────────────────────────────
+const DEFAULTS = {
+  'CEO': [
+    { title:'Restaurant Management 101: Lead the Team Effectively', channel:'Restaurant Management', thumb:'r4vHpFRdy34', url:'https://www.youtube.com/watch?v=r4vHpFRdy34', desc:'Proven leadership strategies for running a restaurant team and responding to guest reviews.' },
+    { title:'The Basics of Restaurant Management', channel:'David Scott Peters', thumb:'SsydLYJ6RsQ', url:'https://www.youtube.com/watch?v=SsydLYJ6RsQ', desc:'Core operational principles for managing a profitable restaurant from the ground up.' },
+    { title:'Essential Restaurant Management Skills', channel:'7shifts Academy', thumb:'lu-wiDlfGgw', url:'https://www.youtube.com/watch?v=lu-wiDlfGgw', desc:'Key skills every great restaurant leader needs: scheduling, communication, and culture.' },
+  ],
+  'Manager': [
+    { title:'Restaurant Manager Training: Your First Week', channel:'The Restaurant Boss', thumb:'gE9BXKiwSvY', url:'https://www.youtube.com/watch?v=gE9BXKiwSvY', desc:'Everything you need to hit the ground running in your first week as restaurant manager.' },
+    { title:'The Basics of Restaurant Management', channel:'David Scott Peters', thumb:'SsydLYJ6RsQ', url:'https://www.youtube.com/watch?v=SsydLYJ6RsQ', desc:'Foundational management principles for running a smooth restaurant operation.' },
+    { title:'Essential Restaurant Management Skills', channel:'7shifts Academy', thumb:'lu-wiDlfGgw', url:'https://www.youtube.com/watch?v=lu-wiDlfGgw', desc:'Scheduling, team motivation, and the skills that separate great managers from good ones.' },
+  ],
+  'HR': [
+    { title:'Fundamentals of Human Resources (Free Course)', channel:'Alison Learning', thumb:'5sdRgYag8_g', url:'https://www.youtube.com/watch?v=5sdRgYag8_g', desc:'Free comprehensive HR course covering recruitment, employee relations, and compliance.' },
+    { title:'Complete HR Management Crash Course — 2-Hour Masterclass', channel:'YouTube Learning', thumb:'c1npicEPaHw', url:'https://www.youtube.com/watch?v=c1npicEPaHw', desc:'In-depth masterclass: recruitment, performance management, HR compliance, and payroll basics.' },
+    { title:'HR Basics: Human Resource Management', channel:'HR Basics Series', thumb:'A2HFusWQIeE', url:'https://www.youtube.com/watch?v=A2HFusWQIeE', desc:'Short focused lesson on core HR management topics every HR professional should know.' },
+  ],
+  'Receptionist': [
+    { title:'Hotel Front Desk — Full Training', channel:'Hospitality Training', thumb:'swy9i3AUev8', url:'https://www.youtube.com/watch?v=swy9i3AUev8', desc:'Complete front-desk training covering check-in, check-out, and professional guest handling.' },
+    { title:'Hotel Receptionist Training Course (Part 1 of 2)', channel:'Hospitality Training', thumb:'iWhVVIxzZPo', url:'https://www.youtube.com/watch?v=iWhVVIxzZPo', desc:'Industry best practices for the hotel receptionist role from an experienced hospitality trainer.' },
+    { title:'Front Desk Receptionist Duties', channel:'Hotel Training Hub', thumb:'Groc6_TJt_Q', url:'https://www.youtube.com/watch?v=Groc6_TJt_Q', desc:'Day-to-day duties, guest interactions, and professional standards of a front desk receptionist.' },
+  ],
+  'Cashier': [
+    { title:'Hotel Front Desk — Full Training', channel:'Hospitality Training', thumb:'swy9i3AUev8', url:'https://www.youtube.com/watch?v=swy9i3AUev8', desc:'Full front-desk training including billing, check-out procedures, and guest service.' },
+    { title:'Reception Skills Training', channel:'Skills Training', thumb:'KAxiTg0Emsg', url:'https://www.youtube.com/watch?v=KAxiTg0Emsg', desc:'Impress every guest with professional reception and cashier service skills.' },
+    { title:'Front Desk Receptionist Duties', channel:'Hotel Training Hub', thumb:'Groc6_TJt_Q', url:'https://www.youtube.com/watch?v=Groc6_TJt_Q', desc:'Duties, responsibilities, and daily workflow of front-of-house and cashier staff.' },
+  ],
+  'Mixologist': [
+    { title:'Learn to Bartend From Home — Free Bartender Training', channel:'FreeBartendingSchool', thumb:'doT0dhnMOFI', url:'https://www.youtube.com/watch?v=doT0dhnMOFI', desc:'Complete free bartending course from some of the world\'s top mixology experts.' },
+    { title:'Essential Cocktails — 50-Day Free Cocktail Course', channel:'Cocktail Academy', thumb:'lKrgvpKYysA', url:'https://www.youtube.com/watch?v=lKrgvpKYysA', desc:'50 short daily cocktail lessons designed to make great drinks accessible to everyone.' },
+    { title:'Classic Cocktail Training Playlist', channel:'Cocktail Training', thumb:'', url:'https://www.youtube.com/playlist?list=PLqHYzko0OA6_HLz1_5bI6xg-5q32mjFZO', desc:'Master the timeless classics every professional mixologist must know inside and out.' },
+  ],
+  'Barman': [
+    { title:'Learn to Bartend From Home — Free Bartender Training', channel:'FreeBartendingSchool', thumb:'doT0dhnMOFI', url:'https://www.youtube.com/watch?v=doT0dhnMOFI', desc:'Industry-expert bartending course covering cocktails, techniques, and bar operations.' },
+    { title:'Mixology 101', channel:'Cocktail Academy', thumb:'1_5XphCqqes', url:'https://www.youtube.com/watch?v=1_5XphCqqes', desc:'Introduction to mixology — tools, techniques, and the essential drinks every barman needs.' },
+    { title:'Beginner\'s Cocktail Workshop', channel:'Cocktail Workshop', thumb:'ZT1eb6mbJu4', url:'https://www.youtube.com/watch?v=ZT1eb6mbJu4', desc:'Hands-on workshop walking through the most popular cocktail recipes step by step.' },
+  ],
+  'Bartender': [
+    { title:'Learn to Bartend From Home — Free Bartender Training', channel:'FreeBartendingSchool', thumb:'doT0dhnMOFI', url:'https://www.youtube.com/watch?v=doT0dhnMOFI', desc:'Complete free bartending course covering cocktails, spirits knowledge, and bar service.' },
+    { title:'Essential Cocktails — 50-Day Free Cocktail Course', channel:'Cocktail Academy', thumb:'lKrgvpKYysA', url:'https://www.youtube.com/watch?v=lKrgvpKYysA', desc:'50 daily cocktail lessons — from classic recipes to presentation and speed techniques.' },
+    { title:'Classic Cocktail Training Playlist', channel:'Cocktail Training', thumb:'', url:'https://www.youtube.com/playlist?list=PLqHYzko0OA6_HLz1_5bI6xg-5q32mjFZO', desc:'The classic cocktail recipes every bartender must have in their repertoire.' },
+  ],
+  'Waiter': [
+    { title:'Waiter Training — Restaurant Service Videos (Full Playlist)', channel:'The Waiter\'s Academy', thumb:'', url:'https://www.youtube.com/playlist?list=PLxcVdHxGGxDG7PqajHUxL1Mcj4hTlYmJd', desc:'Complete professional waiter training playlist for beginners and experienced servers alike.' },
+    { title:'Free Online Waiter Training Course — Lesson 1', channel:'The Waiter\'s Academy', thumb:'kQK2QxrUNZQ', url:'https://www.youtube.com/watch?v=kQK2QxrUNZQ', desc:'Lesson 1 of the full F&B waiter training course from a professional academy.' },
+    { title:'How to Serve Food and Interact with Guests', channel:'Restaurant Service Training', thumb:'5rY3AY0NBXk', url:'https://www.youtube.com/watch?v=5rY3AY0NBXk', desc:'Proper food service techniques and how to engage professionally with every guest.' },
+  ],
+  'Chef': [
+    { title:'Gordon Ramsay\'s Top Basic Cooking Skills — Ultimate Cookery Course', channel:'Gordon Ramsay', thumb:'FTociictyyE', url:'https://www.youtube.com/watch?v=FTociictyyE', desc:'Foundational cooking skills, techniques, and restaurant-quality recipes from a world-class chef.' },
+    { title:'Online Culinary School — French Professional Techniques', channel:'Online Culinary School', thumb:'', url:'https://www.youtube.com/@online-culinary-school', desc:'Professional cooking techniques, food safety, and culinary leadership for kitchen professionals.' },
+    { title:'How to Actually Become a Better Cook', channel:'Ethan Chlebowski', thumb:'Li7fn6e1p1k', url:'https://www.youtube.com/watch?v=Li7fn6e1p1k', desc:'Practical guide to developing the intuition and skills that define a professional cook.' },
+  ],
+  'Cook': [
+    { title:'Cooking Course For Beginners', channel:'Cooking Academy', thumb:'QvI01VlW11k', url:'https://www.youtube.com/watch?v=QvI01VlW11k', desc:'Beginner-friendly cooking course covering essential techniques every cook must master.' },
+    { title:'20 Essential Cooking Lessons Every Cook Needs to Know', channel:'The Kitchn', thumb:'PuSy66cS8HE', url:'https://www.youtube.com/watch?v=PuSy66cS8HE', desc:'20 focused lessons to build a solid cooking foundation quickly and efficiently.' },
+    { title:'Learn To Cook In Less Than 1 Hour', channel:'Cooking Fundamentals', thumb:'zhI7bQyTmHw', url:'https://www.youtube.com/watch?v=zhI7bQyTmHw', desc:'Fast-track the essential cooking skills needed in a professional kitchen environment.' },
+  ],
+  'Kitchen Assistant': [
+    { title:'Kitchen Assistant Training Program', channel:'Kitchen Training', thumb:'oNrcAZwdwGQ', url:'https://www.youtube.com/watch?v=oNrcAZwdwGQ', desc:'Dedicated training covering the duties, responsibilities, and standards of a kitchen assistant.' },
+    { title:'Prep Cook Training Class', channel:'Jordan Segundo', thumb:'O_xRg4pie-A', url:'https://www.youtube.com/watch?v=O_xRg4pie-A', desc:'How to prep ingredients correctly and efficiently in a busy professional kitchen.' },
+    { title:'Kitchen Helper — Training and Certification', channel:'emerit', thumb:'PFNCS2pwAQE', url:'https://www.youtube.com/watch?v=PFNCS2pwAQE', desc:'Official emerit training on what the kitchen helper role entails and how to excel at it.' },
+  ],
+  'Barbecue Chef': [
+    { title:'How to BBQ for Beginners', channel:'BBQ Basics', thumb:'KRR2-AeAB0Y', url:'https://www.youtube.com/watch?v=KRR2-AeAB0Y', desc:'Essential grilling and BBQ techniques for anyone starting out in an outdoor cooking role.' },
+    { title:'Grilling Techniques: How to Cook | BBQ 101', channel:'BBQ 101', thumb:'TMmntY3fKNM', url:'https://www.youtube.com/watch?v=TMmntY3fKNM', desc:'Core grilling methods — heat zones, timing, searing, and smoking for professional results.' },
+    { title:'Ultimate Grilling & Barbecue Guide: Tips, Tricks & Recipes', channel:'Grill Masters', thumb:'niIwZP9VWoE', url:'https://www.youtube.com/watch?v=niIwZP9VWoE', desc:'Comprehensive professional guide covering everything from charcoal basics to advanced smoking.' },
+  ],
+  'Housekeeper': [
+    { title:'Hotel Housekeeping Training Videos (Full Playlist)', channel:'Hotel Training Hub', thumb:'', url:'https://www.youtube.com/playlist?list=PLmkDNT2QC8j0LHbzhHrUeBonOmZh4Csjq', desc:'Complete playlist of professional hotel housekeeping training videos from certified trainers.' },
+    { title:'How to Do Housekeeping in Hotels', channel:'Hotel Training Hub', thumb:'ZBuPedLlz_Y', url:'https://www.youtube.com/watch?v=ZBuPedLlz_Y', desc:'Step-by-step housekeeping procedures and professional cleaning standards for hotel rooms.' },
+    { title:'Room Attendant & Hotel Housekeeping Training — Bed Making Guide', channel:'Workers Direct', thumb:'Bz0IYbR_ikM', url:'https://www.youtube.com/watch?v=Bz0IYbR_ikM', desc:'Complete room attendant training including professional bed making and room presentation.' },
+  ],
+  'Game Attendant': [
+    { title:'10 Years of Pool Knowledge in One Video — How to Play Pool', channel:'Pool Lessons', thumb:'YIsEqTna2Ao', url:'https://www.youtube.com/watch?v=YIsEqTna2Ao', desc:'Master billiards fundamentals: stance, grip, bridge, aiming, cue ball control, and common shots.' },
+    { title:'The Ultimate Guide to PS5 (2025 Edition)', channel:'PlayStation Guide', thumb:'kdpsSyqf3lo', url:'https://www.youtube.com/watch?v=kdpsSyqf3lo', desc:'Full PS5 setup walkthrough — settings, storage, controllers, and getting guests into games quickly.' },
+    { title:'Meta Quest 3 VR Headset — Setup Manual Guide for Beginners', channel:'VR Training Guide', thumb:'Nbc1t5DW774', url:'https://www.youtube.com/watch?v=Nbc1t5DW774', desc:'Step-by-step Meta Quest 3 setup: pairing, guardian setup, and getting guests into VR safely.' },
+    { title:'How to Start Sim Racing (2026) — Complete Beginner\'s Guide', channel:'Sim Racing Beginner', thumb:'Bp3yWZXQBeM', url:'https://www.youtube.com/watch?v=Bp3yWZXQBeM', desc:'Everything a sim racing attendant needs: rig setup, wheel/pedal basics, and helping new drivers.' },
+  ],
+  'Stylist': [
+    { title:'Master the Art of Barbering for Free — Barbering 101 Course', channel:'YouTube Barber Academy', thumb:'qXvijllpsRA', url:'https://www.youtube.com/watch?v=qXvijllpsRA', desc:'Complete free Barbering 101 course covering all the fundamentals every beginner barber must master.' },
+    { title:'Barber Course — Full Playlist (Tools, Fades, Cuts & More)', channel:'YouTube Barber Academy', thumb:'', url:'https://www.youtube.com/playlist?list=PL8GBx96H7XFKdIcDZvucwWq2_o-6CRb3J', desc:'Step-by-step barber course playlist — tools, clipper control, fades, scissor work, and finishing.' },
+    { title:'Barber Course Lesson 1: How to Start Cutting Hair (Tools + Mindset)', channel:'UBarber Academy', thumb:'cWi43fR71YI', url:'https://www.youtube.com/watch?v=cWi43fR71YI', desc:'The right tools, the right mindset, and how to set yourself up for success as a new barber.' },
+  ],
+  'Security': [
+    { title:'Basic Security Guard Training — Full Course', channel:'Security Training', thumb:'fHfwT1lJRjk', url:'https://www.youtube.com/watch?v=fHfwT1lJRjk', desc:'Complete beginner security guard training: duties, patrol, incident reporting, and conduct.' },
+    { title:'Free Security Guard Training — New Hire Orientation', channel:'Security Training Pro', thumb:'XBmTsrO7UiM', url:'https://www.youtube.com/watch?v=XBmTsrO7UiM', desc:'Applicant and new hire orientation covering position expectations and professional standards.' },
+    { title:'Top 3 Security Guard Skills for Beginners', channel:'Guard Training TN', thumb:'LNBl0DhBCTE', url:'https://www.youtube.com/watch?v=LNBl0DhBCTE', desc:'The three most important skills to develop when starting out in a security role.' },
+  ],
+};
+
+const ROLE_GROUPS = [
+  { label:'All Roles',    roles: Object.keys(DEFAULTS) },
+  { label:'Management',   roles: ['CEO','Manager','HR'] },
+  { label:'Front Desk',   roles: ['Receptionist','Cashier'] },
+  { label:'Bar',          roles: ['Mixologist','Barman','Bartender'] },
+  { label:'Waitstaff',    roles: ['Waiter'] },
+  { label:'Kitchen',      roles: ['Chef','Cook','Kitchen Assistant','Barbecue Chef'] },
+  { label:'Housekeeping', roles: ['Housekeeper'] },
+  { label:'Games',        roles: ['Game Attendant'] },
+  { label:'Barbing',      roles: ['Stylist'] },
+  { label:'Security',     roles: ['Security'] },
+];
+
+// ── Firestore state ────────────────────────────────────────────────────────────
+let hiddenUrls   = new Set();   // URLs of hidden default videos
+let customByRole = {};          // role → [{_id, title, channel, thumb, url, desc, _custom:true}]
+
+async function loadFirestoreData() {
+  const [cfgSnap, customSnap] = await Promise.all([
+    db.collection('trainingConfig').doc('hiddenDefaults').get(),
+    db.collection('trainingVideos').where('active','==',true).get(),
+  ]);
+  if (cfgSnap.exists) hiddenUrls = new Set(cfgSnap.data().urls || []);
+  customByRole = {};
+  customSnap.docs.forEach(d => {
+    const v = { ...d.data(), _id: d.id, _custom: true };
+    if (!customByRole[v.role]) customByRole[v.role] = [];
+    customByRole[v.role].push(v);
+  });
+}
+
+function videosForRole(role) {
+  const defaults = (DEFAULTS[role] || []).filter(v => !hiddenUrls.has(v.url));
+  const custom   = customByRole[role] || [];
+  return [...defaults, ...custom];
+}
+
+// ── Helpers ────────────────────────────────────────────────────────────────────
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function thumbUrl(id){ return id ? `https://img.youtube.com/vi/${id}/hqdefault.jpg` : ''; }
+
+function extractYtId(url) {
+  const m = url.match(/(?:v=|youtu\.be\/|embed\/)([a-zA-Z0-9_-]{11})/);
+  return m ? m[1] : '';
+}
+
+function videoCard(v) {
+  const tUrl     = thumbUrl(v.thumb || v.videoId || '');
+  const imgHtml  = tUrl
+    ? `<img src="${tUrl}" alt="" loading="lazy" onerror="this.style.display='none';this.nextSibling.style.display='flex'">`
+    : '';
+  const assignBtn = canManage
+    ? `<button class="btn-assign" onclick='openAssignModal(${JSON.stringify({title:v.title,channel:v.channel,thumb:v.thumb||v.videoId||'',url:v.url,desc:v.desc})})'>📌 Assign</button>`
+    : '';
+  const removeBtn = canManage
+    ? `<button class="btn-remove-vid" onclick='confirmRemoveVideo(${JSON.stringify({url:v.url,title:v.title,_id:v._id||'',_custom:!!v._custom})})'>✕ Remove</button>`
+    : '';
+  const aNote = v._assignedNote
+    ? `<div class="assigned-note">📌 ${esc(v._assignedNote)}</div>`
+    : '';
+  return `<div class="video-card${v._custom?' custom-card':''}">
+    <a href="${esc(v.url)}" target="_blank" rel="noopener" style="text-decoration:none;display:block">
+      <div class="video-thumb">
+        ${imgHtml}
+        <div class="video-thumb-fallback"${tUrl?' style="display:none"':''}>🎬</div>
+        <div class="play-badge"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
+        ${v._custom ? '<div class="custom-badge">Custom</div>' : ''}
+      </div>
+    </a>
+    <div class="video-body">
+      <div class="video-title">${esc(v.title)}</div>
+      <div class="video-channel">📺 ${esc(v.channel)}</div>
+      <div class="video-desc">${esc(v.desc)}</div>
+      ${aNote}
+      <div class="video-actions">
+        <a class="btn-watch" href="${esc(v.url)}" target="_blank" rel="noopener">▶ Watch</a>
+        ${assignBtn}${removeBtn}
+      </div>
+    </div>
+  </div>`;
+}
+
+// ── Library render ─────────────────────────────────────────────────────────────
+let _activeGroup = 'All Roles';
+function renderLibrary(groupLabel) {
+  _activeGroup = groupLabel;
+  document.querySelectorAll('#roleTabs .role-tab').forEach(b =>
+    b.classList.toggle('active', b.dataset.group === groupLabel));
+  const group = ROLE_GROUPS.find(g => g.label === groupLabel) || ROLE_GROUPS[0];
+  const roles  = group.roles.filter(r => DEFAULTS[r]);
+  const el     = document.getElementById('trainingContent');
+  if (roles.length === 1) {
+    const vids = videosForRole(roles[0]);
+    el.innerHTML = vids.length
+      ? `<div class="video-grid">${vids.map(videoCard).join('')}</div>`
+      : `<p style="color:var(--muted);font-size:0.82rem">No videos for this role yet. Click <strong>+ Add Video</strong> to add one.</p>`;
+  } else {
+    el.innerHTML = roles.map(role => {
+      const vids = videosForRole(role);
+      if (!vids.length) return '';
+      return `<div class="section-label">${esc(role)}</div><div class="video-grid">${vids.map(videoCard).join('')}</div>`;
+    }).join('') || `<p style="color:var(--muted);font-size:0.82rem">No videos yet.</p>`;
+  }
+}
+
+// ── View switcher ──────────────────────────────────────────────────────────────
+function switchView(v) {
+  document.getElementById('viewLibrary').style.display     = v==='library'    ? '' : 'none';
+  document.getElementById('viewAssignments').style.display = v==='assignments' ? '' : 'none';
+  document.getElementById('roleFilterWrap').style.display  = v==='library'    ? 'block' : 'none';
+  document.getElementById('tabLibrary').classList.toggle('active',    v==='library');
+  document.getElementById('tabAssignments').classList.toggle('active', v==='assignments');
+  if (v === 'assignments') loadAssignmentsList();
+}
+
+// ── Assignments list ───────────────────────────────────────────────────────────
+async function loadAssignmentsList() {
+  const el = document.getElementById('assignmentsList');
+  el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--muted)">Loading…</div>';
+  try {
+    const snap = await db.collection('trainingAssignments').where('active','==',true).orderBy('assignedAt','desc').get();
+    if (snap.empty) {
+      el.innerHTML = '<p style="color:var(--muted);font-size:0.82rem;padding:10px 0">No assignments yet. Open the Library, then click <strong>📌 Assign</strong> on any video.</p>';
+      document.getElementById('asgBadge').style.display = 'none';
+      return;
+    }
+    el.innerHTML = snap.docs.map(d => {
+      const a    = d.data();
+      const when = a.assignedAt?.toDate ? a.assignedAt.toDate().toLocaleDateString('en-NG') : '';
+      const tgt  = a.targetType === 'role' ? `Role: ${a.targetValue}` : `Dept: ${a.targetValue}`;
+      return `<div class="asgn-row">
+        <div class="asgn-info">
+          <div class="asgn-title">${esc(a.videoTitle)}</div>
+          <div class="asgn-meta">${esc(tgt)} · ${esc(a.assignedByName)} · ${esc(when)}</div>
+          ${a.note ? `<div class="asgn-meta" style="color:var(--gold)">📌 ${esc(a.note)}</div>` : ''}
+        </div>
+        <button class="btn-remove" onclick="removeAssignment('${d.id}',this)">Remove</button>
+      </div>`;
+    }).join('');
+    const badge = document.getElementById('asgBadge');
+    badge.textContent = snap.size; badge.style.display = '';
+  } catch(e) {
+    el.innerHTML = `<p style="color:#ef4444;font-size:0.8rem">${esc(e.message)}</p>`;
+  }
+}
+
+async function removeAssignment(id, btn) {
+  btn.disabled = true; btn.textContent = '…';
+  try {
+    await db.collection('trainingAssignments').doc(id).update({ active: false });
+    btn.closest('.asgn-row').remove();
+    const rows  = document.querySelectorAll('#assignmentsList .asgn-row');
+    const badge = document.getElementById('asgBadge');
+    if (!rows.length) { badge.style.display='none'; document.getElementById('assignmentsList').innerHTML='<p style="color:var(--muted);font-size:0.82rem;padding:10px 0">No active assignments.</p>'; }
+    else { badge.textContent = rows.length; }
+  } catch(e) { showAlert('alertBox','Failed: '+e.message,'alert-error'); btn.disabled=false; btn.textContent='Remove'; }
+}
+
+// ── Assign modal ───────────────────────────────────────────────────────────────
+let _pendingVideo = null;
+function openAssignModal(v) { _pendingVideo=v; document.getElementById('modalVideoTitle').textContent=v.title; document.getElementById('assignTarget').value=''; document.getElementById('assignNote').value=''; document.getElementById('assignModal').style.display='flex'; }
+function closeAssignModal() { document.getElementById('assignModal').style.display='none'; _pendingVideo=null; }
+async function confirmAssign() {
+  const sel = document.getElementById('assignTarget').value;
+  const note = document.getElementById('assignNote').value.trim();
+  if (!sel) { showAlert('alertBox','Select a target.','alert-error'); return; }
+  const [type,...rest] = sel.split(':'); const value = rest.join(':');
+  const btn = document.getElementById('assignConfirmBtn'); btn.disabled=true; btn.textContent='Assigning…';
+  try {
+    await db.collection('trainingAssignments').add({ videoTitle:_pendingVideo.title, videoChannel:_pendingVideo.channel, videoThumb:_pendingVideo.thumb||'', videoUrl:_pendingVideo.url, videoDesc:_pendingVideo.desc, targetType:type, targetValue:value, note, active:true, assignedBy:staff.id, assignedByName:staff.name||'Manager', assignedAt:firebase.firestore.FieldValue.serverTimestamp() });
+    closeAssignModal(); showAlert('alertBox',`Assigned to ${type==='dept'?'Dept: ':'Role: '}${value}`,'alert-success');
+  } catch(e) { showAlert('alertBox','Failed: '+e.message,'alert-error'); }
+  finally { btn.disabled=false; btn.textContent='Assign'; }
+}
+
+// ── Add Video modal ────────────────────────────────────────────────────────────
+function openAddModal() {
+  ['addUrl','addTitle','addChannel','addDesc'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('addRole').value='';
+  document.getElementById('thumbPreview').style.display='none';
+  document.getElementById('addModal').style.display='flex';
+}
+function closeAddModal() { document.getElementById('addModal').style.display='none'; }
+
+function previewThumb(url) {
+  const id  = extractYtId(url);
+  const box = document.getElementById('thumbPreview');
+  const img = document.getElementById('thumbImg');
+  if (id) { img.src=thumbUrl(id); box.style.display='block'; }
+  else     { box.style.display='none'; }
+}
+
+async function confirmAdd() {
+  const url  = document.getElementById('addUrl').value.trim();
+  const title= document.getElementById('addTitle').value.trim();
+  const chan  = document.getElementById('addChannel').value.trim();
+  const desc  = document.getElementById('addDesc').value.trim();
+  const role  = document.getElementById('addRole').value;
+  if (!url||!title||!role) { showAlert('alertBox','URL, title, and role are required.','alert-error'); return; }
+  const vid = extractYtId(url);
+  const btn = document.getElementById('addConfirmBtn'); btn.disabled=true; btn.textContent='Adding…';
+  try {
+    const docRef = await db.collection('trainingVideos').add({ role, title, channel:chan||'', videoId:vid, thumb:vid, url, desc:desc||'', active:true, addedBy:staff.id, addedByName:staff.name||'Manager', addedAt:firebase.firestore.FieldValue.serverTimestamp() });
+    if (!customByRole[role]) customByRole[role]=[];
+    customByRole[role].push({ role, title, channel:chan||'', videoId:vid, thumb:vid, url, desc:desc||'', _id:docRef.id, _custom:true });
+    closeAddModal();
+    showAlert('alertBox',`"${title}" added to ${role} training.`,'alert-success');
+    renderLibrary(_activeGroup);
+  } catch(e) { showAlert('alertBox','Failed: '+e.message,'alert-error'); }
+  finally { btn.disabled=false; btn.textContent='Add Video'; }
+}
+
+// ── Remove Video ───────────────────────────────────────────────────────────────
+let _pendingRemove = null;
+function confirmRemoveVideo(v) {
+  _pendingRemove = v;
+  document.getElementById('removeVideoName').textContent = v.title;
+  document.getElementById('removeModal').style.display = 'flex';
+}
+function closeRemoveModal() { document.getElementById('removeModal').style.display='none'; _pendingRemove=null; }
+async function confirmRemove() {
+  if (!_pendingRemove) return;
+  const btn = document.getElementById('removeConfirmBtn'); btn.disabled=true; btn.textContent='Removing…';
+  try {
+    if (_pendingRemove._custom && _pendingRemove._id) {
+      await db.collection('trainingVideos').doc(_pendingRemove._id).update({ active: false });
+      for (const role in customByRole) {
+        customByRole[role] = customByRole[role].filter(v => v._id !== _pendingRemove._id);
+      }
+    } else {
+      hiddenUrls.add(_pendingRemove.url);
+      await db.collection('trainingConfig').doc('hiddenDefaults').set({ urls: Array.from(hiddenUrls) }, { merge: true });
+    }
+    closeRemoveModal();
+    renderLibrary(_activeGroup);
+    showAlert('alertBox','Video removed from library.','alert-success');
+  } catch(e) { showAlert('alertBox','Failed: '+e.message,'alert-error'); }
+  finally { btn.disabled=false; btn.textContent='Remove'; }
+}
+
+// ── Staff: load assigned courses only ─────────────────────────────────────────
+async function loadAssigned() {
+  const el = document.getElementById('trainingContent');
+  el.innerHTML = '<div style="text-align:center;padding:30px;color:var(--muted)">Loading…</div>';
+  try {
+    const snap = await db.collection('trainingAssignments').where('active','==',true).get();
+    const mine = snap.docs.map(d=>({id:d.id,...d.data()})).filter(a => {
+      if (a.targetType==='role' && a.targetValue===myRole) return true;
+      if (a.targetType==='department') {
+        const tv=(a.targetValue||'').toLowerCase();
+        return myDept===tv||myDept.includes(tv)||tv.includes(myDept);
+      }
+      return false;
+    });
+    if (!mine.length) {
+      el.innerHTML = `<div style="text-align:center;padding:48px 20px;color:var(--muted)">
+        <div style="font-size:2rem;margin-bottom:10px">🎓</div>
+        <div style="font-size:0.85rem">No training videos have been assigned to your role yet.</div>
+        <div style="font-size:0.75rem;margin-top:6px">Check back after your manager assigns courses.</div>
+      </div>`;
+      return;
+    }
+    el.innerHTML = `<div class="video-grid">${mine.map(a=>videoCard({
+      title:   a.videoTitle,
+      channel: a.videoChannel,
+      thumb:   a.videoThumb,
+      url:     a.videoUrl,
+      desc:    a.videoDesc,
+      _assignedNote: a.note,
+    })).join('')}</div>`;
+  } catch(e) {
+    el.innerHTML = `<div style="text-align:center;padding:30px;color:#ef4444;font-size:0.8rem">${esc(e.message)}</div>`;
+  }
+}
+
+// ── Init ───────────────────────────────────────────────────────────────────────
+async function init() {
+  try { await loadFirestoreData(); } catch(e) { /* use defaults only */ }
+
+  if (canManage) {
+    document.getElementById('addVideoBtn').style.display  = '';
+    document.getElementById('viewToggle').style.display   = 'flex';
+    document.getElementById('roleFilterWrap').style.display = 'block';
+    document.getElementById('pageHeading').textContent     = 'Training Library';
+    document.getElementById('pageSubtitle').textContent    = 'Browse all role training videos. Add new ones or remove any from the library. Assign courses to departments or roles.';
+    const tabs = document.getElementById('roleTabs');
+    tabs.innerHTML = ROLE_GROUPS.map(g =>
+      `<button class="role-tab${g.label==='All Roles'?' active':''}" data-group="${esc(g.label)}" onclick="renderLibrary('${esc(g.label)}')">${esc(g.label)}</button>`
+    ).join('');
+    renderLibrary('All Roles');
+  } else {
+    document.getElementById('assignedSection').style.display = 'none';
+    loadAssigned();
+  }
+}
+
+init();
+</script>
+</body>
+</html>
