@@ -213,77 +213,112 @@ async function submitIncident() {
 }
 
 /* ── My Sales ── */
-async function loadMySales(date) {
-  const el = document.getElementById('mySalesContent');
-  el.innerHTML = '<div style="color:#6a6b62;padding:12px 0 4px">Loading…</div>';
+const _CACHE_PFX = `eden54_sales_${staff.id}_`;
 
+function _salesCacheKey(date) { return _CACHE_PFX + date; }
+
+// Prune old cache entries (keep only last 7 dates)
+function _pruneCache() {
   try {
-    const snap  = await db.collection('sales').where('staffId','==',staff.id).get();
-    const sales = snap.docs.map(d => d.data()).filter(r => r.date === date);
-
-    if (!sales.length) {
-      el.innerHTML = '<div style="color:#6a6b62;padding:8px 0">No sales on this date.</div>';
-      return;
+    const keys = Object.keys(localStorage).filter(k => k.startsWith(_CACHE_PFX));
+    if (keys.length > 7) {
+      keys.sort().slice(0, keys.length - 7).forEach(k => localStorage.removeItem(k));
     }
+  } catch(e) {}
+}
 
-    let grandTotal = 0, cashTotal = 0, transTotal = 0, posTotal = 0;
+function renderSales(sales, el) {
+  if (!sales.length) {
+    el.innerHTML = '<div style="color:#6a6b62;padding:8px 0">No sales on this date.</div>';
+    return;
+  }
 
-    const rows = sales.map(r => {
-      const isPOS = r.source === 'pos' || r.source === 'tab';
-      const amt   = saleTotal(r);
-      grandTotal += amt;
-      cashTotal  += saleCash(r);
-      transTotal += saleTransfer(r);
-      posTotal   += salePOS(r);
+  let grandTotal = 0, cashTotal = 0, transTotal = 0, posTotal = 0;
 
-      const badge = isPOS
-        ? '<span class="sales-badge-pos">POS</span>'
-        : '<span class="sales-badge-manual">Manual</span>';
+  const rows = sales.map(r => {
+    const isPOS = r.source === 'pos' || r.source === 'tab';
+    const amt   = saleTotal(r);
+    grandTotal += amt;
+    cashTotal  += saleCash(r);
+    transTotal += saleTransfer(r);
+    posTotal   += salePOS(r);
 
-      const ts = r.createdAt?.toDate?.() || r.submittedAt?.toDate?.();
-      const time = ts ? ts.toLocaleTimeString('en-NG',{hour:'2-digit',minute:'2-digit'}) : '';
-      const dept = isPOS ? (r.section || r.department || '') : (r.department || '');
+    const badge = isPOS
+      ? '<span class="sales-badge-pos">POS</span>'
+      : '<span class="sales-badge-manual">Manual</span>';
 
-      const itemLine = isPOS && r.items?.length
-        ? `<div style="font-size:0.71rem;color:#6a6b62;margin-top:2px">${r.items.map(i=>`${i.qty}× ${i.name}`).join(', ')}</div>` : '';
-      const custLine = isPOS && (r.customerName || r.customerPhone)
-        ? `<div style="font-size:0.71rem;color:#6a6b62">👤 ${r.customerName||'Guest'}${r.customerPhone ? ' · '+r.customerPhone : ''}</div>` : '';
+    // Firestore Timestamps are serialised to {seconds,nanoseconds} in JSON cache
+    let ts = null;
+    const raw = r.createdAt || r.submittedAt;
+    if (raw?.toDate)          ts = raw.toDate();
+    else if (raw?.seconds)    ts = new Date(raw.seconds * 1000);
 
-      return { ts: ts ? ts.getTime() : 0, html:
-        `<div style="padding:10px 0;border-bottom:1px solid #e4e4df">
-          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
-            <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
-              ${badge}
-              <span style="font-size:0.84rem">${dept}</span>
-              ${time ? `<span style="font-size:0.7rem;color:#aaa">${time}</span>` : ''}
-            </div>
-            <span style="font-weight:400;color:#C9A96E;font-size:0.88rem;white-space:nowrap">${fmtNaira(amt)}</span>
+    const time = ts ? ts.toLocaleTimeString('en-NG',{hour:'2-digit',minute:'2-digit'}) : '';
+    const dept = isPOS ? (r.section || r.department || '') : (r.department || '');
+
+    const itemLine = isPOS && r.items?.length
+      ? `<div style="font-size:0.71rem;color:#6a6b62;margin-top:2px">${r.items.map(i=>`${i.qty}× ${i.name}`).join(', ')}</div>` : '';
+    const custLine = isPOS && (r.customerName || r.customerPhone)
+      ? `<div style="font-size:0.71rem;color:#6a6b62">👤 ${r.customerName||'Guest'}${r.customerPhone ? ' · '+r.customerPhone : ''}</div>` : '';
+
+    return { ts: ts ? ts.getTime() : 0, html:
+      `<div style="padding:10px 0;border-bottom:1px solid #e4e4df">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+            ${badge}
+            <span style="font-size:0.84rem">${dept}</span>
+            ${time ? `<span style="font-size:0.7rem;color:#aaa">${time}</span>` : ''}
           </div>
-          ${itemLine}${custLine}
-        </div>`
-      };
-    });
+          <span style="font-weight:400;color:#C9A96E;font-size:0.88rem;white-space:nowrap">${fmtNaira(amt)}</span>
+        </div>
+        ${itemLine}${custLine}
+      </div>`
+    };
+  });
 
-    rows.sort((a,b) => b.ts - a.ts);
+  rows.sort((a,b) => b.ts - a.ts);
 
-    const breakdown = [];
-    if (cashTotal  > 0) breakdown.push(`<div class="stat-mini"><div class="lbl">Cash</div><div class="val">${fmtNaira(cashTotal)}</div></div>`);
-    if (transTotal > 0) breakdown.push(`<div class="stat-mini"><div class="lbl">Transfer</div><div class="val">${fmtNaira(transTotal)}</div></div>`);
-    if (posTotal   > 0) breakdown.push(`<div class="stat-mini"><div class="lbl">POS</div><div class="val">${fmtNaira(posTotal)}</div></div>`);
+  const breakdown = [];
+  if (cashTotal  > 0) breakdown.push(`<div class="stat-mini"><div class="lbl">Cash</div><div class="val">${fmtNaira(cashTotal)}</div></div>`);
+  if (transTotal > 0) breakdown.push(`<div class="stat-mini"><div class="lbl">Transfer</div><div class="val">${fmtNaira(transTotal)}</div></div>`);
+  if (posTotal   > 0) breakdown.push(`<div class="stat-mini"><div class="lbl">POS</div><div class="val">${fmtNaira(posTotal)}</div></div>`);
 
-    let html = `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid #e4e4df;align-items:stretch">
-      <div class="stat-mini" style="background:#0f2318">
-        <div class="lbl" style="color:rgba(201,169,110,0.6)">Total</div>
-        <div class="val" style="color:#C9A96E">${fmtNaira(grandTotal)}</div>
-      </div>
-      ${breakdown.join('')}
-    </div>`;
+  let html = `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid #e4e4df;align-items:stretch">
+    <div class="stat-mini" style="background:#0f2318">
+      <div class="lbl" style="color:rgba(201,169,110,0.6)">Total</div>
+      <div class="val" style="color:#C9A96E">${fmtNaira(grandTotal)}</div>
+    </div>
+    ${breakdown.join('')}
+  </div>`;
 
-    html += rows.map(r => r.html).join('');
-    el.innerHTML = html;
+  html += rows.map(r => r.html).join('');
+  el.innerHTML = html;
+}
+
+async function loadMySales(date) {
+  const el  = document.getElementById('mySalesContent');
+  const key = _salesCacheKey(date);
+
+  // Show cache instantly — no blank screen while fetching
+  const cached = localStorage.getItem(key);
+  if (cached) {
+    try { renderSales(JSON.parse(cached), el); } catch(e) { localStorage.removeItem(key); }
+  } else {
+    el.innerHTML = '<div style="color:#6a6b62;padding:12px 0 4px">Loading…</div>';
+  }
+
+  // Fetch only today's docs (date-scoped query = tiny payload vs all-time scan)
+  try {
+    const snap  = await db.collection('sales').where('date','==',date).get();
+    const sales = snap.docs.map(d => d.data()).filter(r => r.staffId === staff.id);
+
+    // Persist to cache then render fresh result
+    try { localStorage.setItem(key, JSON.stringify(sales)); _pruneCache(); } catch(e) {}
+    renderSales(sales, el);
   } catch(e) {
     console.error(e);
-    el.innerHTML = '<div style="color:#dc2626;padding:8px 0">Failed to load sales.</div>';
+    // Keep showing cached data if we have it; only show error on a cold load
+    if (!cached) el.innerHTML = '<div style="color:#dc2626;padding:8px 0">Failed to load sales.</div>';
   }
 }
 

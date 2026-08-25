@@ -22,6 +22,18 @@
 .tab-table{font-size:0.72rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
 .tab-meta{display:flex;gap:12px;font-size:0.78rem;color:var(--muted);flex-wrap:wrap}
 .tab-total{font-size:1.1rem;font-weight:400;color:var(--gold);margin-top:12px}
+.gs-row{display:flex;flex-direction:column;gap:4px;margin-top:8px}
+.gs-badge{display:flex;flex-direction:column;gap:2px;font-size:0.68rem;
+  padding:6px 8px;border-radius:6px;border:1px solid rgba(201,169,110,0.15);
+  background:rgba(201,169,110,0.05)}
+.gs-badge.gs-urgent{border-color:rgba(251,191,36,0.35);background:rgba(251,191,36,0.06)}
+.gs-badge.gs-over{border-color:rgba(239,68,68,0.4);background:rgba(239,68,68,0.06)}
+.gs-badge-top{display:flex;align-items:center;gap:5px}
+.gs-name{font-weight:500;color:rgba(245,242,236,0.9);flex:1}
+.gs-countdown{font-weight:600;font-size:0.67rem;white-space:nowrap;color:rgba(201,169,110,0.9)}
+.gs-countdown.urgent{color:rgba(251,191,36,0.95)}
+.gs-countdown.over{color:rgba(239,68,68,0.95)}
+.gs-times{font-size:0.64rem;color:rgba(201,169,110,0.7);letter-spacing:0.02em;padding-left:1px}
 .tab-badge{position:absolute;top:14px;right:14px;font-size:0.62rem;padding:3px 9px;border-radius:12px;letter-spacing:0.08em;text-transform:uppercase}
 .b-open{background:#dcfce7;color:#166534}
 .b-await{background:#fef9c3;color:#854d0e}
@@ -50,6 +62,18 @@
 .hist-cust{font-size:0.85rem;font-weight:400}
 .hist-meta{display:flex;gap:10px;color:var(--muted);font-size:0.72rem;margin-top:3px;flex-wrap:wrap}
 .hist-amt{font-size:0.95rem;color:var(--gold);flex-shrink:0}
+/* Reduction PIN */
+.pin-display{display:flex;gap:6px;justify-content:center;margin:18px 0;width:100%}
+.pin-digit{flex:1;max-width:48px;min-width:28px;height:52px;border:2px solid rgba(201,169,110,0.5);border-radius:8px;
+  display:flex;align-items:center;justify-content:center;font-size:1.4rem;font-weight:600;
+  color:#C9A96E;background:rgba(201,169,110,0.06);letter-spacing:0}
+.pin-expiry{font-size:0.72rem;color:rgba(245,242,236,0.45);text-align:center;margin-top:-6px;margin-bottom:14px}
+.pin-entry-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin:16px 0}
+.pin-entry-grid input{width:100%;text-align:center;font-size:1.2rem;padding:10px 0;
+  border:1px solid var(--border);border-radius:6px;background:var(--card);color:var(--text);
+  font-family:'Jost',sans-serif;outline:none}
+.pin-entry-grid input:focus{border-color:#C9A96E}
+
 /* Age warnings */
 .tab-card.age-warn{border-color:rgba(251,191,36,0.55)!important}
 .tab-card.age-warn:hover{border-color:rgba(251,191,36,0.8)!important}
@@ -97,6 +121,7 @@
 .ov-back:hover{border-color:#C9A96E;color:#C9A96E}
 .ov-title{flex:1;font-size:0.9rem;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;color:rgba(245,242,236,0.92)}
 .ov-hdr-total{font-size:1rem;color:#C9A96E;flex-shrink:0}
+#ovTimerBadge{font-size:0.68rem;color:rgba(201,169,110,0.65);letter-spacing:0.06em;flex-shrink:0;white-space:nowrap}
 
 .ov-cats{padding:10px 16px;background:#162d1f;border-bottom:1px solid rgba(201,169,110,0.15);
   display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;flex-shrink:0}
@@ -122,6 +147,21 @@
 .ov-ic-icon{font-size:1.9rem;margin-bottom:8px;line-height:1}
 .ov-ic-name{font-size:0.82rem;font-weight:400;margin-bottom:4px;color:rgba(245,242,236,0.92)}
 .ov-ic-price{font-size:0.7rem;color:#C9A96E}
+
+/* ── Game duration layout ── */
+.game-sections{display:flex;flex-direction:column;gap:14px;padding:4px 0}
+.game-group{background:rgba(201,169,110,0.03);border:1px solid rgba(201,169,110,0.12);border-radius:10px;padding:12px 14px}
+.game-group-hdr{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.game-group-icon{font-size:1.35rem;line-height:1}
+.game-group-name{font-size:0.7rem;letter-spacing:0.18em;text-transform:uppercase;color:#C9A96E;font-weight:500}
+.game-dur-row{display:flex;flex-wrap:wrap;gap:7px}
+.game-dur-btn{border:1px solid rgba(201,169,110,0.18);border-radius:8px;cursor:pointer;
+  background:rgba(201,169,110,0.05);transition:all .18s;text-align:center;
+  padding:7px 12px;min-width:72px;flex-shrink:0}
+.game-dur-btn:hover{border-color:#C9A96E;background:rgba(201,169,110,0.12)}
+.game-dur-btn:active,.game-dur-btn.tapped{background:rgba(201,169,110,0.2);border-color:rgba(201,169,110,0.6);transform:scale(0.95)}
+.game-dur-time{font-size:0.68rem;color:rgba(245,242,236,0.55);letter-spacing:0.04em}
+.game-dur-price{font-size:0.84rem;color:#C9A96E;font-weight:500;margin-top:2px}
 
 /* Cart panel */
 .ov-cart{background:#162d1f;border-left:1px solid rgba(201,169,110,0.15);
@@ -189,10 +229,30 @@
   .hist-row{flex-direction:column;align-items:flex-start;gap:6px}
   .hist-amt{font-size:0.88rem}
   #transferSel{font-size:0.85rem}
+  /* Timer badge — shrinkable on mobile so title still has room */
+  #ovTimerBadge{font-size:0.58rem;max-width:68px;overflow:hidden;text-overflow:ellipsis;flex-shrink:1!important}
+  /* Game duration buttons — slightly smaller in the items panel */
+  .game-dur-btn{padding:6px 9px;min-width:64px}
+  .game-dur-price{font-size:0.78rem}
+  /* Game sections — tighter on mobile */
+  .game-group{padding:10px 11px}
+  /* Game session times — slightly larger for readability */
+  .gs-times{font-size:0.66rem}
+  /* PIN label hidden — emoji only on small screens */
+  .pin-btn-label{display:none}
 }
 @media(max-width:400px){
   .tab-stat{min-width:calc(50% - 6px)}
-  .ov-hdr{gap:8px;padding:0 12px}
+  .ov-hdr{gap:6px;padding:0 10px}
+  /* Very small phones — compact game buttons */
+  .game-dur-btn{min-width:56px;padding:5px 7px}
+  .game-dur-time{font-size:0.62rem}
+  .game-dur-price{font-size:0.74rem}
+  /* PIN modal — tighter on 360px phones */
+  .modal-card{padding:20px 16px}
+  .pin-digit{height:46px;font-size:1.2rem}
+  .pin-entry-grid{gap:4px}
+  .pin-entry-grid input{font-size:1rem;padding:8px 0}
 }
 </style>
 </head>
@@ -216,6 +276,7 @@
     <div style="display:flex;gap:8px;align-items:center">
       <div class="topbar-date" id="topDate"></div>
       <button class="btn btn-gold btn-sm" onclick="openNewTabModal()">+ New Tab</button>
+      <button class="btn btn-sm" id="genPinBtn" onclick="openGenPinModal()" style="display:none;background:rgba(201,169,110,0.1);color:rgba(201,169,110,0.8);border:1px solid rgba(201,169,110,0.3);letter-spacing:0.05em">🔑<span class="pin-btn-label"> PIN</span></button>
       <button class="btn btn-sm" id="recycleBinBtn" onclick="toggleRecycleBin()" style="display:none;background:rgba(224,112,112,.15);color:#e07070;border:1px solid rgba(224,112,112,.4)">🗑 Recycle Bin</button>
     </div>
   </div>
@@ -312,6 +373,34 @@
   </div>
 </div>
 
+<!-- ════ PIN GENERATOR MODAL (manager/CEO/HR) ════ -->
+<div class="modal-ov" id="genPinModal">
+  <div class="modal-card" style="max-width:340px;text-align:center">
+    <h3 style="margin-bottom:6px">Reduction Override PIN</h3>
+    <p style="font-size:0.78rem;color:var(--muted);margin-bottom:18px">Share this code with staff to authorise a quantity reduction. Valid for 30 minutes.</p>
+    <div class="pin-display" id="genPinDigits"></div>
+    <div class="pin-expiry" id="genPinExpiry"></div>
+    <div class="modal-btns">
+      <button class="btn-mcancel" onclick="closeGenPinModal()">Close</button>
+      <button class="btn btn-gold" style="flex:2" onclick="generateNewPin()">↻ New Code</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════ PIN ENTRY MODAL (staff) ════ -->
+<div class="modal-ov" id="pinEntryModal">
+  <div class="modal-card" style="max-width:340px">
+    <h3>Manager Authorisation Required</h3>
+    <p style="font-size:0.78rem;color:var(--muted);margin-bottom:4px">This tab is past the 10-minute edit window. A manager, CEO, or HR must enter the override PIN to reduce or remove items.</p>
+    <div class="pin-entry-grid" id="pinEntryBoxes"></div>
+    <div id="pinEntryError" style="color:rgba(239,68,68,0.85);font-size:0.76rem;min-height:18px;margin-bottom:10px;text-align:center"></div>
+    <div class="modal-btns">
+      <button class="btn-mcancel" onclick="closePinEntryModal()">Cancel</button>
+      <button class="btn btn-gold" style="flex:2" onclick="submitReductionPin()">Confirm</button>
+    </div>
+  </div>
+</div>
+
 <!-- ════ ORDER VIEW ════ -->
 <div id="orderView">
   <div class="ov-status-bar at-pos" id="ovStatusBar" style="display:none">
@@ -322,6 +411,7 @@
   <div class="ov-hdr">
     <button class="ov-back" onclick="exitOrderView()">← Tabs</button>
     <div class="ov-title" id="ovTitle">Tab</div>
+    <div id="ovTimerBadge" style="display:none"></div>
     <div class="ov-hdr-total" id="ovHdrTotal">₦0.00</div>
     <button id="btnTransferTab" onclick="openTransferModal()" style="display:none;padding:5px 12px;background:transparent;border:1px solid rgba(201,169,110,0.35);color:rgba(201,169,110,0.75);border-radius:5px;font-family:'Jost',sans-serif;font-size:0.68rem;letter-spacing:0.08em;cursor:pointer;flex-shrink:0;transition:all .2s">↔ Transfer</button>
     <button id="btnDelTab" onclick="deleteCurrentTab()" style="display:none;padding:5px 12px;background:transparent;border:1px solid rgba(220,38,38,0.35);color:rgba(220,38,38,0.65);border-radius:5px;font-family:'Jost',sans-serif;font-size:0.68rem;letter-spacing:0.08em;cursor:pointer;flex-shrink:0;transition:all .2s">✕ Delete Tab</button>
@@ -396,16 +486,29 @@ const _raw    = staff ? (staff.accessLevel || staff.role || '').toLowerCase().re
 const isAdmin = _raw === 'ceo' || _raw === 'superadmin' || _raw === 'manager' || _raw.includes('manager');
 const isCEO   = _raw === 'ceo' || _raw === 'superadmin';
 
+const isHRRole = _raw === 'hr';
+const canAuthorize = isAdmin || isHRRole; // CEO, Manager, HR can generate PINs
+
 if (isCEO) {
   const rbBtn = document.getElementById('recycleBinBtn');
   if (rbBtn) rbBtn.style.display = '';
+}
+if (canAuthorize) {
+  const gpBtn = document.getElementById('genPinBtn');
+  if (gpBtn) gpBtn.style.display = '';
 }
 
 /* ── Constants ── */
 const TABLE_LABELS = [
   'Table 1','Table 2','Table 3','Table 4','Table 5',
   'Table 6','Table 7','Table 8','Table 9','Table 10',
-  'Bar Counter','VIP Room','Poolside','Private Lounge',
+  'Table 11','Table 12','Table 13','Table 14','Table 15',
+  'Snooker Table 1','Snooker Table 2','Snooker Table 3',
+  'Table Tennis 1','Table Tennis 2',
+  'VR Game 1','VR Game 2',
+  'Sim Race 1','Sim Race 2',
+  'PS Game 1','PS Game 2',
+  'Bar Counter','VIP Room','Private Lounge',
 ];
 const FOOD_SECTIONS = ['Starters','Salads','Mains','Specials'];
 
@@ -513,6 +616,44 @@ const DEFAULT_BAR_DRINKS = [
   stockKey: i.name.toLowerCase().replace(/[^a-z0-9]+/g,'_').replace(/^_|_$/g,''),
 }));
 
+/* ── Game duration groups (authoritative UI config) ── */
+const GAME_DURATION_GROUPS = [
+  { key: 'snooker',
+    label: 'Snooker', icon: '🎱',
+    durations: [{m:15,p:2000},{m:30,p:3500},{m:45,p:5000},{m:60,p:7000},{m:90,p:10000},{m:120,p:13000}] },
+  { key: 'table tennis',
+    label: 'Table Tennis', icon: '🏓',
+    durations: [{m:15,p:1500},{m:30,p:2500},{m:45,p:3500},{m:60,p:5000},{m:90,p:7000},{m:120,p:9000}] },
+  { key: 'vr',
+    label: 'VR Experience', icon: '🥽',
+    durations: [{m:15,p:2500},{m:30,p:4500},{m:45,p:6500},{m:60,p:9000}] },
+  { key: 'sim',
+    label: 'Sim Race', icon: '🏎️',
+    durations: [{m:15,p:2500},{m:30,p:4500},{m:45,p:6500},{m:60,p:9000}] },
+  { key: 'playstation|ps game|ps5',
+    label: 'PlayStation', icon: '🎮',
+    durations: [{m:30,p:2500},{m:60,p:5000},{m:120,p:9000}] },
+];
+
+function _durLabel(m) {
+  if (m < 60) return m + ' min';
+  const h = Math.floor(m / 60), r = m % 60;
+  return h + 'hr' + (r ? ' ' + r + 'min' : '');
+}
+
+/* Parse "Snooker · 1hr 30min" → { game:'Snooker', mins:90 } */
+function parseGameItem(name) {
+  const m = name.match(/^(.+?)\s+·\s+(.+)$/);
+  if (!m) return null;
+  const durStr = m[2];
+  let mins = 0;
+  const hr  = durStr.match(/(\d+)hr/);
+  const mn  = durStr.match(/(\d+)\s*min/);
+  if (hr) mins += parseInt(hr[1], 10) * 60;
+  if (mn) mins += parseInt(mn[1], 10);
+  return mins > 0 ? { game: m[1].trim(), mins } : null;
+}
+
 /* ── State ── */
 let menuItems    = [];
 let gameItems    = [];
@@ -523,6 +664,11 @@ let payMethod       = 'cash';
 let selTable        = '';
 let activeCat       = 'drinks';
 let activeDrinkCat  = '';
+
+let _currentTabs        = [];                 // latest snapshot — used by timer tick
+const _notifiedMilestones = {};              // tabId → Set of milestone numbers already notified
+let _timerInterval      = null;
+let _ovTimerInterval    = null;              // order-view live second ticker
 
 const DRINK_SECTIONS  = ['Cocktails','Champagne','Whiskey','Tequila','Beer','Brandy','Gin/Vodka','Wine','Liqueur','Juice','Aperitifs','Soft Drinks','Energy Drinks','Bar Spirits','Shisha'];
 const DRINK_SEC_ICONS = { Cocktails:'🍹', Champagne:'🍾', Whiskey:'🥃', Tequila:'🥃', Beer:'🍺', Brandy:'🥃', 'Gin/Vodka':'🍸', Wine:'🍷', Liqueur:'🥂', Juice:'🧃', Aperitifs:'🍶', 'Soft Drinks':'🥤', 'Energy Drinks':'⚡', 'Bar Spirits':'🍸', Shisha:'💨', Other:'🥤' };
@@ -615,6 +761,7 @@ function subscribeList() {
         tabs.forEach(t => { if (t.servingStaff?.id === myId) _myServing.add(t.id); });
         _initialized = true;
 
+        _currentTabs = tabs;
         renderList(tabs);
       },
       err => {
@@ -688,16 +835,47 @@ function renderList(tabs) {
     const delBtn         = isAdmin
       ? `<button class="btn-del-tab" onclick="event.stopPropagation();deleteTab('${t.id}','${esc(t.customerName)}')">✕ Delete</button>`
       : '';
-    return `<div class="${cardClass}" onclick="enterOrderView('${t.id}')" style="${isAdmin ? 'padding-bottom:44px' : ''}">
+    const openedSecs = t.openedAt?.seconds || Math.floor((Date.now() - mins * 60000) / 1000);
+
+    // Game session badges
+    const nowMs = Date.now();
+    const sessionHtml = (t.gameSessions || []).map(s => {
+      const startSecs = s.startedAt?.seconds || Math.floor((s.startedAt instanceof Date ? s.startedAt.getTime() : 0) / 1000);
+      const endsSecs  = s.endsAt?.seconds    || Math.floor((s.endsAt    instanceof Date ? s.endsAt.getTime()    : 0) / 1000);
+      if (!endsSecs) return '';
+      const minsLeft = Math.ceil((endsSecs * 1000 - nowMs) / 60000);
+      const isOver   = minsLeft <= 0;
+      const isUrgent = !isOver && minsLeft <= 10;
+      const startStr = startSecs ? new Date(startSecs * 1000).toLocaleTimeString('en-NG', {hour:'2-digit',minute:'2-digit'}) : '';
+      const endsStr  = new Date(endsSecs * 1000).toLocaleTimeString('en-NG', {hour:'2-digit',minute:'2-digit'});
+      const countdownCls = isOver ? ' over' : isUrgent ? ' urgent' : '';
+      const badgeCls     = isOver ? ' gs-over' : isUrgent ? ' gs-urgent' : '';
+      const countdownTxt = isOver ? '⚠ Time up' : minsLeft + 'min left';
+      const timeRow = startStr
+        ? `<div class="gs-times">🕐 Started ${startStr} &nbsp;→&nbsp; Ends ${endsStr}</div>`
+        : `<div class="gs-times">Ends ${endsStr}</div>`;
+      return `<div class="gs-badge${badgeCls}">
+        <div class="gs-badge-top">
+          <span>${s.icon || '🎮'}</span>
+          <span class="gs-name">${esc(s.game)}</span>
+          <span class="gs-countdown${countdownCls}" data-ends-secs="${endsSecs}">${countdownTxt}</span>
+        </div>
+        ${timeRow}
+      </div>`;
+    }).filter(Boolean).join('');
+    const sessionsBlock = sessionHtml ? `<div class="gs-row">${sessionHtml}</div>` : '';
+
+    return `<div class="${cardClass}" data-tabid="${t.id}" data-opened="${openedSecs}" onclick="enterOrderView('${t.id}')" style="${isAdmin ? 'padding-bottom:44px' : ''}">
       <span class="tab-badge ${badgeClass}">${badgeText}</span>
       <div class="tab-customer">${esc(t.customerName)}</div>
       <div class="tab-table">📍 ${esc(t.tableLabel)}</div>
       <div class="tab-meta">
         <span>👤 ${esc(currentServer)}</span>
         <span>🛒 ${itemCnt} item${itemCnt !== 1 ? 's' : ''}</span>
-        <span>⏱ ${tOpen}${ageBadge}</span>
+        <span>⏱ <span class="tts" data-tabid="${t.id}">${tOpen}</span>${ageBadge}</span>
         ${transferNote}
       </div>
+      ${sessionsBlock}
       <div class="tab-total">${N(t.subtotal)}</div>
       ${delBtn}
     </div>`;
@@ -736,6 +914,314 @@ function renderHistory(tabs) {
   }).join('');
 }
 
+/* ════ TIMER & NOTIFICATIONS ════ */
+
+async function requestNotifPermission() {
+  if (!('Notification' in window)) return;
+  if (Notification.permission === 'default') {
+    await Notification.requestPermission();
+  }
+}
+
+function _fmtMins(mins) {
+  if (mins < 60) return mins + ' min';
+  const h = Math.floor(mins / 60), m = mins % 60;
+  return h + 'hr' + (m ? ' ' + m + 'min' : '');
+}
+
+function _fmtTimerDisplay(mins) {
+  if (mins < 60) return mins + 'm';
+  return Math.floor(mins / 60) + 'h ' + (mins % 60) + 'm';
+}
+
+/* Update all card timer spans without re-rendering the grid */
+function updateTimerDisplays() {
+  const nowMs = Date.now();
+
+  // Tab open-duration timers
+  document.querySelectorAll('[data-tabid][data-opened]').forEach(card => {
+    const secs = parseInt(card.dataset.opened, 10);
+    if (!secs) return;
+    const mins = Math.floor((nowMs - secs * 1000) / 60000);
+    const tts  = card.querySelector('.tts[data-tabid="' + card.dataset.tabid + '"]');
+    if (tts) tts.textContent = _fmtTimerDisplay(mins);
+    card.classList.remove('age-warn', 'age-old');
+    if (mins >= 180) card.classList.add('age-old');
+    else if (mins >= 120) card.classList.add('age-warn');
+  });
+
+  // Game session countdown badges
+  document.querySelectorAll('.gs-countdown[data-ends-secs]').forEach(el => {
+    const endsSecs = parseInt(el.dataset.endsSecs, 10);
+    const minsLeft = Math.ceil((endsSecs * 1000 - nowMs) / 60000);
+    const isOver   = minsLeft <= 0;
+    const isUrgent = !isOver && minsLeft <= 10;
+    el.textContent = isOver ? '⚠ Time up' : minsLeft + 'min left';
+    el.classList.toggle('over',   isOver);
+    el.classList.toggle('urgent', isUrgent);
+    const badge = el.closest('.gs-badge');
+    if (badge) {
+      badge.classList.toggle('gs-over',   isOver);
+      badge.classList.toggle('gs-urgent', isUrgent);
+    }
+  });
+}
+
+/* Fire browser notifications at every 30-min tab milestone + game session endings */
+function checkTabTimers() {
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+  const nowMs = Date.now();
+
+  _currentTabs.forEach(t => {
+    if (t.status !== 'open' && t.status !== 'awaiting-pos') return;
+
+    // 30-min tab open milestones
+    const openSecs = t.openedAt?.seconds;
+    if (openSecs) {
+      const mins      = Math.floor((nowMs - openSecs * 1000) / 60000);
+      const milestone = Math.floor(mins / 30);
+      if (milestone >= 1) {
+        if (!_notifiedMilestones[t.id]) _notifiedMilestones[t.id] = new Set();
+        if (!_notifiedMilestones[t.id].has(milestone)) {
+          _notifiedMilestones[t.id].add(milestone);
+          new Notification('⏱ Table Timer — ' + t.tableLabel, {
+            body: (t.customerName || 'This tab') + ' has been open for ' + _fmtMins(milestone * 30) + '.',
+            tag : 'tab-timer-' + t.id + '-' + milestone,
+            icon: '/logo/eden 54 logo.jpeg',
+          });
+        }
+      }
+    }
+
+    // Game session ending notifications
+    (t.gameSessions || []).forEach(s => {
+      const endsSecs = s.endsAt?.seconds;
+      if (!endsSecs) return;
+      const minsLeft = Math.ceil((endsSecs * 1000 - nowMs) / 60000);
+
+      // 5-minute warning
+      const warnKey = 'gs-warn-' + t.id + '-' + s.game + '-' + endsSecs;
+      if (minsLeft <= 5 && minsLeft > 0 && !_notifiedMilestones[warnKey]) {
+        _notifiedMilestones[warnKey] = true;
+        new Notification((s.icon || '🎮') + ' Game ending soon — ' + t.tableLabel, {
+          body: s.game + ' for ' + (t.customerName || 'this tab') + ' ends in ' + minsLeft + ' min.',
+          tag : warnKey,
+          icon: '/logo/eden 54 logo.jpeg',
+        });
+      }
+      // Time's up
+      const overKey = 'gs-over-' + t.id + '-' + s.game + '-' + endsSecs;
+      if (minsLeft <= 0 && !_notifiedMilestones[overKey]) {
+        _notifiedMilestones[overKey] = true;
+        new Notification((s.icon || '🎮') + ' Time\'s up — ' + t.tableLabel, {
+          body: s.game + ' session for ' + (t.customerName || 'this tab') + ' has ended.',
+          tag : overKey,
+          icon: '/logo/eden 54 logo.jpeg',
+        });
+      }
+    });
+  });
+}
+
+function startTimerTick() {
+  if (_timerInterval) return;
+  _timerInterval = setInterval(() => {
+    updateTimerDisplays();
+    checkTabTimers();
+  }, 60000); // every minute
+  // Also re-check when user returns to tab (catches up missed intervals)
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) { updateTimerDisplays(); checkTabTimers(); }
+  }, { once: false });
+}
+
+/* ── Order-view live timer (seconds precision inside the view) ── */
+function _startOvTimer(tab) {
+  _stopOvTimer();
+  const badge = document.getElementById('ovTimerBadge');
+  if (!badge) return;
+  const secs = tab.openedAt?.seconds;
+  if (!secs) { badge.style.display = 'none'; return; }
+  const tick = () => {
+    const mins = Math.floor((Date.now() - secs * 1000) / 60000);
+    badge.textContent = '⏱ ' + _fmtTimerDisplay(mins);
+    badge.style.display = '';
+  };
+  tick();
+  _ovTimerInterval = setInterval(tick, 30000);
+}
+
+function _stopOvTimer() {
+  if (_ovTimerInterval) { clearInterval(_ovTimerInterval); _ovTimerInterval = null; }
+  const badge = document.getElementById('ovTimerBadge');
+  if (badge) badge.style.display = 'none';
+}
+
+/* ════ REDUCTION PIN SYSTEM ════ */
+
+let _pendingDecrement = null; // { idx, ref } waiting for PIN authorisation
+
+/* ── Generator modal (manager/CEO/HR) ── */
+async function openGenPinModal() {
+  // Load existing active PIN from Firestore if any
+  try {
+    const snap = await db.collection('portalConfig').doc('reductionPin').get();
+    if (snap.exists) {
+      const d = snap.data();
+      const exp = d.expiresAt?.toDate?.() || (d.expiresAt?.seconds ? new Date(d.expiresAt.seconds * 1000) : null);
+      if (exp && exp > new Date()) {
+        _showPinDigits(d.pin, exp);
+        document.getElementById('genPinModal').classList.add('show');
+        return;
+      }
+    }
+  } catch (_) {}
+  // No active PIN — generate one straight away
+  await generateNewPin();
+}
+
+async function generateNewPin() {
+  const pin = String(Math.floor(100000 + Math.random() * 900000));
+  const expiresAt = new Date(Date.now() + 30 * 60000);
+  try {
+    await db.collection('portalConfig').doc('reductionPin').set({
+      pin,
+      expiresAt,
+      generatedBy: staff?.name || 'Manager',
+      generatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    });
+    _showPinDigits(pin, expiresAt);
+    document.getElementById('genPinModal').classList.add('show');
+  } catch (e) {
+    alert('Could not generate PIN. Check your connection.');
+  }
+}
+
+function _showPinDigits(pin, expiresAt) {
+  const digits = document.getElementById('genPinDigits');
+  digits.innerHTML = pin.split('').map(d =>
+    `<div class="pin-digit">${d}</div>`
+  ).join('');
+  const mins = Math.ceil((expiresAt - new Date()) / 60000);
+  document.getElementById('genPinExpiry').textContent =
+    `Expires in ${mins} min · Generated by ${staff?.name || 'Manager'}`;
+}
+
+function closeGenPinModal() {
+  document.getElementById('genPinModal').classList.remove('show');
+}
+
+/* ── Entry modal (staff — called instead of immediate decrement) ── */
+function _buildPinInputs() {
+  const grid = document.getElementById('pinEntryBoxes');
+  grid.innerHTML = '';
+  for (let i = 0; i < 6; i++) {
+    const inp = document.createElement('input');
+    inp.type        = 'text';
+    inp.inputMode   = 'numeric';
+    inp.maxLength   = 1;
+    inp.pattern     = '[0-9]';
+    inp.autocomplete = 'off';
+    inp.addEventListener('input', e => {
+      e.target.value = e.target.value.replace(/\D/g, '').slice(-1);
+      if (e.target.value && i < 5) grid.children[i + 1].focus();
+    });
+    inp.addEventListener('keydown', e => {
+      if (e.key === 'Backspace' && !e.target.value && i > 0) grid.children[i - 1].focus();
+    });
+    grid.appendChild(inp);
+  }
+}
+
+function openPinEntryModal(pendingDecrement) {
+  _pendingDecrement = pendingDecrement;
+  document.getElementById('pinEntryError').textContent = '';
+  _buildPinInputs();
+  document.getElementById('pinEntryModal').classList.add('show');
+  setTimeout(() => document.getElementById('pinEntryBoxes').children[0]?.focus(), 80);
+}
+
+function closePinEntryModal() {
+  document.getElementById('pinEntryModal').classList.remove('show');
+  _pendingDecrement = null;
+}
+
+async function submitReductionPin() {
+  const inputs = document.getElementById('pinEntryBoxes').children;
+  const entered = Array.from(inputs).map(i => i.value).join('');
+  if (entered.length < 6) {
+    document.getElementById('pinEntryError').textContent = 'Enter all 6 digits.';
+    return;
+  }
+  document.getElementById('pinEntryError').textContent = '';
+
+  try {
+    const snap = await db.collection('portalConfig').doc('reductionPin').get();
+    if (!snap.exists) { document.getElementById('pinEntryError').textContent = 'No active PIN. Ask a manager to generate one.'; return; }
+    const d   = snap.data();
+    const exp = d.expiresAt?.toDate?.() || (d.expiresAt?.seconds ? new Date(d.expiresAt.seconds * 1000) : null);
+    if (!exp || exp < new Date()) { document.getElementById('pinEntryError').textContent = 'PIN has expired. Ask a manager for a new one.'; return; }
+    if (d.pin !== entered) { document.getElementById('pinEntryError').textContent = 'Incorrect PIN. Try again.'; _buildPinInputs(); setTimeout(() => document.getElementById('pinEntryBoxes').children[0]?.focus(), 60); return; }
+
+    // PIN is valid — run the pending decrement
+    closePinEntryModal();
+    if (_pendingDecrement) {
+      await _executePendingDecrement(_pendingDecrement);
+      _pendingDecrement = null;
+    }
+  } catch (e) {
+    document.getElementById('pinEntryError').textContent = 'Connection error. Try again.';
+  }
+}
+
+async function _executePendingDecrement({ idx, tabId }) {
+  const ref = db.collection('tabs').doc(tabId);
+  try {
+    await db.runTransaction(async tx => {
+      const snap = await tx.get(ref);
+      if (!snap.exists) return;
+      const data  = snap.data();
+      const items = [...(data.items || [])];
+      if (idx >= items.length) return;
+      const item   = items[idx];
+      const newQty = item.qty - 1;
+      if (newQty <= 0) {
+        items.splice(idx, 1);
+      } else {
+        items[idx] = { ...item, qty: newQty, total: newQty * item.unitPrice };
+      }
+      const update = { items, subtotal: items.reduce((s, i) => s + i.total, 0) };
+      // Sync game session if applicable
+      if (item.category === 'games') {
+        const parsed = parseGameItem(item.name);
+        if (parsed) {
+          const sessions = [...(data.gameSessions || [])];
+          const now = new Date();
+          const ei  = sessions.findIndex(s => {
+            const ends = s.endsAt?.toDate?.() || (s.endsAt?.seconds ? new Date(s.endsAt.seconds * 1000) : null);
+            return s.game === parsed.game && ends && ends > now;
+          });
+          if (ei >= 0) {
+            const s = sessions[ei];
+            const curEnds = s.endsAt?.toDate?.() || new Date(s.endsAt.seconds * 1000);
+            if (newQty <= 0) {
+              sessions[ei] = { ...s, endsAt: now };
+            } else {
+              sessions[ei] = {
+                ...s,
+                durationMins: Math.max((s.durationMins || 0) - parsed.mins, 0),
+                endsAt: new Date(Math.max(curEnds.getTime() - parsed.mins * 60000, now.getTime())),
+              };
+            }
+            update.gameSessions = sessions;
+          }
+        }
+      }
+      tx.update(ref, update);
+    });
+  } catch (e) { showOvToast('Could not update — try again'); }
+}
+
 /* ════ ORDER VIEW ════ */
 function enterOrderView(tabId) {
   currentTabId = tabId;
@@ -762,6 +1248,7 @@ function exitOrderView() {
   currentTab   = null;
   document.getElementById('ovCart').classList.remove('mob-open');
   document.getElementById('ovMobBar').classList.remove('show');
+  _stopOvTimer();
 }
 
 /* ── Menu ── */
@@ -807,9 +1294,11 @@ async function loadMenu() {
   }
   try {
     const gsnap = await db.collection('gamePrices').get();
-    gameItems = gsnap.docs.map(d => ({ id: d.id, ...d.data() }));
+    gameItems = gsnap.docs.length
+      ? gsnap.docs.map(d => ({ id: d.id, ...d.data() }))
+      : DEFAULT_GAME_PRICES;
   } catch (e) {
-    gameItems = [];
+    gameItems = DEFAULT_GAME_PRICES;
   }
   buildCatTabs();
   renderMenuItems(activeCat);
@@ -848,12 +1337,42 @@ function renderMenuItems(cat) {
   const el = document.getElementById('ovItems');
   let items;
   if (cat === 'games') {
-    el.innerHTML = `<div class="ov-grid">${gameItems.map(g => `
-      <div class="ov-ic" data-name="${esc(g.name)}" data-price="${g.price}" data-icon="${esc(g.icon || '🎮')}" data-cat="games">
-        <div class="ov-ic-icon">${g.icon || '🎮'}</div>
-        <div class="ov-ic-name">${esc(g.name)}</div>
-        <div class="ov-ic-price">${N(g.price)} / ${esc(g.unit || 'game')}</div>
-      </div>`).join('')}</div>`;
+    // Build a price lookup from Firestore docs so seeded prices override defaults
+    const fsLookup = {};
+    gameItems.forEach(g => { fsLookup[g.name.toLowerCase()] = g.price; });
+
+    // Render each configured game group with duration buttons
+    const groupsHtml = GAME_DURATION_GROUPS.map(g => {
+      const btns = g.durations.map(d => {
+        const name  = g.label + ' · ' + _durLabel(d.m);
+        const price = fsLookup[name.toLowerCase()] ?? d.p;
+        return `<div class="ov-ic game-dur-btn" data-name="${esc(name)}" data-price="${price}" data-icon="${esc(g.icon)}" data-cat="games">
+          <div class="game-dur-time">${_durLabel(d.m)}</div>
+          <div class="game-dur-price">${N(price)}</div>
+        </div>`;
+      }).join('');
+      return `<div class="game-group">
+        <div class="game-group-hdr">
+          <span class="game-group-icon">${g.icon}</span>
+          <span class="game-group-name">${g.label}</span>
+        </div>
+        <div class="game-dur-row">${btns}</div>
+      </div>`;
+    }).join('');
+
+    // Any Firestore items not covered by GAME_DURATION_GROUPS (e.g. Swimming Pool) fall through as regular cards
+    const groupedKeys = GAME_DURATION_GROUPS.flatMap(g => g.key.split('|'));
+    const ungrouped   = gameItems.filter(g => !groupedKeys.some(k => g.name.toLowerCase().includes(k)));
+    const extraHtml   = ungrouped.length
+      ? `<div class="ov-grid" style="margin-top:14px">${ungrouped.map(g => `
+          <div class="ov-ic" data-name="${esc(g.name)}" data-price="${g.price}" data-icon="${esc(g.icon||'🎮')}" data-cat="games">
+            <div class="ov-ic-icon">${g.icon || '🎮'}</div>
+            <div class="ov-ic-name">${esc(g.name)}</div>
+            <div class="ov-ic-price">${N(g.price)} / ${esc(g.unit || 'session')}</div>
+          </div>`).join('')}</div>`
+      : '';
+
+    el.innerHTML = `<div class="game-sections">${groupsHtml}</div>${extraHtml}`;
     return;
   }
   if (cat === 'drinks') {
@@ -940,15 +1459,51 @@ document.getElementById('ovItems').addEventListener('click', async e => {
     await db.runTransaction(async tx => {
       const snap = await tx.get(ref);
       if (!snap.exists) return;
-      const items = [...(snap.data().items || [])];
-      const idx = items.findIndex(i => i.name === newItem.name);
+      const data  = snap.data();
+      const items = [...(data.items || [])];
+      const idx   = items.findIndex(i => i.name === newItem.name);
       if (idx >= 0) {
         items[idx] = { ...items[idx], qty: items[idx].qty + 1 };
         items[idx].total = items[idx].qty * items[idx].unitPrice;
       } else {
         items.push({ ...newItem, qty: 1, total: newItem.unitPrice });
       }
-      tx.update(ref, { items, subtotal: items.reduce((s, i) => s + i.total, 0) });
+      const update = { items, subtotal: items.reduce((s, i) => s + i.total, 0) };
+
+      // Game session tracking — start or extend a timed session
+      if (newItem.category === 'games') {
+        const parsed = parseGameItem(newItem.name);
+        if (parsed) {
+          const sessions = [...(data.gameSessions || [])];
+          const now      = new Date();
+          const ei       = sessions.findIndex(s => {
+            const ends = s.endsAt?.toDate?.() || (s.endsAt?.seconds ? new Date(s.endsAt.seconds * 1000) : null);
+            return s.game === parsed.game && ends && ends > now;
+          });
+          if (ei >= 0) {
+            // Extend existing active session for this game
+            const s       = sessions[ei];
+            const curEnds = s.endsAt?.toDate?.() || new Date(s.endsAt.seconds * 1000);
+            sessions[ei]  = {
+              ...s,
+              durationMins: (s.durationMins || 0) + parsed.mins,
+              endsAt: new Date(curEnds.getTime() + parsed.mins * 60000),
+            };
+          } else {
+            // Start a fresh session for this game
+            sessions.push({
+              game:         parsed.game,
+              icon:         newItem.icon || '🎮',
+              durationMins: parsed.mins,
+              startedAt:    now,
+              endsAt:       new Date(now.getTime() + parsed.mins * 60000),
+            });
+          }
+          update.gameSessions = sessions;
+        }
+      }
+
+      tx.update(ref, update);
     });
   } catch (e) { showOvToast('Could not add item — try again'); }
 });
@@ -959,22 +1514,57 @@ document.getElementById('ovCartRows').addEventListener('click', async e => {
   if (!btn || !currentTabId) return;
   const idx    = parseInt(btn.dataset.idx);
   const action = btn.dataset.action;
-  const ref    = db.collection('tabs').doc(currentTabId);
+
+  // Reductions are free within the first 10 min (grace), then require PIN
+  if (action === 'dec') {
+    const openedAt   = currentTab?.openedAt?.toDate?.() || (currentTab?.openedAt?.seconds ? new Date(currentTab.openedAt.seconds * 1000) : null);
+    const tabAgeMins = openedAt ? (Date.now() - openedAt) / 60000 : 999;
+    const inGrace    = tabAgeMins < 10;
+
+    if (!inGrace && !canAuthorize) {
+      openPinEntryModal({ idx, tabId: currentTabId });
+      return;
+    }
+    await _executePendingDecrement({ idx, tabId: currentTabId });
+    return;
+  }
+
+  // Increment — no PIN needed, same as before
+  const ref = db.collection('tabs').doc(currentTabId);
   try {
     await db.runTransaction(async tx => {
       const snap = await tx.get(ref);
       if (!snap.exists) return;
-      const items = [...(snap.data().items || [])];
+      const data  = snap.data();
+      const items = [...(data.items || [])];
       if (idx >= items.length) return;
-      if (action === 'inc') {
-        items[idx] = { ...items[idx], qty: items[idx].qty + 1 };
-        items[idx].total = items[idx].qty * items[idx].unitPrice;
-      } else {
-        items[idx] = { ...items[idx], qty: items[idx].qty - 1 };
-        items[idx].total = items[idx].qty * items[idx].unitPrice;
-        if (items[idx].qty <= 0) items.splice(idx, 1);
+      const item   = items[idx];
+      const newQty = item.qty + 1;
+      items[idx] = { ...item, qty: newQty, total: newQty * item.unitPrice };
+      const update = { items, subtotal: items.reduce((s, i) => s + i.total, 0) };
+      // Extend game session on increment
+      if (item.category === 'games') {
+        const parsed = parseGameItem(item.name);
+        if (parsed) {
+          const sessions = [...(data.gameSessions || [])];
+          const now = new Date();
+          const ei  = sessions.findIndex(s => {
+            const ends = s.endsAt?.toDate?.() || (s.endsAt?.seconds ? new Date(s.endsAt.seconds * 1000) : null);
+            return s.game === parsed.game && ends && ends > now;
+          });
+          if (ei >= 0) {
+            const s = sessions[ei];
+            const curEnds = s.endsAt?.toDate?.() || new Date(s.endsAt.seconds * 1000);
+            sessions[ei] = {
+              ...s,
+              durationMins: (s.durationMins || 0) + parsed.mins,
+              endsAt: new Date(curEnds.getTime() + parsed.mins * 60000),
+            };
+            update.gameSessions = sessions;
+          }
+        }
       }
-      tx.update(ref, { items, subtotal: items.reduce((s, i) => s + i.total, 0) });
+      tx.update(ref, update);
     });
   } catch (e) { showOvToast('Could not update — try again'); }
 });
@@ -986,6 +1576,7 @@ function renderCartPanel() {
 
   document.getElementById('ovTitle').textContent     = t.customerName + ' · ' + t.tableLabel;
   document.getElementById('ovHdrTotal').textContent  = N(t.subtotal);
+  _startOvTimer(t);
   document.getElementById('ovCartCust').textContent = t.customerName;
   const _server = (t.servingStaff || t.openedBy)?.name || '—';
   const _subEl  = document.getElementById('ovCartSub');
@@ -1352,6 +1943,39 @@ document.addEventListener('keydown', e => {
   if (document.getElementById('orderView').style.display !== 'none')     { exitOrderView(); return; }
 });
 
+/* ════ DEFAULT GAME PRICES (time-based) ════ */
+/* Override by adding docs to Firestore `gamePrices` collection */
+const DEFAULT_GAME_PRICES = [
+  // ── Snooker ──
+  {name:'Snooker · 15 min',  price:2000,  icon:'🎱', category:'games'},
+  {name:'Snooker · 30 min',  price:3500,  icon:'🎱', category:'games'},
+  {name:'Snooker · 45 min',  price:5000,  icon:'🎱', category:'games'},
+  {name:'Snooker · 1 hr',    price:7000,  icon:'🎱', category:'games'},
+  {name:'Snooker · 1 hr 30', price:10000, icon:'🎱', category:'games'},
+  {name:'Snooker · 2 hr',    price:13000, icon:'🎱', category:'games'},
+  // ── Table Tennis ──
+  {name:'Table Tennis · 15 min',  price:1500, icon:'🏓', category:'games'},
+  {name:'Table Tennis · 30 min',  price:2500, icon:'🏓', category:'games'},
+  {name:'Table Tennis · 45 min',  price:3500, icon:'🏓', category:'games'},
+  {name:'Table Tennis · 1 hr',    price:5000, icon:'🏓', category:'games'},
+  {name:'Table Tennis · 1 hr 30', price:7000, icon:'🏓', category:'games'},
+  {name:'Table Tennis · 2 hr',    price:9000, icon:'🏓', category:'games'},
+  // ── VR Game ──
+  {name:'VR Game · 15 min', price:2500, icon:'🥽', category:'games'},
+  {name:'VR Game · 30 min', price:4500, icon:'🥽', category:'games'},
+  {name:'VR Game · 45 min', price:6500, icon:'🥽', category:'games'},
+  {name:'VR Game · 1 hr',   price:9000, icon:'🥽', category:'games'},
+  // ── Sim Race ──
+  {name:'Sim Race · 15 min', price:2500, icon:'🏎️', category:'games'},
+  {name:'Sim Race · 30 min', price:4500, icon:'🏎️', category:'games'},
+  {name:'Sim Race · 45 min', price:6500, icon:'🏎️', category:'games'},
+  {name:'Sim Race · 1 hr',   price:9000, icon:'🏎️', category:'games'},
+  // ── PS Game ──
+  {name:'PS Game · 30 min', price:2000, icon:'🎮', category:'games'},
+  {name:'PS Game · 1 hr',   price:3500, icon:'🎮', category:'games'},
+  {name:'PS Game · 2 hr',   price:6000, icon:'🎮', category:'games'},
+];
+
 /* ════ DEFAULT MENU FALLBACK ════ */
 const DEFAULT_MENU = [
   {name:'Water',price:300,category:'drinks',icon:'💧'},
@@ -1384,6 +2008,8 @@ const DEFAULT_MENU = [
 
 /* ════ INIT ════ */
 subscribeList();
+requestNotifPermission();
+startTimerTick();
 </script>
 </body>
 </html>
