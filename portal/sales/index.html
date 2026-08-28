@@ -22,6 +22,21 @@
 .stat-mini{flex:1;min-width:70px;text-align:center;padding:10px 8px;background:#f5f9f5;border-radius:6px}
 .stat-mini .lbl{font-size:0.58rem;color:#6a6b62;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:4px}
 .stat-mini .val{font-size:0.88rem;font-weight:400}
+
+/* ── Manager Payment Log ── */
+.pay-log-pill{padding:5px 14px;border:1px solid var(--border);border-radius:20px;
+  font-family:'Jost',sans-serif;font-size:0.68rem;letter-spacing:0.08em;text-transform:uppercase;
+  color:var(--muted);cursor:pointer;background:transparent;transition:all .2s;white-space:nowrap}
+.pay-log-pill.active{border-color:#C9A96E;color:#C9A96E;background:rgba(201,169,110,0.08)}
+.pay-log-pill:hover{border-color:#C9A96E;color:#C9A96E}
+.plog-badge-cash{background:rgba(5,150,105,0.1);color:#065f46;border-radius:4px;padding:2px 8px;font-size:0.62rem;letter-spacing:0.06em;text-transform:uppercase;font-weight:500}
+.plog-badge-pos{background:rgba(59,130,246,0.1);color:#1e40af;border-radius:4px;padding:2px 8px;font-size:0.62rem;letter-spacing:0.06em;text-transform:uppercase;font-weight:500}
+.plog-badge-transfer{background:rgba(139,92,246,0.1);color:#5b21b6;border-radius:4px;padding:2px 8px;font-size:0.62rem;letter-spacing:0.06em;text-transform:uppercase;font-weight:500}
+.plog-stat{flex:1;min-width:80px;text-align:center;padding:10px 8px;background:#f5f9f5;border-radius:6px}
+.plog-stat .lbl{font-size:0.58rem;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:4px}
+.plog-stat .val{font-size:0.9rem;font-weight:400;color:#1a1a18}
+.plog-stat.gold-stat{background:#fff8ec;border:1px solid rgba(201,169,110,0.2)}
+.plog-stat.gold-stat .val{color:#C9A96E}
 </style>
 </head>
 <body>
@@ -109,6 +124,29 @@
           <input type="date" id="salesDate" class="form-control" style="width:auto;font-size:0.8rem;padding:6px 10px" onchange="loadMySales(this.value)">
         </div>
         <div id="mySalesContent" style="font-size:0.85rem"></div>
+      </div>
+    </div>
+
+    <!-- ════ MANAGER: Payment Collection Log ════ -->
+    <div id="payLogSection" style="display:none;margin-top:24px">
+      <div class="card">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px;gap:12px;flex-wrap:wrap">
+          <div>
+            <h2 style="margin:0 0 4px;font-size:1rem;font-weight:400">Payment Collection Log</h2>
+            <div style="font-size:0.72rem;color:var(--muted)">All staff · Cash, POS & Transfer · Who collected what</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+            <div style="display:flex;gap:6px;flex-wrap:wrap">
+              <button class="pay-log-pill active" data-method="all"      onclick="setPayFilter(this)">All</button>
+              <button class="pay-log-pill"         data-method="cash"     onclick="setPayFilter(this)">💵 Cash</button>
+              <button class="pay-log-pill"         data-method="pos"      onclick="setPayFilter(this)">🖥 POS</button>
+              <button class="pay-log-pill"         data-method="transfer" onclick="setPayFilter(this)">📲 Transfer</button>
+            </div>
+            <input type="date" id="payLogDate" class="form-control" style="width:auto;font-size:0.8rem;padding:6px 10px" onchange="loadPayLog(this.value)">
+          </div>
+        </div>
+        <div id="payLogTotals"></div>
+        <div id="payLogList" style="font-size:0.85rem"></div>
       </div>
     </div>
   </div>
@@ -323,6 +361,116 @@ async function loadMySales(date) {
 }
 
 loadMySales(today);
+
+/* ════ MANAGER: Payment Collection Log ════ */
+let _payLogData   = [];
+let _payLogFilter = 'all';
+
+function setPayFilter(btn) {
+  document.querySelectorAll('.pay-log-pill').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  _payLogFilter = btn.dataset.method;
+  renderPayLog();
+}
+
+function renderPayLog() {
+  const listEl = document.getElementById('payLogList');
+  const totEl  = document.getElementById('payLogTotals');
+
+  // Totals always over the full dataset (not filtered)
+  let grandTotal = 0, cashTotal = 0, posTotal = 0, transTotal = 0;
+  _payLogData.forEach(r => {
+    const amt = r.totalSales || 0;
+    grandTotal += amt;
+    const m = (r.paymentMethod || '').toLowerCase();
+    if (m === 'cash')     cashTotal  += amt;
+    else if (m === 'pos') posTotal   += amt;
+    else                  transTotal += amt;
+  });
+
+  totEl.innerHTML = `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid var(--border)">
+    <div class="plog-stat gold-stat"><div class="lbl">All Payments</div><div class="val">${fmtNaira(grandTotal)}</div></div>
+    ${cashTotal  > 0 ? `<div class="plog-stat"><div class="lbl">💵 Cash</div><div class="val" style="color:#065f46">${fmtNaira(cashTotal)}</div></div>` : ''}
+    ${posTotal   > 0 ? `<div class="plog-stat"><div class="lbl">🖥 POS</div><div class="val" style="color:#1e40af">${fmtNaira(posTotal)}</div></div>` : ''}
+    ${transTotal > 0 ? `<div class="plog-stat"><div class="lbl">📲 Transfer</div><div class="val" style="color:#5b21b6">${fmtNaira(transTotal)}</div></div>` : ''}
+  </div>`;
+
+  const filtered = _payLogFilter === 'all'
+    ? _payLogData
+    : _payLogData.filter(r => (r.paymentMethod || '').toLowerCase() === _payLogFilter);
+
+  if (!filtered.length) {
+    listEl.innerHTML = '<div style="color:var(--muted);padding:14px 0">No records for this filter.</div>';
+    return;
+  }
+
+  const sorted = [...filtered].sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+
+  listEl.innerHTML = sorted.map(r => {
+    const method  = (r.paymentMethod || '').toLowerCase();
+    const badge   = method === 'cash'
+      ? '<span class="plog-badge-cash">💵 Cash</span>'
+      : method === 'pos'
+        ? '<span class="plog-badge-pos">🖥 POS</span>'
+        : '<span class="plog-badge-transfer">📲 Transfer</span>';
+
+    let ts = null;
+    const raw = r.createdAt;
+    if (raw?.toDate)       ts = raw.toDate();
+    else if (raw?.seconds) ts = new Date(raw.seconds * 1000);
+    const time = ts ? ts.toLocaleTimeString('en-NG', {hour:'2-digit', minute:'2-digit'}) : '—';
+
+    // Who collected — for Quick Pay (cash) this is collectedBy; for POS it's processedBy
+    const collector     = r.collectedBy?.name || r.processedBy || r.staffName || '—';
+    const collectorRole = r.collectedBy?.role || '';
+    const collectorLine = `Collected by: <span style="color:var(--text)">${collector}${collectorRole ? ' · ' + collectorRole : ''}</span>`;
+
+    // Remittance tag — only for cash Quick Pay entries
+    const remTag = method === 'cash' && r.cashRemittance
+      ? (r.cashRemittance === 'confirmed'
+          ? `<span style="font-size:0.6rem;background:rgba(5,150,105,0.1);color:#065f46;border-radius:3px;padding:2px 7px;letter-spacing:0.05em;text-transform:uppercase;font-weight:500">✓ Remitted</span>`
+          : `<span style="font-size:0.6rem;background:rgba(217,119,6,0.1);color:#92400e;border-radius:3px;padding:2px 7px;letter-spacing:0.05em;text-transform:uppercase;font-weight:500">Pending remittance</span>`)
+      : '';
+
+    const custTable = [r.customerName ? '👤 ' + r.customerName : '', r.tableLabel || r.section || ''].filter(Boolean).join(' · ');
+
+    return `<div style="padding:12px 0;border-bottom:1px solid var(--border)">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+          ${badge}
+          <span style="font-size:0.7rem;color:var(--muted)">${time}</span>
+          ${remTag}
+        </div>
+        <span style="color:#C9A96E;font-weight:500;white-space:nowrap">${fmtNaira(r.totalSales || 0)}</span>
+      </div>
+      ${custTable ? `<div style="font-size:0.76rem;color:var(--muted);margin-top:4px">${custTable}</div>` : ''}
+      <div style="font-size:0.72rem;color:#aaa;margin-top:3px">${collectorLine}</div>
+    </div>`;
+  }).join('');
+}
+
+async function loadPayLog(date) {
+  const listEl = document.getElementById('payLogList');
+  document.getElementById('payLogTotals').innerHTML = '';
+  listEl.innerHTML = '<div style="color:var(--muted);padding:12px 0">Loading…</div>';
+  try {
+    const snap   = await db.collection('sales').where('date', '==', date).get();
+    _payLogData  = snap.docs.map(d => d.data());
+    renderPayLog();
+  } catch(e) {
+    listEl.innerHTML = '<div style="color:#dc2626;padding:8px 0">Failed to load. Check connection.</div>';
+  }
+}
+
+/* ── Show log for managers/CEO/HR only ── */
+(function initPayLog() {
+  const _r = (staff?.accessLevel || staff?.role || '').toLowerCase().replace(/\s+/g, '');
+  const canView = _r === 'ceo' || _r === 'superadmin' || _r.includes('manager') || _r === 'hr';
+  if (!canView) return;
+  document.getElementById('payLogSection').style.display = '';
+  document.getElementById('payLogDate').value = today;
+  loadPayLog(today);
+})();
 </script>
 </body>
 </html>

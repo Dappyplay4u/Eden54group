@@ -199,14 +199,18 @@
   color:rgba(201,169,110,0.65);border-radius:7px;font-family:'Jost',sans-serif;font-size:0.7rem;
   letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;transition:all .2s}
 .btn-quick-pay:hover{background:rgba(201,169,110,0.08);border-color:rgba(201,169,110,0.45)}
+.btn-quick-pay:disabled{opacity:0.35;cursor:not-allowed}
 
-/* Mobile floating bar */
+/* Mobile floating bar — never shown on desktop/tablet */
 #ovMobBar{display:none;position:fixed;bottom:0;left:0;right:0;z-index:400;
   background:#162d1f;border-top:1px solid rgba(201,169,110,0.3);
   padding:11px 16px;align-items:center;justify-content:space-between;gap:12px}
-#ovMobBar.show{display:flex}
 #ovMobBack{display:none;background:none;border:none;color:#C9A96E;font-family:'Jost',sans-serif;
   font-size:0.82rem;cursor:pointer;padding:0;flex-shrink:0}
+#ovMobExit{display:none;background:none;border:1px solid rgba(245,242,236,0.15);border-radius:5px;
+  color:rgba(245,242,236,0.45);font-family:'Jost',sans-serif;font-size:0.65rem;letter-spacing:0.08em;
+  text-transform:uppercase;cursor:pointer;padding:4px 9px;flex-shrink:0;transition:all .2s}
+#ovMobExit:hover{border-color:rgba(201,169,110,0.4);color:#C9A96E}
 
 /* Status banner inside order view */
 .ov-status-bar{padding:8px 18px;font-size:0.75rem;letter-spacing:0.06em;text-align:center;flex-shrink:0}
@@ -219,6 +223,11 @@
     display:flex;position:fixed;inset:0;z-index:500;
     flex-direction:column;overflow:hidden;border-left:none;
   }
+  /* Mobile floating bar only shows on small screens */
+  #ovMobBar.show{display:flex}
+  /* Show navigation buttons when cart is full-screen on mobile */
+  .ov-cart.mob-open #ovMobBack{display:block}
+  .ov-cart.mob-open #ovMobExit{display:block}
   .ov-items{padding-bottom:76px}
   .ov-grid{grid-template-columns:repeat(3,1fr)}
   .ov-hdr-total{display:none}
@@ -344,9 +353,12 @@
     </div>
     <div style="font-size:0.7rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Payment Method</div>
     <div class="pay-methods">
-      <div class="pay-method active" data-method="cash"     onclick="selPayMethod(this)">Cash</div>
-      <div class="pay-method"       data-method="transfer"  onclick="selPayMethod(this)">Transfer</div>
-      <div class="pay-method"       data-method="pos"       onclick="selPayMethod(this)">POS</div>
+      <div class="pay-method active" data-method="cash">Cash</div>
+    </div>
+    <div id="payCashNote" style="display:none;margin-top:14px;padding:10px 12px;background:rgba(201,169,110,0.08);border:1px solid rgba(201,169,110,0.25);border-radius:8px;font-size:0.78rem;color:var(--muted)">
+      <span style="color:var(--gold);font-weight:600">Cash collector on record:</span><br>
+      <span id="payCashCollector" style="color:var(--text);font-size:0.82rem"></span><br>
+      <span style="font-size:0.7rem;opacity:0.65">Your name will be logged against this cash collection for remittance.</span>
     </div>
     <div class="pay-btns">
       <button class="btn-mcancel" onclick="closePayModal()">Cancel</button>
@@ -426,6 +438,7 @@
 
     <div class="ov-cart" id="ovCart">
       <div class="ov-cart-hdr">
+        <button id="ovMobExit" onclick="exitOrderView()">← Tabs</button>
         <button id="ovMobBack" onclick="closeMobileCart()">← Menu</button>
         <div class="ov-cart-hdr-info">
           <div class="ov-cart-cust" id="ovCartCust">—</div>
@@ -443,7 +456,7 @@
           <span class="ov-total-amt" id="ovCartTotal">₦0.00</span>
         </div>
         <button class="btn-send-pos" id="btnSendPOS" onclick="sendToPOS()">Send to POS for Payment</button>
-        <button class="btn-quick-pay" onclick="openQuickPay()">Quick Pay Here</button>
+        <button class="btn-quick-pay" id="btnQuickPay" onclick="openQuickPay()">Quick Pay (Cash)</button>
       </div>
     </div>
   </div>
@@ -1590,11 +1603,17 @@ function renderCartPanel() {
   const statusBar = document.getElementById('ovStatusBar');
   statusBar.style.display = t.status === 'awaiting-pos' ? 'flex' : 'none';
 
-  const canEdit = isTabOwner();
-  const btnSend = document.getElementById('btnSendPOS');
-  const atPOS   = t.status === 'awaiting-pos';
-  btnSend.disabled    = atPOS || !(t.items || []).length || !canEdit;
+  const canEdit   = isTabOwner();
+  const btnSend   = document.getElementById('btnSendPOS');
+  const btnQPay   = document.getElementById('btnQuickPay');
+  const atPOS     = t.status === 'awaiting-pos';
+  const hasItems  = !!(t.items || []).length;
+  btnSend.disabled    = atPOS || !hasItems || !canEdit;
   btnSend.textContent = atPOS ? '✓ Sent to POS Terminal' : 'Send to POS for Payment';
+  if (btnQPay) {
+    btnQPay.disabled = !hasItems || !canEdit;
+    btnQPay.style.display = atPOS ? 'none' : '';
+  }
 
   // Show read-only notice for non-owners
   let readOnlyBanner = document.getElementById('ovReadOnlyBanner');
@@ -1614,10 +1633,15 @@ function renderCartPanel() {
   const qty   = items.reduce((s, i) => s + (i.qty || 0), 0);
   document.getElementById('ovMobCount').textContent = qty ? qty + ' item' + (qty > 1 ? 's' : '') : '';
   document.getElementById('ovMobAmt').textContent   = N(t.subtotal);
-  if (qty > 0 && !document.getElementById('ovCart').classList.contains('mob-open'))
-    document.getElementById('ovMobBar').classList.add('show');
-  else if (!qty)
+  // Mobile floating bar — only relevant on narrow screens (≤720px)
+  if (window.innerWidth <= 720) {
+    if (qty > 0 && !document.getElementById('ovCart').classList.contains('mob-open'))
+      document.getElementById('ovMobBar').classList.add('show');
+    else if (!qty)
+      document.getElementById('ovMobBar').classList.remove('show');
+  } else {
     document.getElementById('ovMobBar').classList.remove('show');
+  }
 
   const empty = document.getElementById('ovCartEmpty');
   const rows  = document.getElementById('ovCartRows');
@@ -1865,6 +1889,16 @@ function showOvToast(msg) {
 }
 
 /* ════ QUICK PAY ════ */
+function _toggleCashNote(method) {
+  const note = document.getElementById('payCashNote');
+  if (!note) return;
+  if (method === 'cash') {
+    document.getElementById('payCashCollector').textContent = staff ? staff.name + ' (' + (staff.accessLevel || staff.role || 'Staff') + ')' : '—';
+    note.style.display = 'block';
+  } else {
+    note.style.display = 'none';
+  }
+}
 function openQuickPay() {
   if (!currentTab || !currentTab.items?.length) return;
   document.getElementById('payModalCust').textContent = currentTab.customerName;
@@ -1872,6 +1906,7 @@ function openQuickPay() {
   document.getElementById('payModalAmt').textContent  = N(currentTab.subtotal);
   payMethod = 'cash';
   document.querySelectorAll('.pay-method').forEach(el => el.classList.toggle('active', el.dataset.method === 'cash'));
+  _toggleCashNote('cash');
   document.getElementById('payModal').classList.add('show');
 }
 function closePayModal() { document.getElementById('payModal').classList.remove('show'); }
@@ -1879,6 +1914,7 @@ function selPayMethod(el) {
   document.querySelectorAll('.pay-method').forEach(e => e.classList.remove('active'));
   el.classList.add('active');
   payMethod = el.dataset.method;
+  _toggleCashNote(payMethod);
 }
 
 async function confirmPayment() {
@@ -1890,11 +1926,12 @@ async function confirmPayment() {
     const total  = tab.subtotal || 0;
     const server = tab.servingStaff || tab.openedBy || { id: staff.id, name: staff.name };
     const now    = firebase.firestore.FieldValue.serverTimestamp();
-    await db.collection('sales').add({
+    const salesDoc = {
       date:          tab.date || todayStr(),
       staffId:       server.id,
       staffName:     server.name,
       processedBy:   staff.name,
+      processedById: staff.id,
       department:    'Restaurant & Lounge',
       source:        'tab',
       tabId:         currentTabId,
@@ -1908,13 +1945,24 @@ async function confirmPayment() {
       paymentMethod: payMethod,
       notes:         `Tab: ${tab.customerName} @ ${tab.tableLabel}`,
       createdAt:     now,
-    });
-    await db.collection('tabs').doc(currentTabId).update({
+    };
+    if (payMethod === 'cash') {
+      salesDoc.collectedBy   = { id: staff.id, name: staff.name, role: staff.accessLevel || staff.role || '' };
+      salesDoc.collectedAt   = now;
+      salesDoc.cashRemittance = 'pending';
+    }
+    await db.collection('sales').add(salesDoc);
+    const tabUpdate = {
       status: 'paid',
       paidAt: now,
-      paidBy: { id: staff.id, name: staff.name },
+      paidBy: { id: staff.id, name: staff.name, role: staff.accessLevel || staff.role || '' },
       paymentMethod: payMethod,
-    });
+    };
+    if (payMethod === 'cash') {
+      tabUpdate.cashCollectedBy = { id: staff.id, name: staff.name };
+      tabUpdate.cashRemittance  = 'pending';
+    }
+    await db.collection('tabs').doc(currentTabId).update(tabUpdate);
     closePayModal();
     exitOrderView();
     showAlert('alertBox', `Paid · ${tab.customerName} · ${N(total)}`, 'alert-success');
@@ -1931,7 +1979,8 @@ function openMobileCart() {
 }
 function closeMobileCart() {
   document.getElementById('ovCart').classList.remove('mob-open');
-  if (currentTab?.items?.length) document.getElementById('ovMobBar').classList.add('show');
+  if (window.innerWidth <= 720 && currentTab?.items?.length)
+    document.getElementById('ovMobBar').classList.add('show');
 }
 
 /* ════ KEYBOARD ════ */

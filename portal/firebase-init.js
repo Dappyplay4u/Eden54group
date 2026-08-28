@@ -175,6 +175,8 @@ function buildNav(staff, active) {
     html += a('/portal/reports/',              '📋', 'All Reports',         'reports');
     html += a('/portal/occupancy/',            '🏨', 'Occupancy Report',    'occupancy');
     html += a('/portal/bar/reconciliation/',   '🔄', 'Bar Reconciliation',  'bar-recon');
+    html += a('/portal/payment-log/',          '💳', 'Payment Collection',  'payment-log');
+    html += a('/portal/open-tabs/',            '🗂️', 'Open Tabs',            'open-tabs');
     html += sec('Bar');
     html += a('/portal/bar/',         '🍺', 'Bar Stock',        'bar');
     html += a('/portal/procurement/', '🛒', 'Procurement',      'procurement');
@@ -197,6 +199,8 @@ function buildNav(staff, active) {
     html += a('/portal/reports/',              '📋', 'All Reports',         'reports');
     html += a('/portal/occupancy/',            '🏨', 'Occupancy Report',    'occupancy');
     html += a('/portal/bar/reconciliation/',   '🔄', 'Bar Reconciliation',  'bar-recon');
+    html += a('/portal/payment-log/',          '💳', 'Payment Collection',  'payment-log');
+    html += a('/portal/open-tabs/',            '🗂️', 'Open Tabs',            'open-tabs');
     html += sec('HR');
     html += a('/portal/attendance/',        '👥', 'Attendance',        'attendance');
     html += a('/portal/payroll/',           '💵', 'Payroll',            'payroll');
@@ -381,6 +385,8 @@ function _checkAccess(staff, page) {
     training:  true,
     occupancy:    isManager || isHR,
     'bar-recon':  isManager || isHR,
+    'payment-log': isManager || isHR,
+    'open-tabs':   isManager || isHR,
     sales: true, home: true, updates: true,
   };
   return !!rules[page];
