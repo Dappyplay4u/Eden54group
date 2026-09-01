@@ -563,6 +563,29 @@ const db = firebase.firestore();
 let storage = null;
 try { storage = firebase.storage(); } catch(e) {}
 
+/* Edendox platform — Eden 54 is tenant "eden54". Secondary named app so this
+   form also feeds the new multi-tenant HR portal (companies/eden54/backgroundChecks)
+   alongside the legacy project. Non-fatal if it fails.
+   Remove the legacy write once Edendox is the production portal. */
+const EDX_TENANT = 'eden54group';   // Edendox companyId for this workspace
+let edxDb = null;
+try {
+  const edxApp = firebase.initializeApp({
+    apiKey:            "AIzaSyA94DZmoDGMcRhU4Wzn6757WupjxKpx5QY",
+    authDomain:        "edendox-780bc.firebaseapp.com",
+    projectId:         "edendox-780bc",
+    storageBucket:     "edendox-780bc.firebasestorage.app",
+    messagingSenderId: "653415072263",
+    appId:             "1:653415072263:web:7bd9a8d68fb02352b460a2"
+  }, "edendox");
+  edxDb = edxApp.firestore();
+  // Local dev: route the Edendox mirror to the emulator suite (run it first).
+  if (/(^|\.)localhost$/.test(location.hostname) || location.hostname === '127.0.0.1' || location.hostname === '[::1]') {
+    try { edxDb.useEmulator('127.0.0.1', 8080); console.log('[EDX] using Firestore emulator'); }
+    catch(e) { console.warn('[EDX] emulator wiring failed:', e); }
+  }
+} catch(e) { console.warn('[EDX] init failed:', e); }
+
 const $ = id => document.getElementById(id);
 const v = id => ($( id)||{}).value || '';
 
@@ -755,9 +778,13 @@ async function submitForm() {
       upload($('f_g2').files[0],     bp+'/guarantor2-id'),
     ]);
 
-    /* 4 — Save to Firestore */
+    /* 4 — Save to Firestore (both backends).
+       `base` is the candidate-supplied data. The legacy project also gets the
+       blank HR workflow fields; the Edendox mirror must NOT carry them (its
+       security rules reject HR keys on a public create) — HR fills those in
+       the portal. File URLs are shared: getDownloadURL() tokens work anywhere. */
     loader('Saving your information…');
-    try { await db.collection('backgroundChecks').doc(uid).set({
+    const base = {
       refId: uid,
       fullName:v('p_name'), dob:v('p_dob'), gender:v('p_gender'), marital:v('p_marital'),
       phone:v('p_phone'), email:v('p_email'), address:v('p_address'),
@@ -777,9 +804,25 @@ async function submitForm() {
         {company:v('e2_co'),contact:v('e2_contact'),phone:v('e2_phone'),email:v('e2_email'),title:v('e2_title'),from:v('e2_from'),to:v('e2_to'),reason:v('e2_reason')},
       ],
       signature: v('sig_name'),
-      status:'pending', hrNotes:'', idVerifiedBy:'', refChecksBy:'', policeVerified:false, hrDecision:'',
-      submittedAt: firebase.firestore.FieldValue.serverTimestamp(),
-    }); } catch(fsErr) { /* non-fatal */ }
+      status:'pending',
+    };
+    const TS = () => firebase.firestore.FieldValue.serverTimestamp();
+
+    // Legacy project (+ blank HR workflow fields)
+    try {
+      await db.collection('backgroundChecks').doc(uid).set(Object.assign({}, base, {
+        hrNotes:'', idVerifiedBy:'', refChecksBy:'', policeVerified:false, hrDecision:'',
+        submittedAt: TS(),
+      }));
+    } catch(fsErr) { console.error('[BC] legacy write failed:', fsErr); }
+
+    // Edendox platform  →  companies/eden54/backgroundChecks  (no HR keys)
+    try {
+      if (edxDb) await edxDb
+        .collection('companies').doc(EDX_TENANT)
+        .collection('backgroundChecks').doc(uid)
+        .set(Object.assign({}, base, { source:'website', submittedAt: TS() }));
+    } catch(edxErr) { console.error('[BC] Edendox mirror failed:', edxErr); }
 
     /* 5 — Show success */
     unloader();

@@ -3712,28 +3712,49 @@
       body: JSON.stringify(emailPayload)
     }).catch(() => {});
 
-    /* Also write to Firestore so portal shows it as a notification */
+    /* Also write to Firestore so the portal shows it as a notification.
+       Written to BOTH backends: the legacy `eden54` project (current portal)
+       and the Edendox platform under companies/eden54/ (new portal). Either
+       write failing is non-fatal — the guest still gets the success screen. */
     (function saveBooking() {
+      var payload = {
+        firstName:   document.getElementById('rfFirstName').value,
+        lastName:    document.getElementById('rfLastName').value,
+        email:       document.getElementById('rfEmail').value,
+        phone:       document.getElementById('rfPhone').value,
+        checkin:     document.getElementById('rfCheckin').value,
+        checkout:    document.getElementById('rfCheckout').value,
+        guests:      document.getElementById('rfGuests').value,
+        unit:        document.getElementById('rfUnit').value,
+        requests:    document.getElementById('rfRequests').value,
+        status:      'new',
+        source:      'website'
+      };
+      var TS = function(){ return firebase.firestore.FieldValue.serverTimestamp(); };
+
+      // Legacy project (default app)
       try {
-        if (typeof firebase === 'undefined') { console.warn('[RF] Firebase SDK not loaded'); return; }
-        if (!firebase.apps || !firebase.apps.length) { console.warn('[RF] Firebase not initialised'); return; }
-        firebase.firestore().collection('apartmentBookings').add({
-          firstName:   document.getElementById('rfFirstName').value,
-          lastName:    document.getElementById('rfLastName').value,
-          email:       document.getElementById('rfEmail').value,
-          phone:       document.getElementById('rfPhone').value,
-          checkin:     document.getElementById('rfCheckin').value,
-          checkout:    document.getElementById('rfCheckout').value,
-          guests:      document.getElementById('rfGuests').value,
-          unit:        document.getElementById('rfUnit').value,
-          requests:    document.getElementById('rfRequests').value,
-          status:      'new',
-          source:      'website',
-          createdAt:   firebase.firestore.FieldValue.serverTimestamp()
-        })
-        .then(function() { console.log('[RF] ✅ Booking saved to portal'); })
-        .catch(function(e) { console.error('[RF] ❌ Firestore write failed:', e.code, e.message); });
-      } catch(e) { console.error('[RF] Firebase sync error:', e); }
+        if (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length) {
+          var legacy = {}; for (var k in payload) legacy[k] = payload[k];
+          legacy.createdAt = TS();
+          firebase.firestore().collection('apartmentBookings').add(legacy)
+            .then(function(){ console.log('[RF] ✅ Booking saved (legacy)'); })
+            .catch(function(e){ console.error('[RF] ❌ legacy write:', e.code, e.message); });
+        }
+      } catch(e) { console.error('[RF] legacy sync error:', e); }
+
+      // Edendox platform  →  companies/eden54/apartmentBookings
+      try {
+        if (window.edxApp) {
+          var edx = {}; for (var k2 in payload) edx[k2] = payload[k2];
+          edx.createdAt = TS();
+          window.edxApp.firestore()
+            .collection('companies').doc(window.EDX_TENANT || 'eden54')
+            .collection('apartmentBookings').add(edx)
+            .then(function(){ console.log('[RF] ✅ Booking mirrored (Edendox)'); })
+            .catch(function(e){ console.error('[RF] ❌ Edendox mirror:', e.code, e.message); });
+        }
+      } catch(e) { console.error('[RF] Edendox sync error:', e); }
     })();
   }
 
@@ -3874,6 +3895,45 @@
       });
     }
   } catch(e) {}
+
+  /* Edendox platform — Eden 54 is tenant "eden54". Secondary named app so the
+     public forms can feed the new multi-tenant portal alongside the legacy one.
+     Remove the legacy writes once Edendox is the production portal. */
+  window.EDX_TENANT = 'eden54group';   // Edendox companyId for this workspace
+  try {
+    window.edxApp = firebase.initializeApp({
+      apiKey:            "AIzaSyA94DZmoDGMcRhU4Wzn6757WupjxKpx5QY",
+      authDomain:        "edendox-780bc.firebaseapp.com",
+      projectId:         "edendox-780bc",
+      storageBucket:     "edendox-780bc.firebasestorage.app",
+      messagingSenderId: "653415072263",
+      appId:             "1:653415072263:web:7bd9a8d68fb02352b460a2"
+    }, "edendox");
+    // Local dev: route the Edendox mirror to the emulator suite (run it first).
+    var edxLocal = /(^|\.)localhost$/.test(location.hostname) || location.hostname === "127.0.0.1" || location.hostname === "[::1]";
+    if (edxLocal) {
+      try { window.edxApp.firestore().useEmulator("127.0.0.1", 8080); }
+      catch(e) { console.warn("[EDX] emulator wiring failed:", e); }
+    }
+    console.log("[EDX] mirror ready → companies/" + window.EDX_TENANT + "/apartmentBookings @ " + (edxLocal ? "emulator 127.0.0.1:8080" : "cloud edendox-780bc"));
+
+    /* Console helper: run  edxTestReservation()  to write a dummy booking and
+       see exactly what happens (success / permission-denied / not-wired). */
+    window.edxTestReservation = function () {
+      if (!window.edxApp) { console.error("[EDX] window.edxApp is undefined — the init block did not run (stale page? hard-refresh)."); return; }
+      return window.edxApp.firestore()
+        .collection("companies").doc(window.EDX_TENANT)
+        .collection("apartmentBookings").add({
+          firstName: "TEST", lastName: "Reservation", phone: "08000000000",
+          email: "test@example.com", checkin: "2026-09-01", checkout: "2026-09-03",
+          guests: "2", unit: "The Ivy", requests: "console test",
+          status: "new", source: "website",
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        })
+        .then(function (r) { console.log("[EDX] ✅ test booking written:", r.id, "→ check the portal"); })
+        .catch(function (e) { console.error("[EDX] ❌ write failed:", e.code, e.message); });
+    };
+  } catch(e) { console.warn("[EDX] init failed:", e); }
 </script>
 <script>
   // Sync apartment prices from Firestore aptRates — skips stale old-default values
