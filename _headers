@@ -32,16 +32,6 @@
 /*.jpg
   Cache-Control: public, max-age=31536000, immutable
 
-# Portal CSS/JS — cache 1 day, revalidate
-/portal/*.css
-  Cache-Control: public, max-age=86400
-
-/portal/*.js
-  Cache-Control: public, max-age=86400
-
 # HTML pages — always revalidate (content changes)
 /*.html
-  Cache-Control: no-cache
-
-/portal/*/
   Cache-Control: no-cache
