@@ -3540,11 +3540,15 @@
 
     try {
       if (typeof firebase === 'undefined' || !firebase.apps || !firebase.apps.length) throw new Error('sdk');
-      const db = firebase.firestore();
+      // NOTE: these collections are member-only on Edendox, so this read
+      // permission-denies for a public visitor and we fall through to the static
+      // unit list below ("staff will confirm availability"). Live public
+      // availability needs a CORS publicApartments() function — see follow-up.
+      const tcol = firebase.firestore().collection('companies').doc(window.EDX_TENANT);
 
       const [webSnap, portalSnap] = await Promise.all([
-        db.collection('apartmentBookings').where('checkin', '<', checkout).get(),
-        db.collection('apartmentRentals').where('checkin', '<', checkout).get(),
+        tcol.collection('apartmentBookings').where('checkin', '<', checkout).get(),
+        tcol.collection('apartmentRentals').where('checkin', '<', checkout).get(),
       ]);
 
       // Track which named units are booked; also track legacy bed-count bookings
@@ -3712,10 +3716,9 @@
       body: JSON.stringify(emailPayload)
     }).catch(() => {});
 
-    /* Also write to Firestore so the portal shows it as a notification.
-       Written to BOTH backends: the legacy `eden54` project (current portal)
-       and the Edendox platform under companies/eden54/ (new portal). Either
-       write failing is non-fatal — the guest still gets the success screen. */
+    /* Also write the booking to Firestore so the Edendox portal shows it as a
+       website reservation (🌐 badge in /portal/apartments/). Non-fatal — the
+       guest still gets the success screen; the Google Form + email always run. */
     (function saveBooking() {
       var payload = {
         firstName:   document.getElementById('rfFirstName').value,
@@ -3728,33 +3731,19 @@
         unit:        document.getElementById('rfUnit').value,
         requests:    document.getElementById('rfRequests').value,
         status:      'new',
-        source:      'website'
+        source:      'website',
+        createdAt:   firebase.firestore.FieldValue.serverTimestamp()
       };
-      var TS = function(){ return firebase.firestore.FieldValue.serverTimestamp(); };
-
-      // Legacy project (default app)
       try {
-        if (typeof firebase !== 'undefined' && firebase.apps && firebase.apps.length) {
-          var legacy = {}; for (var k in payload) legacy[k] = payload[k];
-          legacy.createdAt = TS();
-          firebase.firestore().collection('apartmentBookings').add(legacy)
-            .then(function(){ console.log('[RF] ✅ Booking saved (legacy)'); })
-            .catch(function(e){ console.error('[RF] ❌ legacy write:', e.code, e.message); });
-        }
-      } catch(e) { console.error('[RF] legacy sync error:', e); }
-
-      // Edendox platform  →  companies/eden54/apartmentBookings
-      try {
-        if (window.edxApp) {
-          var edx = {}; for (var k2 in payload) edx[k2] = payload[k2];
-          edx.createdAt = TS();
-          window.edxApp.firestore()
-            .collection('companies').doc(window.EDX_TENANT || 'eden54')
-            .collection('apartmentBookings').add(edx)
-            .then(function(){ console.log('[RF] ✅ Booking mirrored (Edendox)'); })
-            .catch(function(e){ console.error('[RF] ❌ Edendox mirror:', e.code, e.message); });
-        }
-      } catch(e) { console.error('[RF] Edendox sync error:', e); }
+        firebase.firestore()
+          .collection('companies').doc(window.EDX_TENANT)
+          .collection('apartmentBookings').add(payload)
+          .then(function(){ console.log('[RF] ✅ Reservation saved to Edendox'); })
+          .catch(function(e){
+            console.error('[RF] ❌ Edendox write failed:', e.code, e.message,
+              '\n→ If "permission-denied": turn on Public intake → reservations for eden54group in /admin/.');
+          });
+      } catch(e) { console.error('[RF] Edendox write error:', e); }
     })();
   }
 
@@ -3879,49 +3868,37 @@
   setInterval(() => showTestimonial((current + 1) % testimonials.length), 6000); // auto-rotate
 </script>
 
-<!-- Firebase (for apartment booking notifications to portal) -->
+<!-- Firebase — reservations feed the Edendox portal (companies/eden54group) -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script>
+  /* Eden 54 now runs entirely on the Edendox SaaS as tenant "eden54group".
+     One Firebase app → edendox-780bc. The reservation form creates
+     companies/eden54group/apartmentBookings docs (public create is allowed only
+     while the operator has intake.reservations on in /admin/). */
+  window.EDX_TENANT = 'eden54group';
   try {
     if (!firebase.apps.length) {
       firebase.initializeApp({
-        apiKey: "AIzaSyAexUjhTx1iBiivwB8rUdK52ANleN1DFAg",
-        authDomain: "eden54.firebaseapp.com",
-        projectId: "eden54",
-        storageBucket: "eden54.firebasestorage.app",
-        messagingSenderId: "643222824531",
-        appId: "1:643222824531:web:dc643654a672c1cd0d48a6"
+        apiKey:            "AIzaSyA94DZmoDGMcRhU4Wzn6757WupjxKpx5QY",
+        authDomain:        "edendox-780bc.firebaseapp.com",
+        projectId:         "edendox-780bc",
+        storageBucket:     "edendox-780bc.firebasestorage.app",
+        messagingSenderId: "653415072263",
+        appId:             "1:653415072263:web:7bd9a8d68fb02352b460a2"
       });
     }
-  } catch(e) {}
-
-  /* Edendox platform — Eden 54 is tenant "eden54". Secondary named app so the
-     public forms can feed the new multi-tenant portal alongside the legacy one.
-     Remove the legacy writes once Edendox is the production portal. */
-  window.EDX_TENANT = 'eden54group';   // Edendox companyId for this workspace
-  try {
-    window.edxApp = firebase.initializeApp({
-      apiKey:            "AIzaSyA94DZmoDGMcRhU4Wzn6757WupjxKpx5QY",
-      authDomain:        "edendox-780bc.firebaseapp.com",
-      projectId:         "edendox-780bc",
-      storageBucket:     "edendox-780bc.firebasestorage.app",
-      messagingSenderId: "653415072263",
-      appId:             "1:653415072263:web:7bd9a8d68fb02352b460a2"
-    }, "edendox");
-    // Local dev: route the Edendox mirror to the emulator suite (run it first).
     var edxLocal = /(^|\.)localhost$/.test(location.hostname) || location.hostname === "127.0.0.1" || location.hostname === "[::1]";
     if (edxLocal) {
-      try { window.edxApp.firestore().useEmulator("127.0.0.1", 8080); }
+      try { firebase.firestore().useEmulator("127.0.0.1", 8080); }
       catch(e) { console.warn("[EDX] emulator wiring failed:", e); }
     }
-    console.log("[EDX] mirror ready → companies/" + window.EDX_TENANT + "/apartmentBookings @ " + (edxLocal ? "emulator 127.0.0.1:8080" : "cloud edendox-780bc"));
+    console.log("[EDX] reservations → companies/" + window.EDX_TENANT + "/apartmentBookings @ " + (edxLocal ? "emulator 127.0.0.1:8080" : "cloud edendox-780bc"));
 
-    /* Console helper: run  edxTestReservation()  to write a dummy booking and
-       see exactly what happens (success / permission-denied / not-wired). */
+    /* Console helper: edxTestReservation() writes a dummy booking so you can see
+       success / permission-denied (flag off) before relying on the form. */
     window.edxTestReservation = function () {
-      if (!window.edxApp) { console.error("[EDX] window.edxApp is undefined — the init block did not run (stale page? hard-refresh)."); return; }
-      return window.edxApp.firestore()
+      return firebase.firestore()
         .collection("companies").doc(window.EDX_TENANT)
         .collection("apartmentBookings").add({
           firstName: "TEST", lastName: "Reservation", phone: "08000000000",
@@ -3936,13 +3913,15 @@
   } catch(e) { console.warn("[EDX] init failed:", e); }
 </script>
 <script>
-  // Sync apartment prices from Firestore aptRates — skips stale old-default values
-  // so Firestore can only override HTML when a manager has set a genuinely custom rate.
+  // Sync apartment prices from Edendox aptRates — skips stale old-default values.
+  // aptRates is member-only, so this quietly permission-denies for public visitors
+  // (the .catch keeps the hard-coded HTML prices). Needs publicApartments() to work
+  // publicly — see follow-up.
   (function() {
     const OLD_DEFAULTS = { 1: 45000, 2: 85000, 3: 120000 };
     try {
       const db = firebase.firestore();
-      db.collection('aptRates').get().then(snap => {
+      db.collection('companies').doc(window.EDX_TENANT || 'eden54group').collection('aptRates').get().then(snap => {
         snap.forEach(doc => {
           const r    = doc.data();
           const beds = parseInt(r.bedrooms) || 0;
