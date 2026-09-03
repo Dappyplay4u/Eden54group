@@ -1,1 +1,4 @@
+# The staff portal moved to the Edendox SaaS. Send old links there.
+/portal/*              https://eden54group.edendox.com/portal/:splat   301
+
 /apartmentandlounge    /                   200
