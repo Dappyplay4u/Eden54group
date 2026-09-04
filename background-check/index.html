@@ -6,10 +6,12 @@
 <title>Eden 54 | Pre-Employment Background Check</title>
 <link rel="icon" type="image/jpeg" href="/logo/eden 54 logo.jpeg">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet">
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-functions-compat.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -498,6 +500,8 @@ body{background:var(--bg);color:var(--text);font-family:'Jost',sans-serif;font-w
       <div class="fld"><label>Date</label><input type="text" id="sig_date" readonly></div>
     </div>
 
+    <div class="cf-turnstile" id="bcTurnstile" data-sitekey="0x4AAAAAAEnrOOs4sD95jTTV" style="margin:14px 0"></div>
+
     <div class="bc-acts">
       <button class="btn-bk" onclick="goBack(5)">← Back</button>
       <button class="btn-nxt" id="submitBtn" onclick="submitForm()">Submit Background Check</button>
@@ -565,21 +569,32 @@ firebase.initializeApp({
   appId:             "1:653415072263:web:7bd9a8d68fb02352b460a2"
 });
 const db = firebase.firestore();
+const fns = firebase.functions();
 let storage = null;
 try { storage = firebase.storage(); } catch(e) {}
 
-// Local dev: point Firestore + Storage + Auth at the emulator suite.
+// Local dev: point Firestore + Storage + Auth + Functions at the emulator suite.
 if (/(^|\.)localhost$/.test(location.hostname) || location.hostname === '127.0.0.1' || location.hostname === '[::1]') {
   try {
     db.useEmulator('127.0.0.1', 8080);
     if (storage) storage.useEmulator('127.0.0.1', 9199);
     firebase.auth().useEmulator('http://127.0.0.1:9099');
+    fns.useEmulator('127.0.0.1', 5001);
     console.log('[EDX] using local emulator suite');
   } catch(e) { console.warn('[EDX] emulator wiring failed:', e); }
 }
 
 const $ = id => document.getElementById(id);
 const v = id => ($( id)||{}).value || '';
+// turnstile.getResponse()'s signature for an implicitly-rendered widget (a
+// plain <div class="cf-turnstile">, no manual .render() call) isn't
+// documented — reading the hidden input Turnstile creates inside the
+// widget's own container either way is the one behavior Cloudflare's docs
+// actually confirm regardless of render mode.
+function edxTurnstileToken() {
+  const el = document.querySelector('#bcTurnstile [name="cf-turnstile-response"]');
+  return el ? el.value : '';
+}
 
 /* Auto-fill dates */
 (function(){
@@ -701,6 +716,14 @@ async function submitForm() {
     showErr('Please accept all three declarations before submitting.'); return;
   }
   if (!v('sig_name').trim()) { markInvalid('sig_name'); showErr('Please type your full name as signature.'); return; }
+  // Just a readiness check here — up to 6 file uploads happen between here and
+  // the actual publicIntake call below, which on a slow connection can take
+  // minutes, well past Turnstile's ~5-minute token lifetime. Re-read the
+  // token fresh right before sending instead of trusting this snapshot
+  // (Cloudflare's widget auto-refreshes itself in the background either way).
+  if (!edxTurnstileToken()) {
+    showErr('Please wait a moment for the verification check to finish, then try again.'); return;
+  }
 
   const btn = $('submitBtn'); btn.disabled = true; clearErr();
   const uid = Date.now().toString(36)+Math.random().toString(36).slice(2,7);
@@ -799,15 +822,19 @@ async function submitForm() {
       signature: v('sig_name'),
       status:'pending',
     };
-    const TS = () => firebase.firestore.FieldValue.serverTimestamp();
-
-    // Edendox  →  companies/eden54group/backgroundChecks
-    // `base` carries status:'pending' and NO HR keys → passes validBgCheckShape().
-    // HR fills the workflow fields (decision, verifications) in the portal.
+    // Edendox → companies/eden54group/backgroundChecks, via publicIntake
+    // (Turnstile + rate-limited Cloud Function) — `id: uid` keeps the doc ID
+    // matching the Storage upload path above and the "Reference: XXX" shown
+    // to the applicant. The function whitelists fields server-side and drops
+    // any HR-workflow key on its own; no shape checking needed here anymore.
     try {
-      await db.collection('companies').doc(EDX_TENANT)
-        .collection('backgroundChecks').doc(uid)
-        .set(Object.assign({}, base, { source:'website', submittedAt: TS() }));
+      await fns.httpsCallable('publicIntake')({
+        companyId: EDX_TENANT,
+        turnstileToken: edxTurnstileToken(),
+        kind: 'backgroundCheck',
+        id: uid,
+        candidate: base,
+      });
     } catch(fsErr) {
       console.error('[BC] Edendox write failed:', fsErr.code, fsErr.message,
         '\n→ If "permission-denied": turn on Public intake → background check for eden54group in /admin/.');

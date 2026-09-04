@@ -3203,6 +3203,8 @@
             </div>
           </div>
 
+          <div class="cf-turnstile" id="rfTurnstile" data-sitekey="0x4AAAAAAEnrOOs4sD95jTTV" style="margin-bottom:14px"></div>
+
           <button type="button" class="rf-submit-btn" id="rfSubmitBtn" onclick="rfSubmitForm()">
             <svg id="rfBtnIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13"/><path d="M22 2L15 22 11 13 2 9l20-7z"/></svg>
             <div class="rf-spinner" id="rfSpinner"></div>
@@ -3716,34 +3718,42 @@
       body: JSON.stringify(emailPayload)
     }).catch(() => {});
 
-    /* Also write the booking to Firestore so the Edendox portal shows it as a
-       website reservation (🌐 badge in /portal/apartments/). Non-fatal — the
-       guest still gets the success screen; the Google Form + email always run. */
+    /* Also send the booking to the Edendox portal via publicIntake (Turnstile
+       + rate-limited Cloud Function) so it shows there as a website
+       reservation (🌐 badge in /portal/apartments/). Non-fatal — the guest
+       still gets the success screen; the Google Form + email always run
+       regardless of whether this succeeds. */
     (function saveBooking() {
-      var payload = {
-        firstName:   document.getElementById('rfFirstName').value,
-        lastName:    document.getElementById('rfLastName').value,
-        email:       document.getElementById('rfEmail').value,
-        phone:       document.getElementById('rfPhone').value,
-        checkin:     document.getElementById('rfCheckin').value,
-        checkout:    document.getElementById('rfCheckout').value,
-        guests:      document.getElementById('rfGuests').value,
-        unit:        document.getElementById('rfUnit').value,
-        requests:    document.getElementById('rfRequests').value,
-        status:      'new',
-        source:      'website',
-        createdAt:   firebase.firestore.FieldValue.serverTimestamp()
-      };
-      try {
-        firebase.firestore()
-          .collection('companies').doc(window.EDX_TENANT)
-          .collection('apartmentBookings').add(payload)
-          .then(function(){ console.log('[RF] ✅ Reservation saved to Edendox'); })
-          .catch(function(e){
-            console.error('[RF] ❌ Edendox write failed:', e.code, e.message,
-              '\n→ If "permission-denied": turn on Public intake → reservations for eden54group in /admin/.');
-          });
-      } catch(e) { console.error('[RF] Edendox write error:', e); }
+      // turnstile.getResponse()'s signature for an implicitly-rendered widget
+      // (a plain <div class="cf-turnstile">, no manual .render() call) isn't
+      // documented — reading the hidden input Turnstile creates inside the
+      // widget's own container either way is the one behavior Cloudflare's
+      // docs actually confirm regardless of render mode.
+      var tsEl = document.querySelector('#rfTurnstile [name="cf-turnstile-response"]');
+      var token = tsEl ? tsEl.value : '';
+      if (!token) { console.warn('[RF] Turnstile token not ready yet — skipping Edendox write for this submission.'); return; }
+      window.edxFns.httpsCallable('publicIntake')({
+        companyId: window.EDX_TENANT,
+        turnstileToken: token,
+        kind: 'reservation',
+        booking: {
+          firstName: document.getElementById('rfFirstName').value,
+          lastName:  document.getElementById('rfLastName').value,
+          email:     document.getElementById('rfEmail').value,
+          phone:     document.getElementById('rfPhone').value,
+          checkin:   document.getElementById('rfCheckin').value,
+          checkout:  document.getElementById('rfCheckout').value,
+          guests:    document.getElementById('rfGuests').value,
+          unit:      document.getElementById('rfUnit').value,
+          requests:  document.getElementById('rfRequests').value,
+        }
+      }).then(function (r) {
+        console.log('[RF] ✅ Reservation saved to Edendox:', r.data.id);
+      }).catch(function (e) {
+        console.error('[RF] ❌ Edendox write failed:', e.code, e.message,
+          '\n→ If "permission-denied": turn on Public intake → reservations for eden54group in /admin/.');
+      });
+      if (window.turnstile) window.turnstile.reset(); // one token per submission
     })();
   }
 
@@ -3868,14 +3878,18 @@
   setInterval(() => showTestimonial((current + 1) % testimonials.length), 6000); // auto-rotate
 </script>
 
+<!-- Cloudflare Turnstile — CAPTCHA for the reservation form below, verified
+     server-side by the publicIntake Cloud Function (not by this page). -->
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 <!-- Firebase — reservations feed the Edendox portal (companies/eden54group) -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-functions-compat.js"></script>
 <script>
   /* Eden 54 now runs entirely on the Edendox SaaS as tenant "eden54group".
-     One Firebase app → edendox-780bc. The reservation form creates
-     companies/eden54group/apartmentBookings docs (public create is allowed only
-     while the operator has intake.reservations on in /admin/). */
+     One Firebase app → edendox-780bc. The reservation form calls the
+     publicIntake Cloud Function (Turnstile + rate-limited) instead of
+     writing companies/eden54group/apartmentBookings directly. */
   window.EDX_TENANT = 'eden54group';
   try {
     if (!firebase.apps.length) {
@@ -3888,15 +3902,22 @@
         appId:             "1:653415072263:web:7bd9a8d68fb02352b460a2"
       });
     }
+    window.edxFns = firebase.functions();
     var edxLocal = /(^|\.)localhost$/.test(location.hostname) || location.hostname === "127.0.0.1" || location.hostname === "[::1]";
     if (edxLocal) {
-      try { firebase.firestore().useEmulator("127.0.0.1", 8080); }
-      catch(e) { console.warn("[EDX] emulator wiring failed:", e); }
+      try {
+        firebase.firestore().useEmulator("127.0.0.1", 8080);
+        window.edxFns.useEmulator("127.0.0.1", 5001);
+      } catch(e) { console.warn("[EDX] emulator wiring failed:", e); }
     }
-    console.log("[EDX] reservations → companies/" + window.EDX_TENANT + "/apartmentBookings @ " + (edxLocal ? "emulator 127.0.0.1:8080" : "cloud edendox-780bc"));
+    console.log("[EDX] reservations → publicIntake({companyId:'" + window.EDX_TENANT + "'}) @ " + (edxLocal ? "emulator 127.0.0.1:5001" : "cloud edendox-780bc"));
 
     /* Console helper: edxTestReservation() writes a dummy booking so you can see
-       success / permission-denied (flag off) before relying on the form. */
+       success / permission-denied (flag off) before relying on the form.
+       Still a direct write, not through publicIntake — only works as long as
+       firestore.rules' old intakeOn('reservations') direct-create path
+       exists; stops working once that's removed after the real form is
+       confirmed switched over. Fine — it's a debug helper, not the real path. */
     window.edxTestReservation = function () {
       return firebase.firestore()
         .collection("companies").doc(window.EDX_TENANT)

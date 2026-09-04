@@ -14,8 +14,10 @@ rental and a pool. Live at **eden54group.com**.
 
 - Hand-written static HTML/CSS/JS — one self-contained `index.html` per page, styles
   and scripts inline. No framework, no build step.
-- **Hosting:** static deploy (Cloudflare Pages / Netlify style). `_redirects` and
-  `_headers` control routing and cache headers.
+- **Hosting: [Netlify](https://netlify.com).** Git-connected to `Dappyplay4u/Eden54group`
+  `main` — every push auto-deploys. Publish directory = repo root, no build command
+  (nothing to compile). `_redirects` and `_headers` are Netlify's native routing/cache
+  config, read automatically — no `netlify.toml` needed.
 - **Firebase (`edendox-780bc`, client SDK only — nothing is deployed from this repo):**
   the reservation form and the background-check form write into the Edendox workspace
   `companies/eden54group/…` so they appear in the staff portal. Config is inline in
@@ -82,8 +84,9 @@ writes just fail quietly and the rest of the page works.
 
 ## Deploying
 
-Static — connect the repo to Cloudflare Pages / Netlify; output directory is the repo
-root. No Firebase CLI deploy from this repo.
+Netlify, Git-connected — push to `main` and it deploys. Publish directory: repo root.
+Build command: none. No Firebase CLI deploy from this repo (the two forms talk to
+Firebase straight from the browser).
 
 ---
 
