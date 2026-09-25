@@ -92,15 +92,55 @@
     color: var(--gold); border: 1px solid rgba(201,169,110,0.4);
     padding: 4px 12px; margin-bottom: 16px;
   }
-  .role-badge.filled { color: var(--muted, rgba(245,242,236,0.5)); border-color: rgba(245,242,236,0.2); }
+  .role-badge.filled { color: var(--muted); border-color: rgba(245,242,236,0.2); }
   .role-card.filled { opacity: 0.6; }
-  .btn-filled {
-    display: inline-block; padding: 16px 36px;
-    background: transparent; color: var(--muted, rgba(245,242,236,0.5));
-    border: 1px solid rgba(245,242,236,0.2);
-    font-size: 0.75rem; letter-spacing: 0.2em; text-transform: uppercase;
-    font-weight: 400; white-space: nowrap; cursor: default;
+
+  /* ── Manage (staff-only) control — subtle gear icon next to each badge ── */
+  .role-manage-btn {
+    display: inline-block; width: 22px; height: 22px; margin-left: 8px; margin-bottom: 16px;
+    background: none; border: 1px solid rgba(245,242,236,0.15); border-radius: 50%;
+    color: var(--muted); font-size: 0.68rem; line-height: 1; cursor: pointer;
+    opacity: 0.4; vertical-align: middle; transition: opacity 0.2s, border-color 0.2s, color 0.2s;
   }
+  .role-manage-btn:hover { opacity: 1; border-color: var(--gold); color: var(--gold); }
+
+  /* Apply button in its "position filled" state (JS-driven, all roles) */
+  .btn-apply.btn-filled-state {
+    background: transparent; color: var(--muted);
+    border: 1px solid rgba(245,242,236,0.2);
+    cursor: default; pointer-events: none;
+  }
+  .btn-apply.btn-filled-state:hover { opacity: 1; }
+
+  /* ── Manage modal ── */
+  .rm-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 1000;
+    display: none; align-items: center; justify-content: center; padding: 20px;
+  }
+  .rm-overlay.show { display: flex; }
+  .rm-card {
+    background: var(--deep); border: 1px solid rgba(201,169,110,0.3);
+    padding: 36px 32px; max-width: 360px; width: 100%; text-align: center;
+  }
+  .rm-card h3 { font-family: 'Cormorant Garamond', serif; font-weight: 400; font-size: 1.3rem; margin-bottom: 6px; }
+  .rm-sub { font-size: 0.75rem; color: var(--muted); margin-bottom: 20px; letter-spacing: 0.03em; line-height: 1.5; }
+  .rm-card input {
+    width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(201,169,110,0.25);
+    color: var(--text); padding: 12px 14px; font-family: 'Jost', sans-serif; font-size: 0.9rem;
+    text-align: center; letter-spacing: 0.25em; margin-bottom: 12px; outline: none;
+  }
+  .rm-card input:focus { border-color: var(--gold); }
+  .rm-err { font-size: 0.75rem; color: #e07070; min-height: 18px; margin-bottom: 4px; }
+  .rm-actions { display: flex; gap: 10px; margin-top: 8px; }
+  .rm-btn {
+    flex: 1; padding: 12px; font-size: 0.68rem; letter-spacing: 0.15em; text-transform: uppercase;
+    border: none; cursor: pointer; transition: opacity 0.2s; font-family: 'Jost', sans-serif;
+  }
+  .rm-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .rm-btn-primary { background: var(--gold); color: var(--deep); }
+  .rm-btn-primary:hover { opacity: 0.85; }
+  .rm-btn-ghost { background: transparent; border: 1px solid rgba(245,242,236,0.2); color: var(--muted); }
+  .rm-btn-ghost:hover { color: var(--text); border-color: rgba(245,242,236,0.4); }
   .role-title { font-family: 'Cormorant Garamond', serif; font-size: 1.8rem; font-weight: 400; margin-bottom: 8px; }
   .role-meta { display: flex; gap: 24px; margin-bottom: 20px; }
   .role-meta span { font-size: 0.78rem; opacity: 0.6; letter-spacing: 0.05em; }
@@ -236,9 +276,9 @@
   <div class="roles-grid">
 
     <!-- FACILITY MANAGER — position filled, closed to new applications -->
-    <div class="role-card filled">
+    <div class="role-card filled" data-role-id="facilityManager">
       <div class="role-info">
-        <span class="role-badge filled">Position Filled</span>
+        <span class="role-badge filled">Position Filled</span><button class="role-manage-btn" onclick="rmOpen('facilityManager')" title="Manage listing" aria-label="Manage this listing">⚙</button>
         <h3 class="role-title">Facility Manager</h3>
         <div class="role-meta">
           <span>Ilesa, Osun State</span>
@@ -277,15 +317,15 @@
         </div>
       </div>
       <div class="role-apply">
-        <span class="btn-filled">Position Filled</span>
+        <a class="btn-apply btn-filled-state" data-role-apply data-real-href="/careers/apply/" aria-disabled="true">Position Filled</a>
         <span class="role-type-tag">Full-time · On-site</span>
       </div>
     </div>
 
     <!-- BARBER / GROOMING SPECIALIST -->
-    <div class="role-card">
+    <div class="role-card" data-role-id="barberGrooming">
       <div class="role-info">
-        <span class="role-badge">Now Hiring</span>
+        <span class="role-badge">Now Hiring</span><button class="role-manage-btn" onclick="rmOpen('barberGrooming')" title="Manage listing" aria-label="Manage this listing">⚙</button>
         <h3 class="role-title">Barber / Grooming Specialist</h3>
         <div class="role-meta">
           <span>Ilesa, Osun State</span>
@@ -321,15 +361,15 @@
         </div>
       </div>
       <div class="role-apply">
-        <a href="/careers/apply/general/?role=Barber+%2F+Grooming+Specialist" class="btn-apply">Apply Now</a>
+        <a href="/careers/apply/general/?role=Barber+%2F+Grooming+Specialist" class="btn-apply" data-role-apply>Apply Now</a>
         <span class="role-type-tag">Full-time · On-site</span>
       </div>
     </div>
 
     <!-- CHEF / KITCHEN STAFF -->
-    <div class="role-card">
+    <div class="role-card" data-role-id="chefKitchen">
       <div class="role-info">
-        <span class="role-badge">Now Hiring</span>
+        <span class="role-badge">Now Hiring</span><button class="role-manage-btn" onclick="rmOpen('chefKitchen')" title="Manage listing" aria-label="Manage this listing">⚙</button>
         <h3 class="role-title">Chef / Kitchen Staff</h3>
         <div class="role-meta">
           <span>Ilesa, Osun State</span>
@@ -365,15 +405,15 @@
         </div>
       </div>
       <div class="role-apply">
-        <a href="/careers/apply/general/?role=Chef+%2F+Kitchen+Staff" class="btn-apply">Apply Now</a>
+        <a href="/careers/apply/general/?role=Chef+%2F+Kitchen+Staff" class="btn-apply" data-role-apply>Apply Now</a>
         <span class="role-type-tag">Full-time · On-site</span>
       </div>
     </div>
 
     <!-- WAITER / FRONT OF HOUSE -->
-    <div class="role-card">
+    <div class="role-card" data-role-id="waiterFrontOfHouse">
       <div class="role-info">
-        <span class="role-badge">Now Hiring</span>
+        <span class="role-badge">Now Hiring</span><button class="role-manage-btn" onclick="rmOpen('waiterFrontOfHouse')" title="Manage listing" aria-label="Manage this listing">⚙</button>
         <h3 class="role-title">Waiter / Front of House</h3>
         <div class="role-meta">
           <span>Ilesa, Osun State</span>
@@ -409,15 +449,15 @@
         </div>
       </div>
       <div class="role-apply">
-        <a href="/careers/apply/general/?role=Waiter+%2F+Front+of+House" class="btn-apply">Apply Now</a>
+        <a href="/careers/apply/general/?role=Waiter+%2F+Front+of+House" class="btn-apply" data-role-apply>Apply Now</a>
         <span class="role-type-tag">Full-time · On-site</span>
       </div>
     </div>
 
     <!-- GAMES ATTENDANT -->
-    <div class="role-card">
+    <div class="role-card" data-role-id="gamesAttendant">
       <div class="role-info">
-        <span class="role-badge">Now Hiring</span>
+        <span class="role-badge">Now Hiring</span><button class="role-manage-btn" onclick="rmOpen('gamesAttendant')" title="Manage listing" aria-label="Manage this listing">⚙</button>
         <h3 class="role-title">Games Attendant</h3>
         <div class="role-meta">
           <span>Ilesa, Osun State</span>
@@ -453,15 +493,15 @@
         </div>
       </div>
       <div class="role-apply">
-        <a href="/careers/apply/general/?role=Games+Attendant" class="btn-apply">Apply Now</a>
+        <a href="/careers/apply/general/?role=Games+Attendant" class="btn-apply" data-role-apply>Apply Now</a>
         <span class="role-type-tag">Full-time · On-site</span>
       </div>
     </div>
 
     <!-- DRIVER / CHAUFFEUR -->
-    <div class="role-card">
+    <div class="role-card" data-role-id="driverChauffeur">
       <div class="role-info">
-        <span class="role-badge">Now Hiring</span>
+        <span class="role-badge">Now Hiring</span><button class="role-manage-btn" onclick="rmOpen('driverChauffeur')" title="Manage listing" aria-label="Manage this listing">⚙</button>
         <h3 class="role-title">Driver / Chauffeur</h3>
         <div class="role-meta">
           <span>Ilesa, Osun State</span>
@@ -497,15 +537,15 @@
         </div>
       </div>
       <div class="role-apply">
-        <a href="/careers/apply/general/?role=Driver+%2F+Chauffeur" class="btn-apply">Apply Now</a>
+        <a href="/careers/apply/general/?role=Driver+%2F+Chauffeur" class="btn-apply" data-role-apply>Apply Now</a>
         <span class="role-type-tag">Full-time · On-site</span>
       </div>
     </div>
 
     <!-- APARTMENT HOUSEKEEPER -->
-    <div class="role-card">
+    <div class="role-card" data-role-id="apartmentHousekeeper">
       <div class="role-info">
-        <span class="role-badge">Now Hiring</span>
+        <span class="role-badge">Now Hiring</span><button class="role-manage-btn" onclick="rmOpen('apartmentHousekeeper')" title="Manage listing" aria-label="Manage this listing">⚙</button>
         <h3 class="role-title">Apartment Housekeeper</h3>
         <div class="role-meta">
           <span>Ilesa, Osun State</span>
@@ -541,16 +581,16 @@
         </div>
       </div>
       <div class="role-apply">
-        <a href="/careers/apply/general/?role=Apartment+Housekeeper" class="btn-apply">Apply Now</a>
+        <a href="/careers/apply/general/?role=Apartment+Housekeeper" class="btn-apply" data-role-apply>Apply Now</a>
         <span class="role-type-tag">Full-time · On-site</span>
       </div>
     </div>
 
-    <!-- BARTENDER -->
-    <div class="role-card">
+    <!-- BARTENDER / MIXOLOGIST -->
+    <div class="role-card" data-role-id="bartenderMixologist">
       <div class="role-info">
-        <span class="role-badge">Now Hiring</span>
-        <h3 class="role-title">Bartender</h3>
+        <span class="role-badge">Now Hiring</span><button class="role-manage-btn" onclick="rmOpen('bartenderMixologist')" title="Manage listing" aria-label="Manage this listing">⚙</button>
+        <h3 class="role-title">Bartender / Mixologist</h3>
         <div class="role-meta">
           <span>Ilesa, Osun State</span>
           <span>Full-time</span>
@@ -558,8 +598,8 @@
         </div>
         <p class="role-desc">
           Eden 54's lounge and pool bar are at the heart of the guest experience. We are looking for a
-          confident, creative, and personable Bartender who can craft exceptional cocktails, manage the
-          bar with flair, and keep the atmosphere lively and welcoming for every guest.
+          confident, creative, and personable Bartender/Mixologist who can craft exceptional cocktails, manage
+          the bar with flair, and keep the atmosphere lively and welcoming for every guest.
         </p>
         <div class="role-details">
           <div class="role-detail-block">
@@ -576,7 +616,7 @@
           <div class="role-detail-block">
             <h4>Requirements</h4>
             <ul>
-              <li>2+ years experience as a bartender in a bar, lounge, or hotel</li>
+              <li>2+ years experience as a bartender or mixologist in a bar, lounge, or hotel</li>
               <li>Strong knowledge of cocktails, spirits, and mixology</li>
               <li>Excellent communication and guest engagement skills</li>
               <li>Ability to work efficiently during busy service periods</li>
@@ -587,15 +627,15 @@
         </div>
       </div>
       <div class="role-apply">
-        <a href="/careers/apply/general/?role=Bartender" class="btn-apply">Apply Now</a>
+        <a href="/careers/apply/general/?role=Bartender+%2F+Mixologist" class="btn-apply" data-role-apply>Apply Now</a>
         <span class="role-type-tag">Full-time · On-site</span>
       </div>
     </div>
 
     <!-- HOST / SERVER -->
-    <div class="role-card">
+    <div class="role-card" data-role-id="hostServer">
       <div class="role-info">
-        <span class="role-badge">Now Hiring</span>
+        <span class="role-badge">Now Hiring</span><button class="role-manage-btn" onclick="rmOpen('hostServer')" title="Manage listing" aria-label="Manage this listing">⚙</button>
         <h3 class="role-title">Host / Server</h3>
         <div class="role-meta">
           <span>Ilesa, Osun State</span>
@@ -633,15 +673,15 @@
         </div>
       </div>
       <div class="role-apply">
-        <a href="/careers/apply/general/?role=Host+%2F+Server" class="btn-apply">Apply Now</a>
+        <a href="/careers/apply/general/?role=Host+%2F+Server" class="btn-apply" data-role-apply>Apply Now</a>
         <span class="role-type-tag">Full-time · On-site</span>
       </div>
     </div>
 
     <!-- SECURITY -->
-    <div class="role-card">
+    <div class="role-card" data-role-id="securityOfficer">
       <div class="role-info">
-        <span class="role-badge">Now Hiring</span>
+        <span class="role-badge">Now Hiring</span><button class="role-manage-btn" onclick="rmOpen('securityOfficer')" title="Manage listing" aria-label="Manage this listing">⚙</button>
         <h3 class="role-title">Security Officer</h3>
         <div class="role-meta">
           <span>Ilesa, Osun State</span>
@@ -679,7 +719,7 @@
         </div>
       </div>
       <div class="role-apply">
-        <a href="/careers/apply/general/?role=Security+Officer" class="btn-apply">Apply Now</a>
+        <a href="/careers/apply/general/?role=Security+Officer" class="btn-apply" data-role-apply>Apply Now</a>
         <span class="role-type-tag">Full-time · On-site</span>
       </div>
     </div>
@@ -706,6 +746,147 @@
   </div>
   <div class="footer-copy">© 2026 Eden 54 · Ilesa, Osun State</div>
 </footer>
+
+<!-- Manage-role modal (staff only — access code required, checked server-side) -->
+<div class="rm-overlay" id="rmOverlay">
+  <div class="rm-card">
+    <h3 id="rmTitle">Manage Listing</h3>
+    <p class="rm-sub" id="rmSub">Enter the management access code to change this role's status.</p>
+    <form onsubmit="event.preventDefault(); rmConfirm();">
+      <input type="password" id="rmCode" placeholder="Access code" inputmode="numeric" autocomplete="off">
+      <div class="rm-err" id="rmErr"></div>
+      <div class="rm-actions">
+        <button type="button" class="rm-btn rm-btn-ghost" onclick="rmClose()">Cancel</button>
+        <button type="submit" class="rm-btn rm-btn-primary" id="rmConfirmBtn">Confirm</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-functions-compat.js"></script>
+<script>
+/* ── Careers role status — read from Edendox, toggled by management via a
+   server-checked access code (setCareerRoleStatus in the Edendox project).
+   Nothing here is a Firebase Auth login; the code never touches this file. ── */
+firebase.initializeApp({
+  apiKey:            "AIzaSyA94DZmoDGMcRhU4Wzn6757WupjxKpx5QY",
+  authDomain:        "edendox-780bc.firebaseapp.com",
+  projectId:         "edendox-780bc",
+  storageBucket:     "edendox-780bc.firebasestorage.app",
+  messagingSenderId: "653415072263",
+  appId:             "1:653415072263:web:7bd9a8d68fb02352b460a2"
+});
+if (/(^|\.)localhost$/.test(location.hostname) || location.hostname === '127.0.0.1' || location.hostname === '[::1]') {
+  try {
+    firebase.firestore().useEmulator('127.0.0.1', 8080);
+    firebase.functions().useEmulator('127.0.0.1', 5001);
+  } catch (e) { console.warn('[careers] emulator wiring failed:', e); }
+}
+
+const ROLE_TITLES = {
+  facilityManager:      'Facility Manager',
+  barberGrooming:       'Barber / Grooming Specialist',
+  chefKitchen:          'Chef / Kitchen Staff',
+  waiterFrontOfHouse:   'Waiter / Front of House',
+  gamesAttendant:       'Games Attendant',
+  driverChauffeur:      'Driver / Chauffeur',
+  apartmentHousekeeper: 'Apartment Housekeeper',
+  bartenderMixologist:  'Bartender / Mixologist',
+  hostServer:           'Host / Server',
+  securityOfficer:      'Security Officer',
+};
+// The one role we already know is filled today — shown instantly, before
+// Firestore answers, and used if no careerRoles doc exists for it yet.
+const BOOTSTRAP_DEFAULTS = { facilityManager: 'filled' };
+
+function applyRoleStatus(roleId, status) {
+  const card = document.querySelector('.role-card[data-role-id="' + roleId + '"]');
+  if (!card) return;
+  const filled = status === 'filled';
+  card.classList.toggle('filled', filled);
+  const badge = card.querySelector('.role-badge');
+  if (badge) { badge.textContent = filled ? 'Position Filled' : 'Now Hiring'; badge.classList.toggle('filled', filled); }
+  const link = card.querySelector('[data-role-apply]');
+  if (link) {
+    if (filled) {
+      if (link.hasAttribute('href')) link.dataset.realHref = link.getAttribute('href');
+      link.removeAttribute('href');
+      link.setAttribute('aria-disabled', 'true');
+      link.classList.add('btn-filled-state');
+      link.textContent = 'Position Filled';
+    } else {
+      if (link.dataset.realHref) link.setAttribute('href', link.dataset.realHref);
+      link.removeAttribute('aria-disabled');
+      link.classList.remove('btn-filled-state');
+      link.textContent = 'Apply Now';
+    }
+  }
+}
+
+// Live status from Edendox — falls back to the bootstrap defaults (which
+// match the static HTML already on the page) if offline or not yet seeded.
+firebase.firestore().collection('careerRoles').get().then(snap => {
+  const live = {};
+  snap.forEach(d => { live[d.id] = (d.data() || {}).status; });
+  Object.keys(ROLE_TITLES).forEach(id => {
+    applyRoleStatus(id, live[id] || BOOTSTRAP_DEFAULTS[id] || 'open');
+  });
+}).catch(e => console.warn('[careers] could not load live role status, showing defaults:', e));
+
+/* ── Manage modal ── */
+let rmRoleId = null, rmNextStatus = null;
+
+function rmOpen(roleId) {
+  rmRoleId = roleId;
+  const card = document.querySelector('.role-card[data-role-id="' + roleId + '"]');
+  const isFilled = card && card.classList.contains('filled');
+  rmNextStatus = isFilled ? 'open' : 'filled';
+  document.getElementById('rmTitle').textContent = ROLE_TITLES[roleId] || 'Manage Listing';
+  document.getElementById('rmSub').textContent = isFilled
+    ? 'This role shows as Position Filled. Enter the access code to reopen it as Now Hiring.'
+    : 'This role shows as Now Hiring. Enter the access code to mark it Position Filled.';
+  document.getElementById('rmConfirmBtn').textContent = isFilled ? 'Reopen Role' : 'Mark Filled';
+  document.getElementById('rmCode').value = '';
+  document.getElementById('rmErr').textContent = '';
+  document.getElementById('rmOverlay').classList.add('show');
+  setTimeout(() => document.getElementById('rmCode').focus(), 50);
+}
+
+function rmClose() {
+  document.getElementById('rmOverlay').classList.remove('show');
+  rmRoleId = null; rmNextStatus = null;
+}
+
+async function rmConfirm() {
+  if (!rmRoleId) return;
+  const code = document.getElementById('rmCode').value.trim();
+  const errEl = document.getElementById('rmErr');
+  const btn = document.getElementById('rmConfirmBtn');
+  if (!code) { errEl.textContent = 'Enter the access code.'; return; }
+  errEl.textContent = '';
+  btn.disabled = true; btn.textContent = 'Checking…';
+  try {
+    await firebase.functions().httpsCallable('setCareerRoleStatus')({
+      roleId: rmRoleId, status: rmNextStatus, code: code
+    });
+    applyRoleStatus(rmRoleId, rmNextStatus);
+    rmClose();
+  } catch (e) {
+    errEl.textContent = (e && e.code === 'functions/permission-denied')
+      ? 'Incorrect access code.'
+      : 'Could not update — please try again.';
+    btn.disabled = false;
+    btn.textContent = rmNextStatus === 'filled' ? 'Mark Filled' : 'Reopen Role';
+  }
+}
+
+document.getElementById('rmOverlay').addEventListener('click', e => {
+  if (e.target === document.getElementById('rmOverlay')) rmClose();
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') rmClose(); });
+</script>
 
 </body>
 </html>
