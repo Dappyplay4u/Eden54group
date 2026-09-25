@@ -186,6 +186,24 @@ nav {
   </a>
 </nav>
 
+<!-- Position filled — this role is closed to new applications. The form below
+     stays in the DOM (unused) so it can be reopened by removing this overlay
+     if the role is posted again. -->
+<div style="position:fixed;inset:0;top:77px;z-index:500;background:var(--deep);display:flex;align-items:center;justify-content:center;padding:40px 24px;text-align:center">
+  <div style="max-width:440px">
+    <p style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:0.95rem;color:var(--gold);letter-spacing:0.05em;margin-bottom:14px">Facility Manager</p>
+    <h1 style="font-family:'Cormorant Garamond',serif;font-weight:400;font-size:2rem;color:var(--text);margin-bottom:16px">This Position Has Been Filled</h1>
+    <p style="color:var(--muted);font-size:0.92rem;line-height:1.7;margin-bottom:32px">
+      Thank you for your interest — the Facility Manager role has been filled and is no longer accepting applications.
+      Check our other current openings, or apply to a different role below.
+    </p>
+    <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap">
+      <a href="/careers/#roles" style="display:inline-block;padding:14px 30px;background:var(--gold);color:var(--deep);font-size:0.75rem;letter-spacing:0.18em;text-transform:uppercase;text-decoration:none">View Other Openings</a>
+      <a href="/careers/" style="display:inline-block;padding:14px 30px;border:1px solid var(--border);color:var(--text);font-size:0.75rem;letter-spacing:0.18em;text-transform:uppercase;text-decoration:none">Back to Careers</a>
+    </div>
+  </div>
+</div>
+
 <div class="submitting-overlay" id="submittingOverlay">
   <div class="spinner"></div>
   <p>Submitting your application…</p>
