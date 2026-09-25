@@ -186,12 +186,10 @@ nav {
   </a>
 </nav>
 
-<!-- Position filled — this role is closed to new applications by default.
-     Status is confirmed live against Edendox (careerRoles/facilityManager) by
-     the script near the bottom of this page; it hides this overlay if
-     management has reopened the role from /careers/. The form below stays in
-     the DOM the whole time — this is purely a visual/interaction block. -->
-<div id="filledOverlay" style="position:fixed;inset:0;top:77px;z-index:500;background:var(--deep);display:flex;align-items:center;justify-content:center;padding:40px 24px;text-align:center">
+<!-- Position filled — this role is closed to new applications. The form below
+     stays in the DOM (unused) so it can be reopened by removing this overlay
+     if the role is posted again. -->
+<div style="position:fixed;inset:0;top:77px;z-index:500;background:var(--deep);display:flex;align-items:center;justify-content:center;padding:40px 24px;text-align:center">
   <div style="max-width:440px">
     <p style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:0.95rem;color:var(--gold);letter-spacing:0.05em;margin-bottom:14px">Facility Manager</p>
     <h1 style="font-family:'Cormorant Garamond',serif;font-weight:400;font-size:2rem;color:var(--text);margin-bottom:16px">This Position Has Been Filled</h1>
@@ -792,34 +790,6 @@ async function submitApplication() {
 
 // Default today's date for signature
 document.getElementById('f_sigdate').valueAsDate = new Date();
-</script>
-
-<!-- Confirm live role status against Edendox — hides the "filled" overlay
-     above if management has reopened Facility Manager from /careers/.
-     Read-only: this page never writes anything to careerRoles. -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-<script>
-  try {
-    firebase.initializeApp({
-      apiKey:            "AIzaSyA94DZmoDGMcRhU4Wzn6757WupjxKpx5QY",
-      authDomain:        "edendox-780bc.firebaseapp.com",
-      projectId:         "edendox-780bc",
-      storageBucket:     "edendox-780bc.firebasestorage.app",
-      messagingSenderId: "653415072263",
-      appId:             "1:653415072263:web:7bd9a8d68fb02352b460a2"
-    });
-    if (/(^|\.)localhost$/.test(location.hostname) || location.hostname === '127.0.0.1' || location.hostname === '[::1]') {
-      try { firebase.firestore().useEmulator('127.0.0.1', 8080); } catch (e) {}
-    }
-    firebase.firestore().collection('careerRoles').doc('facilityManager').get().then(doc => {
-      const status = doc.exists ? doc.data().status : 'filled'; // no doc yet -> known-filled default
-      if (status === 'open') {
-        const overlay = document.getElementById('filledOverlay');
-        if (overlay) overlay.style.display = 'none';
-      }
-    }).catch(e => console.warn('[careers] status check failed, staying closed:', e));
-  } catch (e) { console.warn('[careers] Firebase init failed, staying closed:', e); }
 </script>
 </body>
 </html>
