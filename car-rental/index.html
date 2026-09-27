@@ -572,13 +572,39 @@
         <input name="phone" type="tel" required placeholder="e.g. 08012345678" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(201,169,110,0.22);padding:11px 14px;color:#F5F2EC;font-family:'Jost',sans-serif;font-size:0.88rem;outline:none;border-radius:2px" onfocus="this.style.borderColor='rgba(201,169,110,0.6)'" onblur="this.style.borderColor='rgba(201,169,110,0.22)'">
       </div>
       <div style="margin-bottom:14px">
+        <label style="display:block;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:rgba(245,242,236,0.65);margin-bottom:6px" for="carService">Service</label>
+        <select id="carService" name="service" style="width:100%;background:#0f2318;border:1px solid rgba(201,169,110,0.22);padding:11px 14px;color:#F5F2EC;font-family:'Jost',sans-serif;font-size:0.88rem;outline:none;border-radius:2px">
+          <option>Erin-Ijesha Waterfall — return trip</option>
+          <option>Osun Sacred Grove — return trip</option>
+          <option>Airport transfer (one way)</option>
+          <option>Full day hire (8 hours)</option>
+          <option>Custom destination</option>
+        </select>
+      </div>
+      <div style="margin-bottom:14px">
+        <label style="display:block;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:rgba(245,242,236,0.65);margin-bottom:6px" for="carPickup">Pick-up point</label>
+        <input id="carPickup" name="pickup" placeholder="e.g. Eden 54 reception" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(201,169,110,0.22);padding:11px 14px;color:#F5F2EC;font-family:'Jost',sans-serif;font-size:0.88rem;outline:none;border-radius:2px">
+      </div>
+      <div style="margin-bottom:14px">
         <label style="display:block;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:rgba(245,242,236,0.65);margin-bottom:6px">Destination *</label>
         <input name="destination" required placeholder="Where are you going?" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(201,169,110,0.22);padding:11px 14px;color:#F5F2EC;font-family:'Jost',sans-serif;font-size:0.88rem;outline:none;border-radius:2px" onfocus="this.style.borderColor='rgba(201,169,110,0.6)'" onblur="this.style.borderColor='rgba(201,169,110,0.22)'">
       </div>
       <div class="modal-2col">
         <div>
-          <label style="display:block;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:rgba(245,242,236,0.65);margin-bottom:6px">Date Required</label>
-          <input name="date" type="date" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(201,169,110,0.22);padding:11px 14px;color:#F5F2EC;font-family:'Jost',sans-serif;font-size:0.88rem;outline:none;border-radius:2px">
+          <label style="display:block;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:rgba(245,242,236,0.65);margin-bottom:6px" for="carDate">Date *</label>
+          <input id="carDate" name="date" type="date" required style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(201,169,110,0.22);padding:11px 14px;color:#F5F2EC;font-family:'Jost',sans-serif;font-size:0.88rem;outline:none;border-radius:2px">
+        </div>
+        <div>
+          <label style="display:block;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:rgba(245,242,236,0.65);margin-bottom:6px" for="carTime">Pick-up time</label>
+          <input id="carTime" name="time" type="time" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(201,169,110,0.22);padding:11px 14px;color:#F5F2EC;font-family:'Jost',sans-serif;font-size:0.88rem;outline:none;border-radius:2px">
+        </div>
+      </div>
+      <div class="modal-2col">
+        <div>
+          <label style="display:block;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:rgba(245,242,236,0.65);margin-bottom:6px" for="carVehicle">Vehicle</label>
+          <select id="carVehicle" name="vehicle" style="width:100%;background:#0f2318;border:1px solid rgba(201,169,110,0.22);padding:11px 14px;color:#F5F2EC;font-family:'Jost',sans-serif;font-size:0.88rem;outline:none;border-radius:2px">
+            <option value="">No preference</option><option>Saloon</option><option>SUV</option><option>Mini Bus</option>
+          </select>
         </div>
         <div>
           <label style="display:block;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:rgba(245,242,236,0.65);margin-bottom:6px">Passengers</label>
@@ -589,23 +615,71 @@
       </div>
       <div style="margin-bottom:20px">
         <label style="display:block;font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:rgba(245,242,236,0.65);margin-bottom:6px">Additional Notes (optional)</label>
-        <textarea name="notes" rows="3" placeholder="Pick-up time, return trip, specific requirements…" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(201,169,110,0.22);padding:11px 14px;color:#F5F2EC;font-family:'Jost',sans-serif;font-size:0.88rem;outline:none;border-radius:2px;resize:vertical"></textarea>
+        <textarea name="notes" rows="3" placeholder="Return time, flight number, luggage, specific requirements…" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(201,169,110,0.22);padding:11px 14px;color:#F5F2EC;font-family:'Jost',sans-serif;font-size:0.88rem;outline:none;border-radius:2px;resize:vertical"></textarea>
       </div>
+      <!-- Cloudflare Turnstile — verified server-side by Edendox's publicIntake -->
+      <div class="cf-turnstile" id="carTurnstile" data-sitekey="0x4AAAAAAEnrOOs4sD95jTTV" data-theme="dark" style="margin-bottom:14px"></div>
       <button type="submit" id="carSubmitBtn" style="width:100%;background:#C9A96E;color:#0f2318;border:none;padding:14px;font-family:'Jost',sans-serif;font-size:0.78rem;letter-spacing:0.22em;text-transform:uppercase;cursor:pointer;border-radius:2px">Book My Ride →</button>
     </form>
     <div id="carSuccess" style="display:none;padding:60px 36px;text-align:center">
       <div style="font-size:2.5rem;color:#C9A96E;margin-bottom:16px">✓</div>
-      <h3 style="font-family:'Cormorant Garamond',serif;font-size:1.6rem;font-weight:300;color:#F5F2EC;margin-bottom:8px">Booking Confirmed</h3>
-      <p style="font-size:0.82rem;color:rgba(245,242,236,0.5)">Your driver will be arranged. We'll call to confirm details.</p>
+      <h3 style="font-family:'Cormorant Garamond',serif;font-size:1.6rem;font-weight:300;color:#F5F2EC;margin-bottom:8px">Request Received</h3>
+      <p style="font-size:0.82rem;color:rgba(245,242,236,0.5)">We'll call you shortly to confirm your driver, vehicle and price.</p>
     </div>
   </div>
 </div>
 <script>
 function openCarModal(e){ if(e) e.preventDefault(); document.getElementById('carModal').style.opacity='1'; document.getElementById('carModal').style.pointerEvents='all'; }
 function closeCarModal(){ const m=document.getElementById('carModal'); m.style.opacity='0'; m.style.pointerEvents='none'; document.getElementById('carForm').style.display=''; document.getElementById('carSuccess').style.display='none'; document.getElementById('carForm').reset(); }
-async function submitCarForm(e){ e.preventDefault(); const btn=document.getElementById('carSubmitBtn'); btn.textContent='Sending…'; btn.disabled=true; const data={}; new FormData(e.target).forEach((v,k)=>data[k]=v); try{ const r=await fetch('https://formsubmit.co/ajax/eden54group@gmail.com',{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify(data)}); if(r.ok){ document.getElementById('carForm').style.display='none'; document.getElementById('carSuccess').style.display='block'; setTimeout(closeCarModal,4000); }else throw 0; }catch{ btn.textContent='Book My Ride →'; btn.disabled=false; alert('Something went wrong — please try again.'); } }
+/* The booking goes two ways: the email the team has always had, and the
+   Edendox portal (Car Hire → 🌐 Website booking requests) via the publicIntake
+   Cloud Function (Turnstile-checked, rate-limited). Either one reaching the
+   team counts as success; the portal copy is what staff accept and price. */
+function sendCarToEdendox(data){
+  try {
+    var tsEl = document.querySelector('#carTurnstile [name="cf-turnstile-response"]');
+    var token = tsEl ? tsEl.value : '';
+    if (!token || !window.edxFns) return Promise.resolve(false);
+    var vehicle = data.vehicle || '';
+    return window.edxFns.httpsCallable('publicIntake')({
+      companyId: window.EDX_TENANT, turnstileToken: token, kind: 'carBooking',
+      booking: {
+        name: data.name, phone: data.phone, service: data.service,
+        pickupDate: data.date, pickupTime: data.time, pickup: data.pickup,
+        destination: data.destination, passengers: String(data.passengers || '').replace(/\D/g, ''),
+        vehicleType: vehicle === 'Mini Bus' ? 'Mini bus' : vehicle, notes: data.notes,
+      },
+    }).then(function(){ return true; }).catch(function(err){
+      console.error('[CAR] Edendox write failed:', err.code, err.message,
+        '\n→ If "permission-denied": turn on Public intake → car bookings for eden54group in Edendox /admin/.');
+      return false;
+    }).finally(function(){ if (window.turnstile) window.turnstile.reset('#carTurnstile'); });
+  } catch (err) { console.error('[CAR]', err); return Promise.resolve(false); }
+}
+async function submitCarForm(e){ e.preventDefault(); const btn=document.getElementById('carSubmitBtn'); btn.textContent='Sending…'; btn.disabled=true; const data={}; new FormData(e.target).forEach((v,k)=>data[k]=v);
+  const mail = fetch('https://formsubmit.co/ajax/eden54group@gmail.com',{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify(data)}).then(r=>r.ok).catch(()=>false);
+  const [mailed, saved] = await Promise.all([mail, sendCarToEdendox(data)]);
+  if (mailed || saved) { document.getElementById('carForm').style.display='none'; document.getElementById('carSuccess').style.display='block'; setTimeout(closeCarModal,4000); }
+  else { btn.textContent='Book My Ride →'; btn.disabled=false; alert('Something went wrong — please try again, or call us.'); } }
 document.getElementById('carModal').addEventListener('click',function(e){ if(e.target===this) closeCarModal(); });
 document.addEventListener('keydown', e => { if(e.key==='Escape') closeCarModal(); });
+</script>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-functions-compat.js"></script>
+<script>
+  /* Eden 54 runs on Edendox as tenant "eden54group" — car bookings land in
+     its Car Hire page through the publicIntake Cloud Function. */
+  window.EDX_TENANT = 'eden54group';
+  try {
+    if (!firebase.apps.length) firebase.initializeApp({
+      apiKey: "AIzaSyA94DZmoDGMcRhU4Wzn6757WupjxKpx5QY", authDomain: "edendox-780bc.firebaseapp.com",
+      projectId: "edendox-780bc", storageBucket: "edendox-780bc.firebasestorage.app",
+      messagingSenderId: "653415072263", appId: "1:653415072263:web:7bd9a8d68fb02352b460a2"
+    });
+    window.edxFns = firebase.functions();
+    if (/(^|\.)localhost$/.test(location.hostname) || location.hostname === '127.0.0.1') window.edxFns.useEmulator('127.0.0.1', 5001);
+  } catch (e) { console.warn('[CAR] Edendox init failed:', e); }
 </script>
 </body>
 </html>
