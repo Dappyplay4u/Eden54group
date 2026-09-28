@@ -26,6 +26,9 @@
 /birthday/*
   Cache-Control: public, max-age=31536000, immutable
 
+/cars/*
+  Cache-Control: public, max-age=31536000, immutable
+
 /*.png
   Cache-Control: public, max-age=31536000, immutable
 
