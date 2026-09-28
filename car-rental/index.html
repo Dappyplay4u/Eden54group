@@ -93,10 +93,13 @@
 
   /* CAR GALLERY */
   #car-gallery { border-top: 1px solid rgba(201,169,110,0.12); }
+  /* One "folder" card per vehicle MODEL (not per physical unit — the 2 Siennas
+     are currently the same colour/trim, so they share one photo set). Click a
+     card to open a lightbox scoped to just that vehicle's photos. */
   .car-gallery-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 16px;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 20px;
     margin-top: 48px;
   }
   .car-gallery-item {
@@ -106,10 +109,8 @@
     transition: border-color 0.3s;
     aspect-ratio: 4/3;
   }
-  .car-gallery-item:first-child {
-    grid-column: span 2; aspect-ratio: 16/9;
-  }
   .car-gallery-item:hover { border-color: rgba(201,169,110,0.45); }
+  .car-gallery-item.coming-soon { cursor: default; }
   .car-gallery-item img {
     width: 100%; height: 100%; object-fit: cover; display: block;
     transition: transform 0.6s; filter: brightness(0.85);
@@ -122,15 +123,25 @@
   }
   .car-gallery-placeholder svg { width: 40px; height: 40px; }
   .car-gallery-placeholder span { font-size: 0.7rem; letter-spacing: 0.2em; text-transform: uppercase; }
+  /* Overlay stays visible (not hover-only) so touch/mobile users see the name
+     without needing a hover state. */
   .car-gallery-overlay {
     position: absolute; inset: 0;
-    background: linear-gradient(to top, rgba(15,35,24,0.75) 0%, transparent 50%);
+    background: linear-gradient(to top, rgba(15,35,24,0.88) 0%, transparent 55%);
     display: flex; flex-direction: column; justify-content: flex-end;
-    padding: 18px 20px; opacity: 0; transition: opacity 0.3s;
+    padding: 18px 20px;
   }
-  .car-gallery-item:hover .car-gallery-overlay { opacity: 1; }
-  .car-gallery-label { font-family: 'Cormorant Garamond', serif; font-size: 1.1rem; }
+  .car-gallery-label { font-family: 'Cormorant Garamond', serif; font-size: 1.2rem; }
   .car-gallery-sub { font-size: 0.68rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gold); margin-top: 2px; }
+  /* Photo-count "folder" badge — always visible, top-left */
+  .car-gallery-count {
+    position: absolute; top: 12px; left: 12px; z-index: 1;
+    display: flex; align-items: center; gap: 6px;
+    background: rgba(15,35,24,0.75); border: 1px solid rgba(201,169,110,0.35);
+    padding: 5px 11px; font-size: 0.66rem; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--gold);
+  }
+  .car-gallery-count svg { width: 13px; height: 13px; }
   .car-gallery-zoom {
     position: absolute; top: 12px; right: 12px;
     width: 34px; height: 34px; border: 1px solid rgba(201,169,110,0.5);
@@ -206,7 +217,6 @@
   }
   @media (max-width: 480px) {
     .car-gallery-grid { grid-template-columns: 1fr; }
-    .car-gallery-item:first-child { grid-column: span 1; aspect-ratio: 4/3; }
   }
   /* Booking modal mobile fixes */
   .modal-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
@@ -345,13 +355,19 @@
   </p>
   <div class="car-gallery-grid">
 
-    <!-- Car 1 — featured (spans 2 columns).
-         Photo: 07-09 Toyota Sienna Limited.jpg by IFCAR, public domain
-         (https://commons.wikimedia.org/wiki/File:07-09_Toyota_Sienna_Limited.jpg).
-         Stand-in until real photos of our own Sienna are taken — swap
-         /cars/sienna-limited.jpg for the real thing when ready. -->
-    <div class="car-gallery-item" data-label="Toyota Sienna" data-sub="Minivan · Up to 7 passengers" data-src="/cars/sienna-limited.jpg">
+    <!-- Toyota Sienna — 2 units in the fleet, currently the same colour/trim,
+         so one photo set represents both. Cover photo:
+         07-09 Toyota Sienna Limited.jpg by IFCAR, public domain
+         (https://commons.wikimedia.org/wiki/File:07-09_Toyota_Sienna_Limited.jpg) —
+         stand-in until a real exterior photo of ours is taken; the 3 interior
+         shots are already the real thing. Full photo set in the FLEET object
+         in the script below. -->
+    <div class="car-gallery-item" data-vehicle="sienna">
       <img src="/cars/sienna-limited.jpg" alt="Toyota Sienna Limited minivan, front three-quarter view" loading="lazy">
+      <div class="car-gallery-count">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="7" width="14" height="14" rx="1"/><path d="M7 7V5a1 1 0 011-1h12a1 1 0 011 1v12a1 1 0 01-1 1h-2"/></svg>
+        4 Photos
+      </div>
       <div class="car-gallery-overlay">
         <div class="car-gallery-label">Toyota Sienna</div>
         <div class="car-gallery-sub">Minivan · Up to 7 passengers</div>
@@ -361,69 +377,15 @@
       </div>
     </div>
 
-    <!-- Car 2 — Sienna interior: front cabin -->
-    <div class="car-gallery-item" data-label="Toyota Sienna" data-sub="Interior · Front Cabin" data-src="/cars/sienna-interior-front.webp">
-      <img src="/cars/sienna-interior-front.webp" alt="Toyota Sienna front cabin interior, leather seats" loading="lazy">
-      <div class="car-gallery-overlay">
-        <div class="car-gallery-label">Toyota Sienna</div>
-        <div class="car-gallery-sub">Interior · Front Cabin</div>
-      </div>
-      <div class="car-gallery-zoom">
-        <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
-      </div>
-    </div>
-
-    <!-- Car 3 — Sienna interior: second-row captain's chairs -->
-    <div class="car-gallery-item" data-label="Toyota Sienna" data-sub="Interior · Second Row" data-src="/cars/sienna-interior-row2.webp">
-      <img src="/cars/sienna-interior-row2.webp" alt="Toyota Sienna second row captain's chairs" loading="lazy">
-      <div class="car-gallery-overlay">
-        <div class="car-gallery-label">Toyota Sienna</div>
-        <div class="car-gallery-sub">Interior · Second Row</div>
-      </div>
-      <div class="car-gallery-zoom">
-        <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
-      </div>
-    </div>
-
-    <!-- Car 4 — Sienna interior: third-row bench -->
-    <div class="car-gallery-item" data-label="Toyota Sienna" data-sub="Interior · Third Row" data-src="/cars/sienna-interior-row3.webp">
-      <img src="/cars/sienna-interior-row3.webp" alt="Toyota Sienna third row bench seat" loading="lazy">
-      <div class="car-gallery-overlay">
-        <div class="car-gallery-label">Toyota Sienna</div>
-        <div class="car-gallery-sub">Interior · Third Row</div>
-      </div>
-      <div class="car-gallery-zoom">
-        <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
-      </div>
-    </div>
-
-    <!-- Car 5 -->
-    <div class="car-gallery-item" data-label="On the Road" data-sub="Osun State routes" data-src="/cars/car5.jpg">
+    <!-- Toyota Camry XLE — silver, no photos taken yet. -->
+    <div class="car-gallery-item coming-soon" data-vehicle="camry">
       <div class="car-gallery-placeholder">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M5 17H3a2 2 0 01-2-2v-4l3-6h14l3 6v4a2 2 0 01-2 2h-2"/><circle cx="7.5" cy="17.5" r="2.5"/><circle cx="16.5" cy="17.5" r="2.5"/></svg>
-        <span>Add Photo</span>
+        <span>Photos Coming Soon</span>
       </div>
       <div class="car-gallery-overlay">
-        <div class="car-gallery-label">On the Road</div>
-        <div class="car-gallery-sub">Osun State routes</div>
-      </div>
-      <div class="car-gallery-zoom">
-        <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
-      </div>
-    </div>
-
-    <!-- Car 6 -->
-    <div class="car-gallery-item" data-label="Airport Transfer" data-sub="Pickup & drop-off" data-src="/cars/car6.jpg">
-      <div class="car-gallery-placeholder">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M5 17H3a2 2 0 01-2-2v-4l3-6h14l3 6v4a2 2 0 01-2 2h-2"/><circle cx="7.5" cy="17.5" r="2.5"/><circle cx="16.5" cy="17.5" r="2.5"/></svg>
-        <span>Add Photo</span>
-      </div>
-      <div class="car-gallery-overlay">
-        <div class="car-gallery-label">Airport Transfer</div>
-        <div class="car-gallery-sub">Pickup &amp; drop-off</div>
-      </div>
-      <div class="car-gallery-zoom">
-        <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+        <div class="car-gallery-label">Toyota Camry XLE</div>
+        <div class="car-gallery-sub">Saloon · Silver · Up to 4 passengers</div>
       </div>
     </div>
 
@@ -493,24 +455,53 @@
 </footer>
 
 <script>
-  const galleryItems = Array.from(document.querySelectorAll('.car-gallery-item'));
-  const lightbox     = document.getElementById('carLightbox');
-  const lbImg        = document.getElementById('carLbImg');
-  const lbLabel      = document.getElementById('carLbLabel');
-  const lbSub        = document.getElementById('carLbSub');
-  const lbClose      = document.getElementById('carLbClose');
-  const lbPrev       = document.getElementById('carLbPrev');
-  const lbNext       = document.getElementById('carLbNext');
-  let currentIndex   = 0;
+  // One entry per vehicle MODEL. Add a vehicle's real photos here (and a
+  // matching data-vehicle card above) as they're taken — everything else
+  // (badge count, lightbox, prev/next) works off this automatically.
+  const FLEET = {
+    sienna: {
+      name: 'Toyota Sienna',
+      sub:  'Minivan · Up to 7 passengers',
+      photos: [
+        { src: '/cars/sienna-limited.jpg',            label: 'Exterior' },
+        { src: '/cars/sienna-interior-front.webp',    label: 'Interior · Front Cabin' },
+        { src: '/cars/sienna-interior-row2.webp',     label: 'Interior · Second Row' },
+        { src: '/cars/sienna-interior-row3.webp',     label: 'Interior · Third Row' },
+      ],
+    },
+    camry: {
+      name: 'Toyota Camry XLE',
+      sub:  'Saloon · Silver · Up to 4 passengers',
+      photos: [], // coming soon — card has no click handler until this fills in
+    },
+  };
 
-  function openLightbox(index) {
-    currentIndex = index;
-    const item = galleryItems[index];
-    const src  = item.dataset.src;
-    const img  = item.querySelector('img');
-    lbImg.src        = img ? img.src : src;
-    lbLabel.textContent = item.dataset.label || '';
-    lbSub.textContent   = item.dataset.sub   || '';
+  const lightbox = document.getElementById('carLightbox');
+  const lbImg    = document.getElementById('carLbImg');
+  const lbLabel  = document.getElementById('carLbLabel');
+  const lbSub    = document.getElementById('carLbSub');
+  const lbClose  = document.getElementById('carLbClose');
+  const lbPrev   = document.getElementById('carLbPrev');
+  const lbNext   = document.getElementById('carLbNext');
+
+  let activeVehicle = null;
+  let currentIndex  = 0;
+
+  function renderLightbox() {
+    const v = FLEET[activeVehicle];
+    const p = v.photos[currentIndex];
+    lbImg.src   = p.src;
+    lbImg.alt   = v.name + ' — ' + p.label;
+    lbLabel.textContent = v.name;
+    lbSub.textContent   = p.label + '  ·  Photo ' + (currentIndex + 1) + ' of ' + v.photos.length;
+  }
+
+  function openLightbox(vehicleId, index) {
+    const v = FLEET[vehicleId];
+    if (!v || !v.photos.length) return; // nothing to show yet
+    activeVehicle = vehicleId;
+    currentIndex  = index;
+    renderLightbox();
     lightbox.classList.add('open');
     document.body.style.overflow = 'hidden';
   }
@@ -518,15 +509,20 @@
   function closeLightbox() {
     lightbox.classList.remove('open');
     document.body.style.overflow = '';
+    activeVehicle = null;
   }
 
   function navigate(dir) {
-    currentIndex = (currentIndex + dir + galleryItems.length) % galleryItems.length;
-    openLightbox(currentIndex);
+    const v = FLEET[activeVehicle];
+    if (!v) return;
+    currentIndex = (currentIndex + dir + v.photos.length) % v.photos.length;
+    renderLightbox();
   }
 
-  galleryItems.forEach((item, i) => {
-    item.addEventListener('click', () => openLightbox(i));
+  document.querySelectorAll('.car-gallery-item[data-vehicle]').forEach(item => {
+    const id = item.dataset.vehicle;
+    if (!FLEET[id] || !FLEET[id].photos.length) return; // coming-soon card
+    item.addEventListener('click', () => openLightbox(id, 0));
   });
 
   lbClose.addEventListener('click', closeLightbox);
