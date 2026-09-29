@@ -2884,9 +2884,9 @@
 <!-- ══════════════════════════════════════════════════════════════
      SUITES SECTION  (anchor: #rooms)
      Three suite cards displayed side by side:
-       - One-Bedroom Suite   → ₦50,000/night  + ₦13,335 caution (Entry Collection)
-       - Two-Bedroom Suite   → ₦100,000/night + ₦26,670 caution (Signature Collection)
-       - Three-Bedroom Suite → ₦150,000/night + ₦40,005 caution (Prestige Collection)
+       - One-Bedroom Suite   → ₦50,000/night  + ₦15,000 caution (Entry Collection)
+       - Two-Bedroom Suite   → ₦100,000/night + ₦30,000 caution (Signature Collection)
+       - Three-Bedroom Suite → ₦150,000/night + ₦45,000 caution (Prestige Collection)
      Each card has an emoji placeholder background, a dark gradient
      overlay so text stays readable, and an arrow icon that appears
      on hover. To update pricing or descriptions, edit the .room-card
@@ -2910,7 +2910,7 @@
             <span class="price-num" id="apt-price-1">₦50,000</span>
             <span class="price-unit">per night</span>
           </div>
-          <div class="room-caution">+ <span id="apt-caution-1">₦13,335</span> caution deposit · refundable on checkout</div>
+          <div class="room-caution">+ <span id="apt-caution-1">₦15,000</span> caution deposit · refundable on checkout</div>
         </div>
       </div>
       <div class="room-card reveal reveal-delay-1">
@@ -2924,7 +2924,7 @@
             <span class="price-num" id="apt-price-2">₦100,000</span>
             <span class="price-unit">per night</span>
           </div>
-          <div class="room-caution">+ <span id="apt-caution-2">₦26,670</span> caution deposit · refundable on checkout</div>
+          <div class="room-caution">+ <span id="apt-caution-2">₦30,000</span> caution deposit · refundable on checkout</div>
         </div>
       </div>
       <div class="room-card reveal reveal-delay-2">
@@ -2938,7 +2938,7 @@
             <span class="price-num" id="apt-price-3">₦150,000</span>
             <span class="price-unit">per night</span>
           </div>
-          <div class="room-caution">+ <span id="apt-caution-3">₦40,005</span> caution deposit · refundable on checkout</div>
+          <div class="room-caution">+ <span id="apt-caution-3">₦45,000</span> caution deposit · refundable on checkout</div>
         </div>
       </div>
     </div>
@@ -2967,7 +2967,7 @@
           <span class="pkg-per">per night</span>
           <span class="pkg-was">From ₦50,000</span>
         </div>
-        <div class="pkg-caution">+ Caution deposit (26.67% of nightly rate) · fully refundable on checkout &amp; unit confirmation</div>
+        <div class="pkg-caution">+ Caution deposit (30% of nightly rate) · fully refundable on checkout &amp; unit confirmation</div>
         <div class="package-includes">
           <span class="package-pill">🏠 Any Suite — 10% Off</span>
           <span class="package-pill">🏊 Pool Access — Included</span>
@@ -2996,7 +2996,7 @@
           <span class="pkg-per">per night</span>
           <span class="pkg-was">₦600,000</span>
         </div>
-        <div class="pkg-caution">+ ₦133,350 caution deposit · fully refundable on checkout &amp; unit confirmation</div>
+        <div class="pkg-caution">+ ₦180,000 caution deposit · fully refundable on checkout &amp; unit confirmation</div>
         <div class="package-includes">
           <span class="package-pill">🏠 All 6 Apartments</span>
           <span class="package-pill">🏊 Pool Access — Included</span>
@@ -3952,7 +3952,7 @@
           const cautionEl = document.getElementById('apt-caution-' + beds);
           if (priceEl) {
             priceEl.textContent = '₦' + rate.toLocaleString('en-NG');
-            if (cautionEl) cautionEl.textContent = '₦' + Math.round(rate * 0.2667).toLocaleString('en-NG');
+            if (cautionEl) cautionEl.textContent = '₦' + Math.round(rate * 0.30).toLocaleString('en-NG');
           }
         });
       }).catch(() => {});
