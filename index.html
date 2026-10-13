@@ -1832,6 +1832,59 @@
   </div>
 </div>
 
+<!-- Reserve a Table modal (Restaurant & Bar) — Edendox booking embed, kind: table -->
+<div id="tableModal" style="position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:rgba(10,25,16,0.93);backdrop-filter:blur(10px);opacity:0;pointer-events:none;transition:opacity 0.3s;padding:20px">
+  <div style="background:#0f2318;border:1px solid rgba(201,169,110,0.3);border-radius:3px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;position:relative">
+    <button onclick="closeTableModal()" style="position:absolute;top:14px;right:18px;background:none;border:none;color:rgba(245,242,236,0.45);font-size:1.6rem;cursor:pointer;line-height:1;z-index:1">×</button>
+    <div style="padding:32px 36px 12px">
+      <p style="font-size:0.6rem;letter-spacing:0.38em;text-transform:uppercase;color:#C9A96E;margin-bottom:8px">Restaurant &amp; Bar · Eden 54</p>
+      <h2 style="font-family:'Cormorant Garamond',serif;font-size:1.9rem;font-weight:300;color:#F5F2EC;margin-bottom:4px">Reserve a Table</h2>
+      <p style="font-size:0.78rem;color:rgba(245,242,236,0.45)">Availability is live — your reservation is confirmed instantly.</p>
+    </div>
+    <iframe id="edendoxTableBooking"
+            src="https://eden54group.edendox.com/book/?type=table&amp;embed=1"
+            title="Reserve a table at Eden 54"
+            style="width:100%;min-height:620px;border:0;display:block"
+            loading="lazy"></iframe>
+  </div>
+</div>
+
+<!-- Reserve the Event Hall modal — Edendox booking embed, kind: event -->
+<div id="eventModal" style="position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:rgba(10,25,16,0.93);backdrop-filter:blur(10px);opacity:0;pointer-events:none;transition:opacity 0.3s;padding:20px">
+  <div style="background:#0f2318;border:1px solid rgba(201,169,110,0.3);border-radius:3px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;position:relative">
+    <button onclick="closeEventModal()" style="position:absolute;top:14px;right:18px;background:none;border:none;color:rgba(245,242,236,0.45);font-size:1.6rem;cursor:pointer;line-height:1;z-index:1">×</button>
+    <div style="padding:32px 36px 12px">
+      <p style="font-size:0.6rem;letter-spacing:0.38em;text-transform:uppercase;color:#C9A96E;margin-bottom:8px">Events &amp; Weddings · Eden 54</p>
+      <h2 style="font-family:'Cormorant Garamond',serif;font-size:1.9rem;font-weight:300;color:#F5F2EC;margin-bottom:4px">Reserve the Event Hall</h2>
+      <p style="font-size:0.78rem;color:rgba(245,242,236,0.45)">Availability is live — your reservation is confirmed instantly.</p>
+    </div>
+    <iframe id="edendoxEventBooking"
+            src="https://eden54group.edendox.com/book/?type=event&amp;embed=1"
+            title="Reserve the event hall at Eden 54"
+            style="width:100%;min-height:620px;border:0;display:block"
+            loading="lazy"></iframe>
+  </div>
+</div>
+<script>
+function openTableModal(e){ if(e) e.preventDefault(); document.getElementById('tableModal').style.opacity='1'; document.getElementById('tableModal').style.pointerEvents='all'; }
+function closeTableModal(){ const m=document.getElementById('tableModal'); m.style.opacity='0'; m.style.pointerEvents='none'; }
+document.getElementById('tableModal').addEventListener('click', function(e){ if(e.target===this) closeTableModal(); });
+
+function openEventModal(e){ if(e) e.preventDefault(); document.getElementById('eventModal').style.opacity='1'; document.getElementById('eventModal').style.pointerEvents='all'; }
+function closeEventModal(){ const m=document.getElementById('eventModal'); m.style.opacity='0'; m.style.pointerEvents='none'; }
+document.getElementById('eventModal').addEventListener('click', function(e){ if(e.target===this) closeEventModal(); });
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeTableModal(); closeEventModal(); } });
+
+window.addEventListener('message', function (e) {
+  if (e.origin !== 'https://eden54group.edendox.com' || !e.data || !e.data.edxBookHeight) return;
+  var tf = document.getElementById('edendoxTableBooking');
+  var ef = document.getElementById('edendoxEventBooking');
+  if (tf) tf.style.height = e.data.edxBookHeight + 'px';
+  if (ef) ef.style.height = e.data.edxBookHeight + 'px';
+});
+</script>
+
 <!-- Food card pop-out lightbox -->
 <div id="foodPop" style="
   position:fixed;inset:0;z-index:9999;
@@ -2690,6 +2743,10 @@
 
   </div>
 
+  <div style="text-align:center;padding:12px 60px 72px">
+    <a href="#" onclick="openTableModal(event)" style="display:inline-block;background:#1A1A18;color:#C9A96E;border:1px solid #1A1A18;padding:15px 38px;font-family:'Jost',sans-serif;font-size:0.76rem;letter-spacing:0.22em;text-transform:uppercase;text-decoration:none;border-radius:2px;transition:background 0.3s,color 0.3s" onmouseover="this.style.background='#C9A96E';this.style.color='#1A1A18'" onmouseout="this.style.background='#1A1A18';this.style.color='#C9A96E'">Reserve a Table →</a>
+  </div>
+
 </section>
 
 <!-- COCKTAIL SESSIONS -->
@@ -3181,7 +3238,7 @@
       <ul>
         <li><a href="#">About Eden 54</a></li>
         <li><a href="#">Gallery</a></li>
-        <li><a href="#">Events & Weddings</a></li>
+        <li><a href="#" onclick="openEventModal(event)">Events & Weddings</a></li>
         <li><a href="#">Careers</a></li>
         <li><a href="#">Privacy Policy</a></li>
       </ul>
