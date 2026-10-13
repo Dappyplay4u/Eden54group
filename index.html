@@ -3107,152 +3107,29 @@
       <div class="booking-form-header">
         <span class="form-eyebrow">Reservations</span>
         <h3>Reserve Your Suite</h3>
-        <p>Complete the form below and our team will confirm your booking within 24 hours.</p>
+        <p>Pick your dates below — availability is live and your booking is confirmed instantly.</p>
       </div>
 
-      <div id="rfFormWrap">
-
-        <div class="rf-form-body" id="rfFormBody">
-
-          <div class="rf-section">
-            <span class="rf-section-label">Personal Information</span>
-            <div class="rf-row-2">
-              <div class="rf-field">
-                <label for="rfFirstName">First name <span class="req">*</span></label>
-                <input type="text" id="rfFirstName" name="entry.1210157" placeholder="John">
-                <span class="rf-field-error" id="rferr-rfFirstName">Please enter your first name</span>
-              </div>
-              <div class="rf-field">
-                <label for="rfLastName">Last name <span class="req">*</span></label>
-                <input type="text" id="rfLastName" name="entry.5692462" placeholder="Smith">
-                <span class="rf-field-error" id="rferr-rfLastName">Please enter your last name</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="rf-section">
-            <div class="rf-row-2">
-              <div class="rf-field">
-                <label for="rfEmail">Email address <span class="req">*</span></label>
-                <input type="email" id="rfEmail" name="entry.1163602" placeholder="john@example.com">
-                <span class="rf-field-error" id="rferr-rfEmail">Please enter a valid email</span>
-              </div>
-              <div class="rf-field">
-                <label for="rfPhone">Phone number <span class="req">*</span></label>
-                <input type="tel" id="rfPhone" name="entry.1591634" placeholder="+234 (0) 000 0000">
-                <span class="rf-field-error" id="rferr-rfPhone">Please enter your phone number</span>
-              </div>
-            </div>
-          </div>
-
-          <hr class="rf-divider">
-
-          <div class="rf-section">
-            <span class="rf-section-label">Stay Details</span>
-            <div class="rf-row-3">
-              <div class="rf-field">
-                <label for="rfCheckin">Check-in <span class="req">*</span></label>
-                <input type="date" id="rfCheckin" name="entry.4193625">
-                <span class="rf-field-error" id="rferr-rfCheckin">Select a check-in date</span>
-              </div>
-              <div class="rf-field">
-                <label for="rfCheckout">Check-out <span class="req">*</span></label>
-                <input type="date" id="rfCheckout" name="entry.9504276">
-                <span class="rf-field-error" id="rferr-rfCheckout">Select a check-out date</span>
-              </div>
-              <div class="rf-field">
-                <label for="rfGuests">Guests <span class="req">*</span></label>
-                <select id="rfGuests" name="entry.3271317">
-                  <option value="" disabled selected>Select</option>
-                  <option value="1">1 guest</option>
-                  <option value="2">2 guests</option>
-                  <option value="3">3 guests</option>
-                  <option value="4">4 guests</option>
-                  <option value="5">5 guests</option>
-                  <option value="6">6 guests</option>
-                  <option value="7">7 guests</option>
-                  <option value="8">8 guests</option>
-                  <option value="9">9 guests</option>
-                  <option value="10">10 guests</option>
-                  <option value="11–15">11–15 guests</option>
-                  <option value="16–20">16–20 guests</option>
-                  <option value="20+">20+ guests</option>
-                </select>
-                <span class="rf-field-error" id="rferr-rfGuests">Please select guests</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="rf-section">
-            <div class="rf-field">
-              <label for="rfUnit">Apartment unit <span class="req">*</span>
-                <span id="rfAvailSpinner" style="display:none;font-size:0.72rem;color:#888;margin-left:8px;font-weight:300;letter-spacing:0.04em">Checking availability…</span>
-              </label>
-              <select id="rfUnit" name="entry.9091780">
-                <option value="" disabled selected>Select dates above to see availability</option>
-              </select>
-              <div id="rfAvailNote" style="display:none;font-size:0.74rem;margin-top:6px;line-height:1.5"></div>
-              <span class="rf-field-error" id="rferr-rfUnit">Please select an apartment unit</span>
-            </div>
-          </div>
-
-          <div class="rf-section">
-            <div class="rf-field">
-              <label for="rfRequests">Special requests</label>
-              <textarea id="rfRequests" name="entry.1510999" placeholder="Dietary requirements, accessibility needs, occasion details…"></textarea>
-            </div>
-          </div>
-
-          <div class="cf-turnstile" id="rfTurnstile" data-sitekey="0x4AAAAAAEnrOOs4sD95jTTV" style="margin-bottom:14px"></div>
-
-          <button type="button" class="rf-submit-btn" id="rfSubmitBtn" onclick="rfSubmitForm()">
-            <svg id="rfBtnIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13"/><path d="M22 2L15 22 11 13 2 9l20-7z"/></svg>
-            <div class="rf-spinner" id="rfSpinner"></div>
-            <span id="rfBtnText">Send Reservation Request</span>
-          </button>
-
-          <div class="rf-msg rf-error-msg" id="rfErrorMsg">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-            <div>Something went wrong. Please try again or contact us directly.</div>
-          </div>
-
-          <div class="rf-footer">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
-            Your information is securely submitted and never shared with third parties.
-          </div>
-
-        </div>
-
-        <div class="rf-success-screen" id="rfSuccessScreen">
-          <div class="rf-success-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-          </div>
-          <h2>Reservation Received</h2>
-          <p>Thank you — our team will review your details and confirm your suite within 24 hours.</p>
-          <button class="rf-new-booking-btn" onclick="rfResetForm()">Make another booking</button>
-        </div>
-
-      </div>
+      <!-- Edendox online booking (companies/eden54group) — replaces the old
+           custom form + Google Forms/Turnstile/publicIntake pipeline. Real
+           server-side availability + instant confirmation; configured from
+           /portal/bookings/ (hours, deposit, branding) — no code changes
+           needed here to adjust those. -->
+      <iframe id="edendoxBooking"
+              src="https://eden54group.edendox.com/book/?embed=1"
+              title="Book with Eden 54 Apartment and Lounge"
+              style="width:100%;min-height:760px;border:0;display:block"
+              loading="lazy"></iframe>
+      <script>
+        window.addEventListener('message', function (e) {
+          if (e.origin === 'https://eden54group.edendox.com' && e.data && e.data.edxBookHeight) {
+            var f = document.getElementById('edendoxBooking');
+            if (f) f.style.height = e.data.edxBookHeight + 'px';
+          }
+        });
+      </script>
     </div>
   </div>
-
-  <!-- Hidden iframe + static form for Google Forms submission -->
-  <iframe name="rfHiddenFrame" id="rfHiddenFrame" style="display:none;position:absolute;width:0;height:0;border:0;"></iframe>
-  <form id="rfRealForm"
-        action="https://docs.google.com/forms/d/e/1FAIpQLSe-0VpwCWMfScS_28uawPeLuqxQBgcUFppc0-INSRptgEAKKA/formResponse"
-        method="POST" target="rfHiddenFrame" style="display:none;">
-    <input type="hidden" name="emailAddress"      id="rh_emailAddress">
-    <input type="hidden" name="entry.1069749255" id="rh_firstName">
-    <input type="hidden" name="entry.1336973942" id="rh_lastName">
-    <input type="hidden" name="entry.1968163125" id="rh_email">
-    <input type="hidden" name="entry.334493718"  id="rh_phone">
-    <input type="hidden" name="entry.1969288775" id="rh_checkin">
-    <input type="hidden" name="entry.1222740020" id="rh_checkout">
-    <input type="hidden" name="entry.1818404740" id="rh_guests">
-    <input type="hidden" name="entry.1734377936" id="rh_unit">
-    <input type="hidden" name="entry.1621521925" id="rh_requests">
-  </form>
-
 </section>
 
 <!-- ══════════════════════════════════════════════════════════════
@@ -3475,305 +3352,6 @@
     document.addEventListener('keydown', e => { if (e.key === 'Escape') closePop(); });
   })();
 
-  /* ── CUSTOM RESERVATION FORM ────────────────────────────────
-     Submits directly to Google Forms via fetch (no-cors).
-     Entry field names map to the Google Form question IDs.
-     ---------------------------------------------------------- */
-  const RF_ACTION = 'https://docs.google.com/forms/d/e/1FAIpQLSe-0VpwCWMfScS_28uawPeLuqxQBgcUFppc0-INSRptgEAKKA/formResponse';
-
-  const rfFields = [
-    { id: 'rfFirstName', required: true },
-    { id: 'rfLastName',  required: true },
-    { id: 'rfEmail',     required: true, type: 'email' },
-    { id: 'rfPhone',     required: true },
-    { id: 'rfCheckin',   required: true },
-    { id: 'rfCheckout',  required: true },
-    { id: 'rfGuests',    required: true },
-    { id: 'rfUnit',      required: true },
-    { id: 'rfRequests',  required: false },
-  ];
-
-  /* ── Named apartment units ── */
-  const RF_UNITS = [
-    { name: 'The Ivy',         beds: 1, rate: 50000,  desc: '1 Bedroom · Intimate & Refined'    },
-    { name: 'The Willow',      beds: 2, rate: 100000, desc: '2 Bedrooms · Graceful & Serene'    },
-    { name: 'The Amber',       beds: 2, rate: 100000, desc: '2 Bedrooms · Warm & Inviting'      },
-    { name: 'The Jasmine',     beds: 2, rate: 100000, desc: '2 Bedrooms · Fragrant & Elegant'   },
-    { name: 'The Orchid',      beds: 2, rate: 100000, desc: '2 Bedrooms · Exotic & Luxurious'   },
-    { name: 'The Eden Suite',  beds: 3, rate: 150000, desc: '3 Bedrooms · The Crown Jewel'      },
-  ];
-  const rfFmt = n => '₦' + Number(n).toLocaleString('en-NG') + '/night';
-
-  /* Map legacy/generic unit names → bedroom count for fallback blocking */
-  function rfLegacyBeds(raw) {
-    if (!raw) return null;
-    const u = raw.toLowerCase();
-    if (u.includes('all') || u.includes('whole')) return 'ALL';
-    if (u.includes('1') || u.includes('one')) return 1;
-    if (u.includes('3') || u.includes('three')) return 3;
-    if (u.includes('2') || u.includes('two')) return 2;
-    return null;
-  }
-
-  async function rfCheckAvailability() {
-    const checkin = document.getElementById('rfCheckin').value;
-    const checkout = document.getElementById('rfCheckout').value;
-    const unitSel  = document.getElementById('rfUnit');
-    const noteEl   = document.getElementById('rfAvailNote');
-    const spinEl   = document.getElementById('rfAvailSpinner');
-
-    // Static fallback (shown before dates picked or on Firebase error)
-    function buildStaticOpts(note) {
-      unitSel.innerHTML = `<option value="" disabled selected>Choose a unit</option>`
-        + RF_UNITS.map(u => `<option value="${u.name}">${u.name} — ${u.desc} · ${rfFmt(u.rate)}</option>`).join('')
-        + `<option value="All Units — Whole Property">🏠 All Units — Whole Property · The Eden Platinum (₦500,000/night · Save ₦100k)</option>`;
-      noteEl.style.display = note ? 'block' : 'none';
-      if (note) noteEl.innerHTML = note;
-    }
-
-    if (!checkin || !checkout || checkout <= checkin) {
-      unitSel.innerHTML = '<option value="" disabled selected>Select dates above to see availability</option>';
-      noteEl.style.display = 'none';
-      return;
-    }
-
-    spinEl.style.display = 'inline';
-    noteEl.style.display = 'none';
-
-    try {
-      if (typeof firebase === 'undefined' || !firebase.apps || !firebase.apps.length) throw new Error('sdk');
-      // NOTE: these collections are member-only on Edendox, so this read
-      // permission-denies for a public visitor and we fall through to the static
-      // unit list below ("staff will confirm availability"). Live public
-      // availability needs a CORS publicApartments() function — see follow-up.
-      const tcol = firebase.firestore().collection('companies').doc(window.EDX_TENANT);
-
-      const [webSnap, portalSnap] = await Promise.all([
-        tcol.collection('apartmentBookings').where('checkin', '<', checkout).get(),
-        tcol.collection('apartmentRentals').where('checkin', '<', checkout).get(),
-      ]);
-
-      // Track which named units are booked; also track legacy bed-count bookings
-      const bookedUnits = new Set();
-      const legacyBooked = { 1: 0, 2: 0, 3: 0 };
-
-      function processBooking(b) {
-        if (b.status === 'cancelled' || b.status === 'checked-out') return;
-        if (!b.checkout || b.checkout <= checkin) return;
-        const raw = b.unit || '';
-        if (RF_UNITS.some(u => u.name === raw)) {
-          bookedUnits.add(raw); // exact named unit match
-        } else {
-          const beds = rfLegacyBeds(raw);
-          if (beds === 'ALL') { RF_UNITS.forEach(u => bookedUnits.add(u.name)); }
-          else if (beds) legacyBooked[beds] = (legacyBooked[beds] || 0) + 1;
-        }
-      }
-
-      webSnap.forEach(doc => processBooking(doc.data()));
-      portalSnap.forEach(doc => processBooking(doc.data()));
-
-      // Block legacy bed-count bookings against the first available unit of that size
-      [1, 2, 3].forEach(beds => {
-        let remaining = legacyBooked[beds] || 0;
-        RF_UNITS.forEach(u => {
-          if (u.beds === beds && remaining > 0 && !bookedUnits.has(u.name)) {
-            bookedUnits.add(u.name);
-            remaining--;
-          }
-        });
-      });
-
-      spinEl.style.display = 'none';
-
-      let html = '<option value="" disabled selected>Choose a unit</option>';
-      let anyAvail = false;
-
-      RF_UNITS.forEach(u => {
-        const ok = !bookedUnits.has(u.name);
-        if (ok) anyAvail = true;
-        html += `<option value="${u.name}"${ok ? '' : ' disabled'}>${u.name} — ${u.desc} · ${rfFmt(u.rate)}${ok ? '' : ' · Booked'}</option>`;
-      });
-
-      const allClear = bookedUnits.size === 0;
-      html += `<option value="All Units — Whole Property"${allClear ? '' : ' disabled'}>🏠 All Units — Whole Property · The Eden Platinum (₦500,000/night · Save ₦100k)${allClear ? '' : ' · Not Available'}</option>`;
-
-      unitSel.innerHTML = html;
-      noteEl.style.display = 'block';
-      noteEl.innerHTML = anyAvail
-        ? '<span style="color:#2d7a4f">✓ Live availability loaded for your selected dates</span>'
-        : '<span style="color:#c0392b">No units available for these dates — please try different dates or <a href="#contact" style="color:#c0392b;text-decoration:underline">contact us</a>.</span>';
-
-    } catch(e) {
-      spinEl.style.display = 'none';
-      buildStaticOpts('<span style="color:#888">Choose your preferred unit — staff will confirm availability.</span>');
-    }
-  }
-
-  (function initRF() {
-    const rfToday = new Date().toISOString().split('T')[0];
-    const rfCI = document.getElementById('rfCheckin');
-    const rfCO = document.getElementById('rfCheckout');
-    if (rfCI) rfCI.min = rfToday;
-    if (rfCO) rfCO.min = rfToday;
-    if (rfCI) rfCI.addEventListener('change', function() {
-      rfCO.min = this.value;
-      if (rfCO.value && rfCO.value < this.value) rfCO.value = this.value;
-      rfCheckAvailability();
-    });
-    if (rfCO) rfCO.addEventListener('change', function() {
-      rfCheckAvailability();
-    });
-  })();
-
-  function rfValidate() {
-    let valid = true;
-    rfFields.forEach(f => {
-      const el  = document.getElementById(f.id);
-      const err = document.getElementById('rferr-' + f.id);
-      if (!el) return;
-      el.classList.remove('rferror');
-      if (err) err.classList.remove('show');
-      if (f.required && !el.value.trim()) {
-        el.classList.add('rferror'); if (err) err.classList.add('show'); valid = false;
-      } else if (f.type === 'email' && el.value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(el.value)) {
-        el.classList.add('rferror'); if (err) err.classList.add('show'); valid = false;
-      }
-    });
-    return valid;
-  }
-
-  let rfSubmitting = false;
-
-  document.getElementById('rfHiddenFrame').addEventListener('load', function() {
-    console.log('[RF] iframe load event fired. rfSubmitting =', rfSubmitting);
-    if (!rfSubmitting) return;
-    rfSubmitting = false;
-    console.log('[RF] ✅ Success screen shown');
-    document.getElementById('rfFormBody').classList.add('hide');
-    document.getElementById('rfSuccessScreen').classList.add('show');
-  });
-
-  function rfSubmitForm() {
-    document.getElementById('rfErrorMsg').classList.remove('show');
-    console.log('[RF] Submit clicked — running validation...');
-    if (!rfValidate()) {
-      console.log('[RF] ❌ Validation failed — check highlighted fields');
-      return;
-    }
-    console.log('[RF] ✅ Validation passed');
-
-    const btn     = document.getElementById('rfSubmitBtn');
-    const spinner = document.getElementById('rfSpinner');
-    const btnIcon = document.getElementById('rfBtnIcon');
-    const btnText = document.getElementById('rfBtnText');
-    btn.disabled = true;
-    spinner.style.display = 'block';
-    btnIcon.style.display = 'none';
-    btnText.textContent = 'Sending…';
-
-    /* Populate hidden form fields */
-    document.getElementById('rh_emailAddress').value = document.getElementById('rfEmail').value;
-    document.getElementById('rh_firstName').value    = document.getElementById('rfFirstName').value;
-    document.getElementById('rh_lastName').value  = document.getElementById('rfLastName').value;
-    document.getElementById('rh_email').value     = document.getElementById('rfEmail').value;
-    document.getElementById('rh_phone').value     = document.getElementById('rfPhone').value;
-    document.getElementById('rh_checkin').value   = document.getElementById('rfCheckin').value;
-    document.getElementById('rh_checkout').value  = document.getElementById('rfCheckout').value;
-    document.getElementById('rh_guests').value    = document.getElementById('rfGuests').value;
-    document.getElementById('rh_unit').value      = document.getElementById('rfUnit').value;
-    document.getElementById('rh_requests').value  = document.getElementById('rfRequests').value;
-
-    /* Log every field value being sent */
-    const rhForm = document.getElementById('rfRealForm');
-    const payload = {};
-    Array.from(rhForm.elements).forEach(el => { if (el.name) payload[el.name] = el.value; });
-    console.log('[RF] 📤 Submitting to Google Forms with payload:', payload);
-    console.log('[RF] Form action:', rhForm.action);
-
-    rfSubmitting = true;
-    rhForm.submit();
-    console.log('[RF] form.submit() called — waiting for iframe load...');
-
-    /* Also fire email via FormSubmit (runs in parallel, fire-and-forget) */
-    const emailPayload = {
-      _subject:          'New Reservation Request — Eden 54',
-      _captcha:          'false',
-      _template:         'table',
-      _cc:               'eden54games@gmail.com',
-
-      'First Name':      document.getElementById('rfFirstName').value,
-      'Last Name':       document.getElementById('rfLastName').value,
-      'Email':           document.getElementById('rfEmail').value,
-      'Phone':           document.getElementById('rfPhone').value,
-      'Check-in Date':   document.getElementById('rfCheckin').value,
-      'Check-out Date':  document.getElementById('rfCheckout').value,
-      'Guests':          document.getElementById('rfGuests').value,
-      'Apartment Unit':  document.getElementById('rfUnit').value,
-      'Special Requests':document.getElementById('rfRequests').value,
-    };
-    fetch('https://formsubmit.co/ajax/eden54group@gmail.com', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-      body: JSON.stringify(emailPayload)
-    }).catch(() => {});
-
-    /* Also send the booking to the Edendox portal via publicIntake (Turnstile
-       + rate-limited Cloud Function) so it shows there as a website
-       reservation (🌐 badge in /portal/apartments/). Non-fatal — the guest
-       still gets the success screen; the Google Form + email always run
-       regardless of whether this succeeds. */
-    (function saveBooking() {
-      // turnstile.getResponse()'s signature for an implicitly-rendered widget
-      // (a plain <div class="cf-turnstile">, no manual .render() call) isn't
-      // documented — reading the hidden input Turnstile creates inside the
-      // widget's own container either way is the one behavior Cloudflare's
-      // docs actually confirm regardless of render mode.
-      var tsEl = document.querySelector('#rfTurnstile [name="cf-turnstile-response"]');
-      var token = tsEl ? tsEl.value : '';
-      if (!token) { console.warn('[RF] Turnstile token not ready yet — skipping Edendox write for this submission.'); return; }
-      window.edxFns.httpsCallable('publicIntake')({
-        companyId: window.EDX_TENANT,
-        turnstileToken: token,
-        kind: 'reservation',
-        booking: {
-          firstName: document.getElementById('rfFirstName').value,
-          lastName:  document.getElementById('rfLastName').value,
-          email:     document.getElementById('rfEmail').value,
-          phone:     document.getElementById('rfPhone').value,
-          checkin:   document.getElementById('rfCheckin').value,
-          checkout:  document.getElementById('rfCheckout').value,
-          guests:    document.getElementById('rfGuests').value,
-          unit:      document.getElementById('rfUnit').value,
-          requests:  document.getElementById('rfRequests').value,
-        }
-      }).then(function (r) {
-        console.log('[RF] ✅ Reservation saved to Edendox:', r.data.id);
-      }).catch(function (e) {
-        console.error('[RF] ❌ Edendox write failed:', e.code, e.message,
-          '\n→ If "permission-denied": turn on Public intake → reservations for eden54group in /admin/.');
-      });
-      if (window.turnstile) window.turnstile.reset(); // one token per submission
-    })();
-  }
-
-  function rfResetForm() {
-    rfFields.forEach(f => {
-      const el = document.getElementById(f.id);
-      if (el) { el.value = ''; el.classList.remove('rferror'); }
-      const err = document.getElementById('rferr-' + f.id);
-      if (err) err.classList.remove('show');
-    });
-    document.getElementById('rfFormBody').classList.remove('hide');
-    document.getElementById('rfSuccessScreen').classList.remove('show');
-    document.getElementById('rfErrorMsg').classList.remove('show');
-    const btn = document.getElementById('rfSubmitBtn');
-    btn.disabled = false;
-    document.getElementById('rfSpinner').style.display = 'none';
-    document.getElementById('rfBtnIcon').style.display = 'block';
-    document.getElementById('rfBtnText').textContent = 'Send Reservation Request';
-  }
-
   /* ── CUSTOM CURSOR ANIMATION ─────────────────────────────────
      Tracks the mouse position (mx, my) and moves the gold dot
      there instantly on every frame. The ring (rx, ry) catches up
@@ -3878,18 +3456,12 @@
   setInterval(() => showTestimonial((current + 1) % testimonials.length), 6000); // auto-rotate
 </script>
 
-<!-- Cloudflare Turnstile — CAPTCHA for the reservation form below, verified
-     server-side by the publicIntake Cloud Function (not by this page). -->
-<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
-<!-- Firebase — reservations feed the Edendox portal (companies/eden54group) -->
+<!-- Firebase — price-sync below reads companies/eden54group/aptRates.
+     Reservations themselves now go through the Edendox booking embed above,
+     which handles its own Firestore access server-side via functions/booking.js. -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-functions-compat.js"></script>
 <script>
-  /* Eden 54 now runs entirely on the Edendox SaaS as tenant "eden54group".
-     One Firebase app → edendox-780bc. The reservation form calls the
-     publicIntake Cloud Function (Turnstile + rate-limited) instead of
-     writing companies/eden54group/apartmentBookings directly. */
   window.EDX_TENANT = 'eden54group';
   try {
     if (!firebase.apps.length) {
@@ -3902,35 +3474,6 @@
         appId:             "1:653415072263:web:7bd9a8d68fb02352b460a2"
       });
     }
-    window.edxFns = firebase.functions();
-    var edxLocal = /(^|\.)localhost$/.test(location.hostname) || location.hostname === "127.0.0.1" || location.hostname === "[::1]";
-    if (edxLocal) {
-      try {
-        firebase.firestore().useEmulator("127.0.0.1", 8080);
-        window.edxFns.useEmulator("127.0.0.1", 5001);
-      } catch(e) { console.warn("[EDX] emulator wiring failed:", e); }
-    }
-    console.log("[EDX] reservations → publicIntake({companyId:'" + window.EDX_TENANT + "'}) @ " + (edxLocal ? "emulator 127.0.0.1:5001" : "cloud edendox-780bc"));
-
-    /* Console helper: edxTestReservation() writes a dummy booking so you can see
-       success / permission-denied (flag off) before relying on the form.
-       Still a direct write, not through publicIntake — only works as long as
-       firestore.rules' old intakeOn('reservations') direct-create path
-       exists; stops working once that's removed after the real form is
-       confirmed switched over. Fine — it's a debug helper, not the real path. */
-    window.edxTestReservation = function () {
-      return firebase.firestore()
-        .collection("companies").doc(window.EDX_TENANT)
-        .collection("apartmentBookings").add({
-          firstName: "TEST", lastName: "Reservation", phone: "08000000000",
-          email: "test@example.com", checkin: "2026-09-01", checkout: "2026-09-03",
-          guests: "2", unit: "The Ivy", requests: "console test",
-          status: "new", source: "website",
-          createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        })
-        .then(function (r) { console.log("[EDX] ✅ test booking written:", r.id, "→ check the portal"); })
-        .catch(function (e) { console.error("[EDX] ❌ write failed:", e.code, e.message); });
-    };
   } catch(e) { console.warn("[EDX] init failed:", e); }
 </script>
 <script>
