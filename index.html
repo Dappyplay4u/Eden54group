@@ -3205,16 +3205,33 @@ window.addEventListener('message', function (e) {
            custom form + Google Forms/Turnstile/publicIntake pipeline. Real
            server-side availability + instant confirmation; configured from
            /portal/bookings/ (hours, deposit, branding) — no code changes
-           needed here to adjust those. -->
-      <iframe id="edendoxBooking"
-              src="https://eden54group.edendox.com/book/?embed=1"
-              title="Book with Eden 54 Apartment and Lounge"
-              style="width:100%;height:420px;min-height:300px;border:0;display:block"></iframe>
+           needed here to adjust those.
+
+           The widget takes a moment to cold-start (Cloud Function + Firestore
+           reads) before it replaces its own loading skeleton with the real
+           form, and that skeleton is a subtle light shimmer that barely shows
+           against this card's dark background — easy to mistake for "nothing
+           loaded". edendoxBookingLoading sits on top of the iframe with an
+           unmistakable spinner + label for that same window, and disappears
+           the instant the real form sends its first height update below. -->
+      <div style="position:relative">
+        <iframe id="edendoxBooking"
+                src="https://eden54group.edendox.com/book/?embed=1"
+                title="Book with Eden 54 Apartment and Lounge"
+                style="width:100%;height:420px;min-height:300px;border:0;display:block"></iframe>
+        <div id="edendoxBookingLoading" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:var(--deep);pointer-events:none">
+          <div style="width:30px;height:30px;border:2px solid rgba(201,169,110,0.25);border-top-color:var(--gold);border-radius:50%;animation:edxSpin 0.8s linear infinite"></div>
+          <span style="font-size:0.7rem;letter-spacing:0.18em;text-transform:uppercase;color:rgba(245,242,236,0.5)">Loading your reservation…</span>
+        </div>
+      </div>
+      <style>@keyframes edxSpin { to { transform: rotate(360deg); } }</style>
       <script>
         window.addEventListener('message', function (e) {
           if (e.origin === 'https://eden54group.edendox.com' && e.data && e.data.edxBookHeight) {
             var f = document.getElementById('edendoxBooking');
             if (f) f.style.height = e.data.edxBookHeight + 'px';
+            var overlay = document.getElementById('edendoxBookingLoading');
+            if (overlay) overlay.style.display = 'none';
           }
         });
       </script>
