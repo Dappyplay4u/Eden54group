@@ -3053,9 +3053,9 @@ window.addEventListener('message', function (e) {
         <h3 class="package-name">The Family <em>Escape</em></h3>
         <p class="package-desc">Treat your family to an unforgettable luxury getaway at Eden 54. Choose any suite and enjoy 10% off your accommodation rate, with full access to the pool and garden included. The game center and fine dining restaurant are available on-site at additional cost. Perfect for creating memories that last a lifetime.</p>
         <div class="pkg-price-row">
-          <span class="pkg-price">From ₦63,000</span>
+          <span class="pkg-price" id="pkg-family-price">From ₦63,000</span>
           <span class="pkg-per">per night</span>
-          <span class="pkg-was">From ₦70,000</span>
+          <span class="pkg-was" id="pkg-family-was">From ₦70,000</span>
         </div>
         <div class="pkg-caution">+ Caution deposit (30% of nightly rate) · fully refundable on checkout &amp; unit confirmation</div>
         <div class="package-includes">
@@ -3082,11 +3082,11 @@ window.addEventListener('message', function (e) {
         <h3 class="package-name">The Eden <em>Platinum</em></h3>
         <p class="package-desc">The ultimate Eden 54 experience. Reserve all six apartments — The Ivy, The Willow, The Amber, The Jasmine, The Orchid &amp; The Eden Suite — for a fully private sanctuary. Pool access is included. Fine dining and the game center are available on-site at additional cost. Ideal for weddings, corporate retreats, milestone celebrations, and extended family gatherings that deserve an entire sanctuary of their own.</p>
         <div class="pkg-price-row">
-          <span class="pkg-price">₦570,000</span>
+          <span class="pkg-price" id="pkg-platinum-price">₦570,000</span>
           <span class="pkg-per">per night</span>
-          <span class="pkg-was">₦620,000</span>
+          <span class="pkg-was" id="pkg-platinum-was">₦620,000</span>
         </div>
-        <div class="pkg-caution">+ ₦186,000 caution deposit · fully refundable on checkout &amp; unit confirmation</div>
+        <div class="pkg-caution" id="pkg-platinum-caution">+ ₦186,000 caution deposit · fully refundable on checkout &amp; unit confirmation</div>
         <div class="package-includes">
           <span class="package-pill">🏠 All 6 Apartments</span>
           <span class="package-pill">🏊 Pool Access — Included</span>
@@ -3100,7 +3100,7 @@ window.addEventListener('message', function (e) {
       <div class="package-badge">
         <div class="badge-circle">
           <span class="badge-save">Save</span>
-          <span class="badge-pct" style="font-size:2.6rem;line-height:1">₦50k</span>
+          <span class="badge-pct" id="pkg-platinum-save" style="font-size:2.6rem;line-height:1">₦50k</span>
           <span class="badge-off">per night</span>
         </div>
       </div>
@@ -3562,50 +3562,65 @@ window.addEventListener('message', function (e) {
   setInterval(() => showTestimonial((current + 1) % testimonials.length), 6000); // auto-rotate
 </script>
 
-<!-- Firebase — price-sync below reads companies/eden54group/aptRates.
-     Reservations themselves now go through the Edendox booking embed above,
-     which handles its own Firestore access server-side via functions/booking.js. -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<!-- Price sync — reads live apartment rates from Edendox's public booking
+     profile (the same no-login endpoint that powers the Reservations embed
+     above), so prices only need to be kept up to date in one place: the
+     portal's Online Bookings → apartment rates. If this call fails for any
+     reason (network issue, endpoint down), the .catch below just leaves the
+     numbers already typed into this page's HTML as a safe fallback. -->
 <script>
-  window.EDX_TENANT = 'eden54group';
-  try {
-    if (!firebase.apps.length) {
-      firebase.initializeApp({
-        apiKey:            "AIzaSyA94DZmoDGMcRhU4Wzn6757WupjxKpx5QY",
-        authDomain:        "edendox-780bc.firebaseapp.com",
-        projectId:         "edendox-780bc",
-        storageBucket:     "edendox-780bc.firebasestorage.app",
-        messagingSenderId: "653415072263",
-        appId:             "1:653415072263:web:7bd9a8d68fb02352b460a2"
-      });
-    }
-  } catch(e) { console.warn("[EDX] init failed:", e); }
-</script>
-<script>
-  // Sync apartment prices from Edendox aptRates — skips stale old-default values.
-  // aptRates is member-only, so this quietly permission-denies for public visitors
-  // (the .catch keeps the hard-coded HTML prices). Needs publicApartments() to work
-  // publicly — see follow-up.
   (function() {
-    const OLD_DEFAULTS = { 1: 45000, 2: 85000, 3: 120000 };
-    try {
-      const db = firebase.firestore();
-      db.collection('companies').doc(window.EDX_TENANT || 'eden54group').collection('aptRates').get().then(snap => {
-        snap.forEach(doc => {
-          const r    = doc.data();
-          const beds = parseInt(r.bedrooms) || 0;
-          const rate = Number(r.nightlyRate) || 0;
-          if (!rate || rate === OLD_DEFAULTS[beds]) return; // ignore stale Firestore data
+    const CID = window.EDX_TENANT || 'eden54group';
+    const fmt = n => '₦' + Math.round(n).toLocaleString('en-NG');
+
+    fetch('https://us-central1-edendox-780bc.cloudfunctions.net/publicBookingProfile', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ data: { companyId: CID } })
+    })
+      .then(r => r.json())
+      .then(j => {
+        const P = j && j.result;
+        if (!P || !Array.isArray(P.units)) return;
+
+        const apartments    = P.units.filter(u => u.cls !== 'Whole Apartment' && u.rate);
+        const wholeProperty = P.units.find(u => u.cls === 'Whole Apartment' && u.rate);
+
+        // The three suite cards — one rate per bedroom count.
+        [1, 2, 3].forEach(beds => {
+          const u = apartments.find(x => Number(x.beds) === beds);
+          if (!u) return;
           const priceEl   = document.getElementById('apt-price-'   + beds);
           const cautionEl = document.getElementById('apt-caution-' + beds);
-          if (priceEl) {
-            priceEl.textContent = '₦' + rate.toLocaleString('en-NG');
-            if (cautionEl) cautionEl.textContent = '₦' + Math.round(rate * 0.30).toLocaleString('en-NG');
-          }
+          if (priceEl)   priceEl.textContent   = fmt(u.rate);
+          if (cautionEl) cautionEl.textContent = fmt(u.rate * 0.30);
         });
-      }).catch(() => {});
-    } catch(e) {}
+
+        // Family Escape — 10% off the entry (1-bedroom) suite.
+        const entry = apartments.find(x => Number(x.beds) === 1);
+        if (entry) {
+          const priceEl = document.getElementById('pkg-family-price');
+          const wasEl   = document.getElementById('pkg-family-was');
+          if (priceEl) priceEl.textContent = 'From ' + fmt(entry.rate * 0.9);
+          if (wasEl)   wasEl.textContent   = 'From ' + fmt(entry.rate);
+        }
+
+        // Eden Platinum — the portal's own whole-property rate vs. the sum
+        // of booking all apartments individually.
+        if (wholeProperty && apartments.length) {
+          const was = apartments.reduce((sum, u) => sum + Number(u.rate), 0);
+          const now = wholeProperty.rate;
+          const priceEl   = document.getElementById('pkg-platinum-price');
+          const wasEl     = document.getElementById('pkg-platinum-was');
+          const cautionEl = document.getElementById('pkg-platinum-caution');
+          const saveEl    = document.getElementById('pkg-platinum-save');
+          if (priceEl)   priceEl.textContent   = fmt(now);
+          if (wasEl)     wasEl.textContent     = fmt(was);
+          if (cautionEl) cautionEl.textContent = '+ ' + fmt(was * 0.30) + ' caution deposit · fully refundable on checkout & unit confirmation';
+          if (saveEl)    saveEl.textContent    = '₦' + Math.round((was - now) / 1000) + 'k';
+        }
+      })
+      .catch(() => {}); // keep the hard-coded HTML prices
   })();
 </script>
 </body>
