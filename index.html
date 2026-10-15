@@ -1851,10 +1851,9 @@
       <p style="font-size:0.78rem;color:rgba(245,242,236,0.45)">Availability is live — your reservation is confirmed instantly.</p>
     </div>
     <iframe id="edendoxTableBooking"
-            src="https://eden54group.edendox.com/book/?type=table&amp;embed=1"
+            data-src="https://eden54group.edendox.com/book/?type=table&amp;embed=1"
             title="Reserve a table at Eden 54"
-            style="width:100%;min-height:620px;border:0;display:block"
-            loading="lazy"></iframe>
+            style="width:100%;min-height:620px;border:0;display:block"></iframe>
   </div>
 </div>
 
@@ -1868,10 +1867,9 @@
       <p style="font-size:0.78rem;color:rgba(245,242,236,0.45)">Availability is live — your reservation is confirmed instantly.</p>
     </div>
     <iframe id="edendoxEventBooking"
-            src="https://eden54group.edendox.com/book/?type=event&amp;embed=1"
+            data-src="https://eden54group.edendox.com/book/?type=event&amp;embed=1"
             title="Reserve the event hall at Eden 54"
-            style="width:100%;min-height:620px;border:0;display:block"
-            loading="lazy"></iframe>
+            style="width:100%;min-height:620px;border:0;display:block"></iframe>
   </div>
 </div>
 
@@ -1885,22 +1883,23 @@
       <p style="font-size:0.78rem;color:rgba(245,242,236,0.45)">Pick it up, eat in, or have it delivered.</p>
     </div>
     <iframe id="edendoxOrderBooking"
-            src="https://eden54group.edendox.com/book/?type=order&amp;embed=1"
+            data-src="https://eden54group.edendox.com/book/?type=order&amp;embed=1"
             title="Order food and drinks from Eden 54"
-            style="width:100%;min-height:720px;border:0;display:block"
-            loading="lazy"></iframe>
+            style="width:100%;min-height:720px;border:0;display:block"></iframe>
   </div>
 </div>
 <script>
-function openTableModal(e){ if(e) e.preventDefault(); document.getElementById('tableModal').style.opacity='1'; document.getElementById('tableModal').style.pointerEvents='all'; }
+function edxLoadModalFrame(frameId){ var f=document.getElementById(frameId); if(f && !f.src && f.dataset.src) f.src=f.dataset.src; }
+
+function openTableModal(e){ if(e) e.preventDefault(); edxLoadModalFrame('edendoxTableBooking'); document.getElementById('tableModal').style.opacity='1'; document.getElementById('tableModal').style.pointerEvents='all'; }
 function closeTableModal(){ const m=document.getElementById('tableModal'); m.style.opacity='0'; m.style.pointerEvents='none'; }
 document.getElementById('tableModal').addEventListener('click', function(e){ if(e.target===this) closeTableModal(); });
 
-function openEventModal(e){ if(e) e.preventDefault(); document.getElementById('eventModal').style.opacity='1'; document.getElementById('eventModal').style.pointerEvents='all'; }
+function openEventModal(e){ if(e) e.preventDefault(); edxLoadModalFrame('edendoxEventBooking'); document.getElementById('eventModal').style.opacity='1'; document.getElementById('eventModal').style.pointerEvents='all'; }
 function closeEventModal(){ const m=document.getElementById('eventModal'); m.style.opacity='0'; m.style.pointerEvents='none'; }
 document.getElementById('eventModal').addEventListener('click', function(e){ if(e.target===this) closeEventModal(); });
 
-function openOrderModal(e){ if(e) e.preventDefault(); document.getElementById('orderModal').style.opacity='1'; document.getElementById('orderModal').style.pointerEvents='all'; }
+function openOrderModal(e){ if(e) e.preventDefault(); edxLoadModalFrame('edendoxOrderBooking'); document.getElementById('orderModal').style.opacity='1'; document.getElementById('orderModal').style.pointerEvents='all'; }
 function closeOrderModal(){ const m=document.getElementById('orderModal'); m.style.opacity='0'; m.style.pointerEvents='none'; }
 document.getElementById('orderModal').addEventListener('click', function(e){ if(e.target===this) closeOrderModal(); });
 

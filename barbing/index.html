@@ -539,14 +539,13 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLB(); }
     <!-- Edendox online booking (companies/eden54group, kind: appointment) —
          replaces the old FormSubmit.co email-only booking form. -->
     <iframe id="edendoxBarbingBooking"
-            src="https://eden54group.edendox.com/book/?type=appointment&amp;embed=1"
+            data-src="https://eden54group.edendox.com/book/?type=appointment&amp;embed=1"
             title="Book a barbing appointment with Eden 54"
-            style="width:100%;min-height:620px;border:0;display:block"
-            loading="lazy"></iframe>
+            style="width:100%;min-height:620px;border:0;display:block"></iframe>
   </div>
 </div>
 <script>
-function openBarbingModal(e){ if(e) e.preventDefault(); document.getElementById('barbingModal').style.opacity='1'; document.getElementById('barbingModal').style.pointerEvents='all'; }
+function openBarbingModal(e){ if(e) e.preventDefault(); var f=document.getElementById('edendoxBarbingBooking'); if(f && !f.src && f.dataset.src) f.src=f.dataset.src; document.getElementById('barbingModal').style.opacity='1'; document.getElementById('barbingModal').style.pointerEvents='all'; }
 function closeBarbingModal(){ const m=document.getElementById('barbingModal'); m.style.opacity='0'; m.style.pointerEvents='none'; }
 document.getElementById('barbingModal').addEventListener('click',function(e){ if(e.target===this) closeBarbingModal(); });
 document.addEventListener('keydown', e => { if(e.key==='Escape') closeBarbingModal(); });

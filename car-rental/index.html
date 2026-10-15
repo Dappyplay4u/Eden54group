@@ -553,14 +553,13 @@
     <!-- Edendox online booking (companies/eden54group, kind: car) — replaces
          the old custom form + publicIntake Cloud Function pipeline. -->
     <iframe id="edendoxCarBooking"
-            src="https://eden54group.edendox.com/book/?type=car&amp;embed=1"
+            data-src="https://eden54group.edendox.com/book/?type=car&amp;embed=1"
             title="Book a car with Eden 54"
-            style="width:100%;min-height:620px;border:0;display:block"
-            loading="lazy"></iframe>
+            style="width:100%;min-height:620px;border:0;display:block"></iframe>
   </div>
 </div>
 <script>
-function openCarModal(e){ if(e) e.preventDefault(); document.getElementById('carModal').style.opacity='1'; document.getElementById('carModal').style.pointerEvents='all'; }
+function openCarModal(e){ if(e) e.preventDefault(); var f=document.getElementById('edendoxCarBooking'); if(f && !f.src && f.dataset.src) f.src=f.dataset.src; document.getElementById('carModal').style.opacity='1'; document.getElementById('carModal').style.pointerEvents='all'; }
 function closeCarModal(){ const m=document.getElementById('carModal'); m.style.opacity='0'; m.style.pointerEvents='none'; }
 document.getElementById('carModal').addEventListener('click',function(e){ if(e.target===this) closeCarModal(); });
 document.addEventListener('keydown', e => { if(e.key==='Escape') closeCarModal(); });
