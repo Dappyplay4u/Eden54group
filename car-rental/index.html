@@ -564,10 +564,11 @@ function closeCarModal(){ const m=document.getElementById('carModal'); m.style.o
 document.getElementById('carModal').addEventListener('click',function(e){ if(e.target===this) closeCarModal(); });
 document.addEventListener('keydown', e => { if(e.key==='Escape') closeCarModal(); });
 window.addEventListener('message', function (e) {
-  if (e.origin === 'https://eden54group.edendox.com' && e.data && e.data.edxBookHeight) {
-    var f = document.getElementById('edendoxCarBooking');
-    if (f) f.style.height = e.data.edxBookHeight + 'px';
-  }
+  if (e.origin !== 'https://eden54group.edendox.com' || !e.data || !e.data.edxBookHeight) return;
+  var f = document.getElementById('edendoxCarBooking');
+  if (!f || f.contentWindow !== e.source) return;           // only this frame's own messages
+  f.style.height = e.data.edxBookHeight + 'px';
+  if (e.data.edxBookTop) f.scrollIntoView({ block: 'start', behavior: 'smooth' });   // a new screen (confirmation) → back into view
 });
 </script>
 </body>

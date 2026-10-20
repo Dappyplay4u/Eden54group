@@ -550,10 +550,11 @@ function closeBarbingModal(){ const m=document.getElementById('barbingModal'); m
 document.getElementById('barbingModal').addEventListener('click',function(e){ if(e.target===this) closeBarbingModal(); });
 document.addEventListener('keydown', e => { if(e.key==='Escape') closeBarbingModal(); });
 window.addEventListener('message', function (e) {
-  if (e.origin === 'https://eden54group.edendox.com' && e.data && e.data.edxBookHeight) {
-    var f = document.getElementById('edendoxBarbingBooking');
-    if (f) f.style.height = e.data.edxBookHeight + 'px';
-  }
+  if (e.origin !== 'https://eden54group.edendox.com' || !e.data || !e.data.edxBookHeight) return;
+  var f = document.getElementById('edendoxBarbingBooking');
+  if (!f || f.contentWindow !== e.source) return;           // only this frame's own messages
+  f.style.height = e.data.edxBookHeight + 'px';
+  if (e.data.edxBookTop) f.scrollIntoView({ block: 'start', behavior: 'smooth' });   // a new screen (confirmation) → back into view
 });
 </script>
 </body>

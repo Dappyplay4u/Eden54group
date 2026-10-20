@@ -1905,14 +1905,15 @@ document.getElementById('orderModal').addEventListener('click', function(e){ if(
 
 document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeTableModal(); closeEventModal(); closeOrderModal(); } });
 
+// Each pop-up's booking frame follows only its own messages (it used to resize all three at once).
 window.addEventListener('message', function (e) {
   if (e.origin !== 'https://eden54group.edendox.com' || !e.data || !e.data.edxBookHeight) return;
-  var tf = document.getElementById('edendoxTableBooking');
-  var ef = document.getElementById('edendoxEventBooking');
-  var of = document.getElementById('edendoxOrderBooking');
-  if (tf) tf.style.height = e.data.edxBookHeight + 'px';
-  if (ef) ef.style.height = e.data.edxBookHeight + 'px';
-  if (of) of.style.height = e.data.edxBookHeight + 'px';
+  ['edendoxTableBooking', 'edendoxEventBooking', 'edendoxOrderBooking'].forEach(function (id) {
+    var f = document.getElementById(id);
+    if (!f || f.contentWindow !== e.source) return;
+    f.style.height = e.data.edxBookHeight + 'px';
+    if (e.data.edxBookTop) f.scrollIntoView({ block: 'start', behavior: 'smooth' });   // confirmation after a long form → back into view
+  });
 });
 </script>
 
@@ -3226,12 +3227,13 @@ window.addEventListener('message', function (e) {
       <style>@keyframes edxSpin { to { transform: rotate(360deg); } }</style>
       <script>
         window.addEventListener('message', function (e) {
-          if (e.origin === 'https://eden54group.edendox.com' && e.data && e.data.edxBookHeight) {
-            var f = document.getElementById('edendoxBooking');
-            if (f) f.style.height = e.data.edxBookHeight + 'px';
-            var overlay = document.getElementById('edendoxBookingLoading');
-            if (overlay) overlay.style.display = 'none';
-          }
+          if (e.origin !== 'https://eden54group.edendox.com' || !e.data || !e.data.edxBookHeight) return;
+          var f = document.getElementById('edendoxBooking');
+          if (!f || f.contentWindow !== e.source) return;     // only this frame (not the pop-up frames)
+          f.style.height = e.data.edxBookHeight + 'px';
+          var overlay = document.getElementById('edendoxBookingLoading');
+          if (overlay) overlay.style.display = 'none';
+          if (e.data.edxBookTop) f.scrollIntoView({ block: 'start', behavior: 'smooth' });
         });
       </script>
     </div>
