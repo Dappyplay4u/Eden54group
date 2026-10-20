@@ -108,15 +108,21 @@ nav {
 .radio-group.row { flex-direction: row; flex-wrap: wrap; gap: 10px 24px; }
 .check-group.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 11px; }
 
-.radio-item, .check-item { display: flex; align-items: center; gap: 11px; cursor: pointer; font-size: 0.87rem; opacity: 0.8; transition: opacity 0.2s; }
+.radio-item, .check-item { position: relative; display: flex; align-items: center; gap: 11px; cursor: pointer; font-size: 0.87rem; opacity: 0.8; transition: opacity 0.2s; }
 .radio-item:hover, .check-item:hover { opacity: 1; }
-.radio-item input[type="radio"], .check-item input[type="checkbox"] { display: none; }
+/* Visually hidden but still focusable/tabbable — display:none would pull
+   these out of the tab order entirely, making every radio/checkbox on this
+   form unreachable by keyboard. */
+.radio-item input[type="radio"], .check-item input[type="checkbox"] {
+  position: absolute; opacity: 0; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap;
+}
 .radio-box, .check-box { width: 17px; height: 17px; flex-shrink: 0; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; transition: border-color 0.2s, background 0.2s; }
 .radio-box { border-radius: 50%; }
 .radio-item input:checked ~ .radio-box { border-color: var(--gold); }
 .radio-item input:checked ~ .radio-box::after { content: ''; width: 7px; height: 7px; border-radius: 50%; background: var(--gold); }
 .check-item input:checked ~ .check-box { border-color: var(--gold); background: var(--gold-dim); }
 .check-item input:checked ~ .check-box::after { content: '✓'; font-size: 10px; color: var(--gold); }
+.radio-item input:focus-visible ~ .radio-box, .check-item input:focus-visible ~ .check-box { outline: 2px solid var(--gold); outline-offset: 2px; }
 
 .section-header { padding: 14px 18px; background: rgba(201,169,110,0.04); border-left: 2px solid var(--gold); margin-bottom: 28px; }
 .section-header h4 { font-family: 'Cormorant Garamond', serif; font-size: 1.05rem; font-weight: 400; }
@@ -260,57 +266,6 @@ nav {
   </aside>
 
   <main class="form-area">
-
-    <!-- EMAIL FORM — sends full application + files to inbox -->
-    <form id="fileForm" action="https://formsubmit.co/eden54group@gmail.com" method="POST" enctype="multipart/form-data" style="display:none;">
-      <input type="hidden" name="_subject" value="New Application: Facility Manager — Eden 54">
-      <input type="hidden" name="_captcha" value="false">
-      <input type="hidden" name="_cc" value="eden54games@gmail.com">
-      <input type="hidden" name="_template" value="table">
-      <!-- Files -->
-      <input type="file" name="Resume_CV" id="hiddenCV">
-      <input type="file" name="Cover_Letter" id="hiddenCL">
-      <!-- Section 1 -->
-      <input type="text" name="01 Position" value="Facility Manager">
-      <input type="text" name="02 Full Name" id="h_name">
-      <input type="text" name="03 Phone (WhatsApp)" id="h_phone">
-      <input type="text" name="04 Email" id="h_email">
-      <input type="text" name="05 Residential Address" id="h_address">
-      <input type="text" name="06 Current Location" id="h_location">
-      <input type="text" name="07 Willing to Work in Ilesa" id="h_ilesa">
-      <!-- Section 2 -->
-      <input type="text" name="08 Has Relevant Experience" id="h_exp">
-      <input type="text" name="09 Years of Experience" id="h_years">
-      <input type="text" name="10 Most Recent Employer" id="h_employer">
-      <input type="text" name="11 Most Recent Job Title" id="h_jobtitle">
-      <input type="text" name="12 Experience Description" id="h_expdesc">
-      <!-- Section 3 -->
-      <input type="text" name="13 Skills" id="h_skills">
-      <input type="text" name="14 Urgent Maintenance Response" id="h_maintenance">
-      <input type="text" name="15 Supervised Staff" id="h_supervised">
-      <input type="text" name="16 Team Size Supervised" id="h_teamsize">
-      <input type="text" name="17 Guest Complaint Resolution" id="h_complaint">
-      <input type="text" name="18 Systems and Software Used" id="h_software">
-      <!-- Section 4 -->
-      <input type="text" name="19 Scenario: Faulty AC" id="h_s1">
-      <input type="text" name="20 Scenario: Low Supplies" id="h_s2">
-      <input type="text" name="21 Scenario: Standards" id="h_s3">
-      <!-- Section 5 -->
-      <input type="text" name="22 Available After Hours" id="h_afterhours">
-      <input type="text" name="23 Start Date" id="h_startdate">
-      <input type="text" name="24 Employment Type" id="h_emptype">
-      <!-- Section 6 -->
-      <input type="text" name="25 Reference 1 Name" id="h_ref1name">
-      <input type="text" name="26 Reference 1 Position" id="h_ref1pos">
-      <input type="text" name="27 Reference 1 Phone" id="h_ref1phone">
-      <input type="text" name="28 Reference 2 Name" id="h_ref2name">
-      <input type="text" name="29 Reference 2 Position" id="h_ref2pos">
-      <input type="text" name="30 Reference 2 Phone" id="h_ref2phone">
-      <!-- Section 8 -->
-      <input type="text" name="31 Declaration" id="h_declare">
-      <input type="text" name="32 Electronic Signature" id="h_signature">
-      <input type="text" name="33 Signature Date" id="h_sigdate">
-    </form>
 
     <!-- STEP 1 -->
     <div class="step-panel active" id="panel-1">
@@ -704,40 +659,6 @@ async function submitApplication() {
   // ── 2. Send full application + files to email via FormSubmit ──
   const cvFile = document.getElementById('f_cv').files[0];
   const clFile = document.getElementById('f_cl').files[0];
-
-  // Populate all hidden text fields
-  document.getElementById('h_name').value       = val('f_name');
-  document.getElementById('h_phone').value      = val('f_phone');
-  document.getElementById('h_email').value      = val('f_email');
-  document.getElementById('h_address').value    = val('f_address');
-  document.getElementById('h_location').value   = val('f_location');
-  document.getElementById('h_ilesa').value      = radio('r_ilesa');
-  document.getElementById('h_exp').value        = radio('r_exp');
-  document.getElementById('h_years').value      = radio('r_years');
-  document.getElementById('h_employer').value   = val('f_employer');
-  document.getElementById('h_jobtitle').value   = val('f_jobtitle');
-  document.getElementById('h_expdesc').value    = val('f_expdesc');
-  document.getElementById('h_skills').value     = checkboxes('skills').join(', ');
-  document.getElementById('h_maintenance').value= val('f_maintenance');
-  document.getElementById('h_supervised').value = radio('r_supervised');
-  document.getElementById('h_teamsize').value   = radio('r_teamsize');
-  document.getElementById('h_complaint').value  = val('f_complaint');
-  document.getElementById('h_software').value   = val('f_software');
-  document.getElementById('h_s1').value         = val('f_scenario1');
-  document.getElementById('h_s2').value         = val('f_scenario2');
-  document.getElementById('h_s3').value         = val('f_scenario3');
-  document.getElementById('h_afterhours').value = radio('r_afterhours');
-  document.getElementById('h_startdate').value  = val('f_startdate');
-  document.getElementById('h_emptype').value    = radio('r_emptype');
-  document.getElementById('h_ref1name').value   = val('f_ref1name');
-  document.getElementById('h_ref1pos').value    = val('f_ref1pos');
-  document.getElementById('h_ref1phone').value  = val('f_ref1phone');
-  document.getElementById('h_ref2name').value   = val('f_ref2name');
-  document.getElementById('h_ref2pos').value    = val('f_ref2pos');
-  document.getElementById('h_ref2phone').value  = val('f_ref2phone');
-  document.getElementById('h_declare').value    = radio('r_declare');
-  document.getElementById('h_signature').value  = val('f_signature');
-  document.getElementById('h_sigdate').value    = val('f_sigdate');
 
   // Build FormData directly — reliable across all browsers
   const fd = new FormData();

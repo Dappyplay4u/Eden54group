@@ -89,12 +89,18 @@ nav {
 
 .radio-group { display: flex; flex-direction: column; gap: 10px; margin-top: 4px; }
 .radio-group.row { flex-direction: row; flex-wrap: wrap; gap: 10px 24px; }
-.radio-item { display: flex; align-items: center; gap: 11px; cursor: pointer; font-size: 0.87rem; opacity: 0.8; transition: opacity 0.2s; }
+.radio-item { position: relative; display: flex; align-items: center; gap: 11px; cursor: pointer; font-size: 0.87rem; opacity: 0.8; transition: opacity 0.2s; }
 .radio-item:hover { opacity: 1; }
-.radio-item input[type="radio"] { display: none; }
+/* Visually hidden but still focusable/tabbable — display:none would pull
+   these out of the tab order entirely, making every radio on this form
+   unreachable by keyboard. */
+.radio-item input[type="radio"] {
+  position: absolute; opacity: 0; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap;
+}
 .radio-box { width: 17px; height: 17px; flex-shrink: 0; border: 1px solid var(--border); border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: border-color 0.2s; }
 .radio-item input:checked ~ .radio-box { border-color: var(--gold); }
 .radio-item input:checked ~ .radio-box::after { content: ''; width: 7px; height: 7px; border-radius: 50%; background: var(--gold); }
+.radio-item input:focus-visible ~ .radio-box { outline: 2px solid var(--gold); outline-offset: 2px; }
 
 .upload-area { border: 1px dashed var(--border); padding: 28px; text-align: center; transition: border-color 0.2s, background 0.2s; cursor: pointer; position: relative; }
 .upload-area:hover { border-color: rgba(201,169,110,0.45); background: rgba(201,169,110,0.02); }
