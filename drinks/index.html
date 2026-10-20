@@ -315,11 +315,11 @@ document.querySelectorAll('#navLinks a').forEach(a => a.addEventListener('click'
 <!-- ORDER MODAL -->
 <div id="drinksModal" style="position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:rgba(10,25,16,0.93);backdrop-filter:blur(10px);opacity:0;pointer-events:none;transition:opacity 0.3s;padding:20px">
   <div style="background:#0f2318;border:1px solid rgba(201,169,110,0.3);border-radius:3px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;position:relative">
-    <button onclick="closeDrinksModal()" style="position:absolute;top:14px;right:18px;background:none;border:none;color:rgba(245,242,236,0.45);font-size:1.6rem;cursor:pointer;line-height:1">×</button>
+    <button onclick="closeDrinksModal()" aria-label="Close" style="position:absolute;top:8px;right:8px;width:40px;height:40px;display:flex;align-items:center;justify-content:center;background:none;border:none;color:rgba(245,242,236,0.45);font-size:1.6rem;cursor:pointer;line-height:1">×</button>
     <div style="padding:32px 36px 20px">
       <p style="font-size:0.6rem;letter-spacing:0.38em;text-transform:uppercase;color:#C9A96E;margin-bottom:8px">Ruby Sunrise · Eden 54</p>
       <h2 style="font-family:'Cormorant Garamond',serif;font-size:1.9rem;font-weight:300;color:#F5F2EC;margin-bottom:4px">Order Your Juice</h2>
-      <p style="font-size:0.78rem;color:rgba(245,242,236,0.45)">Fill in your details and we'll confirm your order same day.</p>
+      <p style="font-size:0.78rem;color:rgba(245,242,236,0.65)">Fill in your details and we'll confirm your order same day.</p>
     </div>
     <form id="drinksForm" style="padding:0 36px 36px" onsubmit="submitDrinksForm(event)">
       <input type="hidden" name="_subject" value="Ruby Sunrise Juice Order — Eden 54 Lounge">

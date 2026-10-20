@@ -31,6 +31,8 @@
   .nav-links { display: flex; gap: 32px; list-style: none; align-items: center; }
   .nav-links a { color: var(--text); text-decoration: none; font-size: 0.75rem; letter-spacing: 0.18em; text-transform: uppercase; opacity: 0.75; transition: opacity 0.2s, color 0.2s; }
   .nav-links a:hover, .nav-links a.active { opacity: 1; color: var(--gold); }
+  .hamburger { display: none; flex-direction: column; gap: 5px; background: none; border: none; cursor: pointer; padding: 4px; }
+  .hamburger div { width: 22px; height: 1px; background: var(--text); }
   .btn-gold {
     display: inline-block; padding: 10px 24px;
     border: 1px solid var(--gold); color: var(--gold) !important; opacity: 1 !important;
@@ -180,21 +182,15 @@
   @media (max-width: 768px) {
     nav { padding: 16px 24px; }
     .nav-links { display: none; }
+    .hamburger { display: flex; }
+    .nav-links.open { display: flex; flex-direction: column; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15,35,24,0.98); justify-content: center; align-items: center; gap: 28px; z-index: 10001; }
     section { padding: 72px 24px; }
     .hero-content { padding: 0 24px; }
     footer { padding: 32px 24px; flex-direction: column; align-items: flex-start; }
     .hours-grid { gap: 32px; }
   }
-  /* Booking modal mobile fixes */
-  .modal-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
   @media (max-width: 480px) {
-    #barbingModal > div { padding: 0 !important; }
     #barbingModal > div > div:first-child { padding: 24px 20px 16px !important; }
-    #barbingForm { padding: 0 20px 28px !important; }
-    #barbingModal label { font-size: 0.72rem !important; color: rgba(245,242,236,0.65) !important; }
-    #barbingModal input, #barbingModal select, #barbingModal textarea { min-height: 44px !important; font-size: 0.92rem !important; }
-    .modal-2col { grid-template-columns: 1fr !important; }
-    #barbingSubmitBtn { min-height: 48px !important; font-size: 0.82rem !important; }
   }
 </style>
 </head>
@@ -216,6 +212,9 @@
     <li><a href="/car-rental">Car Rental</a></li>
     <li><a href="/#contact" class="btn-gold" onclick="openBarbingModal(event)">Reserve</a></li>
   </ul>
+  <button class="hamburger" aria-label="Menu" id="navHamburger">
+    <div></div><div></div><div></div>
+  </button>
 </nav>
 
 <!-- HERO -->
@@ -530,11 +529,11 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLB(); }
 <!-- BOOKING MODAL -->
 <div id="barbingModal" style="position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:rgba(10,25,16,0.93);backdrop-filter:blur(10px);opacity:0;pointer-events:none;transition:opacity 0.3s;padding:20px">
   <div style="background:#0f2318;border:1px solid rgba(201,169,110,0.3);border-radius:3px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;position:relative">
-    <button onclick="closeBarbingModal()" style="position:absolute;top:14px;right:18px;background:none;border:none;color:rgba(245,242,236,0.45);font-size:1.6rem;cursor:pointer;line-height:1;z-index:1">×</button>
+    <button onclick="closeBarbingModal()" aria-label="Close" style="position:absolute;top:8px;right:8px;width:40px;height:40px;display:flex;align-items:center;justify-content:center;background:none;border:none;color:rgba(245,242,236,0.45);font-size:1.6rem;cursor:pointer;line-height:1;z-index:1">×</button>
     <div style="padding:32px 36px 12px">
       <p style="font-size:0.6rem;letter-spacing:0.38em;text-transform:uppercase;color:#C9A96E;margin-bottom:8px">Barbing Salon · Eden 54</p>
       <h2 style="font-family:'Cormorant Garamond',serif;font-size:1.9rem;font-weight:300;color:#F5F2EC;margin-bottom:4px">Book a Slot</h2>
-      <p style="font-size:0.78rem;color:rgba(245,242,236,0.45)">Availability is live — your booking is confirmed instantly.</p>
+      <p style="font-size:0.78rem;color:rgba(245,242,236,0.65)">Availability is live — your booking is confirmed instantly.</p>
     </div>
     <!-- Edendox online booking (companies/eden54group, kind: appointment) —
          replaces the old FormSubmit.co email-only booking form. -->
@@ -548,6 +547,8 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLB(); }
 function openBarbingModal(e){ if(e) e.preventDefault(); var f=document.getElementById('edendoxBarbingBooking'); if(f && !f.src && f.dataset.src) f.src=f.dataset.src; document.getElementById('barbingModal').style.opacity='1'; document.getElementById('barbingModal').style.pointerEvents='all'; }
 function closeBarbingModal(){ const m=document.getElementById('barbingModal'); m.style.opacity='0'; m.style.pointerEvents='none'; }
 document.getElementById('barbingModal').addEventListener('click',function(e){ if(e.target===this) closeBarbingModal(); });
+document.getElementById('navHamburger').addEventListener('click', () => document.querySelector('.nav-links').classList.toggle('open'));
+document.querySelectorAll('.nav-links a').forEach(a => a.addEventListener('click', () => document.querySelector('.nav-links').classList.remove('open')));
 document.addEventListener('keydown', e => { if(e.key==='Escape') closeBarbingModal(); });
 window.addEventListener('message', function (e) {
   if (e.origin !== 'https://eden54group.edendox.com' || !e.data || !e.data.edxBookHeight) return;

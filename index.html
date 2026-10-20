@@ -12,9 +12,8 @@
 <!-- Text shown on the browser tab and in Google search results -->
 <title>Eden 54 | Luxury Service Apartments · Steakhouse & Bar · Game Experience</title>
 
-<!-- Loads three custom fonts from Google Fonts:
+<!-- Loads two custom fonts from Google Fonts:
      - Cormorant Garamond → used for headings and elegant display text
-     - Marcellus           → decorative serif (available if needed)
      - Jost                → used for body text, labels, and buttons -->
 <link rel="icon" type="image/jpeg" href="logo/eden 54 logo.jpeg">
 
@@ -26,7 +25,7 @@
 <link rel="preconnect" href="https://us-central1-edendox-780bc.cloudfunctions.net">
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Marcellus&family=Jost:wght@200;300;400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@200;300;400&display=swap" rel="stylesheet">
 <style>
 
   /* ── COLOUR PALETTE ──────────────────────────────────────────
@@ -59,7 +58,6 @@
     font-family: 'Jost', sans-serif;
     font-weight: 300;
     overflow-x: hidden;           /* Prevents horizontal scrollbar from animations */
-    cursor: none;                 /* Hides the default mouse pointer (custom cursor used instead) */
   }
 
   /* ── CUSTOM CURSOR ──────────────────────────────────────────
@@ -67,7 +65,11 @@
      surrounded by a larger ring (.cursor-ring) that follows with
      a slight delay, giving a luxury trailing effect.
      pointer-events: none ensures the cursor divs don't block clicks.
+     Desktop/mouse only (see the (hover:hover) and (pointer:fine) block
+     below) — on a touch device there's no mousemove to drive it, so
+     without this gate the dot+ring would just sit frozen at (0,0).
      ---------------------------------------------------------- */
+  .cursor, .cursor-ring { display: none; }
   .cursor {
     width: 12px; height: 12px;
     background: var(--gold);
@@ -88,6 +90,10 @@
     z-index: 9998;                /* Just below the dot */
     transform: translate(-50%, -50%);
     transition: all 0.12s ease;  /* Slight lag makes it trail behind the dot */
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .cursor, .cursor-ring { display: block; }
+    body, .nav-book, .room-card, .t-dot, .social-btn { cursor: none; }
   }
 
   /* ── NAVIGATION BAR ─────────────────────────────────────────
@@ -190,11 +196,13 @@
     font-size: 0.68rem;
     letter-spacing: 0.22em;
     text-transform: uppercase;
-    cursor: none;
     transition: all 0.3s;
     text-decoration: none;
   }
   .nav-book:hover { background: var(--gold); color: var(--deep); }
+
+  .hamburger { display: none; flex-direction: column; gap: 5px; background: none; border: none; cursor: pointer; padding: 4px; }
+  .hamburger div { width: 22px; height: 1px; background: var(--text); }
 
   /* ── HERO SECTION ───────────────────────────────────────────
      Full-screen opening section (100vh = full viewport height).
@@ -930,7 +938,6 @@
     min-height: 420px;
     display: flex; flex-direction: column; justify-content: flex-end;
     padding: 40px 36px;
-    cursor: none;
   }
   .room-card::before {
     content: '';
@@ -1025,12 +1032,17 @@
   }
   .testimonial-author { font-size: 0.72rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--gold); }
   .testimonial-origin { font-size: 0.65rem; letter-spacing: 0.2em; color: var(--muted); margin-top: 6px; }
-  .t-dots { display: flex; justify-content: center; gap: 10px; margin-top: 48px; }
+  .t-dots { display: flex; justify-content: center; gap: 2px; margin-top: 48px; }
   .t-dot {
     width: 6px; height: 6px;
+    /* Padding + background-clip pads the actual clickable/tappable box
+       out to ~24px without changing how big the visible dot looks —
+       6px alone is well under a comfortable tap target on mobile. */
+    padding: 9px;
+    box-sizing: content-box;
+    background-clip: content-box;
     border-radius: 50%;
     background: var(--muted);
-    cursor: none;
     transition: background 0.3s, transform 0.3s;
   }
   .t-dot.active { background: var(--gold); transform: scale(1.3); }
@@ -1115,7 +1127,7 @@
     color: #F5F2EC; margin: 0 0 8px;
   }
   .booking-form-header p {
-    font-size: 0.78rem; color: rgba(245,242,236,0.4);
+    font-size: 0.78rem; color: rgba(245,242,236,0.65);
     font-weight: 300; letter-spacing: 0.04em; margin: 0;
   }
   .booking-form-divider {
@@ -1127,35 +1139,6 @@
   }
   .booking-form-divider span { font-size: 0.58rem; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(201,169,110,0.4); white-space: nowrap; }
   .booking-form-divider::before, .booking-form-divider::after { content: ''; flex: 1; height: 1px; background: rgba(201,169,110,0.15); }
-
-  .google-form-wrapper {
-    background: #fff;
-    overflow: hidden;
-  }
-  .google-form-wrapper iframe { display: block; width: 100%; }
-
-  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-  .form-group { margin-bottom: 24px; }
-  .form-group label {
-    display: block;
-    font-size: 0.62rem; letter-spacing: 0.25em; text-transform: uppercase;
-    color: var(--gold); margin-bottom: 10px;
-  }
-
-  .btn-submit {
-    width: 100%;
-    background: var(--gold);
-    color: var(--deep);
-    border: none;
-    padding: 18px;
-    font-family: 'Jost', sans-serif;
-    font-size: 0.72rem;
-    letter-spacing: 0.3em;
-    text-transform: uppercase;
-    cursor: none;
-    transition: background 0.3s, letter-spacing 0.3s;
-  }
-  .btn-submit:hover { background: var(--gold-light); letter-spacing: 0.4em; }
 
   /* ── FOOTER ─────────────────────────────────────────────────
      Four-column grid: brand info + social links | Experiences | Suites | Information
@@ -1195,7 +1178,6 @@
     font-size: 0.85rem;
     color: rgba(248,245,239,0.6);
     transition: border-color 0.3s, color 0.3s;
-    cursor: none;
     text-decoration: none;
   }
   .social-btn:hover { border-color: var(--gold); color: var(--gold); }
@@ -1263,8 +1245,8 @@
   .logo-modal.open .logo-modal-box { transform: scale(1); }
   .logo-modal-box img { width: 100%; height: auto; display: block; }
   .logo-modal-close {
-    position: absolute; top: -14px; right: -14px;
-    width: 32px; height: 32px;
+    position: absolute; top: -16px; right: -16px;
+    width: 40px; height: 40px;
     border-radius: 50%;
     background: var(--gold);
     color: var(--deep);
@@ -1302,8 +1284,8 @@
   .menu-img-modal.open .menu-img-modal-box { transform: scale(1); }
   .menu-img-modal-box img { width: 100%; height: auto; max-height: 88vh; object-fit: contain; display: block; transition: transform 0.2s ease; cursor: zoom-in; }
   .menu-img-modal-close {
-    position: absolute; top: -14px; right: -14px;
-    width: 32px; height: 32px;
+    position: absolute; top: -16px; right: -16px;
+    width: 40px; height: 40px;
     background: var(--gold); color: var(--deep);
     border: none; border-radius: 50%; cursor: pointer;
     font-size: 0.85rem; font-weight: 600;
@@ -1654,6 +1636,19 @@
     #cocktails [style*="padding:0 60px 80px"] { padding: 0 32px 60px !important; }
     nav { padding: 24px 32px; }
     .nav-links { display: none; }
+    .hamburger { display: flex; }
+    .nav-links.open {
+      display: flex; flex-direction: column; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(15,35,24,0.98); justify-content: center; align-items: center; gap: 24px;
+      z-index: 10001; overflow-y: auto; padding: 100px 24px 48px; text-align: center;
+    }
+    .nav-links.open .nav-dropdown-menu {
+      display: none; position: static; transform: none; background: none; border: none; box-shadow: none;
+      min-width: 0; padding: 10px 0 0; white-space: normal;
+    }
+    .nav-links.open .nav-dropdown.open .nav-dropdown-menu { display: block; }
+    .nav-links.open .nav-dropdown-menu a { padding: 8px 0; font-size: 0.68rem; }
+    .nav-links.open .nav-dropdown-menu a + a { border-top: none; }
     .intro, .dining, .booking { grid-template-columns: 1fr; gap: 60px; }
     .intro-visual { height: 350px; }
     .amenities-grid, .rooms-grid { grid-template-columns: 1fr 1fr; }
@@ -1666,125 +1661,10 @@
   @media (max-width: 640px) {
     .amenities-grid, .rooms-grid { grid-template-columns: 1fr; }
     .footer-grid { grid-template-columns: 1fr; }
-    .form-row { grid-template-columns: 1fr; }
     .booking-form-header { padding: 28px 24px 24px; }
     .booking { padding: 80px 24px; gap: 60px; }
     .booking { grid-template-columns: 1fr; }
-    #rfFormWrap .rf-row-2, #rfFormWrap .rf-row-3 { grid-template-columns: 1fr; }
-    #rfFormWrap { padding: 24px 20px 32px; }
-    #rfFormWrap label { font-size: 0.72rem; }
-    #rfFormWrap input, #rfFormWrap select, #rfFormWrap textarea { min-height: 44px; font-size: 0.9rem; }
   }
-
-  /* ── CUSTOM RESERVATION FORM ───────────────────────────────── */
-  #rfFormWrap { background: #F5F4F2; padding: 36px 44px 44px; }
-  #rfFormWrap .rf-form-body.hide { display: none; }
-  #rfFormWrap .rf-section { margin-bottom: 22px; }
-  #rfFormWrap .rf-section-label {
-    font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase;
-    color: var(--gold); margin: 0 0 14px; padding-bottom: 10px;
-    border-bottom: 1px solid rgba(201,169,110,0.2);
-    font-family: 'Jost', sans-serif; font-weight: 500; display: block;
-  }
-  #rfFormWrap .rf-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-  #rfFormWrap .rf-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
-  #rfFormWrap .rf-field { display: flex; flex-direction: column; gap: 7px; margin-bottom: 16px; }
-  #rfFormWrap .rf-row-2 .rf-field,
-  #rfFormWrap .rf-row-3 .rf-field { margin-bottom: 0; }
-  #rfFormWrap label {
-    font-size: 0.65rem; letter-spacing: 0.14em; text-transform: uppercase;
-    font-weight: 500; color: #555; font-family: 'Jost', sans-serif;
-  }
-  #rfFormWrap label .req { color: #B91C1C; margin-left: 2px; }
-  #rfFormWrap input[type="text"],
-  #rfFormWrap input[type="email"],
-  #rfFormWrap input[type="tel"],
-  #rfFormWrap input[type="date"],
-  #rfFormWrap select,
-  #rfFormWrap textarea {
-    width: 100%; padding: 11px 14px;
-    font-size: 0.85rem; font-family: 'Jost', sans-serif;
-    color: #1A1A1A; background: #ECEAE8;
-    border: 1px solid #DDD9D1; border-radius: 3px;
-    outline: none; transition: border-color 0.2s, box-shadow 0.2s;
-    appearance: none; -webkit-appearance: none;
-  }
-  #rfFormWrap input:focus, #rfFormWrap select:focus, #rfFormWrap textarea:focus {
-    border-color: var(--gold); box-shadow: 0 0 0 3px rgba(201,169,110,0.14);
-  }
-  #rfFormWrap input.rferror, #rfFormWrap select.rferror, #rfFormWrap textarea.rferror {
-    border-color: #B91C1C; box-shadow: 0 0 0 3px rgba(185,28,28,0.1);
-  }
-  #rfFormWrap .rf-field-error { font-size: 0.7rem; color: #B91C1C; display: none; font-family: 'Jost', sans-serif; }
-  #rfFormWrap .rf-field-error.show { display: block; }
-  #rfFormWrap select {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23888580' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
-    background-repeat: no-repeat; background-position: right 12px center;
-    background-color: #ECEAE8; padding-right: 36px; cursor: pointer;
-  }
-  #rfFormWrap textarea { resize: vertical; min-height: 88px; line-height: 1.6; }
-  #rfFormWrap .rf-divider { border: none; border-top: 1px solid rgba(201,169,110,0.15); margin: 24px 0; }
-  #rfFormWrap .rf-submit-btn {
-    width: 100%; padding: 15px 24px;
-    background: var(--deep); color: #F5F2EC;
-    font-size: 0.75rem; font-weight: 500; letter-spacing: 0.22em; text-transform: uppercase;
-    font-family: 'Jost', sans-serif;
-    border: 1px solid rgba(201,169,110,0.3); border-radius: 3px;
-    cursor: pointer; transition: background 0.25s, color 0.25s, border-color 0.25s;
-    display: flex; align-items: center; justify-content: center; gap: 10px;
-    margin-top: 8px;
-  }
-  #rfFormWrap .rf-submit-btn:hover { background: var(--gold); color: var(--deep); border-color: var(--gold); }
-  #rfFormWrap .rf-submit-btn:active { transform: scale(0.99); }
-  #rfFormWrap .rf-submit-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
-  #rfFormWrap .rf-submit-btn svg { width: 15px; height: 15px; flex-shrink: 0; }
-  .rf-spinner {
-    width: 15px; height: 15px; border: 2px solid rgba(245,242,236,0.3);
-    border-top-color: #F5F2EC; border-radius: 50%;
-    animation: rfSpin 0.7s linear infinite; display: none; flex-shrink: 0;
-  }
-  @keyframes rfSpin { to { transform: rotate(360deg); } }
-  .rf-msg {
-    display: none; border-radius: 3px; padding: 13px 15px;
-    font-size: 0.8rem; margin-top: 14px;
-    font-family: 'Jost', sans-serif;
-  }
-  .rf-msg.show { display: flex; align-items: flex-start; gap: 10px; }
-  .rf-msg svg { width: 15px; height: 15px; flex-shrink: 0; margin-top: 2px; }
-  .rf-msg.rf-success { background: #EAF5EE; color: #1A6B3C; border: 1px solid #A7D9B8; }
-  .rf-msg.rf-error-msg { background: #FEF2F2; color: #B91C1C; border: 1px solid #FECACA; }
-  .rf-success-screen {
-    display: none; text-align: center; padding: 60px 32px;
-    background: #F5F4F2;
-  }
-  .rf-success-screen.show { display: block; }
-  .rf-success-icon {
-    width: 64px; height: 64px;
-    background: rgba(201,169,110,0.1); border: 1px solid rgba(201,169,110,0.3);
-    border-radius: 50%; display: flex; align-items: center; justify-content: center;
-    margin: 0 auto 20px;
-  }
-  .rf-success-icon svg { width: 28px; height: 28px; color: var(--gold); }
-  .rf-success-screen h2 {
-    font-family: 'Cormorant Garamond', serif; font-size: 2rem;
-    font-weight: 300; color: #1A1A1A; margin-bottom: 12px;
-  }
-  .rf-success-screen p { font-size: 0.85rem; color: #888580; max-width: 320px; margin: 0 auto 28px; line-height: 1.7; font-family: 'Jost', sans-serif; }
-  .rf-new-booking-btn {
-    display: inline-block; padding: 10px 28px;
-    background: transparent; border: 1px solid rgba(201,169,110,0.4);
-    border-radius: 3px; font-size: 0.72rem; color: var(--gold);
-    cursor: pointer; font-family: 'Jost', sans-serif;
-    letter-spacing: 0.18em; text-transform: uppercase;
-    transition: background 0.2s, color 0.2s;
-  }
-  .rf-new-booking-btn:hover { background: var(--gold); color: var(--deep); }
-  #rfFormWrap .rf-footer {
-    display: flex; align-items: center; gap: 8px; justify-content: center;
-    margin-top: 20px; font-size: 0.7rem; color: rgba(0,0,0,0.3);
-    font-family: 'Jost', sans-serif; padding-bottom: 4px;
-  }
-  #rfFormWrap .rf-footer svg { width: 12px; height: 12px; }
 </style>
 </head>
 <body>
@@ -1843,8 +1723,8 @@
 <div class="logo-modal" id="logoModal">
   <div class="logo-modal-backdrop" id="logoBackdrop"></div>
   <div class="logo-modal-box">
-    <button class="logo-modal-close" id="logoClose">✕</button>
-    <img src="logo/eden 54 logo.jpeg" alt="Eden 54 Logo">
+    <button class="logo-modal-close" id="logoClose" aria-label="Close">✕</button>
+    <img loading="lazy" src="logo/eden 54 logo.jpeg" alt="Eden 54 Logo">
   </div>
 </div>
 
@@ -1852,19 +1732,19 @@
 <div class="menu-img-modal" id="menuImgModal">
   <div class="menu-img-modal-backdrop" id="menuImgBackdrop"></div>
   <div class="menu-img-modal-box">
-    <button class="menu-img-modal-close" id="menuImgClose">✕</button>
-    <img src="" alt="" id="menuImgLarge">
+    <button class="menu-img-modal-close" id="menuImgClose" aria-label="Close">✕</button>
+    <img loading="lazy" src="" alt="" id="menuImgLarge">
   </div>
 </div>
 
 <!-- Reserve a Table modal (Restaurant & Bar) — Edendox booking embed, kind: table -->
 <div id="tableModal" style="position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:rgba(10,25,16,0.93);backdrop-filter:blur(10px);opacity:0;pointer-events:none;transition:opacity 0.3s;padding:20px">
   <div style="background:#0f2318;border:1px solid rgba(201,169,110,0.3);border-radius:3px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;position:relative">
-    <button onclick="closeTableModal()" style="position:absolute;top:14px;right:18px;background:none;border:none;color:rgba(245,242,236,0.45);font-size:1.6rem;cursor:pointer;line-height:1;z-index:1">×</button>
+    <button onclick="closeTableModal()" aria-label="Close" style="position:absolute;top:8px;right:8px;width:40px;height:40px;display:flex;align-items:center;justify-content:center;background:none;border:none;color:rgba(245,242,236,0.45);font-size:1.6rem;cursor:pointer;line-height:1;z-index:1">×</button>
     <div style="padding:32px 36px 12px">
       <p style="font-size:0.6rem;letter-spacing:0.38em;text-transform:uppercase;color:#C9A96E;margin-bottom:8px">Restaurant &amp; Bar · Eden 54</p>
       <h2 style="font-family:'Cormorant Garamond',serif;font-size:1.9rem;font-weight:300;color:#F5F2EC;margin-bottom:4px">Reserve a Table</h2>
-      <p style="font-size:0.78rem;color:rgba(245,242,236,0.45)">Availability is live — your reservation is confirmed instantly.</p>
+      <p style="font-size:0.78rem;color:rgba(245,242,236,0.65)">Availability is live — your reservation is confirmed instantly.</p>
     </div>
     <iframe id="edendoxTableBooking"
             data-src="https://eden54group.edendox.com/book/?type=table&amp;embed=1"
@@ -1876,11 +1756,11 @@
 <!-- Reserve the Event Hall modal — Edendox booking embed, kind: event -->
 <div id="eventModal" style="position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:rgba(10,25,16,0.93);backdrop-filter:blur(10px);opacity:0;pointer-events:none;transition:opacity 0.3s;padding:20px">
   <div style="background:#0f2318;border:1px solid rgba(201,169,110,0.3);border-radius:3px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;position:relative">
-    <button onclick="closeEventModal()" style="position:absolute;top:14px;right:18px;background:none;border:none;color:rgba(245,242,236,0.45);font-size:1.6rem;cursor:pointer;line-height:1;z-index:1">×</button>
+    <button onclick="closeEventModal()" aria-label="Close" style="position:absolute;top:8px;right:8px;width:40px;height:40px;display:flex;align-items:center;justify-content:center;background:none;border:none;color:rgba(245,242,236,0.45);font-size:1.6rem;cursor:pointer;line-height:1;z-index:1">×</button>
     <div style="padding:32px 36px 12px">
       <p style="font-size:0.6rem;letter-spacing:0.38em;text-transform:uppercase;color:#C9A96E;margin-bottom:8px">Events &amp; Weddings · Eden 54</p>
       <h2 style="font-family:'Cormorant Garamond',serif;font-size:1.9rem;font-weight:300;color:#F5F2EC;margin-bottom:4px">Reserve the Event Hall</h2>
-      <p style="font-size:0.78rem;color:rgba(245,242,236,0.45)">Availability is live — your reservation is confirmed instantly.</p>
+      <p style="font-size:0.78rem;color:rgba(245,242,236,0.65)">Availability is live — your reservation is confirmed instantly.</p>
     </div>
     <iframe id="edendoxEventBooking"
             data-src="https://eden54group.edendox.com/book/?type=event&amp;embed=1"
@@ -1892,11 +1772,11 @@
 <!-- Order Online modal (Restaurant & Bar) — Edendox booking embed, kind: order -->
 <div id="orderModal" style="position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:rgba(10,25,16,0.93);backdrop-filter:blur(10px);opacity:0;pointer-events:none;transition:opacity 0.3s;padding:20px">
   <div style="background:#0f2318;border:1px solid rgba(201,169,110,0.3);border-radius:3px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;position:relative">
-    <button onclick="closeOrderModal()" style="position:absolute;top:14px;right:18px;background:none;border:none;color:rgba(245,242,236,0.45);font-size:1.6rem;cursor:pointer;line-height:1;z-index:1">×</button>
+    <button onclick="closeOrderModal()" aria-label="Close" style="position:absolute;top:8px;right:8px;width:40px;height:40px;display:flex;align-items:center;justify-content:center;background:none;border:none;color:rgba(245,242,236,0.45);font-size:1.6rem;cursor:pointer;line-height:1;z-index:1">×</button>
     <div style="padding:32px 36px 12px">
       <p style="font-size:0.6rem;letter-spacing:0.38em;text-transform:uppercase;color:#C9A96E;margin-bottom:8px">Restaurant &amp; Bar · Eden 54</p>
       <h2 style="font-family:'Cormorant Garamond',serif;font-size:1.9rem;font-weight:300;color:#F5F2EC;margin-bottom:4px">Order Online</h2>
-      <p style="font-size:0.78rem;color:rgba(245,242,236,0.45)">Pick it up, eat in, or have it delivered.</p>
+      <p style="font-size:0.78rem;color:rgba(245,242,236,0.65)">Pick it up, eat in, or have it delivered.</p>
     </div>
     <iframe id="edendoxOrderBooking"
             data-src="https://eden54group.edendox.com/book/?type=order&amp;embed=1"
@@ -1943,7 +1823,7 @@ window.addEventListener('message', function (e) {
   transition:opacity 0.35s ease;
 ">
   <div style="position:relative;max-width:min(700px,90vw);width:100%;text-align:center">
-    <img id="foodPopImg" src="" alt="" style="
+    <img loading="lazy" id="foodPopImg" src="" alt="" style="
       width:100%;max-height:72vh;object-fit:cover;
       border-radius:3px;
       transform:scale(0.88);
@@ -2022,6 +1902,9 @@ window.addEventListener('message', function (e) {
     <span>Careers</span>
   </a>
   <a href="#contact" class="nav-book">Reserve Now</a>
+  <button class="hamburger" aria-label="Menu" id="navHamburger">
+    <div></div><div></div><div></div>
+  </button>
 </nav>
 
 <!-- ══════════════════════════════════════════════════════════════
@@ -2117,11 +2000,11 @@ window.addEventListener('message', function (e) {
     </div>
     <div class="intro-visual reveal reveal-delay-2">
       <div class="intro-card">
-        <img class="card-inner" src="venue/Eden54 front view.jpg" alt="Eden 54 Game Lounge & Steakhouse">
+        <img loading="lazy" class="card-inner" src="venue/Eden54 front view.jpg" alt="Eden 54 Game Lounge & Steakhouse">
         <div class="card-badge">Game Lounge &amp; Steakhouse</div>
       </div>
       <div class="intro-card">
-        <img class="card-inner" src="venue/apartment section.jpg" alt="Eden 54 Apartment Section">
+        <img loading="lazy" class="card-inner" src="venue/apartment section.jpg" alt="Eden 54 Apartment Section">
         <div class="card-badge">Apartments</div>
       </div>
     </div>
@@ -2145,7 +2028,7 @@ window.addEventListener('message', function (e) {
   <div class="amenities-grid">
     <a href="#dining" style="text-decoration:none;color:inherit;display:block">
     <div class="amenity-card reveal">
-      <img src="menu/Steak.jpg" alt="Fine Dining" class="amenity-card-img">
+      <img loading="lazy" src="menu/Steak.jpg" alt="Fine Dining" class="amenity-card-img">
       <div class="amenity-num">01</div>
       <div class="amenity-icon">🍽️</div>
       <h3 class="amenity-title">Fine Dining</h3>
@@ -2155,7 +2038,7 @@ window.addEventListener('message', function (e) {
     </a>
     <a href="/games/" style="text-decoration:none;color:inherit;display:block">
     <div class="amenity-card reveal reveal-delay-1">
-      <img src="venue/Eden54 front view.jpg" alt="Game House" class="amenity-card-img">
+      <img loading="lazy" src="venue/Eden54 front view.jpg" alt="Game House" class="amenity-card-img">
       <div class="amenity-num">02</div>
       <div class="amenity-icon">🎮</div>
       <h3 class="amenity-title">Game House</h3>
@@ -2165,7 +2048,7 @@ window.addEventListener('message', function (e) {
     </a>
     <a href="#outdoor" style="text-decoration:none;color:inherit;display:block">
     <div class="amenity-card reveal reveal-delay-2">
-      <img src="pool/pool.jpg" alt="Swimming Pool" class="amenity-card-img">
+      <img loading="lazy" src="pool/pool.jpg" alt="Swimming Pool" class="amenity-card-img">
       <div class="amenity-num">03</div>
       <div class="amenity-icon">🏊</div>
       <h3 class="amenity-title">Swimming Pool</h3>
@@ -2175,7 +2058,7 @@ window.addEventListener('message', function (e) {
     </a>
     <a href="#outdoor" style="text-decoration:none;color:inherit;display:block">
     <div class="amenity-card reveal reveal-delay-1">
-      <img src="pool/poolside.jpg" alt="Pergola Pool Bar" class="amenity-card-img">
+      <img loading="lazy" src="pool/poolside.jpg" alt="Pergola Pool Bar" class="amenity-card-img">
       <div class="amenity-num">04</div>
       <div class="amenity-icon">🍹</div>
       <h3 class="amenity-title">Pergola Pool Bar</h3>
@@ -2185,7 +2068,7 @@ window.addEventListener('message', function (e) {
     </a>
     <a href="/games/" style="text-decoration:none;color:inherit;display:block">
     <div class="amenity-card reveal reveal-delay-2">
-      <img src="venue/Eden54 front view.jpg" alt="Table Tennis" class="amenity-card-img">
+      <img loading="lazy" src="venue/Eden54 front view.jpg" alt="Table Tennis" class="amenity-card-img">
       <div class="amenity-num">05</div>
       <div class="amenity-icon">🏓</div>
       <h3 class="amenity-title">Table Tennis</h3>
@@ -2229,7 +2112,7 @@ window.addEventListener('message', function (e) {
 
     <!-- Chicken Skewers -->
     <div class="mc">
-      <img src="menu/chicken skewers.jpg" alt="Chicken Skewers" class="mc-img" onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'">
+      <img loading="lazy" src="menu/chicken skewers.jpg" alt="Chicken Skewers" class="mc-img" onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'">
       <div class="mc-fade"></div>
       <div class="mc-body">
         <h3 class="mc-name">Chicken Skewers</h3>
@@ -2246,7 +2129,7 @@ window.addEventListener('message', function (e) {
 
     <!-- Suya Skewers -->
     <div class="mc">
-      <img src="menu/Suya Skewers.jpg" alt="Suya Skewers" class="mc-img" onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'">
+      <img loading="lazy" src="menu/Suya Skewers.jpg" alt="Suya Skewers" class="mc-img" onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'">
       <div class="mc-fade"></div>
       <div class="mc-body">
         <h3 class="mc-name">Suya Skewers</h3>
@@ -2263,7 +2146,7 @@ window.addEventListener('message', function (e) {
 
     <!-- Steak Skewers -->
     <div class="mc">
-      <img src="menu/Stake Skewers.jpg" alt="Steak Skewers" class="mc-img" onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'">
+      <img loading="lazy" src="menu/Stake Skewers.jpg" alt="Steak Skewers" class="mc-img" onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'">
       <div class="mc-fade"></div>
       <div class="mc-body">
         <h3 class="mc-name">Steak Skewers</h3>
@@ -2280,7 +2163,7 @@ window.addEventListener('message', function (e) {
 
     <!-- Small Chops -->
     <div class="mc">
-      <img src="menu/Small chops.jpg" alt="Small Chops" class="mc-img" onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'">
+      <img loading="lazy" src="menu/Small chops.jpg" alt="Small Chops" class="mc-img" onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'">
       <div class="mc-fade"></div>
       <div class="mc-body">
         <h3 class="mc-name">Small Chops</h3>
@@ -2297,7 +2180,7 @@ window.addEventListener('message', function (e) {
 
     <!-- Catfish Pepper Soup -->
     <div class="mc">
-      <img src="menu/Cat-Fish-Pepper.jpg" alt="Catfish Pepper Soup" class="mc-img" onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'">
+      <img loading="lazy" src="menu/Cat-Fish-Pepper.jpg" alt="Catfish Pepper Soup" class="mc-img" onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'">
       <div class="mc-fade"></div>
       <div class="mc-body">
         <h3 class="mc-name">Catfish Pepper Soup</h3>
@@ -2314,7 +2197,7 @@ window.addEventListener('message', function (e) {
 
     <!-- Goat Meat Pepper Soup -->
     <div class="mc">
-      <img src="menu/Goat meat Pepper Soup.jpg" alt="Goat Meat Pepper Soup" class="mc-img" onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'">
+      <img loading="lazy" src="menu/Goat meat Pepper Soup.jpg" alt="Goat Meat Pepper Soup" class="mc-img" onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'">
       <div class="mc-fade"></div>
       <div class="mc-body">
         <h3 class="mc-name">Goat Meat Pepper Soup</h3>
@@ -2331,7 +2214,7 @@ window.addEventListener('message', function (e) {
 
     <!-- Chicken Quesadilla -->
     <div class="mc">
-      <img src="menu/chicken Quesadilla.jpg" alt="Chicken Quesadilla" class="mc-img" onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'">
+      <img loading="lazy" src="menu/chicken Quesadilla.jpg" alt="Chicken Quesadilla" class="mc-img" onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'">
       <div class="mc-fade"></div>
       <div class="mc-body">
         <h3 class="mc-name">Chicken Quesadilla</h3>
@@ -2348,7 +2231,7 @@ window.addEventListener('message', function (e) {
 
     <!-- Asun - Goat Meat -->
     <div class="mc">
-      <img src="menu/Asun-goat-meat.jpg" alt="Asun - Goat Meat" class="mc-img" onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'">
+      <img loading="lazy" src="menu/Asun-goat-meat.jpg" alt="Asun - Goat Meat" class="mc-img" onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'">
       <div class="mc-fade"></div>
       <div class="mc-body">
         <h3 class="mc-name">Asun</h3>
@@ -2365,7 +2248,7 @@ window.addEventListener('message', function (e) {
 
     <!-- Snail Skewers -->
     <div class="mc">
-      <img src="menu/Snail Skewers.jpg" alt="Snail Skewers" class="mc-img" onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'">
+      <img loading="lazy" src="menu/Snail Skewers.jpg" alt="Snail Skewers" class="mc-img" onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'">
       <div class="mc-fade"></div>
       <div class="mc-body">
         <h3 class="mc-name">Snail Skewers</h3>
@@ -2382,7 +2265,7 @@ window.addEventListener('message', function (e) {
 
     <!-- Chicken Wings -->
     <div class="mc">
-      <img src="menu/Chicken Wings.jpg" alt="Chicken Wings" class="mc-img" onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'">
+      <img loading="lazy" src="menu/Chicken Wings.jpg" alt="Chicken Wings" class="mc-img" onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'">
       <div class="mc-fade"></div>
       <div class="mc-body">
         <h3 class="mc-name">Chicken Wings</h3>
@@ -2415,7 +2298,7 @@ window.addEventListener('message', function (e) {
 
     <!-- Chicken Salad -->
     <div class="mc" style="height:420px">
-      <img src="menu/chicken salad.jpg" alt="Chicken Salad" class="mc-img" onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'">
+      <img loading="lazy" src="menu/chicken salad.jpg" alt="Chicken Salad" class="mc-img" onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'">
       <div class="mc-fade"></div>
       <div class="mc-body">
         <h3 class="mc-name">Chicken Salad</h3>
@@ -2431,7 +2314,7 @@ window.addEventListener('message', function (e) {
 
     <!-- Goat Meat Salad -->
     <div class="mc" style="height:420px">
-      <img src="menu/Goat meat Salad.jpg" alt="Goat Meat Salad" class="mc-img" onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'">
+      <img loading="lazy" src="menu/Goat meat Salad.jpg" alt="Goat Meat Salad" class="mc-img" onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'">
       <div class="mc-fade"></div>
       <div class="mc-body">
         <h3 class="mc-name">Goat Meat Salad</h3>
@@ -2447,7 +2330,7 @@ window.addEventListener('message', function (e) {
 
     <!-- Potato Salad -->
     <div class="mc" style="height:420px">
-      <img src="menu/Potatoe Salad.jpg" alt="Potato Salad" class="mc-img" onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'">
+      <img loading="lazy" src="menu/Potatoe Salad.jpg" alt="Potato Salad" class="mc-img" onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'">
       <div class="mc-fade"></div>
       <div class="mc-body">
         <h3 class="mc-name">Potato Salad</h3>
@@ -2479,7 +2362,7 @@ window.addEventListener('message', function (e) {
 
     <!-- Suya Tacos -->
     <div class="mc">
-      <img src="menu/Suya Tacos.jpg" alt="Suya Tacos" class="mc-img" onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'">
+      <img loading="lazy" src="menu/Suya Tacos.jpg" alt="Suya Tacos" class="mc-img" onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'">
       <div class="mc-fade"></div>
       <div class="mc-body">
         <h3 class="mc-name">Suya Tacos</h3>
@@ -2497,7 +2380,7 @@ window.addEventListener('message', function (e) {
 
     <!-- Chipotle Rice Bowl -->
     <div class="mc">
-      <img src="menu/Chipotle Rice Bowl.jpg" alt="Chipotle Rice Bowl" class="mc-img" onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'">
+      <img loading="lazy" src="menu/Chipotle Rice Bowl.jpg" alt="Chipotle Rice Bowl" class="mc-img" onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'">
       <div class="mc-fade"></div>
       <div class="mc-body">
         <h3 class="mc-name">Chipotle Rice Bowl</h3>
@@ -2514,7 +2397,7 @@ window.addEventListener('message', function (e) {
 
     <!-- Jollof Rice -->
     <div class="mc">
-      <img src="menu/Jollof Rice.jpg" alt="Jollof Rice" class="mc-img" onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'">
+      <img loading="lazy" src="menu/Jollof Rice.jpg" alt="Jollof Rice" class="mc-img" onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'">
       <div class="mc-fade"></div>
       <div class="mc-body">
         <h3 class="mc-name">Jollof Rice</h3>
@@ -2531,7 +2414,7 @@ window.addEventListener('message', function (e) {
 
     <!-- Fried Rice -->
     <div class="mc">
-      <img src="menu/Fried Rice.jpg" alt="Fried Rice" class="mc-img" onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'">
+      <img loading="lazy" src="menu/Fried Rice.jpg" alt="Fried Rice" class="mc-img" onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'">
       <div class="mc-fade"></div>
       <div class="mc-body">
         <h3 class="mc-name">Fried Rice</h3>
@@ -2548,7 +2431,7 @@ window.addEventListener('message', function (e) {
 
     <!-- Chicken & Chips -->
     <div class="mc">
-      <img src="menu/Chicken & Chips.jpg" alt="Chicken & Chips" class="mc-img" onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'">
+      <img loading="lazy" src="menu/Chicken & Chips.jpg" alt="Chicken & Chips" class="mc-img" onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'">
       <div class="mc-fade"></div>
       <div class="mc-body">
         <h3 class="mc-name">Chicken &amp; Chips</h3>
@@ -2565,7 +2448,7 @@ window.addEventListener('message', function (e) {
 
     <!-- Grilled Catfish -->
     <div class="mc">
-      <img src="menu/Grilled Cat fish.jpg" alt="Grilled Catfish" class="mc-img" onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'">
+      <img loading="lazy" src="menu/Grilled Cat fish.jpg" alt="Grilled Catfish" class="mc-img" onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'">
       <div class="mc-fade"></div>
       <div class="mc-body">
         <h3 class="mc-name">Grilled Catfish</h3>
@@ -2582,7 +2465,7 @@ window.addEventListener('message', function (e) {
 
     <!-- Grilled Croaker -->
     <div class="mc">
-      <img src="menu/Grilled Croaker Fish.jpg" alt="Grilled Croaker Fish" class="mc-img" onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'">
+      <img loading="lazy" src="menu/Grilled Croaker Fish.jpg" alt="Grilled Croaker Fish" class="mc-img" onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'">
       <div class="mc-fade"></div>
       <div class="mc-body">
         <h3 class="mc-name">Grilled Croaker</h3>
@@ -2599,7 +2482,7 @@ window.addEventListener('message', function (e) {
 
     <!-- Grilled Tilapia -->
     <div class="mc">
-      <img src="menu/Grilled Tilapia Fish.jpg" alt="Grilled Tilapia Fish" class="mc-img" onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'">
+      <img loading="lazy" src="menu/Grilled Tilapia Fish.jpg" alt="Grilled Tilapia Fish" class="mc-img" onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'">
       <div class="mc-fade"></div>
       <div class="mc-body">
         <h3 class="mc-name">Grilled Tilapia</h3>
@@ -2616,7 +2499,7 @@ window.addEventListener('message', function (e) {
 
     <!-- Chicken Shawarma -->
     <div class="mc">
-      <img src="menu/Chicken Shawarma.jpg" alt="Chicken Shawarma" class="mc-img" onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'">
+      <img loading="lazy" src="menu/Chicken Shawarma.jpg" alt="Chicken Shawarma" class="mc-img" onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'">
       <div class="mc-fade"></div>
       <div class="mc-body">
         <h3 class="mc-name">Chicken Shawarma</h3>
@@ -2633,7 +2516,7 @@ window.addEventListener('message', function (e) {
 
     <!-- Suya Shawarma -->
     <div class="mc">
-      <img src="menu/Suya Shawarma.jpg" alt="Suya Shawarma" class="mc-img" onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'">
+      <img loading="lazy" src="menu/Suya Shawarma.jpg" alt="Suya Shawarma" class="mc-img" onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'">
       <div class="mc-fade"></div>
       <div class="mc-body">
         <h3 class="mc-name">Suya Shawarma</h3>
@@ -2650,7 +2533,7 @@ window.addEventListener('message', function (e) {
 
     <!-- Pasta -->
     <div class="mc">
-      <img src="menu/pasta.jpg" alt="Pasta" class="mc-img" onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'">
+      <img loading="lazy" src="menu/pasta.jpg" alt="Pasta" class="mc-img" onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'">
       <div class="mc-fade"></div>
       <div class="mc-body">
         <h3 class="mc-name">Pasta</h3>
@@ -2667,7 +2550,7 @@ window.addEventListener('message', function (e) {
 
     <!-- Ofada Jambalaya -->
     <div class="mc">
-      <img src="menu/ofada jambalaya.jpg" alt="Ofada Jambalaya" class="mc-img" onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'">
+      <img loading="lazy" src="menu/ofada jambalaya.jpg" alt="Ofada Jambalaya" class="mc-img" onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'">
       <div class="mc-fade"></div>
       <div class="mc-body">
         <h3 class="mc-name">Ofada Jambalaya</h3>
@@ -2702,7 +2585,7 @@ window.addEventListener('message', function (e) {
 
     <!-- Seafood Broil -->
     <div class="mc" style="height:480px">
-      <img src="menu/Seafood Broil.jpg" alt="Seafood Broil" class="mc-img" onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'">
+      <img loading="lazy" src="menu/Seafood Broil.jpg" alt="Seafood Broil" class="mc-img" onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'">
       <div class="mc-fade"></div>
       <div class="mc-body">
         <p style="font-size:0.6rem;letter-spacing:0.3em;text-transform:uppercase;color:var(--gold);margin-bottom:8px">Chef's Selection</p>
@@ -2720,7 +2603,7 @@ window.addEventListener('message', function (e) {
 
     <!-- Steak -->
     <div class="mc" style="height:480px">
-      <img src="menu/Steak.jpg" alt="Steak" class="mc-img" onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'">
+      <img loading="lazy" src="menu/Steak.jpg" alt="Steak" class="mc-img" onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'">
       <div class="mc-fade"></div>
       <div class="mc-body">
         <p style="font-size:0.6rem;letter-spacing:0.3em;text-transform:uppercase;color:var(--gold);margin-bottom:8px">Signature</p>
@@ -2738,7 +2621,7 @@ window.addEventListener('message', function (e) {
 
     <!-- Lamb Chops -->
     <div class="mc" style="height:480px">
-      <img src="menu/Lamb Chops.jpg" alt="Lamb Chops" class="mc-img" onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'">
+      <img loading="lazy" src="menu/Lamb Chops.jpg" alt="Lamb Chops" class="mc-img" onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'">
       <div class="mc-fade"></div>
       <div class="mc-body">
         <p style="font-size:0.6rem;letter-spacing:0.3em;text-transform:uppercase;color:var(--gold);margin-bottom:8px">Signature</p>
@@ -2756,7 +2639,7 @@ window.addEventListener('message', function (e) {
 
     <!-- Full Grilled Chicken -->
     <div class="mc" style="height:480px">
-      <img src="menu/Full chicken.jpg" alt="Full Grilled Chicken" class="mc-img" onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'">
+      <img loading="lazy" src="menu/Full chicken.jpg" alt="Full Grilled Chicken" class="mc-img" onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'">
       <div class="mc-fade"></div>
       <div class="mc-body">
         <p style="font-size:0.6rem;letter-spacing:0.3em;text-transform:uppercase;color:var(--gold);margin-bottom:8px">Signature</p>
@@ -2774,7 +2657,7 @@ window.addEventListener('message', function (e) {
 
     <!-- Pounded Yam with Efo Riro -->
     <div class="mc" style="height:480px">
-      <img src="menu/Pounded Yam.jpg" alt="Pounded Yam with Efo Riro" class="mc-img" onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'">
+      <img loading="lazy" src="menu/Pounded Yam.jpg" alt="Pounded Yam with Efo Riro" class="mc-img" onmouseover="this.style.transform='scale(1.06)'" onmouseout="this.style.transform='scale(1)'">
       <div class="mc-fade"></div>
       <div class="mc-body">
         <p style="font-size:0.6rem;letter-spacing:0.3em;text-transform:uppercase;color:var(--gold);margin-bottom:8px">Signature</p>
@@ -2816,7 +2699,7 @@ window.addEventListener('message', function (e) {
 
     <!-- Zesty Cinnamon Splash -->
     <div style="position:relative;overflow:hidden;border-radius:2px;min-height:580px">
-      <img src="/drinks/zesty-cinnamon-splash.jpg" alt="Zesty Cinnamon Splash" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform 0.6s ease" onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
+      <img loading="lazy" src="/drinks/zesty-cinnamon-splash.jpg" alt="Zesty Cinnamon Splash" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform 0.6s ease" onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
       <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(10,25,16,0.92) 0%,rgba(10,25,16,0.3) 50%,transparent 100%)"></div>
       <div style="position:absolute;bottom:0;left:0;right:0;padding:44px 40px">
         <p style="font-size:0.62rem;letter-spacing:0.38em;text-transform:uppercase;color:var(--gold);margin-bottom:10px">Signature Cocktail</p>
@@ -2838,7 +2721,7 @@ window.addEventListener('message', function (e) {
 
     <!-- Ruby Spark -->
     <div style="position:relative;overflow:hidden;border-radius:2px;min-height:580px">
-      <img src="/drinks/ruby-spark.jpg" alt="Ruby Spark" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform 0.6s ease" onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
+      <img loading="lazy" src="/drinks/ruby-spark.jpg" alt="Ruby Spark" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform 0.6s ease" onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
       <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(10,25,16,0.92) 0%,rgba(10,25,16,0.3) 50%,transparent 100%)"></div>
       <div style="position:absolute;bottom:0;left:0;right:0;padding:44px 40px">
         <p style="font-size:0.62rem;letter-spacing:0.38em;text-transform:uppercase;color:var(--gold);margin-bottom:10px">Signature Cocktail</p>
@@ -2893,7 +2776,7 @@ window.addEventListener('message', function (e) {
     <div class="explore-grid">
 
       <div class="explore-card reveal">
-        <img class="explore-img" src="explore/Erin-ijesa-waterfall.jpg" alt="Olumirin Waterfall, Erin-Ijesha">
+        <img loading="lazy" class="explore-img" src="explore/Erin-ijesa-waterfall.jpg" alt="Olumirin Waterfall, Erin-Ijesha">
         <div class="explore-info">
           <h3>Olumirin Waterfall</h3>
           <p class="explore-location">Erin-Ijesha · Approx. 45 min drive</p>
@@ -2903,7 +2786,7 @@ window.addEventListener('message', function (e) {
       </div>
 
       <div class="explore-card reveal">
-        <img class="explore-img" src="explore/Osun-grove.jpg" alt="Osun-Osogbo Sacred Grove">
+        <img loading="lazy" class="explore-img" src="explore/Osun-grove.jpg" alt="Osun-Osogbo Sacred Grove">
         <div class="explore-info">
           <h3>Osun Sacred Grove</h3>
           <p class="explore-location">Osogbo · UNESCO World Heritage Site</p>
@@ -2942,7 +2825,7 @@ window.addEventListener('message', function (e) {
     </div>
     <div class="outdoor-grid">
       <div class="outdoor-main reveal">
-        <img src="pool/poolside.jpg" alt="Eden 54 Pool Side" class="outdoor-main-img">
+        <img loading="lazy" src="pool/poolside.jpg" alt="Eden 54 Pool Side" class="outdoor-main-img">
         <div class="pool-icon">🌊</div>
         <h3>The Eden <em>Swimming Pool</em></h3>
         <p>A pristine swimming pool perfect for leisure and relaxation. Lined with private cabanas and attended by our poolside team ready to bring you refreshments and ice-cold towels on demand.</p>
@@ -3007,7 +2890,7 @@ window.addEventListener('message', function (e) {
     </div>
     <div class="rooms-grid">
       <div class="room-card reveal">
-        <div class="room-bg"><img src="venue/apartment section.jpg" alt="One-Bedroom Suite"></div>
+        <div class="room-bg"><img loading="lazy" src="venue/apartment section.jpg" alt="One-Bedroom Suite"></div>
         <div class="room-arrow">→</div>
         <div class="room-content">
           <p class="room-tag">Entry Collection</p>
@@ -3021,7 +2904,7 @@ window.addEventListener('message', function (e) {
         </div>
       </div>
       <div class="room-card reveal reveal-delay-1">
-        <div class="room-bg"><img src="venue/apartment section.jpg" alt="Two-Bedroom Suite"></div>
+        <div class="room-bg"><img loading="lazy" src="venue/apartment section.jpg" alt="Two-Bedroom Suite"></div>
         <div class="room-arrow">→</div>
         <div class="room-content">
           <p class="room-tag">Signature Collection</p>
@@ -3035,7 +2918,7 @@ window.addEventListener('message', function (e) {
         </div>
       </div>
       <div class="room-card reveal reveal-delay-2">
-        <div class="room-bg"><img src="venue/apartment section.jpg" alt="Three-Bedroom Suite"></div>
+        <div class="room-bg"><img loading="lazy" src="venue/apartment section.jpg" alt="Three-Bedroom Suite"></div>
         <div class="room-arrow">→</div>
         <div class="room-content">
           <p class="room-tag">Prestige Collection</p>
@@ -3272,7 +3155,7 @@ window.addEventListener('message', function (e) {
 <footer>
   <div class="footer-grid">
     <div class="footer-brand">
-      <div class="logo"><img src="logo/eden 54 logo.jpeg" alt="Eden 54"></div>
+      <div class="logo"><img loading="lazy" src="logo/eden 54 logo.jpeg" alt="Eden 54"></div>
       <p>A collection of luxury service apartments where every detail is designed to elevate your experience. Live beautifully. Stay memorably.</p>
       <div class="footer-socials">
         <a href="#" class="social-btn">𝕏</a>
@@ -3303,10 +3186,10 @@ window.addEventListener('message', function (e) {
     <div class="footer-col">
       <h5>Information</h5>
       <ul>
-        <li><a href="#">About Eden 54</a></li>
-        <li><a href="#">Gallery</a></li>
+        <li><a href="#amenities">About Eden 54</a></li>
+        <li><a href="#explore">Gallery</a></li>
         <li><a href="#" onclick="openEventModal(event)">Events & Weddings</a></li>
-        <li><a href="#">Careers</a></li>
+        <li><a href="/careers">Careers</a></li>
         <li><a href="#">Privacy Policy</a></li>
       </ul>
     </div>
@@ -3350,6 +3233,19 @@ window.addEventListener('message', function (e) {
     link.addEventListener('click', () => {
       document.querySelectorAll('.nav-dropdown').forEach(d => d.classList.remove('open'));
     });
+  });
+
+  /* ── MOBILE NAV (hamburger) ──────────────────────────────────
+     Below 1024px, .nav-links becomes a full-screen overlay toggled
+     by the hamburger button. Dropdown toggles (Amenities/Services)
+     still just expand/collapse their submenu in place — only an
+     actual destination link (top-level, or inside an open dropdown)
+     closes the whole overlay.
+     ---------------------------------------------------------- */
+  const navLinksEl = document.querySelector('.nav-links');
+  document.getElementById('navHamburger').addEventListener('click', () => navLinksEl.classList.toggle('open'));
+  document.querySelectorAll('.nav-links > li > a:not(.nav-dropdown-toggle), .nav-dropdown-menu a').forEach(link => {
+    link.addEventListener('click', () => navLinksEl.classList.remove('open'));
   });
 
   /* ── LOGO LIGHTBOX ───────────────────────────────────────────
@@ -3483,20 +3379,25 @@ window.addEventListener('message', function (e) {
      the smooth trailing lag effect. requestAnimationFrame keeps
      it in sync with the screen refresh rate (typically 60fps).
      ---------------------------------------------------------- */
-  const cursor = document.getElementById('cursor');
-  const ring   = document.getElementById('cursorRing');
-  let mx = 0, my = 0, rx = 0, ry = 0;
-  document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
-  function animateCursor() {
-    cursor.style.left = mx + 'px';
-    cursor.style.top  = my + 'px';
-    rx += (mx - rx) * 0.12; // eases toward mouse X
-    ry += (my - ry) * 0.12; // eases toward mouse Y
-    ring.style.left = rx + 'px';
-    ring.style.top  = ry + 'px';
-    requestAnimationFrame(animateCursor); // runs again on next screen refresh
+  // Desktop/mouse only — on a touch device there's no mousemove to drive
+  // this, so starting the loop would just waste battery on a dot frozen
+  // at (0,0) (matches the CSS gate above on .cursor/.cursor-ring).
+  if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+    const cursor = document.getElementById('cursor');
+    const ring   = document.getElementById('cursorRing');
+    let mx = 0, my = 0, rx = 0, ry = 0;
+    document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+    function animateCursor() {
+      cursor.style.left = mx + 'px';
+      cursor.style.top  = my + 'px';
+      rx += (mx - rx) * 0.12; // eases toward mouse X
+      ry += (my - ry) * 0.12; // eases toward mouse Y
+      ring.style.left = rx + 'px';
+      ring.style.top  = ry + 'px';
+      requestAnimationFrame(animateCursor); // runs again on next screen refresh
+    }
+    animateCursor();
   }
-  animateCursor();
 
   /* ── NAV SCROLL EFFECT ───────────────────────────────────────
      Listens for the user scrolling. Once they pass 60px down,

@@ -30,6 +30,8 @@
   .nav-links { display: flex; gap: 32px; list-style: none; align-items: center; }
   .nav-links a { color: var(--text); text-decoration: none; font-size: 0.78rem; letter-spacing: 0.18em; text-transform: uppercase; opacity: 0.8; transition: opacity 0.2s, color 0.2s; }
   .nav-links a:hover, .nav-links a.active { opacity: 1; color: var(--gold); }
+  .hamburger { display: none; flex-direction: column; gap: 5px; background: none; border: none; cursor: pointer; padding: 4px; }
+  .hamburger div { width: 22px; height: 1px; background: var(--text); }
   .btn-gold {
     display: inline-block; padding: 14px 40px;
     border: 1px solid var(--gold); color: var(--gold);
@@ -131,6 +133,8 @@
   @media (max-width: 768px) {
     nav { padding: 16px 24px; }
     .nav-links { display: none; }
+    .hamburger { display: flex; }
+    .nav-links.open { display: flex; flex-direction: column; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15,35,24,0.98); justify-content: center; align-items: center; gap: 28px; z-index: 10001; }
     section { padding: 72px 24px; }
     .hero-content { padding: 0 24px; }
     footer { padding: 32px 24px; flex-direction: column; align-items: flex-start; }
@@ -162,6 +166,9 @@
     <li><a href="/car-rental">Car Rental</a></li>
     <li><a href="/#contact" class="btn-gold" style="padding:10px 22px;" onclick="openGamesModal(event)">Reserve</a></li>
   </ul>
+  <button class="hamburger" aria-label="Menu" id="navHamburger">
+    <div></div><div></div><div></div>
+  </button>
 </nav>
 
 <!-- HERO -->
@@ -332,11 +339,11 @@
 <!-- BOOKING MODAL -->
 <div id="gamesModal" style="position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:rgba(10,25,16,0.93);backdrop-filter:blur(10px);opacity:0;pointer-events:none;transition:opacity 0.3s;padding:20px">
   <div style="background:#0f2318;border:1px solid rgba(201,169,110,0.3);border-radius:3px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;position:relative">
-    <button onclick="closeGamesModal()" style="position:absolute;top:14px;right:18px;background:none;border:none;color:rgba(245,242,236,0.45);font-size:1.6rem;cursor:pointer;line-height:1">×</button>
+    <button onclick="closeGamesModal()" aria-label="Close" style="position:absolute;top:8px;right:8px;width:40px;height:40px;display:flex;align-items:center;justify-content:center;background:none;border:none;color:rgba(245,242,236,0.45);font-size:1.6rem;cursor:pointer;line-height:1">×</button>
     <div style="padding:32px 36px 20px">
       <p style="font-size:0.6rem;letter-spacing:0.38em;text-transform:uppercase;color:#C9A96E;margin-bottom:8px">Games &amp; Pool · Eden 54</p>
       <h2 style="font-family:'Cormorant Garamond',serif;font-size:1.9rem;font-weight:300;color:#F5F2EC;margin-bottom:4px">Book Your Session</h2>
-      <p style="font-size:0.78rem;color:rgba(245,242,236,0.45)">Reserve your spot — walk-ins welcome, advance booking guaranteed.</p>
+      <p style="font-size:0.78rem;color:rgba(245,242,236,0.65)">Reserve your spot — walk-ins welcome, advance booking guaranteed.</p>
     </div>
     <form id="gamesForm" style="padding:0 36px 36px" onsubmit="submitGamesForm(event)">
       <input type="hidden" name="_subject" value="Games &amp; Pool Booking — Eden 54">
@@ -388,6 +395,8 @@ function closeGamesModal(){ const m=document.getElementById('gamesModal'); m.sty
 async function submitGamesForm(e){ e.preventDefault(); const btn=document.getElementById('gamesSubmitBtn'); btn.textContent='Sending…'; btn.disabled=true; const data={}; new FormData(e.target).forEach((v,k)=>data[k]=v); try{ const r=await fetch('https://formsubmit.co/ajax/eden54group@gmail.com',{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify(data)}); if(r.ok){ document.getElementById('gamesForm').style.display='none'; document.getElementById('gamesSuccess').style.display='block'; setTimeout(closeGamesModal,4000); }else throw 0; }catch{ btn.textContent='Reserve My Session →'; btn.disabled=false; alert('Something went wrong — please try again.'); } }
 document.getElementById('gamesModal').addEventListener('click',function(e){ if(e.target===this) closeGamesModal(); });
 document.addEventListener('keydown', e => { if(e.key==='Escape') closeGamesModal(); });
+document.getElementById('navHamburger').addEventListener('click', () => document.querySelector('.nav-links').classList.toggle('open'));
+document.querySelectorAll('.nav-links a').forEach(a => a.addEventListener('click', () => document.querySelector('.nav-links').classList.remove('open')));
 </script>
 </body>
 </html>
