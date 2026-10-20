@@ -501,6 +501,7 @@ body{background:var(--bg);color:var(--text);font-family:'Jost',sans-serif;font-w
     </div>
 
     <div class="cf-turnstile" id="bcTurnstile" data-sitekey="0x4AAAAAAEnrOOs4sD95jTTV" style="margin:14px 0"></div>
+    <div id="bcTurnstileNote" style="display:none;font-size:0.78rem;color:#b45309;margin:-8px 0 14px;line-height:1.6"></div>
 
     <div class="bc-acts">
       <button class="btn-bk" onclick="goBack(5)">← Back</button>
@@ -595,6 +596,24 @@ function edxTurnstileToken() {
   const el = document.querySelector('#bcTurnstile [name="cf-turnstile-response"]');
   return el ? el.value : '';
 }
+
+// If an ad blocker / privacy browser stops challenges.cloudflare.com from
+// loading at all, the widget never appears and edxTurnstileToken() silently
+// returns '' forever — the submit button's "please wait a moment" message
+// would otherwise repeat endlessly with no way for the visitor to tell a
+// transient delay apart from a permanent block. After a generous 10s grace
+// period, say so explicitly instead.
+let edxTurnstileBlocked = false;
+setTimeout(function () {
+  if (!window.turnstile) {
+    edxTurnstileBlocked = true;
+    const note = $('bcTurnstileNote');
+    if (note) {
+      note.innerHTML = 'The security check didn\'t load — this is usually an ad blocker or privacy extension blocking Cloudflare. Please disable it for this site (or try a different browser), then <button type="button" onclick="location.reload()" style="background:none;border:none;color:#b45309;text-decoration:underline;cursor:pointer;font:inherit;padding:0">reload the page</button>.';
+      note.style.display = 'block';
+    }
+  }
+}, 10000);
 
 /* Auto-fill dates */
 (function(){
@@ -722,7 +741,10 @@ async function submitForm() {
   // token fresh right before sending instead of trusting this snapshot
   // (Cloudflare's widget auto-refreshes itself in the background either way).
   if (!edxTurnstileToken()) {
-    showErr('Please wait a moment for the verification check to finish, then try again.'); return;
+    showErr(edxTurnstileBlocked
+      ? 'The security check couldn\'t load — disable any ad blocker or privacy extension for this site, then reload the page and try again.'
+      : 'Please wait a moment for the verification check to finish, then try again.');
+    return;
   }
 
   const btn = $('submitBtn'); btn.disabled = true; clearErr();

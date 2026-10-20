@@ -98,7 +98,7 @@
      added by JavaScript when window.scrollY > 60px).
      ---------------------------------------------------------- */
   nav {
-    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    position: fixed; top: var(--banner-h, 0px); left: 0; right: 0; z-index: 100;
     padding: 28px 60px;
     display: flex; align-items: center; justify-content: space-between; /* Logo | Links | Button */
     background: linear-gradient(to bottom, rgba(27,58,42,0.97) 0%, transparent 100%);
@@ -1792,7 +1792,7 @@
 <!-- ═══════════════════════════════════════════════════
      COMING SOON BANNER — remove when ready to launch
      ═══════════════════════════════════════════════════ -->
-<div style="
+<div id="comingSoonBanner" style="
   position:fixed; top:0; left:0; right:0; z-index:10000;
   background:var(--gold); color:var(--deep);
   text-align:center; padding:10px 20px;
@@ -1804,7 +1804,23 @@
   <span><strong>Coming Soon</strong> &nbsp;·&nbsp; Opening December 15, 2026 — something extraordinary is on its way</span>
   <span style="font-size:1rem;">&#9670;</span>
 </div>
-<div style="height:40px"></div>
+<div id="comingSoonSpacer"></div>
+<script>
+  (function () {
+    var banner = document.getElementById('comingSoonBanner');
+    var spacer = document.getElementById('comingSoonSpacer');
+    function sizeBanner() {
+      var h = banner.offsetHeight;
+      spacer.style.height = h + 'px';
+      // CSS custom property, not getElementById('nav') — <nav> hasn't been
+      // parsed yet at this point in the document, but nav's own CSS reads
+      // var(--banner-h) whenever it IS parsed, so there's no race/flash.
+      document.documentElement.style.setProperty('--banner-h', h + 'px');
+    }
+    sizeBanner();
+    window.addEventListener('resize', sizeBanner);
+  })();
+</script>
 <!-- ═══════════════════════════════════════════════════ -->
 
 <!-- ══════════════════════════════════════════════════════════════

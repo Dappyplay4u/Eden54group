@@ -31,12 +31,16 @@ a.btn-gold:hover { opacity: 0.85; }
   <p class="eyebrow">Eden 54 Group · Careers</p>
   <h1>Application <em>Received</em></h1>
   <div class="divider"></div>
-  <p>Thank you for applying for the <strong>Facility Manager</strong> position at Eden 54. We have received your application and documents.</p>
+  <p>Thank you for applying for the <strong id="roleName">this position</strong> at Eden 54. We have received your application and documents.</p>
   <p>Our team will review your submission and reach out to you via WhatsApp or email within <strong>5–7 business days</strong>.</p>
   <div class="links">
     <a href="/" class="btn btn-outline">Return Home</a>
     <a href="/careers" class="btn btn-gold">View All Roles</a>
   </div>
 </div>
+<script>
+  const role = new URLSearchParams(window.location.search).get('role');
+  if (role) document.getElementById('roleName').textContent = role;
+</script>
 </body>
 </html>

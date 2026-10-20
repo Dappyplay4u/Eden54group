@@ -785,7 +785,7 @@ async function submitApplication() {
   } catch (_) {}
 
   // ── 3. Redirect to thank-you page ──
-  window.location.href = '/careers/apply/thank-you/';
+  window.location.href = '/careers/apply/thank-you/?role=' + encodeURIComponent('Facility Manager');
 }
 
 // Default today's date for signature

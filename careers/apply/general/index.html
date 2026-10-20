@@ -447,7 +447,7 @@ async function submitApplication() {
     await fetch('https://formsubmit.co/eden54group@gmail.com', { method: 'POST', body: fd });
   } catch (_) {}
 
-  window.location.href = '/careers/apply/thank-you/';
+  window.location.href = '/careers/apply/thank-you/?role=' + encodeURIComponent(roleName);
 }
 
 document.getElementById('f_sigdate').valueAsDate = new Date();
